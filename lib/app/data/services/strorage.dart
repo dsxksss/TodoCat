@@ -6,4 +6,5 @@ abstract class Strorage<T> extends GetxService {
   void write(String key, T value);
   void writeMany(List<T> values);
   void delete(String key);
+  bool has(String key);
 }

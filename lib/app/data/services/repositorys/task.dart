@@ -7,6 +7,9 @@ class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
 
   Future<TaskRepository> init() async {
+    // 注册Hive数据模板
+    Hive.registerAdapter(TaskAdapter());
+    // 开启数据盒
     await Hive.openBox<Task>(taskKey);
     _box = Hive.box(taskKey);
     return this;
@@ -18,13 +21,15 @@ class TaskRepository extends Strorage<Task> {
   }
 
   @override
-  void write(String key, dynamic value) async {
-    await _box.put(key, value);
+  void write(String key, Task value) {
+    if (!_box.containsKey(key)) {
+      _box.put(key, value);
+    }
   }
 
   @override
-  void delete(String key) async {
-    await _box.delete(key);
+  void delete(String key) {
+    _box.delete(key);
   }
 
   @override
@@ -35,7 +40,12 @@ class TaskRepository extends Strorage<Task> {
   @override
   void writeMany(List<Task> values) {
     for (var element in values) {
-      _box.put(element.title, element);
+      write(element.title, element);
     }
+  }
+
+  @override
+  bool has(String key) {
+    return _box.containsKey(key);
   }
 }

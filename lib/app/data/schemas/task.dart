@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:todo_cat/app/data/schemas/todo.dart';
 //flutter packages pub run build_runner build 记得使用此命令生成文件
 part "task.g.dart";
 
@@ -14,7 +15,7 @@ class Task extends HiveObject {
   String color;
 
   @HiveField(3)
-  List<dynamic>? todos;
+  List<Todo>? todos;
 
   Task({
     required this.title,
@@ -27,7 +28,7 @@ class Task extends HiveObject {
     String? title,
     int? icon,
     String? color,
-    List<dynamic>? todos,
+    List<Todo>? todos,
   }) =>
       Task(
           title: title ?? this.title,
