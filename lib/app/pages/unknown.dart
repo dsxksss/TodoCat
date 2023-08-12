@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class Unknown extends StatelessWidget {
-  const Unknown({super.key});
+class UnknownPage extends StatelessWidget {
+  const UnknownPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,7 +10,9 @@ class Unknown extends StatelessWidget {
         appBar: AppBar(title: const Text("Unknown Page")),
         body: Center(
             child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Text("Unknown Page Please Enter Go Back Button!"),
             ElevatedButton(
               child: const Text("Go Back"),
               onPressed: () => Get.back(),

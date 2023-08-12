@@ -1,10 +1,9 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/locales/locales.dart';
-import 'package:todo_cat/pages/home.dart';
-import 'package:todo_cat/pages/other.dart';
-import 'package:todo_cat/pages/unknown.dart';
+import 'package:todo_cat/app/locales/locales.dart';
+import 'package:todo_cat/app/pages/unknown.dart';
+import 'package:todo_cat/app/routers/router_map.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -12,6 +11,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      title: "TodoCat",
       translations: Locales(),
       locale: const Locale("zh", "CN"),
       fallbackLocale: const Locale('en', 'US'),
@@ -21,15 +21,10 @@ class App extends StatelessWidget {
       useInheritedMediaQuery: true,
       unknownRoute: GetPage(
           name: '/notfound',
-          page: () => const Unknown(),
+          page: () => const UnknownPage(),
           transition: Transition.fadeIn),
       initialRoute: '/',
-      getPages: [
-        GetPage(
-            name: '/', page: () => const Home(), transition: Transition.fadeIn),
-        GetPage(
-            name: '/other', page: () => Other(), transition: Transition.fadeIn),
-      ],
+      getPages: routerMap,
     );
   }
 }
