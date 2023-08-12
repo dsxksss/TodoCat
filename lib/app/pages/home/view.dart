@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/app/core/utils/extensions.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
+import 'package:todo_cat/app/pages/home/widgets/task_card.dart';
 
 class HomePage extends GetView<HomeController> {
   HomePage({super.key});
@@ -9,26 +11,41 @@ class HomePage extends GetView<HomeController> {
   @override
   Widget build(context) {
     return Scaffold(
-        body: Center(
-            child: Obx(
-      () => Column(
-        children: [
-          ElevatedButton(
-            onPressed: () async => {
-              controller.addTask(task),
-            },
-            child: const Text("Add Task"),
-          ),
-          ElevatedButton(
-            onPressed: () async => {
-              controller.deleteTask(task.title),
-            },
-            child: const Text("Delete Task"),
-          ),
-          const Text("Home Page"),
-          ...controller.tasks.map((element) => Text(element.title))
-        ],
+      body: SafeArea(
+        child: ListView(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(4.0.wp),
+              child: Text(
+                "myTasks".tr,
+                style: TextStyle(
+                  fontSize: 8.0.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            GridView.count(
+              crossAxisCount: 4,
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              children: [
+                TaskCard(
+                  task: task,
+                ),
+                TaskCard(
+                  task: task,
+                ),
+                TaskCard(
+                  task: task,
+                ),
+                TaskCard(
+                  task: task,
+                ),
+              ],
+            )
+          ],
+        ),
       ),
-    )));
+    );
   }
 }
