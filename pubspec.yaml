@@ -9,13 +9,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # 设备测试插件
+  # 设备测试框架
   device_preview: 1.1.0
   # 状态管理框架
   get: 4.6.5
   # 本地数据库存储hive
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  google_fonts: ^5.1.0
+  # 尺寸适配框架
+  flutter_screenutil: ^5.8.4
 
 dev_dependencies:
   flutter_test:

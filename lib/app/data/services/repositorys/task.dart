@@ -1,10 +1,10 @@
-import 'package:todo_cat/app/core/utils/keys.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/data/services/strorage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
+  final taskKey = 'tasks';
 
   Future<TaskRepository> init() async {
     // 注册Hive数据模板

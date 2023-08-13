@@ -1,47 +1,94 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/app/core/utils/extensions.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
+import 'package:todo_cat/app/pages/home/widgets/add_todo_card_btn.dart';
+import 'package:todo_cat/app/pages/home/widgets/todo_card.dart';
 
 class TaskCard extends StatelessWidget {
   TaskCard({super.key, required this.task});
   final HomeController ctrl = Get.find();
   final Task task;
+
   @override
   Widget build(BuildContext context) {
+    final todosLength = task.todos?.length ?? 0;
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 3.0.wp),
+      width: 400.w,
+      margin: EdgeInsets.symmetric(horizontal: 40.w),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.all(
-          Radius.circular(2.0.wp),
+        color: const Color.fromRGBO(245, 245, 247, 1),
+        borderRadius: BorderRadius.circular(
+          20.r,
         ),
       ),
-      child: Column(
+      child: Flex(
+        direction: Axis.vertical,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 2.0.wp, vertical: 0.8.wp),
+            padding: EdgeInsets.symmetric(horizontal: 5.w),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  task.title,
-                  style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 4.0.sp),
+                SizedBox(
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(left: 15.w),
+                        child: Text(
+                          task.title,
+                          style: GoogleFonts.notoSans(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 28.sp,
+                            color: const Color.fromRGBO(17, 10, 76, 1),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10.w,
+                      ),
+                      if (todosLength > -1)
+                        Container(
+                          width: 34.w,
+                          height: 32.w,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.r),
+                            color: const Color.fromRGBO(225, 224, 240, 1),
+                          ),
+                          child: Center(
+                            child: Text(
+                              todosLength.toString(),
+                              style: TextStyle(
+                                fontSize: 20.sp,
+                                fontWeight: FontWeight.bold,
+                                color: const Color.fromRGBO(17, 10, 76, 1),
+                              ),
+                            ),
+                          ),
+                        )
+                    ],
+                  ),
                 ),
                 IconButton(
                   onPressed: () => {},
+                  splashColor: Colors.white.withOpacity(0),
+                  hoverColor: Colors.white.withOpacity(0),
+                  highlightColor: Colors.white.withOpacity(0),
                   icon: Icon(
+                    size: 35.w,
                     Icons.more_horiz,
-                    size: 2.5.wp,
-                    color: Colors.grey[700],
+                    color: const Color.fromRGBO(129, 127, 158, 1),
                   ),
-                ),
+                )
               ],
             ),
           ),
+          Column(
+            children: [...?task.todos?.map((e) => TodoCard(todo: e))],
+          ),
+          const AddTodoCardBtn()
         ],
       ),
     );

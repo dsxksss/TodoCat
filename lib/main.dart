@@ -9,7 +9,7 @@ void main() async {
   await Hive.initFlutter();
 
   runApp(DevicePreview(
-    enabled: !kReleaseMode, // 是否关闭设备适配查看器
+    enabled: kReleaseMode, // 是否关闭设备适配查看器
     builder: (context) => const App(),
   ));
 
