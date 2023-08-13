@@ -15,6 +15,17 @@ class HomePage extends GetView<HomeController> {
   @override
   Widget build(context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        label: Text(
+          "addTask".tr,
+        ),
+        onPressed: () => {},
+        isExtended: true,
+        icon: const Icon(
+          Icons.add_task,
+          color: Colors.white,
+        ),
+      ),
       body: SafeArea(
         child: Flex(
           direction: Axis.vertical,
@@ -31,10 +42,10 @@ class HomePage extends GetView<HomeController> {
                 ),
               ),
             ),
-            Flex(
+            Wrap(
               direction: Axis.horizontal,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              // mainAxisAlignment: MainAxisAlignment.start,
+              // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TaskCard(
                   task: task.copyWith(title: "todo".tr),

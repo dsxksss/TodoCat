@@ -5,5 +5,6 @@ const Map<String, String> zhCN = {
   'inProgress': '进行中',
   'done': '完成',
   'another': '其他',
-  'addTodo': '添加事项'
+  'addTask': '添加事项',
+  'addTodo': '添加待办',
 };

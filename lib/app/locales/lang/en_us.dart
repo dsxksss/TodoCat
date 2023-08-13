@@ -5,5 +5,6 @@ const Map<String, String> enUS = {
   'inProgress': 'In progress',
   'done': 'Done',
   'another': 'Another',
+  'addTask': 'Add Task',
   'addTodo': 'Add Todo',
 };
