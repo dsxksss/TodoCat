@@ -1,9 +1,11 @@
 import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
+import 'package:todo_cat/app/data/schemas/todo.dart';
 import 'package:todo_cat/app/data/services/repositorys/task.dart';
 
 class HomeController extends GetxController {
   late TaskRepository taskRepository;
+
   final tasks = <Task>[].obs;
 
   @override
@@ -20,7 +22,6 @@ class HomeController extends GetxController {
     }
 
     tasks.add(task);
-    taskRepository.write(task.title, task);
     return true;
   }
 
@@ -30,7 +31,21 @@ class HomeController extends GetxController {
     }
 
     tasks.removeWhere((task) => task.title == taskTitle);
-    taskRepository.delete(taskTitle);
+    return true;
+  }
+
+  bool addTodo(Task task, Todo todo) {
+    if (!taskRepository.has(task.title)) {
+      return false;
+    }
+
+    int taskIndex = tasks.indexOf(task);
+    if (taskIndex < 0) {
+      return false;
+    }
+
+    tasks[taskIndex].todos.add(todo);
+    tasks.refresh();
     return true;
   }
 }

@@ -1,14 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/app/data/schemas/task.dart';
+import 'package:todo_cat/app/data/schemas/todo.dart';
+import 'package:todo_cat/app/pages/home/controller.dart';
 
 class AddTodoCardBtn extends StatelessWidget {
-  const AddTodoCardBtn({super.key});
+  AddTodoCardBtn({super.key, required this.task});
+  final HomeController ctrl = Get.find();
+  final Task task;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => {print("addTodo".tr)},
+      onTap: () => {
+        ctrl.addTodo(
+          task,
+          Todo(
+            doThing: "新增Todo",
+            icon: 1,
+            color: "",
+            done: true,
+            createdAt: 111111,
+          ),
+        )
+      },
       child: Container(
         width: 1.sw,
         margin: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.w),

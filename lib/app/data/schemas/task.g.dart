@@ -20,7 +20,7 @@ class TaskAdapter extends TypeAdapter<Task> {
       title: fields[0] as String,
       icon: fields[1] as int,
       color: fields[2] as String,
-      todos: (fields[3] as List?)?.cast<Todo>(),
+      todos: (fields[3] as List).cast<Todo>(),
     );
   }
 

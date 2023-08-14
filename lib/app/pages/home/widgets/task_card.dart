@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
 import 'package:todo_cat/app/pages/home/widgets/add_todo_card_btn.dart';
@@ -14,7 +13,7 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todosLength = task.todos?.length ?? 0;
+    final todosLength = task.todos.length;
     return Container(
       width: 400.w,
       margin: EdgeInsets.symmetric(horizontal: 40.w),
@@ -39,7 +38,7 @@ class TaskCard extends StatelessWidget {
                         padding: EdgeInsets.only(left: 15.w),
                         child: Text(
                           task.title,
-                          style: GoogleFonts.notoSans(
+                          style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 28.sp,
                             color: const Color.fromRGBO(17, 10, 76, 1),
@@ -49,7 +48,7 @@ class TaskCard extends StatelessWidget {
                       SizedBox(
                         width: 10.w,
                       ),
-                      if (todosLength > -1)
+                      if (todosLength > 0)
                         Container(
                           width: 34.w,
                           height: 32.w,
@@ -85,10 +84,17 @@ class TaskCard extends StatelessWidget {
               ],
             ),
           ),
-          Column(
-            children: [...?task.todos?.map((e) => TodoCard(todo: e))],
+          Obx(
+            () => Column(
+              children: [
+                ...ctrl.tasks[ctrl.tasks.indexOf(task)].todos
+                    .map((e) => TodoCard(todo: e))
+              ],
+            ),
           ),
-          const AddTodoCardBtn()
+          AddTodoCardBtn(
+            task: task,
+          )
         ],
       ),
     );

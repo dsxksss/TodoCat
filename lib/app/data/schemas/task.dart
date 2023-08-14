@@ -15,13 +15,13 @@ class Task extends HiveObject {
   String color;
 
   @HiveField(3)
-  List<Todo>? todos;
+  List<Todo> todos;
 
   Task({
     required this.title,
     required this.icon,
     required this.color,
-    this.todos,
+    required this.todos,
   });
 
   Task copyWith({
