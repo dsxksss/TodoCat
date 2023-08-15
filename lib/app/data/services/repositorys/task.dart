@@ -1,27 +1,54 @@
 import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
+import 'package:todo_cat/app/data/schemas/todo.dart';
 import 'package:todo_cat/app/data/services/strorage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
-  final taskKey = 'task';
-  final Task _task1 =
-      Task(title: "todo".tr, icon: 1, color: '#000000', todos: []);
-  final Task _task2 =
-      Task(title: "inProgress".tr, icon: 1, color: '#000000', todos: []);
-  final Task _task3 =
-      Task(title: "done".tr, icon: 1, color: '#000000', todos: []);
+  final taskKey = 'tasksxxxaw';
+  final Task _task1 = Task(
+    id: 1,
+    title: "todo".tr,
+    createdAt: DateTime.now().millisecondsSinceEpoch,
+    tags: [],
+    todos: [],
+  );
+  final Task _task2 = Task(
+    id: 2,
+    title: "inProgress".tr,
+    createdAt: DateTime.now().millisecondsSinceEpoch,
+    tags: [],
+    todos: [],
+  );
+  final Task _task3 = Task(
+    id: 3,
+    title: "done".tr,
+    createdAt: DateTime.now().millisecondsSinceEpoch,
+    tags: [],
+    todos: [],
+  );
+  final Task _task4 = Task(
+    id: 4,
+    title: "another".tr,
+    createdAt: DateTime.now().millisecondsSinceEpoch,
+    tags: [],
+    todos: [],
+  );
 
   Future<TaskRepository> init() async {
     // 注册Hive数据模板
     Hive.registerAdapter(TaskAdapter());
+    Hive.registerAdapter(TaskStatusAdapter());
+    Hive.registerAdapter(TodoAdapter());
+    Hive.registerAdapter(TodoStatusAdapter());
+
     // 开启数据盒
     await Hive.openBox<Task>(taskKey);
     _box = Hive.box(taskKey);
-    write(_task1.title, _task1);
-    write(_task2.title, _task2);
-    write(_task3.title, _task3);
+    await _box.clear();
+
+    writeMany([_task1, _task2, _task3, _task4]);
     return this;
   }
 
@@ -31,9 +58,9 @@ class TaskRepository extends Strorage<Task> {
   }
 
   @override
-  void write(String key, Task value) {
+  void write(String key, Task value) async {
     if (!_box.containsKey(key)) {
-      _box.put(key, value);
+      await _box.put(key, value);
     }
   }
 

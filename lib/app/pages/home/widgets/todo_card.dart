@@ -18,7 +18,7 @@ class TodoCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(10.r),
       ),
-      child: Text(todo.doThing),
+      child: Text(todo.title),
     );
   }
 }

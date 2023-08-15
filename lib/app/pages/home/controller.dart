@@ -13,6 +13,7 @@ class HomeController extends GetxController {
     super.onInit();
     taskRepository = await TaskRepository().init();
     tasks.assignAll(await taskRepository.readAll());
+    sort(reverse: true);
     ever(tasks, (_) => taskRepository.writeMany(tasks));
   }
 
@@ -47,5 +48,12 @@ class HomeController extends GetxController {
     tasks[taskIndex].todos.add(todo);
     tasks.refresh();
     return true;
+  }
+
+  void sort({bool reverse = false}) {
+    tasks.sort(reverse
+        ? (a, b) => a.id.compareTo(b.id)
+        : (a, b) => b.id.compareTo(a.id));
+    tasks.refresh();
   }
 }

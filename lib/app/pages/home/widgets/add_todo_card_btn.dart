@@ -17,12 +17,10 @@ class AddTodoCardBtn extends StatelessWidget {
         ctrl.addTodo(
           task,
           Todo(
-            doThing: "新增Todo",
-            icon: 1,
-            color: "",
-            done: true,
-            createdAt: 111111,
-          ),
+              id: 1,
+              title: "新增Todo",
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              tags: []),
         )
       },
       child: Container(

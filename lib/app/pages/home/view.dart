@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
 import 'package:todo_cat/app/pages/home/widgets/task_card.dart';
 
@@ -14,7 +15,15 @@ class HomePage extends GetView<HomeController> {
         label: Text(
           "addTask".tr,
         ),
-        onPressed: () => {},
+        onPressed: () => {
+          controller.addTask(Task(
+            id: 5,
+            title: "new Task",
+            createdAt: DateTime.now().millisecondsSinceEpoch,
+            tags: [],
+            todos: [],
+          ))
+        },
         isExtended: true,
         icon: const Icon(
           Icons.add_task,
@@ -43,8 +52,7 @@ class HomePage extends GetView<HomeController> {
                 Obx(
                   () => Wrap(
                     direction: Axis.horizontal,
-                    // mainAxisAlignment: MainAxisAlignment.start,
-                    // crossAxisAlignment: CrossAxisAlignment.start,
+                    runSpacing: 40.w,
                     children: [
                       ...controller.tasks
                           .map((element) => TaskCard(task: element))
@@ -52,6 +60,9 @@ class HomePage extends GetView<HomeController> {
                   ),
                 ),
               ],
+            ),
+            SizedBox(
+              height: 0.05.sw,
             )
           ],
         ),
