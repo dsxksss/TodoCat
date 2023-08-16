@@ -5,6 +5,8 @@ abstract class Strorage<T> extends GetxService {
   Future<List<dynamic>> readAll();
   void write(String key, T value);
   void writeMany(List<T> values);
+  void update(String key, T value);
+  void updateMant(List<T> values);
   void delete(String key);
   bool has(String key);
 }

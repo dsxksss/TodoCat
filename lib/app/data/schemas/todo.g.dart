@@ -110,3 +110,47 @@ class TodoStatusAdapter extends TypeAdapter<TodoStatus> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+class TodoPriorityAdapter extends TypeAdapter<TodoPriority> {
+  @override
+  final int typeId = 4;
+
+  @override
+  TodoPriority read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return TodoPriority.highLevel;
+      case 1:
+        return TodoPriority.mediumLevel;
+      case 2:
+        return TodoPriority.lowLevel;
+      default:
+        return TodoPriority.highLevel;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, TodoPriority obj) {
+    switch (obj) {
+      case TodoPriority.highLevel:
+        writer.writeByte(0);
+        break;
+      case TodoPriority.mediumLevel:
+        writer.writeByte(1);
+        break;
+      case TodoPriority.lowLevel:
+        writer.writeByte(2);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TodoPriorityAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}

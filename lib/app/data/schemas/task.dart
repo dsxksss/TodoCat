@@ -98,6 +98,18 @@ class Task extends HiveObject {
         "progress": progress,
         "reminders": reminders,
       };
+
+  @override
+  String toString() {
+    return "title: " +
+        title +
+        " description: " +
+        description +
+        " tags: " +
+        tags.toString() +
+        " todos: " +
+        todos.toString();
+  }
 }
 
 @HiveType(typeId: 1)

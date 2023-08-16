@@ -1,5 +1,4 @@
 import 'package:hive/hive.dart';
-import 'package:todo_cat/app/data/schemas/priority.dart';
 //flutter packages pub run build_runner build 记得使用此命令生成文件
 part "todo.g.dart";
 
@@ -59,4 +58,16 @@ enum TodoStatus {
 
   @HiveField(2)
   done,
+}
+
+@HiveType(typeId: 4)
+enum TodoPriority {
+  @HiveField(0)
+  highLevel,
+
+  @HiveField(1)
+  mediumLevel,
+
+  @HiveField(2)
+  lowLevel,
 }

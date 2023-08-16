@@ -7,6 +7,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
   final taskKey = 'tasksxxxaw';
+  final debugMode = false;
+
   final Task _task1 = Task(
     id: 1,
     title: "todo".tr,
@@ -42,14 +44,24 @@ class TaskRepository extends Strorage<Task> {
     Hive.registerAdapter(TaskStatusAdapter());
     Hive.registerAdapter(TodoAdapter());
     Hive.registerAdapter(TodoStatusAdapter());
+    Hive.registerAdapter(TodoPriorityAdapter());
 
     // 开启数据盒
     await Hive.openBox<Task>(taskKey);
     _box = Hive.box(taskKey);
-    await _box.clear();
 
-    writeMany([_task1, _task2, _task3, _task4]);
+    if (debugMode) {
+      await _box.clear();
+      writeMany([_task1, _task2, _task3, _task4]);
+    }
+
     return this;
+  }
+
+  @override
+  void onClose() {
+    _box.close();
+    super.onClose();
   }
 
   @override
@@ -59,7 +71,7 @@ class TaskRepository extends Strorage<Task> {
 
   @override
   void write(String key, Task value) async {
-    if (!_box.containsKey(key)) {
+    if (!has(key)) {
       await _box.put(key, value);
     }
   }
@@ -84,5 +96,17 @@ class TaskRepository extends Strorage<Task> {
   @override
   bool has(String key) {
     return _box.containsKey(key);
+  }
+
+  @override
+  void update(String key, Task value) async {
+    await _box.put(key, value);
+  }
+
+  @override
+  void updateMant(List<Task> values) {
+    for (var element in values) {
+      update(element.title, element);
+    }
   }
 }

@@ -14,7 +14,10 @@ class HomeController extends GetxController {
     taskRepository = await TaskRepository().init();
     tasks.assignAll(await taskRepository.readAll());
     sort(reverse: true);
-    ever(tasks, (_) => taskRepository.writeMany(tasks));
+    // 第一次读取内容复写给tasks
+    once(tasks, (_) => taskRepository.writeMany(tasks));
+    // 后续数据发生改变则运行更新操作
+    ever(tasks, (_) => taskRepository.updateMant(tasks));
   }
 
   bool addTask(Task task) {
