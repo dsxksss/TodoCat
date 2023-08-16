@@ -19,6 +19,8 @@ dependencies:
   google_fonts: ^5.1.0
   # 尺寸适配框架
   flutter_screenutil: ^5.8.4
+  # 桌面窗口管理插件
+  window_manager: ^0.3.5
 
 dev_dependencies:
   flutter_test:

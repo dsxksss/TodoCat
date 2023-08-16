@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
 import 'package:todo_cat/app/pages/home/widgets/task_card.dart';
+import 'package:todo_cat/env.dart';
+import 'package:window_manager/window_manager.dart';
 
 class HomePage extends GetView<HomeController> {
   const HomePage({super.key});
@@ -33,33 +35,31 @@ class HomePage extends GetView<HomeController> {
       body: SafeArea(
         child: ListView(
           children: [
-            Flex(
-              direction: Axis.vertical,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 40.w, vertical: 40.w),
-                  child: Text(
-                    "myTasks".tr,
-                    style: TextStyle(
-                      fontSize: 60.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
+            GestureDetector(
+              onPanDown: (DragDownDetails details) {
+                WindowManager.instance.startDragging();
+              },
+              child: Container(
+                width: 1.sw,
+                color: isDebugMode ? Colors.greenAccent : null,
+                padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 40.w),
+                child: Text(
+                  "myTasks".tr,
+                  style: TextStyle(
+                    fontSize: 60.sp,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                Obx(
-                  () => Wrap(
-                    direction: Axis.horizontal,
-                    runSpacing: 40.w,
-                    children: [
-                      ...controller.tasks
-                          .map((element) => TaskCard(task: element))
-                    ],
-                  ),
-                ),
-              ],
+              ),
+            ),
+            Obx(
+              () => Wrap(
+                direction: Axis.horizontal,
+                runSpacing: 40.w,
+                children: [
+                  ...controller.tasks.map((element) => TaskCard(task: element))
+                ],
+              ),
             ),
             SizedBox(
               height: 0.05.sw,

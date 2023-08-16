@@ -3,11 +3,11 @@ import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/data/schemas/todo.dart';
 import 'package:todo_cat/app/data/services/strorage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:todo_cat/env.dart';
 
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
   final taskKey = 'tasksxxxaw';
-  final debugMode = false;
 
   final Task _task1 = Task(
     id: 1,
@@ -50,7 +50,7 @@ class TaskRepository extends Strorage<Task> {
     await Hive.openBox<Task>(taskKey);
     _box = Hive.box(taskKey);
 
-    if (debugMode) {
+    if (isDebugMode) {
       await _box.clear();
       writeMany([_task1, _task2, _task3, _task4]);
     }
