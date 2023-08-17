@@ -72,9 +72,6 @@ class TaskCard extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () => {},
-                  splashColor: Colors.white.withOpacity(0),
-                  hoverColor: Colors.white.withOpacity(0),
-                  highlightColor: Colors.white.withOpacity(0),
                   icon: Icon(
                     size: 35.w,
                     Icons.more_horiz,
