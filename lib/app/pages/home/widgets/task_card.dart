@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
@@ -86,7 +87,7 @@ class TaskCard extends StatelessWidget {
               children: [
                 ...ctrl.tasks[ctrl.tasks.indexOf(task)].todos
                     .map((e) => TodoCard(todo: e))
-              ],
+              ].animate(interval: 100.ms).fadeIn(duration: 150.ms),
             ),
           ),
           AddTodoCardBtn(

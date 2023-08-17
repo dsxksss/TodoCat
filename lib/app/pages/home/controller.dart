@@ -12,7 +12,10 @@ class HomeController extends GetxController {
   void onInit() async {
     super.onInit();
     taskRepository = await TaskRepository().init();
-    tasks.assignAll(await taskRepository.readAll());
+    final localTasks = await taskRepository.readAll();
+    tasks.assignAll(localTasks);
+
+    // 按创建序号排序渲染
     sort(reverse: true);
     // 第一次读取内容复写给tasks
     once(tasks, (_) => taskRepository.writeMany(tasks));

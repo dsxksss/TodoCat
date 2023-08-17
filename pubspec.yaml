@@ -21,6 +21,8 @@ dependencies:
   flutter_screenutil: ^5.8.4
   # 桌面窗口管理插件
   window_manager: ^0.3.5
+  # 动画控制插件
+  flutter_animate: ^4.2.0+1
 
 dev_dependencies:
   flutter_test:

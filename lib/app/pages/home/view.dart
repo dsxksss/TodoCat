@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
@@ -19,7 +22,7 @@ class HomePage extends GetView<HomeController> {
         onPressed: () => {
           controller.addTask(Task(
             id: 5,
-            title: "new Task",
+            title: Random().nextInt(1000).toString(),
             createdAt: DateTime.now().millisecondsSinceEpoch,
             tags: [],
             todos: [],
@@ -37,12 +40,16 @@ class HomePage extends GetView<HomeController> {
             const NavBar(),
             Obx(
               () => Wrap(
-                direction: Axis.horizontal,
-                runSpacing: 40.w,
-                children: [
-                  ...controller.tasks.map((element) => TaskCard(task: element))
-                ],
-              ),
+                  direction: Axis.horizontal,
+                  runSpacing: 40.w,
+                  children: [
+                    ...controller.tasks
+                        .map((element) => TaskCard(task: element))
+                  ]
+                      .animate(
+                        interval: 80.ms,
+                      )
+                      .fade(duration: 300.ms)),
             ),
             SizedBox(
               height: 0.05.sw,
