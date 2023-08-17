@@ -22,6 +22,10 @@ class _NavBarState extends State<NavBar> with WindowListener {
     updateMaximized();
   }
 
+  void minimizeWindow() async {
+    await windowManager.minimize();
+  }
+
   void updateMaximized() async {
     final maximized = await windowManager.isMaximized();
     setState(() {
@@ -29,13 +33,17 @@ class _NavBarState extends State<NavBar> with WindowListener {
     });
   }
 
-  void targetWindow() async {
+  void targetMaximizeWindow() async {
     if (isMaximize) {
       await windowManager.restore();
     } else {
       await windowManager.maximize();
     }
     updateMaximized();
+  }
+
+  void closeWindow() async {
+    await windowManager.close();
   }
 
   @override
@@ -61,9 +69,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton.outlined(
-                    onPressed: () {
-                      windowManager.minimize();
-                    },
+                    onPressed: minimizeWindow,
                     icon: Icon(
                       Icons.horizontal_rule_rounded,
                       size: 45.w,
@@ -76,7 +82,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       ? Padding(
                           padding: EdgeInsets.only(top: 15.w),
                           child: IconButton.outlined(
-                            onPressed: targetWindow,
+                            onPressed: targetMaximizeWindow,
                             icon: Icon(
                               Icons.filter_none_rounded,
                               size: 30.w,
@@ -86,7 +92,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       : Padding(
                           padding: EdgeInsets.only(top: 5.w),
                           child: IconButton.outlined(
-                            onPressed: targetWindow,
+                            onPressed: targetMaximizeWindow,
                             icon: Icon(
                               Icons.crop_square_rounded,
                               size: 40.w,
@@ -97,9 +103,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                     width: 10.w,
                   ),
                   IconButton.outlined(
-                    onPressed: () {
-                      WindowManager.instance.close();
-                    },
+                    onPressed: closeWindow,
                     icon: Icon(
                       Icons.close_rounded,
                       color: Colors.red,
