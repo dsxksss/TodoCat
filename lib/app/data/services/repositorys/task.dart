@@ -13,28 +13,28 @@ class TaskRepository extends Strorage<Task> {
     id: 1,
     title: "todo".tr,
     createdAt: DateTime.now().millisecondsSinceEpoch,
-    tags: [],
+    tags: ["默认", "自带"],
     todos: [],
   );
   final Task _task2 = Task(
     id: 2,
     title: "inProgress".tr,
     createdAt: DateTime.now().millisecondsSinceEpoch,
-    tags: [],
+    tags: ["默认", "自带"],
     todos: [],
   );
   final Task _task3 = Task(
     id: 3,
     title: "done".tr,
     createdAt: DateTime.now().millisecondsSinceEpoch,
-    tags: [],
+    tags: ["默认", "自带"],
     todos: [],
   );
   final Task _task4 = Task(
     id: 4,
     title: "another".tr,
     createdAt: DateTime.now().millisecondsSinceEpoch,
-    tags: [],
+    tags: ["默认", "自带"],
     todos: [],
   );
 

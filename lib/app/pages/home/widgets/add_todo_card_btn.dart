@@ -17,10 +17,18 @@ class AddTodoCardBtn extends StatelessWidget {
         ctrl.addTodo(
           task,
           Todo(
-              id: 1,
-              title: "新增Todo",
-              createdAt: DateTime.now().millisecondsSinceEpoch,
-              tags: []),
+            id: 1,
+            title: "新增Todo",
+            createdAt: DateTime.now().millisecondsSinceEpoch,
+            tags: [
+              "默认awada",
+              "自带adawda",
+              "默认",
+              "自带a",
+              "默认a",
+              "自带xaw",
+            ],
+          ),
         )
       },
       child: Container(
@@ -47,9 +55,9 @@ class AddTodoCardBtn extends StatelessWidget {
               Text(
                 "addTodo".tr,
                 style: TextStyle(
-                  fontSize: 22.sp,
-                  color: Colors.grey[600],
-                ),
+                    fontSize: 22.sp,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w600),
               ),
             ],
           ),

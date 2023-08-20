@@ -52,14 +52,14 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapDown: (_) => {windowManager.startDragging()},
       child: Container(
         width: 1.w,
-        color: isDebugMode ? Colors.greenAccent : Colors.white,
+        color: Colors.white,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 30.w),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "myTasks".tr,
+                "${"myTasks".tr} ${runMode.name}",
                 style: TextStyle(
                   fontSize: 60.sp,
                   fontWeight: FontWeight.bold,
