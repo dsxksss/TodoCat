@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -15,7 +14,7 @@ class AddTodoCardBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => {showAddTodoDialog(task)},
+      onTap: () => {ctrl.selectTask(task), showAddTodoDialog(task)},
       child: Container(
         width: 1.sw,
         margin: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.w),
@@ -52,16 +51,27 @@ class AddTodoCardBtn extends StatelessWidget {
   }
 }
 
-class AddTodoDialog extends StatelessWidget {
-  AddTodoDialog({
+class AddTodoDialog extends StatefulWidget {
+  const AddTodoDialog({
     super.key,
-    required this.task,
   });
 
+  @override
+  State<AddTodoDialog> createState() => _AddTodoDialogState();
+}
+
+class _AddTodoDialogState extends State<AddTodoDialog> {
   final HomeController ctrl = Get.find();
-  final Task task;
+
   final formKey = GlobalKey<FormState>();
+
   final editCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    ctrl.deselectTask();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +105,6 @@ class AddTodoDialog extends StatelessWidget {
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
                             ctrl.addTodo(
-                              task,
                               Todo(
                                 id: 1,
                                 title: editCtrl.text,
@@ -158,7 +167,7 @@ void showAddTodoDialog(Task task) {
     barrierColor: Colors.black.withOpacity(0.5),
     transitionDuration: 250.ms,
     pageBuilder: (_, __, ___) {
-      return AddTodoDialog(task: task);
+      return GestureDetector(child: const AddTodoDialog());
     },
   );
 }

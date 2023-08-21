@@ -7,6 +7,7 @@ class HomeController extends GetxController {
   late TaskRepository taskRepository;
 
   final tasks = <Task>[].obs;
+  final currentTask = Rx<Task?>(null);
 
   @override
   void onInit() async {
@@ -41,12 +42,24 @@ class HomeController extends GetxController {
     return true;
   }
 
-  bool addTodo(Task task, Todo todo) {
-    if (!taskRepository.has(task.title)) {
+  void selectTask(Task? task) {
+    currentTask.value = task;
+  }
+
+  void deselectTask() {
+    currentTask.value = null;
+  }
+
+  bool addTodo(Todo todo) {
+    if (currentTask.value == null) {
       return false;
     }
 
-    int taskIndex = tasks.indexOf(task);
+    if (!taskRepository.has(currentTask.value!.title)) {
+      return false;
+    }
+
+    int taskIndex = tasks.indexOf(currentTask.value);
     if (taskIndex < 0) {
       return false;
     }
