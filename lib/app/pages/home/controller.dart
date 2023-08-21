@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/data/schemas/todo.dart';
@@ -8,6 +9,11 @@ class HomeController extends GetxController {
 
   final tasks = <Task>[].obs;
   final currentTask = Rx<Task?>(null);
+  final List<String> tags = <String>[].obs;
+  final formKey = GlobalKey<FormState>();
+  final titleFormCtrl = TextEditingController();
+  final descriptionFormCtrl = TextEditingController();
+  final tagController = TextEditingController();
 
   @override
   void onInit() async {
@@ -22,6 +28,17 @@ class HomeController extends GetxController {
     once(tasks, (_) => taskRepository.writeMany(tasks));
     // 后续数据发生改变则运行更新操作
     ever(tasks, (_) => taskRepository.updateMant(tasks));
+  }
+
+  void addTag() {
+    if (tagController.text.isNotEmpty) {
+      tags.add(tagController.text);
+      tagController.clear();
+    }
+  }
+
+  void removeTag(int index) {
+    tags.removeAt(index);
   }
 
   bool addTask(Task task) {

@@ -82,6 +82,9 @@ class TaskCard extends StatelessWidget {
               ],
             ),
           ),
+          AddTodoCardBtn(
+            task: task,
+          ),
           Obx(
             () => Column(
               children: [
@@ -90,9 +93,6 @@ class TaskCard extends StatelessWidget {
               ].animate(interval: 100.ms).fadeIn(duration: 150.ms),
             ),
           ),
-          AddTodoCardBtn(
-            task: task,
-          )
         ],
       ),
     );

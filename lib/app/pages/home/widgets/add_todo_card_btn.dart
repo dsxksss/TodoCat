@@ -3,8 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
-import 'package:todo_cat/app/data/schemas/todo.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
+import 'package:todo_cat/app/pages/home/widgets/add_todo_dialog.dart';
 
 class AddTodoCardBtn extends StatelessWidget {
   AddTodoCardBtn({super.key, required this.task});
@@ -44,115 +44,6 @@ class AddTodoCardBtn extends StatelessWidget {
                     fontWeight: FontWeight.w600),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class AddTodoDialog extends StatefulWidget {
-  const AddTodoDialog({
-    super.key,
-  });
-
-  @override
-  State<AddTodoDialog> createState() => _AddTodoDialogState();
-}
-
-class _AddTodoDialogState extends State<AddTodoDialog> {
-  final HomeController ctrl = Get.find();
-
-  final formKey = GlobalKey<FormState>();
-
-  final editCtrl = TextEditingController();
-
-  @override
-  void dispose() {
-    ctrl.deselectTask();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 0.6.sw,
-        height: 600.w,
-        padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.w),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(15.r),
-        ),
-        child: SizedBox.expand(
-          child: Form(
-            key: formKey,
-            child: Material(
-              type: MaterialType.transparency,
-              child: ListView(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "addTodo".tr,
-                        style: TextStyle(
-                            fontSize: 30.sp, fontWeight: FontWeight.bold),
-                      ),
-                      TextButton(
-                        child: Text("done".tr),
-                        onPressed: () {
-                          if (formKey.currentState!.validate()) {
-                            ctrl.addTodo(
-                              Todo(
-                                id: 1,
-                                title: editCtrl.text,
-                                createdAt:
-                                    DateTime.now().millisecondsSinceEpoch,
-                                tags: [
-                                  "默认awada",
-                                  "自带adawda",
-                                  "默认",
-                                  "自带a",
-                                  "默认a",
-                                  "自带xaw",
-                                ],
-                              ),
-                            );
-
-                            Get.back();
-                          }
-                        },
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: 20.w,
-                  ),
-                  TextFormField(
-                    controller: editCtrl,
-                    decoration: InputDecoration(
-                        isDense: false,
-                        fillColor: Colors.grey,
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
-                        hintText: "Title",
-                        hintStyle: const TextStyle(color: Colors.grey),
-                        focusColor: Colors.green
-
-                        // prefixIcon: Icon(Icons.title_rounded),
-                        ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "请填写完整内容";
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ),
