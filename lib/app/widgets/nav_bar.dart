@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/env.dart';
@@ -64,7 +65,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                   fontSize: 60.sp,
                   fontWeight: FontWeight.bold,
                 ),
-              ),
+              ).animate().moveY(duration: 400.ms).fade(duration: 500.ms),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -110,7 +111,10 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       size: 46.w,
                     ),
                   ),
-                ],
+                ]
+                    .animate(interval: 100.ms)
+                    .moveY(duration: 400.ms)
+                    .fade(duration: 400.ms),
               ),
             ],
           ),

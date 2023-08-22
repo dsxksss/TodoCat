@@ -33,7 +33,9 @@ class HomePage extends GetView<HomeController> {
           Icons.add_task,
           color: Colors.white,
         ),
-      ),
+      )
+          .animate(delay: 1000.ms)
+          .moveX(begin: 150, duration: 1000.ms, curve: Curves.bounceOut),
       body: SafeArea(
         child: ListView(
           children: [
@@ -45,11 +47,7 @@ class HomePage extends GetView<HomeController> {
                   children: [
                     ...controller.tasks
                         .map((element) => TaskCard(task: element))
-                  ]
-                      .animate(
-                        interval: 80.ms,
-                      )
-                      .fade(duration: 300.ms)),
+                  ].animate(interval: 100.ms).moveX().fade()),
             ),
             SizedBox(
               height: 0.05.sw,

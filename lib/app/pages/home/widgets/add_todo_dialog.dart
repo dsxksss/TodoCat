@@ -92,7 +92,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     editingController: ctrl.descriptionFormCtrl,
                   ),
                   AddTagScreen()
-                ].animate(interval: 100.ms).fadeIn(duration: 200.ms),
+                ].animate(interval: 100.ms).moveX(begin: 20).fade(),
               ),
             ),
           ),
