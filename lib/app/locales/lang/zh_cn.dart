@@ -7,4 +7,10 @@ const Map<String, String> zhCN = {
   'another': '其他',
   'addTask': '添加事项',
   'addTodo': '添加待办',
+  'title': '标题',
+  'description': '描述',
+  'addTag': '添加标签',
+  'tag': '标签',
+  'tags': '标签组',
+  'enter': '输入'
 };

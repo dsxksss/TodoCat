@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 class TextFormFieldItem extends StatelessWidget {
   const TextFormFieldItem({
@@ -36,7 +37,7 @@ class TextFormFieldItem extends StatelessWidget {
             fillColor: const Color.fromRGBO(248, 250, 251, 1),
             border: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
-            hintText: "Enter $fieldTitle",
+            hintText: "${"enter".tr}${fieldTitle.tr}",
             hintStyle: const TextStyle(color: Colors.grey),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide.none,

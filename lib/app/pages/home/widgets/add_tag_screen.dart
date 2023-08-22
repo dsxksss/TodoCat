@@ -20,7 +20,7 @@ class AddTagScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "add tag",
+                  "addTag".tr,
                   style: TextStyle(
                     fontSize: 26.sp,
                     fontWeight: FontWeight.w600,
@@ -97,7 +97,7 @@ class AddTagScreen extends StatelessWidget {
 
             contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
             hintStyle: const TextStyle(color: Colors.grey),
-            hintText: "Enter tag",
+            hintText: "${"enter".tr}${"tag".tr}",
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide.none,
               borderRadius: BorderRadius.circular(10.w),

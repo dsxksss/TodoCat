@@ -7,4 +7,10 @@ const Map<String, String> enUS = {
   'another': 'Another',
   'addTask': 'Add Task',
   'addTodo': 'Add Todo',
+  'title': 'Title',
+  'description': 'Description',
+  'addTag': 'Add Tag',
+  'tag': 'Tag',
+  'tags': 'Tags',
+  'enter': 'Enter',
 };
