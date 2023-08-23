@@ -22,7 +22,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
   @override
   void dispose() {
     ctrl.deselectTask();
-    ctrl.tags.clear();
+    ctrl.onDialogClose();
     super.dispose();
   }
 

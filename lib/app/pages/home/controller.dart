@@ -31,7 +31,7 @@ class HomeController extends GetxController {
   }
 
   void addTag() {
-    if (tagController.text.isNotEmpty) {
+    if (tagController.text.isNotEmpty && tags.length < 3) {
       tags.add(tagController.text);
       tagController.clear();
     }
@@ -65,6 +65,13 @@ class HomeController extends GetxController {
 
   void deselectTask() {
     currentTask.value = null;
+  }
+
+  void onDialogClose() {
+    titleFormCtrl.text = "";
+    descriptionFormCtrl.text = '';
+    tagController.text = "";
+    tags.clear();
   }
 
   bool addTodo(Todo todo) {

@@ -23,6 +23,8 @@ dependencies:
   window_manager: ^0.3.5
   # 动画控制插件
   flutter_animate: ^4.2.0+1
+  # svg显示插件
+  flutter_svg: ^2.0.7
 
 dev_dependencies:
   flutter_test:
@@ -33,3 +35,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+      - assets/
+      - assets/imgs/

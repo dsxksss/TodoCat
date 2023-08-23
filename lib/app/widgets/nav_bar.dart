@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/env.dart';
 import 'package:window_manager/window_manager.dart';
@@ -59,13 +60,22 @@ class _NavBarState extends State<NavBar> with WindowListener {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "${"myTasks".tr} ${runMode.name}",
-                style: TextStyle(
-                  fontSize: 60.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ).animate().moveY(duration: 400.ms).fade(duration: 500.ms),
+              Row(
+                children: [
+                  Text(
+                    "${"myTasks".tr} ${runMode.name}",
+                    style: TextStyle(
+                      fontSize: 60.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SvgPicture.asset(
+                    'assets/imgs/logo.svg',
+                    width: 100.w,
+                    height: 100.w,
+                  )
+                ].animate().moveY(duration: 400.ms).fade(duration: 500.ms),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

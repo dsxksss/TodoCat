@@ -39,7 +39,7 @@ class TodoCard extends StatelessWidget {
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  ...todo.tags.sublist(0, todo.tags.length > 4 ? 4 : null).map(
+                  ...todo.tags.sublist(0, todo.tags.length > 3 ? 3 : null).map(
                         (e) => Padding(
                           padding: EdgeInsets.only(right: 15.w),
                           child: Tag(tag: e, color: Colors.blueAccent),
