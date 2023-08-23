@@ -69,11 +69,12 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SvgPicture.asset(
-                    'assets/imgs/logo.svg',
-                    width: 100.w,
-                    height: 100.w,
-                  )
+                  Image.asset(
+                    'assets/imgs/logo.png',
+                    width: 85.w,
+                    height: 85.w,
+                    filterQuality: FilterQuality.medium,
+                  ),
                 ].animate().moveY(duration: 400.ms).fade(duration: 500.ms),
               ),
               Row(
