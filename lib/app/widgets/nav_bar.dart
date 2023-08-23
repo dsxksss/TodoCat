@@ -62,20 +62,28 @@ class _NavBarState extends State<NavBar> with WindowListener {
             children: [
               Row(
                 children: [
-                  Text(
-                    "${"myTasks".tr} ${runMode.name}",
-                    style: TextStyle(
-                      fontSize: 60.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                   Image.asset(
                     'assets/imgs/logo.png',
                     width: 85.w,
                     height: 85.w,
                     filterQuality: FilterQuality.medium,
                   ),
-                ].animate().moveY(duration: 400.ms).fade(duration: 500.ms),
+                  SizedBox(
+                    width: 20.w,
+                  ),
+                  Text(
+                    "${"myTasks".tr} ${runMode.name}",
+                    overflow: TextOverflow.fade,
+                    style: TextStyle(
+                      fontSize: 60.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ).animate(delay: 1000.ms).moveY(
+                        begin: -150,
+                        duration: 1000.ms,
+                        curve: Curves.bounceInOut,
+                      ),
+                ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

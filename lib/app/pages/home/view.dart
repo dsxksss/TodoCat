@@ -34,7 +34,7 @@ class HomePage extends GetView<HomeController> {
           color: Colors.white,
         ),
       )
-          .animate(delay: 1000.ms)
+          .animate(delay: 2200.ms)
           .moveX(begin: 150, duration: 1000.ms, curve: Curves.bounceOut),
       body: SafeArea(
         child: ListView(
