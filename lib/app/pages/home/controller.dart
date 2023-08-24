@@ -8,8 +8,10 @@ class HomeController extends GetxController {
   late TaskRepository taskRepository;
 
   final tasks = <Task>[].obs;
+  final List<String> selectedTags = <String>[].obs;
   final currentTask = Rx<Task?>(null);
-  final List<String> tags = <String>[].obs;
+  final selectedPriority = Rx<TodoPriority>(TodoPriority.lowLevel);
+
   final formKey = GlobalKey<FormState>();
   final titleFormCtrl = TextEditingController();
   final descriptionFormCtrl = TextEditingController();
@@ -31,14 +33,14 @@ class HomeController extends GetxController {
   }
 
   void addTag() {
-    if (tagController.text.isNotEmpty && tags.length < 3) {
-      tags.add(tagController.text);
+    if (tagController.text.isNotEmpty && selectedTags.length < 3) {
+      selectedTags.add(tagController.text);
       tagController.clear();
     }
   }
 
   void removeTag(int index) {
-    tags.removeAt(index);
+    selectedTags.removeAt(index);
   }
 
   bool addTask(Task task) {
@@ -71,7 +73,7 @@ class HomeController extends GetxController {
     titleFormCtrl.text = "";
     descriptionFormCtrl.text = '';
     tagController.text = "";
-    tags.clear();
+    selectedTags.clear();
   }
 
   bool addTodo(Todo todo) {

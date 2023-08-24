@@ -12,5 +12,6 @@ const Map<String, String> zhCN = {
   'addTag': '添加标签',
   'tag': '标签',
   'tags': '标签组',
-  'enter': '输入'
+  'enter': '输入',
+  'priority': '优先级',
 };

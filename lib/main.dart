@@ -11,9 +11,7 @@ void main() async {
   final logger = Logger(
     // printer: PrettyPrinter(),
     output: FileOutput(
-      // 指定日志文件的路径
-      overrideExisting: true,
-      file: File("logfile.txt"),
+      file: File("TodoCatLog.txt"),
     ),
   );
 

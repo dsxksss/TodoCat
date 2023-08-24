@@ -14,7 +14,7 @@ class AddTagScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 10.w),
+          padding: EdgeInsets.only(bottom: 10.w),
           child: Obx(
             () => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +34,7 @@ class AddTagScreen extends StatelessWidget {
                     direction: Axis.horizontal,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      ...ctrl.tags.map(
+                      ...ctrl.selectedTags.map(
                         (tag) => Container(
                           decoration: BoxDecoration(
                             color: Colors.lightBlue,
@@ -57,8 +57,8 @@ class AddTagScreen extends StatelessWidget {
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () =>
-                                    ctrl.removeTag(ctrl.tags.indexOf(tag)),
+                                onTap: () => ctrl
+                                    .removeTag(ctrl.selectedTags.indexOf(tag)),
                                 child: Icon(
                                   Icons.close_rounded,
                                   size: 30.w,

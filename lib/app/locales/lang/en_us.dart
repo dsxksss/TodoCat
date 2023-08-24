@@ -13,4 +13,5 @@ const Map<String, String> enUS = {
   'tag': 'Tag',
   'tags': 'Tags',
   'enter': 'Enter',
+  'priority': 'Priority',
 };

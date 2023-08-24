@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/todo.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
 import 'package:todo_cat/app/pages/home/widgets/add_tag_screen.dart';
+import 'package:todo_cat/app/pages/home/widgets/select_priority_btn.dart';
 import 'package:todo_cat/app/pages/home/widgets/text_form_field_item.dart';
 
 class AddTodoDialog extends StatefulWidget {
@@ -30,8 +31,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 0.6.sw,
-        height: 600.w,
+        width: 0.7.sw,
+        height: 0.5.sw,
         padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.w),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -69,7 +70,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                                 description: ctrl.descriptionFormCtrl.text,
                                 createdAt:
                                     DateTime.now().millisecondsSinceEpoch,
-                                tags: ctrl.tags,
+                                tags: ctrl.selectedTags,
+                                priority: ctrl.selectedPriority.value,
                               ),
                             );
 
@@ -81,17 +83,39 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     ],
                   ),
                   SizedBox(
+                    height: 40.w,
+                  ),
+                  Flex(
+                    direction: Axis.horizontal,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: 0.3.sw,
+                        child: TextFormFieldItem(
+                          fieldTitle: "title".tr,
+                          editingController: ctrl.titleFormCtrl,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 0.3.sw,
+                        child: SelectPriorityBotton(
+                          fieldTitle: "priority".tr,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
                     height: 20.w,
                   ),
                   TextFormFieldItem(
-                    fieldTitle: "title".tr,
-                    editingController: ctrl.titleFormCtrl,
-                  ),
-                  TextFormFieldItem(
                     fieldTitle: "description".tr,
+                    validator: (_) => null,
                     editingController: ctrl.descriptionFormCtrl,
                   ),
-                  AddTagScreen()
+                  SizedBox(
+                    height: 20.w,
+                  ),
+                  AddTagScreen(),
                 ].animate(interval: 100.ms).moveX(begin: 20).fade(),
               ),
             ),

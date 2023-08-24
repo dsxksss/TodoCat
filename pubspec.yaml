@@ -29,6 +29,8 @@ dependencies:
   dropdown_button2: ^2.3.8
   # 日志插件
   logger: ^2.0.1
+  # 时间选择插件
+  syncfusion_flutter_datepicker: ^22.2.10
 
 dev_dependencies:
   flutter_test:
