@@ -64,7 +64,7 @@ class SelectPriorityBotton extends StatelessWidget {
               .map((item) => DropdownMenuItem(
                     value: item.name,
                     child: Text(
-                      item.name,
+                      item.name.tr,
                       style: const TextStyle(
                         fontSize: 14,
                       ),

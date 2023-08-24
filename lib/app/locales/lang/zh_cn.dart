@@ -14,4 +14,7 @@ const Map<String, String> zhCN = {
   'tags': '标签组',
   'enter': '输入',
   'priority': '优先级',
+  'highLevel': '高级别',
+  'mediumLevel': '中级别',
+  'lowLevel': '低级别',
 };
