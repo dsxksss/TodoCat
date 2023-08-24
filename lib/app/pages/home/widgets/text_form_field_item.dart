@@ -20,7 +20,7 @@ class TextFormFieldItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 10.w),
+          padding: EdgeInsets.only(bottom: 10.w),
           child: Text(
             fieldTitle,
             style: TextStyle(

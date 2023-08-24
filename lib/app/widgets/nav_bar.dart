@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/env.dart';
 import 'package:window_manager/window_manager.dart';
@@ -21,6 +20,17 @@ class _NavBarState extends State<NavBar> with WindowListener {
   @override
   void initState() {
     super.initState();
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  void onWindowFocus() {
     updateMaximized();
   }
 
@@ -37,7 +47,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
 
   void targetMaximizeWindow() async {
     if (isMaximize) {
-      await windowManager.restore();
+      await windowManager.unmaximize();
     } else {
       await windowManager.maximize();
     }
