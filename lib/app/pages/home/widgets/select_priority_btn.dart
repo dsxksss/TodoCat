@@ -35,7 +35,6 @@ class SelectPriorityBotton extends StatelessWidget {
             style: TextStyle(
               fontSize: 26.sp,
               fontWeight: FontWeight.w600,
-              color: const Color.fromRGBO(17, 10, 76, 1),
             ),
           ),
         ),

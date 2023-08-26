@@ -24,7 +24,6 @@ class AddTagScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 26.sp,
                     fontWeight: FontWeight.w600,
-                    color: const Color.fromRGBO(17, 10, 76, 1),
                   ),
                 ),
                 Container(
@@ -83,11 +82,14 @@ class AddTagScreen extends StatelessWidget {
               // 取消按钮按下时出现的颜色
               style: const ButtonStyle(
                 overlayColor: MaterialStatePropertyAll(Colors.transparent),
+                backgroundColor: MaterialStatePropertyAll(Colors.lightBlue),
               ),
               onPressed: () => {ctrl.addTag()},
               child: Text(
                 "addTag".tr,
-                style: TextStyle(color: Colors.grey.shade700),
+                style: TextStyle(
+                  color: Colors.white,
+                ),
               ),
             ),
 

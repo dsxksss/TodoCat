@@ -42,7 +42,6 @@ class TaskCard extends StatelessWidget {
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 28.sp,
-                            color: const Color.fromRGBO(17, 10, 76, 1),
                           ),
                         ),
                       ),
@@ -72,6 +71,8 @@ class TaskCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
+                  padding: EdgeInsets.zero,
+                  splashRadius: 1,
                   onPressed: () => {},
                   icon: Icon(
                     size: 35.w,

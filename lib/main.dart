@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/app/app.dart';
-import 'package:todo_cat/env.dart';
 import 'package:todo_cat/init_window.dart';
 
 void main() async {
@@ -29,7 +28,7 @@ void main() async {
     }
 
     runApp(DevicePreview(
-      enabled: isDebugMode, // 是否关闭设备适配查看器
+      enabled: false,
       builder: (_) => const App(),
     ));
 
