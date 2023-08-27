@@ -34,6 +34,12 @@ class _NavBarState extends State<NavBar> with WindowListener {
     updateMaximized();
   }
 
+  @override
+  void onWindowMove() {
+    updateMaximized();
+    super.onWindowMove();
+  }
+
   void minimizeWindow() async {
     await windowManager.minimize();
   }
@@ -110,7 +116,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                   ),
                   isMaximize
                       ? Padding(
-                          padding: EdgeInsets.only(top: 15.w),
+                          padding: EdgeInsets.only(top: 10.w),
                           child: IconButton.outlined(
                             onPressed: targetMaximizeWindow,
                             icon: Icon(
