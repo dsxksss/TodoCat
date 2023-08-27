@@ -8,6 +8,7 @@ import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
 import 'package:todo_cat/app/pages/home/widgets/task_card.dart';
 import 'package:todo_cat/app/widgets/nav_bar.dart';
+import 'package:uuid/uuid.dart';
 
 class HomePage extends GetView<HomeController> {
   const HomePage({super.key});
@@ -21,7 +22,7 @@ class HomePage extends GetView<HomeController> {
         ),
         onPressed: () => {
           controller.addTask(Task(
-            id: 5,
+            id: const Uuid().v4(),
             title: Random().nextInt(1000).toString(),
             createdAt: DateTime.now().millisecondsSinceEpoch,
             tags: [],

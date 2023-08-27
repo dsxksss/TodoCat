@@ -7,6 +7,7 @@ import 'package:todo_cat/app/pages/home/controller.dart';
 import 'package:todo_cat/app/pages/home/widgets/add_tag_screen.dart';
 import 'package:todo_cat/app/pages/home/widgets/select_priority_btn.dart';
 import 'package:todo_cat/app/pages/home/widgets/text_form_field_item.dart';
+import 'package:uuid/uuid.dart';
 
 class AddTodoDialog extends StatefulWidget {
   const AddTodoDialog({
@@ -64,7 +65,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                         onPressed: () {
                           if (ctrl.formKey.currentState!.validate()) {
                             final todo = Todo(
-                              id: ctrl.currentTask.value!.todos.length + 1,
+                              id: const Uuid().v4(),
                               title: ctrl.titleFormCtrl.text,
                               description: ctrl.descriptionFormCtrl.text,
                               createdAt: DateTime.now().millisecondsSinceEpoch,

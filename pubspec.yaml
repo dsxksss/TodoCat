@@ -31,6 +31,8 @@ dependencies:
   logger: ^2.0.1
   # 时间选择插件
   syncfusion_flutter_datepicker: ^22.2.10
+  # uuid生成
+  uuid: ^3.0.7
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
 

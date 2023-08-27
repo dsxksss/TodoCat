@@ -13,7 +13,7 @@ part 'task.freezed.dart';
 @unfreezed
 class Task with _$Task {
   factory Task({
-    @HiveField(0) required int id,
+    @HiveField(0) required String id,
     @HiveField(1) required String title,
     @HiveField(2) required List<String> tags,
     @HiveField(3) required List<Todo> todos,

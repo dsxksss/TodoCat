@@ -17,9 +17,9 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$Task {
   @HiveField(0)
-  int get id => throw _privateConstructorUsedError;
+  String get id => throw _privateConstructorUsedError;
   @HiveField(0)
-  set id(int value) => throw _privateConstructorUsedError;
+  set id(String value) => throw _privateConstructorUsedError;
   @HiveField(1)
   String get title => throw _privateConstructorUsedError;
   @HiveField(1)
@@ -67,7 +67,7 @@ abstract class $TaskCopyWith<$Res> {
       _$TaskCopyWithImpl<$Res, Task>;
   @useResult
   $Res call(
-      {@HiveField(0) int id,
+      {@HiveField(0) String id,
       @HiveField(1) String title,
       @HiveField(2) List<String> tags,
       @HiveField(3) List<Todo> todos,
@@ -107,7 +107,7 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as String,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -155,7 +155,7 @@ abstract class _$$_TaskCopyWith<$Res> implements $TaskCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {@HiveField(0) int id,
+      {@HiveField(0) String id,
       @HiveField(1) String title,
       @HiveField(2) List<String> tags,
       @HiveField(3) List<Todo> todos,
@@ -191,7 +191,7 @@ class __$$_TaskCopyWithImpl<$Res> extends _$TaskCopyWithImpl<$Res, _$_Task>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as String,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -249,7 +249,7 @@ class _$_Task with DiagnosticableTreeMixin implements _Task {
 
   @override
   @HiveField(0)
-  int id;
+  String id;
   @override
   @HiveField(1)
   String title;
@@ -314,7 +314,7 @@ class _$_Task with DiagnosticableTreeMixin implements _Task {
 
 abstract class _Task implements Task {
   factory _Task(
-      {@HiveField(0) required int id,
+      {@HiveField(0) required String id,
       @HiveField(1) required String title,
       @HiveField(2) required List<String> tags,
       @HiveField(3) required List<Todo> todos,
@@ -327,9 +327,9 @@ abstract class _Task implements Task {
 
   @override
   @HiveField(0)
-  int get id;
+  String get id;
   @HiveField(0)
-  set id(int value);
+  set id(String value);
   @override
   @HiveField(1)
   String get title;

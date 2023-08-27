@@ -17,9 +17,9 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$Todo {
   @HiveField(0)
-  int get id => throw _privateConstructorUsedError;
+  String get id => throw _privateConstructorUsedError;
   @HiveField(0)
-  set id(int value) => throw _privateConstructorUsedError;
+  set id(String value) => throw _privateConstructorUsedError;
   @HiveField(1)
   String get title => throw _privateConstructorUsedError;
   @HiveField(1)
@@ -67,7 +67,7 @@ abstract class $TodoCopyWith<$Res> {
       _$TodoCopyWithImpl<$Res, Todo>;
   @useResult
   $Res call(
-      {@HiveField(0) int id,
+      {@HiveField(0) String id,
       @HiveField(1) String title,
       @HiveField(2) List<String> tags,
       @HiveField(3) int createdAt,
@@ -107,7 +107,7 @@ class _$TodoCopyWithImpl<$Res, $Val extends Todo>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as String,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -155,7 +155,7 @@ abstract class _$$_TodoCopyWith<$Res> implements $TodoCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {@HiveField(0) int id,
+      {@HiveField(0) String id,
       @HiveField(1) String title,
       @HiveField(2) List<String> tags,
       @HiveField(3) int createdAt,
@@ -191,7 +191,7 @@ class __$$_TodoCopyWithImpl<$Res> extends _$TodoCopyWithImpl<$Res, _$_Todo>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as String,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -249,7 +249,7 @@ class _$_Todo implements _Todo {
 
   @override
   @HiveField(0)
-  int id;
+  String id;
   @override
   @HiveField(1)
   String title;
@@ -298,7 +298,7 @@ class _$_Todo implements _Todo {
 
 abstract class _Todo implements Todo {
   factory _Todo(
-      {@HiveField(0) required int id,
+      {@HiveField(0) required String id,
       @HiveField(1) required String title,
       @HiveField(2) required List<String> tags,
       @HiveField(3) required int createdAt,
@@ -311,9 +311,9 @@ abstract class _Todo implements Todo {
 
   @override
   @HiveField(0)
-  int get id;
+  String get id;
   @HiveField(0)
-  set id(int value);
+  set id(String value);
   @override
   @HiveField(1)
   String get title;
