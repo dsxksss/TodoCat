@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:logger/logger.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/data/schemas/todo.dart';
 import 'package:todo_cat/app/data/services/repositorys/task.dart';
@@ -7,8 +10,15 @@ import 'package:todo_cat/app/data/services/repositorys/task.dart';
 class HomeController extends GetxController {
   late TaskRepository taskRepository;
 
-  final tasks = <Task>[].obs;
-  final List<String> selectedTags = <String>[].obs;
+  final logger = Logger(
+    // printer: PrettyPrinter(),
+    output: FileOutput(
+      file: File("TodoCat-HomeCtrlLog.txt"),
+    ),
+  );
+
+  final tasks = RxList<Task>();
+  final selectedTags = RxList<String>();
   final currentTask = Rx<Task?>(null);
   final selectedPriority = Rx<TodoPriority>(TodoPriority.lowLevel);
 
@@ -29,7 +39,7 @@ class HomeController extends GetxController {
     // 第一次读取内容复写给tasks
     once(tasks, (_) => taskRepository.writeMany(tasks));
     // 后续数据发生改变则运行更新操作
-    ever(tasks, (_) => taskRepository.updateMant(tasks));
+    ever(tasks, (_) => taskRepository.updateMany(tasks));
   }
 
   void addTag() {
@@ -70,9 +80,9 @@ class HomeController extends GetxController {
   }
 
   void onDialogClose() {
-    titleFormCtrl.text = "";
-    descriptionFormCtrl.text = '';
-    tagController.text = "";
+    titleFormCtrl.clear();
+    descriptionFormCtrl.clear();
+    tagController.clear();
     selectedTags.clear();
   }
 

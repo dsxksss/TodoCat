@@ -26,7 +26,7 @@ class AddTodoCardBtn extends StatelessWidget {
           onHover.value = false,
           await Future.delayed(100.ms),
           ctrl.selectTask(task),
-          showAddTodoDialog(task),
+          showAddTodoDialog(),
         },
         child: Obx(
           () => Container(
@@ -71,7 +71,7 @@ class AddTodoCardBtn extends StatelessWidget {
   }
 }
 
-void showAddTodoDialog(Task task) {
+void showAddTodoDialog() {
   Get.generalDialog(
     barrierLabel: "Barrier",
     barrierDismissible: true,

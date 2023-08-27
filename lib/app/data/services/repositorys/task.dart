@@ -7,7 +7,7 @@ import 'package:todo_cat/env.dart';
 
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
-  final taskKey = 'tasksxxxaw';
+  final taskKey = 'tasksxxxawxxaa';
 
   final Task _task1 = Task(
     id: 1,
@@ -104,7 +104,7 @@ class TaskRepository extends Strorage<Task> {
   }
 
   @override
-  void updateMant(List<Task> values) {
+  void updateMany(List<Task> values) {
     for (var element in values) {
       update(element.title, element);
     }

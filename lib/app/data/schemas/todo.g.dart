@@ -19,10 +19,10 @@ class TodoAdapter extends TypeAdapter<Todo> {
     return Todo(
       id: fields[0] as int,
       title: fields[1] as String,
-      tags: (fields[3] as List).cast<String>(),
-      createdAt: fields[5] as int,
-      description: fields[2] as String,
-      priority: fields[4] as TodoPriority,
+      tags: (fields[2] as List).cast<String>(),
+      createdAt: fields[3] as int,
+      description: fields[4] as String,
+      priority: fields[5] as TodoPriority,
       finishedAt: fields[6] as int,
       status: fields[7] as TodoStatus,
       reminders: fields[8] as int,
@@ -39,13 +39,13 @@ class TodoAdapter extends TypeAdapter<Todo> {
       ..writeByte(1)
       ..write(obj.title)
       ..writeByte(2)
-      ..write(obj.description)
-      ..writeByte(3)
       ..write(obj.tags)
-      ..writeByte(4)
-      ..write(obj.priority)
-      ..writeByte(5)
+      ..writeByte(3)
       ..write(obj.createdAt)
+      ..writeByte(4)
+      ..write(obj.description)
+      ..writeByte(5)
+      ..write(obj.priority)
       ..writeByte(6)
       ..write(obj.finishedAt)
       ..writeByte(7)

@@ -27,7 +27,6 @@ class TodoCard extends StatelessWidget {
             Text(
               todo.title,
               style: const TextStyle(
-                color: Color.fromRGBO(26, 21, 84, 1),
                 fontWeight: FontWeight.bold,
               ),
             ),

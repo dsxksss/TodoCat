@@ -63,18 +63,16 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                                 MaterialStatePropertyAll(Colors.transparent)),
                         onPressed: () {
                           if (ctrl.formKey.currentState!.validate()) {
-                            ctrl.addTodo(
-                              Todo(
-                                id: 1,
-                                title: ctrl.titleFormCtrl.text,
-                                description: ctrl.descriptionFormCtrl.text,
-                                createdAt:
-                                    DateTime.now().millisecondsSinceEpoch,
-                                tags: ctrl.selectedTags,
-                                priority: ctrl.selectedPriority.value,
-                              ),
+                            final todo = Todo(
+                              id: ctrl.currentTask.value!.todos.length + 1,
+                              title: ctrl.titleFormCtrl.text,
+                              description: ctrl.descriptionFormCtrl.text,
+                              createdAt: DateTime.now().millisecondsSinceEpoch,
+                              tags: ctrl.selectedTags,
+                              priority: ctrl.selectedPriority.value,
                             );
-
+                            ctrl.logger.i(todo);
+                            ctrl.addTodo(todo);
                             Get.back();
                           }
                         },
