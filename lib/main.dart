@@ -20,8 +20,6 @@ void main() async {
     // 确保flutterBinding初始化成功
     WidgetsFlutterBinding.ensureInitialized();
 
-    logger.e("log:");
-
     // 设置桌面平台window属性
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       initWindow();
@@ -34,6 +32,6 @@ void main() async {
 
     Hive.close();
   } catch (error) {
-    logger.e("log:", error: error);
+    logger.f("运行失败!!! error:", error: error);
   }
 }

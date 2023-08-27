@@ -24,7 +24,7 @@ class AddTodoCardBtn extends StatelessWidget {
           await Future.delayed(150.ms),
           onClick.value = false,
           onHover.value = false,
-          await Future.delayed(150.ms),
+          await Future.delayed(100.ms),
           ctrl.selectTask(task),
           showAddTodoDialog(task),
         },
