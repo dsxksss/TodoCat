@@ -9,6 +9,31 @@ import 'package:todo_cat/app/pages/home/widgets/select_priority_btn.dart';
 import 'package:todo_cat/app/pages/home/widgets/text_form_field_item.dart';
 import 'package:uuid/uuid.dart';
 
+class addTodoDialogController extends GetxController {
+  final formKey = GlobalKey<FormState>();
+  final selectedTags = RxList<String>();
+  final titleFormCtrl = TextEditingController();
+  final descriptionFormCtrl = TextEditingController();
+  final tagController = TextEditingController();
+
+  void addTag() {
+    if (tagController.text.isNotEmpty && selectedTags.length < 3) {
+      selectedTags.add(tagController.text);
+      tagController.clear();
+    }
+  }
+
+  void removeTag(int index) {
+    selectedTags.removeAt(index);
+  }
+
+  void onDialogClose() {
+    titleFormCtrl.clear();
+    descriptionFormCtrl.clear();
+    tagController.clear();
+  }
+}
+
 class AddTodoDialog extends StatefulWidget {
   const AddTodoDialog({
     super.key,
@@ -19,12 +44,20 @@ class AddTodoDialog extends StatefulWidget {
 }
 
 class _AddTodoDialogState extends State<AddTodoDialog> {
-  final HomeController ctrl = Get.find();
+  final HomeController homeCtrl = Get.find();
+  late final addTodoDialogController dialogCtrl;
+
+  @override
+  void initState() {
+    Get.lazyPut(() => addTodoDialogController());
+    dialogCtrl = Get.find();
+    super.initState();
+  }
 
   @override
   void dispose() {
-    ctrl.deselectTask();
-    ctrl.onDialogClose();
+    dialogCtrl.onDialogClose();
+    homeCtrl.deselectTask();
     super.dispose();
   }
 
@@ -42,7 +75,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         ),
         child: SizedBox.expand(
           child: Form(
-            key: ctrl.formKey,
+            key: dialogCtrl.formKey,
             child: Material(
               type: MaterialType.transparency,
               child: ListView(
@@ -63,17 +96,17 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                             overlayColor:
                                 MaterialStatePropertyAll(Colors.transparent)),
                         onPressed: () {
-                          if (ctrl.formKey.currentState!.validate()) {
+                          if (dialogCtrl.formKey.currentState!.validate()) {
                             final todo = Todo(
                               id: const Uuid().v4(),
-                              title: ctrl.titleFormCtrl.text,
-                              description: ctrl.descriptionFormCtrl.text,
+                              title: dialogCtrl.titleFormCtrl.text,
+                              description: dialogCtrl.descriptionFormCtrl.text,
                               createdAt: DateTime.now().millisecondsSinceEpoch,
-                              tags: ctrl.selectedTags,
-                              priority: ctrl.selectedPriority.value,
+                              tags: dialogCtrl.selectedTags,
+                              priority: homeCtrl.selectedPriority.value,
                             );
-                            ctrl.logger.i(todo);
-                            ctrl.addTodo(todo);
+                            homeCtrl.logger.i(todo);
+                            homeCtrl.addTodo(todo);
                             Get.back();
                           }
                         },
@@ -92,7 +125,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                         width: 0.3.sw,
                         child: TextFormFieldItem(
                           fieldTitle: "title".tr,
-                          editingController: ctrl.titleFormCtrl,
+                          editingController: dialogCtrl.titleFormCtrl,
                         ),
                       ),
                       SizedBox(
@@ -109,7 +142,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   TextFormFieldItem(
                     fieldTitle: "description".tr,
                     validator: (_) => null,
-                    editingController: ctrl.descriptionFormCtrl,
+                    editingController: dialogCtrl.descriptionFormCtrl,
                   ),
                   SizedBox(
                     height: 20.w,

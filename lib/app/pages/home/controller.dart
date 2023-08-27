@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
@@ -18,14 +17,8 @@ class HomeController extends GetxController {
   );
 
   final tasks = RxList<Task>();
-  final selectedTags = RxList<String>();
   final currentTask = Rx<Task?>(null);
   final selectedPriority = Rx<TodoPriority>(TodoPriority.lowLevel);
-
-  final formKey = GlobalKey<FormState>();
-  final titleFormCtrl = TextEditingController();
-  final descriptionFormCtrl = TextEditingController();
-  final tagController = TextEditingController();
 
   @override
   void onInit() async {
@@ -36,25 +29,13 @@ class HomeController extends GetxController {
 
     // 按创建序号排序渲染
     sort(reverse: true);
-    // 第一次读取内容复写给tasks
-    once(tasks, (_) => taskRepository.writeMany(tasks));
+
     // 后续数据发生改变则运行更新操作
     ever(tasks, (_) => taskRepository.updateMany(tasks));
   }
 
-  void addTag() {
-    if (tagController.text.isNotEmpty && selectedTags.length < 3) {
-      selectedTags.add(tagController.text);
-      tagController.clear();
-    }
-  }
-
-  void removeTag(int index) {
-    selectedTags.removeAt(index);
-  }
-
   bool addTask(Task task) {
-    if (taskRepository.has(task.title)) {
+    if (taskRepository.has(task.id)) {
       return false;
     }
 
@@ -62,12 +43,12 @@ class HomeController extends GetxController {
     return true;
   }
 
-  bool deleteTask(String taskTitle) {
-    if (!taskRepository.has(taskTitle)) {
+  bool deleteTask(String taskId) {
+    if (!taskRepository.has(taskId)) {
       return false;
     }
 
-    tasks.removeWhere((task) => task.title == taskTitle);
+    tasks.removeWhere((task) => task.id == taskId);
     return true;
   }
 
@@ -79,24 +60,17 @@ class HomeController extends GetxController {
     currentTask.value = null;
   }
 
-  void onDialogClose() {
-    titleFormCtrl.clear();
-    descriptionFormCtrl.clear();
-    tagController.clear();
-    selectedTags.clear();
-  }
-
   bool addTodo(Todo todo) {
     if (currentTask.value == null) {
       return false;
     }
 
-    if (!taskRepository.has(currentTask.value!.title)) {
+    if (!taskRepository.has(currentTask.value!.id)) {
       return false;
     }
 
     int taskIndex = tasks.indexOf(currentTask.value);
-    if (taskIndex < 0) {
+    if (taskIndex == -1) {
       return false;
     }
 
@@ -107,8 +81,8 @@ class HomeController extends GetxController {
 
   void sort({bool reverse = false}) {
     tasks.sort(reverse
-        ? (a, b) => a.id.compareTo(b.id)
-        : (a, b) => b.id.compareTo(a.id));
+        ? (a, b) => a.createdAt.compareTo(b.createdAt)
+        : (a, b) => b.createdAt.compareTo(a.createdAt));
     tasks.refresh();
   }
 }

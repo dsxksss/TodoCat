@@ -90,7 +90,7 @@ class TaskRepository extends Strorage<Task> {
   @override
   void writeMany(List<Task> values) {
     for (var element in values) {
-      write(element.title, element);
+      write(element.id, element);
     }
   }
 
@@ -107,7 +107,7 @@ class TaskRepository extends Strorage<Task> {
   @override
   void updateMany(List<Task> values) {
     for (var element in values) {
-      update(element.title, element);
+      update(element.id, element);
     }
   }
 }
