@@ -10,8 +10,6 @@ class TodoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 1.sw,
-      height: todo.tags.isNotEmpty ? 200.w : 150.w,
       margin: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.w),
       padding: EdgeInsets.only(left: 20.w, right: 20.w, top: 15.w),
       decoration: BoxDecoration(
@@ -98,6 +96,9 @@ class TodoCard extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
+            SizedBox(
+              height: 20.w,
             )
           ],
         ),
