@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/app/pages/home/widgets/add_todo_dialog.dart';
+import 'package:todo_cat/app/pages/home/controller.dart';
 
 class AddTagScreen extends StatelessWidget {
   AddTagScreen({super.key});
 
-  final addTodoDialogController ctrl = Get.find();
+  final AddTodoDialogController ctrl = Get.find();
 
   @override
   Widget build(BuildContext context) {

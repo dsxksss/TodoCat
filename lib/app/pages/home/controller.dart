@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
+import 'package:flutter/material.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/data/schemas/todo.dart';
 import 'package:todo_cat/app/data/services/repositorys/task.dart';
@@ -84,5 +85,30 @@ class HomeController extends GetxController {
         ? (a, b) => a.createdAt.compareTo(b.createdAt)
         : (a, b) => b.createdAt.compareTo(a.createdAt));
     tasks.refresh();
+  }
+}
+
+class AddTodoDialogController extends GetxController {
+  final formKey = GlobalKey<FormState>();
+  final selectedTags = RxList<String>();
+  final titleFormCtrl = TextEditingController();
+  final descriptionFormCtrl = TextEditingController();
+  final tagController = TextEditingController();
+
+  void addTag() {
+    if (tagController.text.isNotEmpty && selectedTags.length < 3) {
+      selectedTags.add(tagController.text);
+      tagController.clear();
+    }
+  }
+
+  void removeTag(int index) {
+    selectedTags.removeAt(index);
+  }
+
+  void onDialogClose() {
+    titleFormCtrl.clear();
+    descriptionFormCtrl.clear();
+    tagController.clear();
   }
 }

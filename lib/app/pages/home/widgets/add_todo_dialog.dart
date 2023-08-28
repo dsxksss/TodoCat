@@ -9,31 +9,6 @@ import 'package:todo_cat/app/pages/home/widgets/select_priority_btn.dart';
 import 'package:todo_cat/app/pages/home/widgets/text_form_field_item.dart';
 import 'package:uuid/uuid.dart';
 
-class addTodoDialogController extends GetxController {
-  final formKey = GlobalKey<FormState>();
-  final selectedTags = RxList<String>();
-  final titleFormCtrl = TextEditingController();
-  final descriptionFormCtrl = TextEditingController();
-  final tagController = TextEditingController();
-
-  void addTag() {
-    if (tagController.text.isNotEmpty && selectedTags.length < 3) {
-      selectedTags.add(tagController.text);
-      tagController.clear();
-    }
-  }
-
-  void removeTag(int index) {
-    selectedTags.removeAt(index);
-  }
-
-  void onDialogClose() {
-    titleFormCtrl.clear();
-    descriptionFormCtrl.clear();
-    tagController.clear();
-  }
-}
-
 class AddTodoDialog extends StatefulWidget {
   const AddTodoDialog({
     super.key,
@@ -45,11 +20,11 @@ class AddTodoDialog extends StatefulWidget {
 
 class _AddTodoDialogState extends State<AddTodoDialog> {
   final HomeController homeCtrl = Get.find();
-  late final addTodoDialogController dialogCtrl;
+  late final AddTodoDialogController dialogCtrl;
 
   @override
   void initState() {
-    Get.lazyPut(() => addTodoDialogController());
+    Get.lazyPut(() => AddTodoDialogController());
     dialogCtrl = Get.find();
     super.initState();
   }
