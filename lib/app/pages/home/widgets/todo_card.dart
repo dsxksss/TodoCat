@@ -11,7 +11,7 @@ class TodoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 1.sw,
-      height: 200.w,
+      height: todo.tags.isNotEmpty ? 200.w : 150.w,
       margin: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.w),
       padding: EdgeInsets.only(left: 20.w, right: 20.w, top: 15.w),
       decoration: BoxDecoration(
@@ -26,27 +26,33 @@ class TodoCard extends StatelessWidget {
           children: [
             Text(
               todo.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(
-              height: 10.w,
-            ),
-            SizedBox(
-              height: 30.w,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  ...todo.tags.sublist(0, todo.tags.length > 3 ? 3 : null).map(
-                        (e) => Padding(
-                          padding: EdgeInsets.only(right: 15.w),
-                          child: Tag(tag: e, color: Colors.blueAccent),
-                        ),
-                      ),
-                ],
+            if (todo.tags.isNotEmpty)
+              SizedBox(
+                height: 10.w,
               ),
-            ),
+            if (todo.tags.isNotEmpty)
+              SizedBox(
+                height: 30.w,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    ...todo.tags
+                        .sublist(0, todo.tags.length > 3 ? 3 : null)
+                        .map(
+                          (e) => Padding(
+                            padding: EdgeInsets.only(right: 15.w),
+                            child: Tag(tag: e, color: Colors.blueAccent),
+                          ),
+                        ),
+                  ],
+                ),
+              ),
             Padding(
               padding: EdgeInsets.symmetric(vertical: 10.w),
               child: const Divider(),
