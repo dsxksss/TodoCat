@@ -5,7 +5,7 @@ import 'package:todo_cat/app/pages/home/view.dart';
 List<GetPage<dynamic>> routerMap = [
   GetPage(
     name: '/',
-    page: () => HomePage(),
+    page: () => const HomePage(),
     transition: Transition.fadeIn,
     binding: HomeBinding(),
   ),

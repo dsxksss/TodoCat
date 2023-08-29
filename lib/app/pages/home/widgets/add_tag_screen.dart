@@ -87,7 +87,7 @@ class AddTagScreen extends StatelessWidget {
               onPressed: () => {ctrl.addTag()},
               child: Text(
                 "addTag".tr,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                 ),
               ),

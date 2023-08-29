@@ -80,7 +80,6 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                               tags: dialogCtrl.selectedTags,
                               priority: homeCtrl.selectedPriority.value,
                             );
-                            homeCtrl.logger.i(todo);
                             homeCtrl.addTodo(todo);
                             Get.back();
                           }

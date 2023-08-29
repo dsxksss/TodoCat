@@ -45,11 +45,20 @@ class HomeController extends GetxController {
   }
 
   bool deleteTask(String taskId) {
-    if (!taskRepository.has(taskId)) {
+    if (taskRepository.hasNot(taskId)) {
       return false;
     }
 
     tasks.removeWhere((task) => task.id == taskId);
+    return true;
+  }
+
+  bool updateTask(String taskId, Task task) {
+    if (!taskRepository.hasNot(taskId)) {
+      return false;
+    }
+
+    taskRepository.update(taskId, task);
     return true;
   }
 
@@ -66,7 +75,7 @@ class HomeController extends GetxController {
       return false;
     }
 
-    if (!taskRepository.has(currentTask.value!.id)) {
+    if (taskRepository.hasNot(currentTask.value!.id)) {
       return false;
     }
 

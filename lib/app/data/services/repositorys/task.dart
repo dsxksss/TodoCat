@@ -99,6 +99,10 @@ class TaskRepository extends Strorage<Task> {
     return _box.containsKey(key);
   }
 
+  bool hasNot(String key) {
+    return !_box.containsKey(key);
+  }
+
   @override
   void update(String key, Task value) async {
     await _box.put(key, value);

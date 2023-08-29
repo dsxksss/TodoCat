@@ -5,13 +5,13 @@ final darkTheme = ThemeData(
   primaryColor: Colors.grey[900],
   hintColor: Colors.blue,
   scaffoldBackgroundColor: Colors.grey[900],
-  textTheme: TextTheme(
-    headline1: TextStyle(
+  textTheme: const TextTheme(
+    displayLarge: TextStyle(
       color: Colors.white,
       fontSize: 24,
       fontWeight: FontWeight.bold,
     ),
-    bodyText1: TextStyle(
+    bodyLarge: TextStyle(
       color: Colors.white,
       fontSize: 16,
     ),
