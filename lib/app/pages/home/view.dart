@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
 import 'package:todo_cat/app/pages/home/widgets/task_card.dart';
+import 'package:todo_cat/app/widgets/animation_btn.dart';
 import 'package:todo_cat/app/widgets/nav_bar.dart';
 import 'package:uuid/uuid.dart';
 
@@ -16,27 +17,36 @@ class HomePage extends GetView<HomeController> {
   @override
   Widget build(context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        label: Text(
-          "addTask".tr,
-        ),
-        onPressed: () => {
-          controller.addTask(Task(
-            id: const Uuid().v4(),
-            title: Random().nextInt(1000).toString(),
-            createdAt: DateTime.now().millisecondsSinceEpoch,
-            tags: [],
-            todos: [],
-          ))
+      floatingActionButton: AnimationBtn(
+        onPressed: () {
+          controller.addTask(
+            Task(
+              id: const Uuid().v4(),
+              title: Random().nextInt(1000).toString(),
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              tags: [],
+              todos: [],
+            ),
+          );
         },
-        isExtended: true,
-        icon: const Icon(
-          Icons.add_task,
-          color: Colors.white,
+        padding: EdgeInsets.all(8.w),
+        child: Container(
+          width: 90.w,
+          height: 90.w,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(200),
+            color: Colors.lightBlue,
+          ),
+          child: Icon(
+            Icons.add_task,
+            size: 45.w,
+            color: Colors.white,
+          ),
         ),
       )
           .animate(delay: 2200.ms)
-          .moveX(begin: 150, duration: 1000.ms, curve: Curves.bounceOut),
+          .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
+          .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: SafeArea(
         child: ListView(
           children: [

@@ -77,7 +77,7 @@ class TaskCard extends StatelessWidget {
                   onClickDuration: 100.ms,
                   onHoverAnimationEnabled: false,
                   padding: EdgeInsets.all(8.w),
-                  onPressed: () => {print("p")},
+                  onPressed: () => {},
                   child: Center(
                     child: Icon(
                       size: 35.w,
