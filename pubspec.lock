@@ -429,6 +429,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.1"
+  local_notifier:
+    dependency: "direct main"
+    description:
+      name: local_notifier
+      sha256: cc855aa6362c8840e3d3b35b1c3b058a3a8becdb2b03d5a9aa3f3a1e861f0a03
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.1.5"
   logger:
     dependency: "direct main"
     description:
@@ -622,7 +630,7 @@ packages:
     source: hosted
     version: "0.1.6"
   shared_preferences:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: shared_preferences
       sha256: "0344316c947ffeb3a529eac929e1978fcd37c26be4e8468628bac399365a3ca1"
@@ -870,10 +878,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: f2add6fa510d3ae152903412227bda57d0d5a8da61d2c39c1fb022c9429a41c0
+      sha256: "9e82a402b7f3d518fb9c02d0e9ae45952df31b9bf34d77baf19da2de03fc2aaa"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "5.0.6"
+    version: "5.0.7"
   window_manager:
     dependency: "direct main"
     description:
