@@ -6,6 +6,7 @@ import 'package:todo_cat/app/data/schemas/task.dart';
 import 'package:todo_cat/app/pages/home/controller.dart';
 import 'package:todo_cat/app/pages/home/widgets/add_todo_card_btn.dart';
 import 'package:todo_cat/app/pages/home/widgets/todo_card.dart';
+import 'package:todo_cat/app/widgets/animation_btn.dart';
 
 class TaskCard extends StatelessWidget {
   TaskCard({super.key, required this.task});
@@ -27,64 +28,75 @@ class TaskCard extends StatelessWidget {
       child: Flex(
         direction: Axis.vertical,
         children: [
+          SizedBox(
+            height: 10.w,
+          ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 5.w),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SizedBox(
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 15.w),
-                        child: Text(
-                          task.title,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 28.sp,
-                          ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 15.w),
+                      child: Text(
+                        task.title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 28.sp,
                         ),
                       ),
-                      SizedBox(
-                        width: 10.w,
-                      ),
-                      if (todosLength > 0)
-                        Container(
-                          width: 34.w,
-                          height: 32.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10.r),
-                            color: const Color.fromRGBO(225, 224, 240, 1),
-                          ),
-                          child: Center(
-                            child: Text(
-                              todosLength.toString(),
-                              style: TextStyle(
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.bold,
-                                color: const Color.fromRGBO(17, 10, 76, 1),
-                              ),
+                    ),
+                    SizedBox(
+                      width: 10.w,
+                    ),
+                    if (todosLength > 0)
+                      Container(
+                        width: 34.w,
+                        height: 32.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.r),
+                          color: const Color.fromRGBO(225, 224, 240, 1),
+                        ),
+                        child: Center(
+                          child: Text(
+                            todosLength.toString(),
+                            style: TextStyle(
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold,
+                              color: const Color.fromRGBO(17, 10, 76, 1),
                             ),
                           ),
-                        )
-                    ],
-                  ),
+                        ),
+                      )
+                  ],
                 ),
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  splashRadius: 1,
-                  onPressed: () => {},
-                  icon: Icon(
-                    size: 35.w,
-                    Icons.more_horiz,
-                    color: const Color.fromRGBO(129, 127, 158, 1),
+                AnimationBtn(
+                  onClickScale: 0.8,
+                  onClickDuration: 100.ms,
+                  onHoverAnimationEnabled: false,
+                  padding: EdgeInsets.all(8.w),
+                  onPressed: () => {print("p")},
+                  child: Center(
+                    child: Icon(
+                      size: 35.w,
+                      Icons.more_horiz,
+                      color: const Color.fromRGBO(129, 127, 158, 1),
+                    ),
                   ),
                 )
               ],
             ),
           ),
+          SizedBox(
+            height: 20.w,
+          ),
           AddTodoCardBtn(
             task: task,
+          ),
+          SizedBox(
+            height: 20.w,
           ),
           Obx(
             () => Column(
