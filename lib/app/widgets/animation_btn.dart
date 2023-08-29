@@ -7,7 +7,6 @@ class AnimationBtn extends StatelessWidget {
     super.key,
     required this.child,
     this.onPressed,
-    this.onLongPressed,
     this.padding,
     this.onHoverScale,
     this.onClickScale,
@@ -19,7 +18,6 @@ class AnimationBtn extends StatelessWidget {
 
   final Widget child;
   final Function? onPressed;
-  final Function? onLongPressed;
 
   final double? onHoverScale;
   final Duration? onHoverDuration;
@@ -31,63 +29,66 @@ class AnimationBtn extends StatelessWidget {
 
   final EdgeInsetsGeometry? padding;
 
+  final Duration defaultDuration = 150.ms;
   final onHover = false.obs;
   final onClick = false.obs;
+  final isAnimating = false.obs;
 
   void playHoverAnimation() {
     if (onHoverAnimationEnabled) onHover.value = true;
   }
 
-  void playClickAnimation() async {
+  void playClickAnimation() {
     if (onClickAnimationEnabled) onClick.value = true;
+  }
+
+  void closeAllAnimation() {
+    onHover.value = false;
+    onClick.value = false;
   }
 
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      onHover: (_) {
+      onEnter: (_) {
         playHoverAnimation();
       },
       onExit: (_) {
-        onHover.value = false;
-        onClick.value = false;
+        closeAllAnimation();
       },
       child: GestureDetector(
         onTap: () async {
           playClickAnimation();
-          await Future.delayed(onClickDuration ?? 150.ms);
-
-          onClick.value = false;
-          onHover.value = false;
+          await Future.delayed((onClickDuration ?? defaultDuration) - 50.ms);
+          closeAllAnimation();
           if (onPressed != null) onPressed!();
         },
         onLongPressDown: (_) {
           playClickAnimation();
         },
         onLongPressUp: () {
-          onClick.value = false;
-          onHover.value = false;
-          if (onLongPressed != null) onLongPressed!();
+          closeAllAnimation();
+          if (onPressed != null) onPressed!();
         },
         child: Obx(
-          () => Animate(
-            child: Container(
-              padding: padding,
-              child: child,
-            )
-                .animate(target: onHover.value ? 1 : 0)
-                .scaleXY(
-                  end: onHoverScale ?? 1.05,
-                  duration: onHoverDuration ?? 150.ms,
-                  curve: Curves.easeInOutQuad,
-                )
-                .animate(target: onClick.value ? 1 : 0)
-                .scaleXY(
-                  end: onClickScale ?? 0.9,
-                  duration: onClickDuration ?? 150.ms,
-                  curve: Curves.easeInOutQuad,
-                ),
-          ),
+          () => Container(
+            padding: padding,
+            child: child,
+          )
+              // Hover animation
+              .animate(target: onHover.value ? 1 : 0)
+              .scaleXY(
+                end: onHoverScale ?? 1.05,
+                duration: onHoverDuration ?? defaultDuration,
+                curve: Curves.easeIn,
+              )
+              // Click animation
+              .animate(target: onClick.value ? 1 : 0)
+              .scaleXY(
+                end: onClickScale ?? 0.9,
+                duration: onClickDuration ?? defaultDuration,
+                curve: Curves.easeOut,
+              ),
         ),
       ),
     );

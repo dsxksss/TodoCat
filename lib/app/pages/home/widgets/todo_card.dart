@@ -26,8 +26,8 @@ class TodoCard extends StatelessWidget {
               todo.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
+              style: TextStyle(
+                fontSize: 23.sp,
               ),
             ),
             if (todo.tags.isNotEmpty)
