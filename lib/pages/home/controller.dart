@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
+import 'package:todo_cat/app.dart';
+import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
@@ -20,6 +22,8 @@ class HomeController extends GetxController {
   final tasks = RxList<Task>();
   final currentTask = Rx<Task?>(null);
   final selectedPriority = Rx<TodoPriority>(TodoPriority.lowLevel);
+
+  final AppController appCtrl = Get.find();
 
   @override
   void onInit() async {
@@ -85,6 +89,18 @@ class HomeController extends GetxController {
     }
 
     tasks[taskIndex].todos.add(todo);
+
+    if (todo.reminders != 0) {
+      final LocalNotice notice = LocalNotice(
+        id: todo.id,
+        title: "您有一个任务已经失效",
+        description: "${todo.title},创建时间:${todo.createdAt}",
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        remindersAt: todo.reminders,
+      );
+      appCtrl.localNotificationManager.saveNotification(notice.id, notice);
+    }
+
     tasks.refresh();
     return true;
   }
@@ -103,6 +119,7 @@ class AddTodoDialogController extends GetxController {
   final titleFormCtrl = TextEditingController();
   final descriptionFormCtrl = TextEditingController();
   final tagController = TextEditingController();
+  final remindersController = TextEditingController();
 
   void addTag() {
     if (tagController.text.isNotEmpty && selectedTags.length < 3) {

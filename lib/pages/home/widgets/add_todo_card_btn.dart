@@ -20,7 +20,6 @@ class AddTodoCardBtn extends StatelessWidget {
         showAddTodoDialog(),
       },
       child: Container(
-        width: 1.sw,
         margin: EdgeInsets.symmetric(horizontal: 20.w),
         decoration: BoxDecoration(
           color: const Color.fromRGBO(238, 238, 240, 1),
@@ -57,7 +56,7 @@ class AddTodoCardBtn extends StatelessWidget {
 
 void showAddTodoDialog() {
   Get.generalDialog(
-    barrierLabel: "Barrier",
+    barrierLabel: "showAddTodoDialog",
     barrierDismissible: true,
     barrierColor: Colors.black.withOpacity(0.5),
     transitionDuration: 250.ms,
