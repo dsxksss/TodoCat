@@ -39,7 +39,21 @@ class TaskRepository extends Strorage<Task> {
     todos: [],
   );
 
-  Future<TaskRepository> init() async {
+  // 私有构造函数
+  TaskRepository._();
+
+  // 单例实例
+  static TaskRepository? _instance;
+
+  static Future<TaskRepository> getInstance() async {
+    if (_instance == null) {
+      _instance = TaskRepository._();
+      await _instance!._init();
+    }
+    return _instance!;
+  }
+
+  Future<void> _init() async {
     // 注册Hive数据模板
     Hive.registerAdapter(TaskAdapter());
     Hive.registerAdapter(TaskStatusAdapter());
@@ -55,8 +69,6 @@ class TaskRepository extends Strorage<Task> {
       await _box.clear();
       writeMany([_task1, _task2, _task3, _task4]);
     }
-
-    return this;
   }
 
   @override

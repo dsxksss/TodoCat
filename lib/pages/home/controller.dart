@@ -24,7 +24,7 @@ class HomeController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
-    taskRepository = await TaskRepository().init();
+    taskRepository = await TaskRepository.getInstance();
     final localTasks = await taskRepository.readAll();
     tasks.assignAll(localTasks);
 
