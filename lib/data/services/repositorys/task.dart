@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/services/strorage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_cat/env.dart';
@@ -8,7 +7,7 @@ import 'package:uuid/uuid.dart';
 
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
-  final taskKey = 'tasksxxxawxxc';
+  final taskKey = 'tasksxxxawxvvv';
 
   final Task _task1 = Task(
     id: const Uuid().v4(),
@@ -39,10 +38,8 @@ class TaskRepository extends Strorage<Task> {
     todos: [],
   );
 
-  // 私有构造函数
   TaskRepository._();
 
-  // 单例实例
   static TaskRepository? _instance;
 
   static Future<TaskRepository> getInstance() async {
@@ -54,13 +51,6 @@ class TaskRepository extends Strorage<Task> {
   }
 
   Future<void> _init() async {
-    // 注册Hive数据模板
-    Hive.registerAdapter(TaskAdapter());
-    Hive.registerAdapter(TaskStatusAdapter());
-    Hive.registerAdapter(TodoAdapter());
-    Hive.registerAdapter(TodoStatusAdapter());
-    Hive.registerAdapter(TodoPriorityAdapter());
-
     // 开启数据盒
     await Hive.openBox<Task>(taskKey);
     _box = Hive.box(taskKey);

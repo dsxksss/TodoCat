@@ -3,9 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-//记得使用此命令生成hive模板文件
-//flutter packages pub run build_runner build
-
 part "task.g.dart";
 part 'task.freezed.dart';
 

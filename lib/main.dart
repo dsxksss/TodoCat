@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/app.dart';
+import 'package:todo_cat/data/db.dart';
 import 'package:todo_cat/window/init_window.dart';
 
 void main() async {
@@ -16,8 +16,8 @@ void main() async {
   );
 
   try {
-    // 初始化hive本地数据库
-    await Hive.initFlutter();
+    await initDB();
+
     // 确保flutterBinding初始化成功
     WidgetsFlutterBinding.ensureInitialized();
 
