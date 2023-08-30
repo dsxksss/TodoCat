@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
-import 'package:todo_cat/app/data/schemas/task.dart';
-import 'package:todo_cat/app/data/schemas/todo.dart';
-import 'package:todo_cat/app/data/services/strorage.dart';
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/data/services/strorage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_cat/env.dart';
 import 'package:uuid/uuid.dart';

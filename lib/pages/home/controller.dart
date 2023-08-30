@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
-import 'package:todo_cat/app/data/schemas/task.dart';
-import 'package:todo_cat/app/data/schemas/todo.dart';
-import 'package:todo_cat/app/data/services/repositorys/task.dart';
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/data/services/repositorys/task.dart';
 
 class HomeController extends GetxController {
   late TaskRepository taskRepository;

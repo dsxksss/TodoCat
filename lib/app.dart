@@ -2,10 +2,10 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/app/locales/locales.dart';
-import 'package:todo_cat/app/pages/unknown.dart';
-import 'package:todo_cat/app/routers/router_map.dart';
-import 'package:todo_cat/app/themes/light_theme.dart';
+import 'package:todo_cat/locales/locales.dart';
+import 'package:todo_cat/pages/unknown.dart';
+import 'package:todo_cat/routers/router_map.dart';
+import 'package:todo_cat/themes/light_theme.dart';
 
 class App extends StatelessWidget {
   const App({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:todo_cat/app/data/schemas/todo.dart';
-import 'package:todo_cat/app/pages/home/widgets/tag.dart';
+import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/pages/home/widgets/tag.dart';
 
 class TodoCard extends StatelessWidget {
   const TodoCard({super.key, required this.todo});

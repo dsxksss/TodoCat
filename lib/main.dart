@@ -6,7 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo_cat/app/app.dart';
+import 'package:todo_cat/app.dart';
 import 'package:todo_cat/init_window.dart';
 
 Future<void> saveSpecifiedTime(DateTime time) async {

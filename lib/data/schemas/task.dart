@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:flutter/foundation.dart';
-import 'package:todo_cat/app/data/schemas/todo.dart';
+import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 //记得使用此命令生成hive模板文件
