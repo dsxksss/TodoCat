@@ -14,10 +14,8 @@ class LocalNoticeRepository extends Strorage<LocalNotice> {
   static LocalNoticeRepository? _instance;
 
   static Future<LocalNoticeRepository> getInstance() async {
-    if (_instance == null) {
-      _instance = LocalNoticeRepository._();
-      await _instance!._init();
-    }
+    _instance ??= LocalNoticeRepository._();
+    await _instance!._init();
     return _instance!;
   }
 

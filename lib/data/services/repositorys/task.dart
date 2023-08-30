@@ -43,10 +43,8 @@ class TaskRepository extends Strorage<Task> {
   static TaskRepository? _instance;
 
   static Future<TaskRepository> getInstance() async {
-    if (_instance == null) {
-      _instance = TaskRepository._();
-      await _instance!._init();
-    }
+    _instance ??= TaskRepository._();
+    await _instance!._init();
     return _instance!;
   }
 

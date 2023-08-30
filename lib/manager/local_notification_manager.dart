@@ -6,33 +6,30 @@ import 'package:todo_cat/data/services/repositorys/local_notice.dart';
 
 class LocalNotificationManager {
   late final LocalNoticeRepository localNoticeRepository;
-  late final Map<String, Timer> timerPool;
+  final Map<String, Timer> timerPool = {};
 
   LocalNotificationManager._();
 
   static LocalNotificationManager? _instance;
 
   static Future<LocalNotificationManager> getInstance() async {
-    if (_instance == null) {
-      _instance = LocalNotificationManager._();
-      await _instance!._init();
-    }
+    _instance ??= LocalNotificationManager._();
+    await _instance!._init();
     return _instance!;
   }
 
   Future<void> _init() async {
     localNoticeRepository = await LocalNoticeRepository.getInstance();
-    timerPool = {};
   }
 
   void registerNotification(DateTime specifiedTime, LocalNotice notice) {
-    DateTime currentTime = DateTime.now();
+    final currentTime = DateTime.now();
 
     if (currentTime.isBefore(specifiedTime)) {
       final timer = Timer(
         specifiedTime.difference(currentTime),
         () {
-          LocalNotification notification = LocalNotification(
+          final notification = LocalNotification(
             identifier: notice.id,
             title: notice.title,
             body: notice.description,
@@ -53,9 +50,9 @@ class LocalNotificationManager {
     );
   }
 
-  void checkAllLocalNotification() async {
-    List<LocalNotice> localNotices = await localNoticeRepository.readAll();
-    for (LocalNotice notice in localNotices) {
+  Future<void> checkAllLocalNotification() async {
+    final localNotices = await localNoticeRepository.readAll();
+    for (final notice in localNotices) {
       registerNotification(
         DateTime.fromMillisecondsSinceEpoch(notice.remindersAt),
         notice,
@@ -64,17 +61,14 @@ class LocalNotificationManager {
   }
 
   void destroy(String timerKey) {
-    final timer = timerPool[timerKey];
-    if (timer != null) {
-      timer.cancel();
-    }
-    timerPool.remove(timerKey);
+    final timer = timerPool.remove(timerKey);
+    timer?.cancel();
   }
 
   void destroyLocalNotification() {
-    timerPool.forEach((key, value) {
-      value.cancel();
-    });
+    for (var timer in timerPool.values) {
+      timer.cancel();
+    }
 
     timerPool.clear();
   }
