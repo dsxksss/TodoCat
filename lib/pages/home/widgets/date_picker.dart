@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/widgets/app_date_picker_dialog.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 
-class DatePicker extends StatelessWidget {
-  const DatePicker({
+class DatePickerBtn extends StatelessWidget {
+  const DatePickerBtn({
     super.key,
     required this.editingController,
     this.validator,
@@ -101,7 +101,7 @@ void showDatePickerDialog() {
     barrierColor: Colors.black.withOpacity(0.5),
     transitionDuration: 250.ms,
     pageBuilder: (_, __, ___) {
-      return GestureDetector(child: const AppDatePickerDialog());
+      return GestureDetector(child: const TodoCatDatePickerDialog());
     },
   );
 }

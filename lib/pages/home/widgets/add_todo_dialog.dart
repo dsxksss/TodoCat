@@ -130,7 +130,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                 SizedBox(
                   height: 25.w,
                 ),
-                DatePicker(
+                DatePickerBtn(
                   editingController: dialogCtrl.remindersController,
                   fieldTitle: 'reminderTime'.tr,
                 ),

@@ -8,7 +8,7 @@ import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/pages/home/widgets/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
-import 'package:todo_cat/widgets/nav_bar.dart';
+import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
 class HomePage extends GetView<HomeController> {
@@ -47,37 +47,21 @@ class HomePage extends GetView<HomeController> {
           .animate(delay: 2200.ms)
           .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
-      body: SafeArea(
-        child: Stack(
+      body: TodoCatScaffold(
+        body: ListView(
           children: [
-            Positioned(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 120.w,
-                  ),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        Obx(
-                          () => Wrap(
-                              direction: Axis.horizontal,
-                              runSpacing: 40.w,
-                              children: [
-                                ...controller.tasks
-                                    .map((element) => TaskCard(task: element))
-                              ].animate(interval: 100.ms).moveX().fade()),
-                        ),
-                        SizedBox(
-                          height: 0.05.sw,
-                        )
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            Obx(
+              () => Wrap(
+                  direction: Axis.horizontal,
+                  runSpacing: 40.w,
+                  children: [
+                    ...controller.tasks
+                        .map((element) => TaskCard(task: element))
+                  ].animate(interval: 100.ms).moveX().fade()),
             ),
-            const Positioned(top: 0, child: NavBar()),
+            SizedBox(
+              height: 0.05.sw,
+            )
           ],
         ),
       ),

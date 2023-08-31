@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/env.dart';
+import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:window_manager/window_manager.dart';
 
 class NavBar extends StatefulWidget {
@@ -72,10 +74,10 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapDown: (_) => {windowManager.startDragging()},
       child: Container(
         width: 1.sw,
-        color: Colors.white,
+        color: Colors.blue,
         margin: Platform.isMacOS ? EdgeInsets.only(top: 20.w) : null,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 10.w),
+          padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 20.w),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -83,8 +85,8 @@ class _NavBarState extends State<NavBar> with WindowListener {
                 children: [
                   Image.asset(
                     'assets/imgs/logo.png',
-                    width: 85.w,
-                    height: 85.w,
+                    width: 50.w,
+                    height: 50.w,
                     filterQuality: FilterQuality.medium,
                   ),
                   SizedBox(
@@ -92,9 +94,8 @@ class _NavBarState extends State<NavBar> with WindowListener {
                   ),
                   Text(
                     "${"myTasks".tr} ${runMode.name}",
-                    overflow: TextOverflow.fade,
                     style: TextStyle(
-                      fontSize: 60.sp,
+                      fontSize: 32.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ).animate(delay: 1000.ms).moveY(
@@ -108,46 +109,32 @@ class _NavBarState extends State<NavBar> with WindowListener {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton.outlined(
+                    NavBarBtn(
                       onPressed: minimizeWindow,
-                      icon: Icon(
-                        Icons.horizontal_rule_rounded,
-                        size: 45.w,
+                      child: const FaIcon(FontAwesomeIcons.minus),
+                    ),
+                    SizedBox(
+                      width: 30.w,
+                    ),
+                    NavBarBtn(
+                      onPressed: targetMaximizeWindow,
+                      child: Transform.scale(
+                        scale: 0.85,
+                        child: FaIcon(
+                          isMaximize
+                              ? FontAwesomeIcons.windowRestore
+                              : FontAwesomeIcons.square,
+                        ),
                       ),
                     ),
                     SizedBox(
-                      width: isMaximize ? 30.w : 20.w,
+                      width: 30.w,
                     ),
-                    isMaximize
-                        ? Padding(
-                            padding: EdgeInsets.only(top: 10.w),
-                            child: IconButton.outlined(
-                              onPressed: targetMaximizeWindow,
-                              icon: Icon(
-                                Icons.filter_none_rounded,
-                                size: 30.w,
-                              ),
-                            ),
-                          )
-                        : Padding(
-                            padding: EdgeInsets.only(top: 5.w),
-                            child: IconButton.outlined(
-                              onPressed: targetMaximizeWindow,
-                              icon: Icon(
-                                Icons.crop_square_rounded,
-                                size: 40.w,
-                              ),
-                            ),
-                          ),
-                    SizedBox(
-                      width: 10.w,
-                    ),
-                    IconButton.outlined(
+                    NavBarBtn(
                       onPressed: closeWindow,
-                      icon: Icon(
-                        Icons.close_rounded,
+                      child: const FaIcon(
+                        FontAwesomeIcons.xmark,
                         color: Colors.red,
-                        size: 46.w,
                       ),
                     ),
                   ]
@@ -158,6 +145,30 @@ class _NavBarState extends State<NavBar> with WindowListener {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class NavBarBtn extends StatelessWidget {
+  const NavBarBtn({super.key, this.onPressed, required this.child});
+  final Function? onPressed;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimationBtn(
+      onHoverScale: 1.2,
+      onPressed: onPressed,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5.r),
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: 6.w,
+          vertical: 2.w,
+        ),
+        child: child,
       ),
     );
   }
