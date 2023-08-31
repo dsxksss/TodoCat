@@ -71,11 +71,11 @@ class _NavBarState extends State<NavBar> with WindowListener {
     return GestureDetector(
       onTapDown: (_) => {windowManager.startDragging()},
       child: Container(
-        width: 1.w,
+        width: 1.sw,
         color: Colors.white,
         margin: Platform.isMacOS ? EdgeInsets.only(top: 20.w) : null,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 30.w),
+          padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 10.w),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -151,7 +151,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       ),
                     ),
                   ]
-                      .animate(interval: 100.ms)
+                      .animate(interval: 100.ms, delay: 1000.ms)
                       .moveY(duration: 400.ms)
                       .fade(duration: 400.ms),
                 ),

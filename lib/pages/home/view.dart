@@ -48,21 +48,36 @@ class HomePage extends GetView<HomeController> {
           .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: SafeArea(
-        child: ListView(
+        child: Stack(
           children: [
-            const NavBar(),
-            Obx(
-              () => Wrap(
-                  direction: Axis.horizontal,
-                  runSpacing: 40.w,
-                  children: [
-                    ...controller.tasks
-                        .map((element) => TaskCard(task: element))
-                  ].animate(interval: 100.ms).moveX().fade()),
+            Positioned(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 120.w,
+                  ),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        Obx(
+                          () => Wrap(
+                              direction: Axis.horizontal,
+                              runSpacing: 40.w,
+                              children: [
+                                ...controller.tasks
+                                    .map((element) => TaskCard(task: element))
+                              ].animate(interval: 100.ms).moveX().fade()),
+                        ),
+                        SizedBox(
+                          height: 0.05.sw,
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            SizedBox(
-              height: 0.05.sw,
-            )
+            const Positioned(top: 0, child: NavBar()),
           ],
         ),
       ),
