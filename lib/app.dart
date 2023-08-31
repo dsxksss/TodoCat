@@ -54,6 +54,7 @@ class _AppState extends State<App> {
           debugShowCheckedModeBanner: false,
           title: "TodoCat",
           translations: Locales(),
+          // locale: const Locale("en", "US"),
           locale: const Locale("zh", "CN"),
           fallbackLocale: const Locale('en', 'US'),
           builder: DevicePreview.appBuilder,

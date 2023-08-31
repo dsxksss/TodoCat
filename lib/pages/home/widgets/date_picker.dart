@@ -36,36 +36,29 @@ class DatePicker extends StatelessWidget {
           children: [
             Expanded(
               child: TextFormField(
-                enabled: false,
-                controller: editingController,
-                decoration: InputDecoration(
-                  filled: true, // 是否填充背景色
-                  fillColor: const Color.fromRGBO(248, 250, 251, 1),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
-                  hintText: "YY--MM-DD",
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10.w),
+                  enabled: false,
+                  controller: editingController,
+                  decoration: InputDecoration(
+                    filled: true, // 是否填充背景色
+                    fillColor: const Color.fromRGBO(248, 250, 251, 1),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
+                    hintText: "Y-M-D - h:m:s",
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(10.w),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(10.w),
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(10.w),
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10.w),
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10.w),
-                  ),
-                ),
-                validator: validator ??
-                    (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "请填写完整内容";
-                      }
-                      return null;
-                    },
-              ),
+                  validator: validator),
             ),
             SizedBox(
               width: 20.w,

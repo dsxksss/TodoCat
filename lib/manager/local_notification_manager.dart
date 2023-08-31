@@ -19,6 +19,7 @@ class LocalNotificationManager {
   }
 
   Future<void> _init() async {
+    await localNotifier.setup(appName: 'TodoCat');
     localNoticeRepository = await LocalNoticeRepository.getInstance();
   }
 

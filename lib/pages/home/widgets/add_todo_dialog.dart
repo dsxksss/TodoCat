@@ -80,7 +80,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                             tags: dialogCtrl.selectedTags,
                             priority: homeCtrl.selectedPriority.value,
                             reminders: DateTime.now()
-                                .add(const Duration(seconds: 30))
+                                .add(const Duration(seconds: 10))
                                 .millisecondsSinceEpoch,
                           );
 
