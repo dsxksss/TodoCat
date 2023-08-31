@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -71,6 +73,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
       child: Container(
         width: 1.w,
         color: Colors.white,
+        margin: Platform.isMacOS ? EdgeInsets.only(top: 20.w) : null,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 30.w),
           child: Row(
@@ -101,56 +104,57 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton.outlined(
-                    onPressed: minimizeWindow,
-                    icon: Icon(
-                      Icons.horizontal_rule_rounded,
-                      size: 45.w,
+              if (!Platform.isMacOS)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton.outlined(
+                      onPressed: minimizeWindow,
+                      icon: Icon(
+                        Icons.horizontal_rule_rounded,
+                        size: 45.w,
+                      ),
                     ),
-                  ),
-                  SizedBox(
-                    width: isMaximize ? 30.w : 20.w,
-                  ),
-                  isMaximize
-                      ? Padding(
-                          padding: EdgeInsets.only(top: 10.w),
-                          child: IconButton.outlined(
-                            onPressed: targetMaximizeWindow,
-                            icon: Icon(
-                              Icons.filter_none_rounded,
-                              size: 30.w,
+                    SizedBox(
+                      width: isMaximize ? 30.w : 20.w,
+                    ),
+                    isMaximize
+                        ? Padding(
+                            padding: EdgeInsets.only(top: 10.w),
+                            child: IconButton.outlined(
+                              onPressed: targetMaximizeWindow,
+                              icon: Icon(
+                                Icons.filter_none_rounded,
+                                size: 30.w,
+                              ),
+                            ),
+                          )
+                        : Padding(
+                            padding: EdgeInsets.only(top: 5.w),
+                            child: IconButton.outlined(
+                              onPressed: targetMaximizeWindow,
+                              icon: Icon(
+                                Icons.crop_square_rounded,
+                                size: 40.w,
+                              ),
                             ),
                           ),
-                        )
-                      : Padding(
-                          padding: EdgeInsets.only(top: 5.w),
-                          child: IconButton.outlined(
-                            onPressed: targetMaximizeWindow,
-                            icon: Icon(
-                              Icons.crop_square_rounded,
-                              size: 40.w,
-                            ),
-                          ),
-                        ),
-                  SizedBox(
-                    width: 10.w,
-                  ),
-                  IconButton.outlined(
-                    onPressed: closeWindow,
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: Colors.red,
-                      size: 46.w,
+                    SizedBox(
+                      width: 10.w,
                     ),
-                  ),
-                ]
-                    .animate(interval: 100.ms)
-                    .moveY(duration: 400.ms)
-                    .fade(duration: 400.ms),
-              ),
+                    IconButton.outlined(
+                      onPressed: closeWindow,
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: Colors.red,
+                        size: 46.w,
+                      ),
+                    ),
+                  ]
+                      .animate(interval: 100.ms)
+                      .moveY(duration: 400.ms)
+                      .fade(duration: 400.ms),
+                ),
             ],
           ),
         ),

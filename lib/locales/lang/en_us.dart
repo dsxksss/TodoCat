@@ -1,5 +1,6 @@
 const Map<String, String> enUS = {
   'hello': 'Hello',
+  'todoCat': 'Todo Cat',
   'myTasks': 'My Tasks',
   'todo': "To Do",
   'inProgress': 'In progress',
