@@ -74,7 +74,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapDown: (_) => {windowManager.startDragging()},
       child: Container(
         width: 1.sw,
-        color: Colors.blue,
+        color: Colors.white,
         padding: Platform.isMacOS ? const EdgeInsets.only(top: 20) : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
