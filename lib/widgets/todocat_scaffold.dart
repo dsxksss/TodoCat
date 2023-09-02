@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 
 class TodoCatScaffold extends StatelessWidget {
@@ -14,8 +13,8 @@ class TodoCatScaffold extends StatelessWidget {
           Positioned(
             child: Column(
               children: [
-                SizedBox(
-                  height: 100.w,
+                const SizedBox(
+                  height: 90,
                 ),
                 Expanded(
                   child: body,

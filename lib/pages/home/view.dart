@@ -29,17 +29,17 @@ class HomePage extends GetView<HomeController> {
             ),
           );
         },
-        padding: EdgeInsets.all(8.w),
+        padding: const EdgeInsets.all(8),
         child: Container(
-          width: 90.w,
-          height: 90.w,
+          width: 60,
+          height: 60,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(200),
             color: Colors.lightBlue,
           ),
-          child: Icon(
+          child: const Icon(
             Icons.add_task,
-            size: 45.w,
+            size: 30,
             color: Colors.white,
           ),
         ),
@@ -51,13 +51,17 @@ class HomePage extends GetView<HomeController> {
         body: ListView(
           children: [
             Obx(
-              () => Wrap(
-                  direction: Axis.horizontal,
-                  runSpacing: 40.w,
-                  children: [
-                    ...controller.tasks
-                        .map((element) => TaskCard(task: element))
-                  ].animate(interval: 100.ms).moveX().fade()),
+              () => Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Wrap(
+                    direction: Axis.horizontal,
+                    spacing: 50,
+                    runSpacing: 30,
+                    children: [
+                      ...controller.tasks
+                          .map((element) => TaskCard(task: element))
+                    ].animate(interval: 100.ms).moveX().fade()),
+              ),
             ),
             SizedBox(
               height: 0.05.sw,

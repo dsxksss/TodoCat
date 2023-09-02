@@ -45,11 +45,11 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         child: Container(
           width: 0.7.sw,
           height: 0.5.sw,
-          padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.w),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(15.r),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Form(
             key: dialogCtrl.formKey,
@@ -61,7 +61,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     Text(
                       "addTodo".tr,
                       style: TextStyle(
-                        fontSize: 40.sp,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -94,7 +94,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   ],
                 ),
                 SizedBox(
-                  height: 40.w,
+                  height: 20,
                 ),
                 Flex(
                   direction: Axis.horizontal,
@@ -116,7 +116,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   ],
                 ),
                 SizedBox(
-                  height: 20.w,
+                  height: 10,
                 ),
                 TextFormFieldItem(
                   fieldTitle: "description".tr,
@@ -124,11 +124,11 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   editingController: dialogCtrl.descriptionFormCtrl,
                 ),
                 SizedBox(
-                  height: 20.w,
+                  height: 20,
                 ),
                 AddTagScreen(),
                 SizedBox(
-                  height: 25.w,
+                  height: 20,
                 ),
                 DatePickerBtn(
                   editingController: dialogCtrl.remindersController,

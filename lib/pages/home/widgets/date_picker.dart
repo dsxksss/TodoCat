@@ -23,7 +23,7 @@ class DatePickerBtn extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(bottom: 10.w),
+          padding: const EdgeInsets.only(bottom: 5),
           child: Text(
             fieldTitle,
             style: TextStyle(
@@ -42,42 +42,43 @@ class DatePickerBtn extends StatelessWidget {
                     filled: true, // 是否填充背景色
                     fillColor: const Color.fromRGBO(248, 250, 251, 1),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                     hintText: "Y-M-D - h:m:s",
                     hintStyle: const TextStyle(color: Colors.grey),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(10.w),
+                      borderRadius: BorderRadius.circular(5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(10.w),
+                      borderRadius: BorderRadius.circular(5),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(10.w),
+                      borderRadius: BorderRadius.circular(5),
                     ),
                   ),
                   validator: validator),
             ),
-            SizedBox(
-              width: 20.w,
+            const SizedBox(
+              width: 10,
             ),
             AnimationBtn(
               onPressed: () => showDatePickerDialog(),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 15.w),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                 decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(10)),
+                    color: Colors.lightBlue,
+                    borderRadius: BorderRadius.circular(5)),
                 child: Row(
                   children: [
                     Text(
                       "selectReminderTime".tr,
                       style: TextStyle(color: Colors.white, fontSize: 22.sp),
                     ),
-                    SizedBox(
-                      width: 10.w,
+                    const SizedBox(
+                      width: 5,
                     ),
                     const Icon(
                       Icons.timer_sharp,

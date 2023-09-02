@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class TextFormFieldItem extends StatelessWidget {
@@ -21,11 +20,10 @@ class TextFormFieldItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: EdgeInsets.only(bottom: 10.w),
+          padding: const EdgeInsets.only(bottom: 5),
           child: Text(
             fieldTitle,
-            style: TextStyle(
-              fontSize: 26.sp,
+            style: const TextStyle(
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -36,16 +34,16 @@ class TextFormFieldItem extends StatelessWidget {
             filled: true, // 是否填充背景色
             fillColor: const Color.fromRGBO(248, 250, 251, 1),
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 5),
             hintText: "${"enter".tr}${fieldTitle.tr}",
             hintStyle: const TextStyle(color: Colors.grey),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(10.w),
+              borderRadius: BorderRadius.circular(10),
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(10.w),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
           validator: validator ??

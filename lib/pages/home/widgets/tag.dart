@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class Tag extends StatelessWidget {
   const Tag({super.key, required this.tag, required this.color});
@@ -9,18 +8,18 @@ class Tag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.3),
         borderRadius: BorderRadius.circular(
-          8.r,
+          4,
         ),
       ),
       child: Center(
         child: Text(
           tag,
           style: TextStyle(
-              color: color, fontSize: 18.sp, fontWeight: FontWeight.w600),
+              color: color, fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ),
     );

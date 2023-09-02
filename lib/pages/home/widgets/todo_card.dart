@@ -1,24 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/widgets/tag.dart';
+import 'package:todo_cat/utils/date_time.dart';
 
 class TodoCard extends StatelessWidget {
   const TodoCard({super.key, required this.todo});
   final Todo todo;
 
+  IconData getStatusIconData() {
+    switch (todo.status) {
+      case TodoStatus.todo:
+        return FontAwesomeIcons.hourglassStart;
+      case TodoStatus.inProgress:
+        return FontAwesomeIcons.hourglassEnd;
+      case TodoStatus.done:
+        return FontAwesomeIcons.checkDouble;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.w),
-      padding: EdgeInsets.only(left: 20.w, right: 20.w, top: 15.w),
+      margin: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
+      padding: const EdgeInsets.only(left: 10, right: 10, top: 5),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Padding(
-        padding: EdgeInsets.only(top: 10.w),
+        padding: const EdgeInsets.only(top: 5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -26,17 +39,14 @@ class TodoCard extends StatelessWidget {
               todo.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 23.sp,
-              ),
             ),
             if (todo.tags.isNotEmpty)
-              SizedBox(
-                height: 10.w,
+              const SizedBox(
+                height: 10,
               ),
             if (todo.tags.isNotEmpty)
               SizedBox(
-                height: 30.w,
+                height: 20,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
@@ -44,61 +54,64 @@ class TodoCard extends StatelessWidget {
                         .sublist(0, todo.tags.length > 3 ? 3 : null)
                         .map(
                           (e) => Padding(
-                            padding: EdgeInsets.only(right: 15.w),
+                            padding: const EdgeInsets.only(right: 10),
                             child: Tag(tag: e, color: Colors.blueAccent),
                           ),
                         ),
                   ],
                 ),
               ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.w),
-              child: const Divider(),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 5),
+              child: Divider(),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    const Icon(
-                      Icons.playlist_add_check_outlined,
+                    const FaIcon(
+                      size: 15,
+                      FontAwesomeIcons.calendarCheck,
                       color: Colors.grey,
                     ),
-                    SizedBox(
-                      width: 10.w,
+                    const SizedBox(
+                      width: 3,
                     ),
                     Text(
-                      "4/5",
+                      timestampToDate(todo.finishedAt),
                       style: TextStyle(
+                        fontSize: 11.5,
                         color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
                       ),
                     )
                   ],
                 ),
                 Row(
                   children: [
-                    Icon(
-                      Icons.timer_sharp,
-                      size: 30.w,
+                    Text(
+                      'status'.tr,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    FaIcon(
+                      getStatusIconData(),
+                      size: 15,
                       color: Colors.grey,
                     ),
-                    SizedBox(
-                      width: 10.w,
-                    ),
-                    Text(
-                      "2023.08.20",
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    )
                   ],
                 ),
               ],
             ),
-            SizedBox(
-              height: 20.w,
+            const SizedBox(
+              height: 15,
             )
           ],
         ),

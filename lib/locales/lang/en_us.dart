@@ -19,5 +19,7 @@ const Map<String, String> enUS = {
   'mediumLevel': 'Medium Level',
   'lowLevel': 'Low Level',
   'reminderTime': 'Reminder Time',
-  'selectReminderTime': 'Select reminder time'
+  'selectReminderTime': 'Select reminder time',
+  'status': 'Status',
+  'unknownDate': 'Unknown Date or doesn`t exist',
 };

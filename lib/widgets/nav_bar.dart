@@ -75,9 +75,9 @@ class _NavBarState extends State<NavBar> with WindowListener {
       child: Container(
         width: 1.sw,
         color: Colors.blue,
-        margin: Platform.isMacOS ? EdgeInsets.only(top: 20.w) : null,
+        padding: Platform.isMacOS ? const EdgeInsets.only(top: 20) : null,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 20.w),
+          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -85,17 +85,17 @@ class _NavBarState extends State<NavBar> with WindowListener {
                 children: [
                   Image.asset(
                     'assets/imgs/logo.png',
-                    width: 50.w,
-                    height: 50.w,
+                    width: 50,
+                    height: 50,
                     filterQuality: FilterQuality.medium,
                   ),
-                  SizedBox(
-                    width: 20.w,
+                  const SizedBox(
+                    width: 20,
                   ),
                   Text(
                     "${"myTasks".tr} ${runMode.name}",
-                    style: TextStyle(
-                      fontSize: 32.sp,
+                    style: const TextStyle(
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ).animate(delay: 1000.ms).moveY(
@@ -113,13 +113,13 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       onPressed: minimizeWindow,
                       child: const FaIcon(FontAwesomeIcons.minus),
                     ),
-                    SizedBox(
-                      width: 30.w,
+                    const SizedBox(
+                      width: 20,
                     ),
                     NavBarBtn(
                       onPressed: targetMaximizeWindow,
                       child: Transform.scale(
-                        scale: 0.85,
+                        scale: 0.8,
                         child: FaIcon(
                           isMaximize
                               ? FontAwesomeIcons.windowRestore
@@ -127,8 +127,8 @@ class _NavBarState extends State<NavBar> with WindowListener {
                         ),
                       ),
                     ),
-                    SizedBox(
-                      width: 30.w,
+                    const SizedBox(
+                      width: 20,
                     ),
                     NavBarBtn(
                       onPressed: closeWindow,
@@ -161,12 +161,9 @@ class NavBarBtn extends StatelessWidget {
       onHoverScale: 1.2,
       onPressed: onPressed,
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5.r),
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: 6.w,
-          vertical: 2.w,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 6,
+          vertical: 2,
         ),
         child: child,
       ),

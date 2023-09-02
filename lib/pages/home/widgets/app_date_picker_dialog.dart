@@ -12,11 +12,11 @@ class TodoCatDatePickerDialog extends StatelessWidget {
       child: Container(
         width: 0.6.sw,
         height: 0.4.sw,
-        padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.w),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(15.r),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: SizedBox.expand(
           child: Material(

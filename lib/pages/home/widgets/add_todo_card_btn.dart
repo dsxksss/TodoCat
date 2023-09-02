@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
@@ -20,29 +20,29 @@ class AddTodoCardBtn extends StatelessWidget {
         showAddTodoDialog(),
       },
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20.w),
+        margin: const EdgeInsets.symmetric(horizontal: 15),
         decoration: BoxDecoration(
           color: const Color.fromRGBO(238, 238, 240, 1),
           border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(15.r),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.add,
-                size: 36.w,
+              FaIcon(
+                size: 15,
+                FontAwesomeIcons.plus,
                 color: Colors.grey[600],
               ),
-              SizedBox(
-                width: 10.w,
+              const SizedBox(
+                width: 2,
               ),
               Text(
                 "addTodo".tr,
                 style: TextStyle(
-                    fontSize: 22.sp,
+                    fontSize: 13,
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w600),
               ),

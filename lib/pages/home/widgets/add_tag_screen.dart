@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 
@@ -14,36 +13,31 @@ class AddTagScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(bottom: 10.w),
+          padding: const EdgeInsets.only(bottom: 5),
           child: Obx(
             () => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "addTag".tr,
-                  style: TextStyle(
-                    fontSize: 26.sp,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Container(
-                  margin: EdgeInsets.only(top: 5.w),
-                  padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.w),
+                  margin: const EdgeInsets.only(top: 5),
                   child: Flex(
                     direction: Axis.horizontal,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       ...ctrl.selectedTags.map(
                         (tag) => Container(
                           decoration: BoxDecoration(
                             color: Colors.lightBlue,
-                            borderRadius: BorderRadius.circular(
-                              5.w,
-                            ),
+                            borderRadius: BorderRadius.circular(5),
                           ),
-                          margin: EdgeInsets.only(right: 20.w),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 10.w, vertical: 10.w),
+                          margin: const EdgeInsets.only(right: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           child: Flex(
                             direction: Axis.horizontal,
                             mainAxisSize: MainAxisSize.min,
@@ -51,6 +45,7 @@ class AddTagScreen extends StatelessWidget {
                               Text(
                                 tag,
                                 style: const TextStyle(
+                                  fontSize: 14,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -58,9 +53,9 @@ class AddTagScreen extends StatelessWidget {
                               GestureDetector(
                                 onTap: () => ctrl
                                     .removeTag(ctrl.selectedTags.indexOf(tag)),
-                                child: Icon(
+                                child: const Icon(
                                   Icons.close_rounded,
-                                  size: 30.w,
+                                  size: 18,
                                   color: Colors.white,
                                 ),
                               )
@@ -88,6 +83,7 @@ class AddTagScreen extends StatelessWidget {
               child: Text(
                 "addTag".tr,
                 style: const TextStyle(
+                  fontSize: 13,
                   color: Colors.white,
                 ),
               ),
@@ -97,16 +93,16 @@ class AddTagScreen extends StatelessWidget {
             fillColor: const Color.fromRGBO(248, 250, 251, 1),
             border: InputBorder.none,
 
-            contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 5),
             hintStyle: const TextStyle(color: Colors.grey),
             hintText: "${"enter".tr}${"tag".tr}",
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(10.w),
+              borderRadius: BorderRadius.circular(5),
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(10.w),
+              borderRadius: BorderRadius.circular(5),
             ),
           ),
         ),

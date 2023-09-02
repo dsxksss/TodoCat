@@ -19,5 +19,7 @@ const Map<String, String> zhCN = {
   'mediumLevel': '中级别',
   'lowLevel': '低级别',
   'reminderTime': '提醒时间',
-  'selectReminderTime': '选择提醒时间'
+  'selectReminderTime': '选择提醒时间',
+  'status': '状态',
+  'unknownDate': '未知日期或不存在',
 };
