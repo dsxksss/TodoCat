@@ -45,7 +45,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         child: Container(
           width: 0.7.sw,
           height: 0.5.sw,
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(color: Colors.grey.shade300),
@@ -60,7 +60,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   children: [
                     Text(
                       "addTodo".tr,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -93,7 +93,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     )
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 Flex(
@@ -115,7 +115,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     ),
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 TextFormFieldItem(
@@ -123,11 +123,11 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   validator: (_) => null,
                   editingController: dialogCtrl.descriptionFormCtrl,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 AddTagScreen(),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 DatePickerBtn(

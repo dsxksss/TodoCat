@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/widgets/app_date_picker_dialog.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
@@ -26,8 +25,7 @@ class DatePickerBtn extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 5),
           child: Text(
             fieldTitle,
-            style: TextStyle(
-              fontSize: 26.sp,
+            style: const TextStyle(
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -75,7 +73,7 @@ class DatePickerBtn extends StatelessWidget {
                   children: [
                     Text(
                       "selectReminderTime".tr,
-                      style: TextStyle(color: Colors.white, fontSize: 22.sp),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                     const SizedBox(
                       width: 5,
