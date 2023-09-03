@@ -5,10 +5,11 @@ import 'package:window_manager/window_manager.dart';
 
 Size minWindowSize = const Size(1280, 720);
 Size windowSize = const Size(1400, 900);
+Size winWindowSize = const Size(1400, 800);
 
 WindowOptions winOptions = WindowOptions(
   center: true,
-  size: windowSize,
+  size: winWindowSize,
   minimumSize: minWindowSize,
   backgroundColor: Colors.transparent,
   skipTaskbar: false,
