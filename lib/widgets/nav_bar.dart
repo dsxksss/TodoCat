@@ -107,30 +107,35 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  NavBarBtn(
-                    onPressed: () async => await Get.updateLocale(
-                        Get.locale == const Locale("zh", "CN")
-                            ? const Locale("en", "US")
-                            : const Locale("zh", "CN")),
-                    child: const Icon(FontAwesomeIcons.earthAsia),
-                  ),
-                  if (!Platform.isMacOS)
+              if (Platform.isMacOS)
+                NavBarBtn(
+                  onPressed: () async => await Get.updateLocale(
+                      Get.locale == const Locale("zh", "CN")
+                          ? const Locale("en", "US")
+                          : const Locale("zh", "CN")),
+                  child: const Icon(FontAwesomeIcons.earthAsia),
+                ),
+              if (!Platform.isMacOS)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    NavBarBtn(
+                      onPressed: () async => await Get.updateLocale(
+                          Get.locale == const Locale("zh", "CN")
+                              ? const Locale("en", "US")
+                              : const Locale("zh", "CN")),
+                      child: const Icon(FontAwesomeIcons.earthAsia),
+                    ),
                     const SizedBox(
                       width: 20,
                     ),
-                  if (!Platform.isMacOS)
                     NavBarBtn(
                       onPressed: minimizeWindow,
                       child: const Icon(FontAwesomeIcons.minus),
                     ),
-                  if (!Platform.isMacOS)
                     const SizedBox(
                       width: 20,
                     ),
-                  if (!Platform.isMacOS)
                     NavBarBtn(
                       onPressed: targetMaximizeWindow,
                       child: Transform.scale(
@@ -142,11 +147,9 @@ class _NavBarState extends State<NavBar> with WindowListener {
                         ),
                       ),
                     ),
-                  if (!Platform.isMacOS)
                     const SizedBox(
                       width: 20,
                     ),
-                  if (!Platform.isMacOS)
                     NavBarBtn(
                       onPressed: closeWindow,
                       hoverColor: Colors.redAccent.shade100,
@@ -155,11 +158,11 @@ class _NavBarState extends State<NavBar> with WindowListener {
                         color: Colors.redAccent,
                       ),
                     ),
-                ]
-                    .animate(interval: 100.ms, delay: 1000.ms)
-                    .moveY(duration: 400.ms)
-                    .fade(duration: 400.ms),
-              ),
+                  ]
+                      .animate(interval: 100.ms, delay: 1000.ms)
+                      .moveY(duration: 400.ms)
+                      .fade(duration: 400.ms),
+                ),
             ],
           ),
         ),
