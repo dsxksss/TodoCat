@@ -7,12 +7,14 @@ class AnimationBtn extends StatelessWidget {
     super.key,
     required this.child,
     this.onPressed,
-    this.padding,
     this.onHoverScale,
     this.onClickScale,
-    this.onHoverDuration,
-    this.onClickDuration,
+    this.hoverBgColor,
+    this.hoverScaleDuration,
+    this.clickScaleDuration,
+    this.bgColorChangeDuration,
     this.onHoverAnimationEnabled = true,
+    this.onHoverBgColorChangeEnabled = false,
     this.onClickAnimationEnabled = true,
   });
 
@@ -20,22 +22,26 @@ class AnimationBtn extends StatelessWidget {
   final Function? onPressed;
 
   final double? onHoverScale;
-  final Duration? onHoverDuration;
+  final Duration? hoverScaleDuration;
+  final Duration? bgColorChangeDuration;
   final bool onHoverAnimationEnabled;
+  final bool onHoverBgColorChangeEnabled;
 
   final double? onClickScale;
-  final Duration? onClickDuration;
+  final Duration? clickScaleDuration;
   final bool onClickAnimationEnabled;
 
-  final EdgeInsetsGeometry? padding;
+  final Color? hoverBgColor;
 
   final Duration defaultDuration = 150.ms;
   final onHover = false.obs;
+  final onHoverbgColorChange = false.obs;
   final onClick = false.obs;
   final isAnimating = false.obs;
 
   void playHoverAnimation() {
     if (onHoverAnimationEnabled) onHover.value = true;
+    if (onHoverBgColorChangeEnabled) onHoverbgColorChange.value = true;
   }
 
   void playClickAnimation() {
@@ -44,6 +50,7 @@ class AnimationBtn extends StatelessWidget {
 
   void closeAllAnimation() {
     onHover.value = false;
+    onHoverbgColorChange.value = false;
     onClick.value = false;
   }
 
@@ -59,7 +66,7 @@ class AnimationBtn extends StatelessWidget {
       child: GestureDetector(
         onTap: () async {
           playClickAnimation();
-          await Future.delayed((onClickDuration ?? defaultDuration) - 50.ms);
+          await Future.delayed((clickScaleDuration ?? defaultDuration) - 50.ms);
           closeAllAnimation();
           if (onPressed != null) onPressed!();
         },
@@ -71,22 +78,24 @@ class AnimationBtn extends StatelessWidget {
           if (onPressed != null) onPressed!();
         },
         child: Obx(
-          () => Container(
-            padding: padding,
-            child: child,
-          )
+          () => child
               // Hover animation
               .animate(target: onHover.value ? 1 : 0)
               .scaleXY(
                 end: onHoverScale ?? 1.05,
-                duration: onHoverDuration ?? defaultDuration,
+                duration: hoverScaleDuration ?? defaultDuration,
                 curve: Curves.easeIn,
+              )
+              .animate(target: onHoverbgColorChange.value ? 1 : 0)
+              .tint(
+                color: hoverBgColor ?? Colors.grey.shade500,
+                duration: bgColorChangeDuration ?? defaultDuration,
               )
               // Click animation
               .animate(target: onClick.value ? 1 : 0)
               .scaleXY(
                 end: onClickScale ?? 0.9,
-                duration: onClickDuration ?? defaultDuration,
+                duration: clickScaleDuration ?? defaultDuration,
                 curve: Curves.easeOut,
               ),
         ),

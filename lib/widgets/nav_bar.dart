@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -71,7 +72,8 @@ class _NavBarState extends State<NavBar> with WindowListener {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => {windowManager.startDragging()},
+      dragStartBehavior: DragStartBehavior.down,
+      onTapCancel: () => {windowManager.startDragging()},
       child: Container(
         width: 1.sw,
         color: Colors.white,
@@ -110,8 +112,18 @@ class _NavBarState extends State<NavBar> with WindowListener {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     NavBarBtn(
+                      onPressed: () async => await Get.updateLocale(
+                          Get.locale == const Locale("zh", "CN")
+                              ? const Locale("en", "US")
+                              : const Locale("zh", "CN")),
+                      child: const Icon(FontAwesomeIcons.earthAsia),
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    NavBarBtn(
                       onPressed: minimizeWindow,
-                      child: const FaIcon(FontAwesomeIcons.minus),
+                      child: const Icon(FontAwesomeIcons.minus),
                     ),
                     const SizedBox(
                       width: 20,
@@ -120,7 +132,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       onPressed: targetMaximizeWindow,
                       child: Transform.scale(
                         scale: 0.8,
-                        child: FaIcon(
+                        child: Icon(
                           isMaximize
                               ? FontAwesomeIcons.windowRestore
                               : FontAwesomeIcons.square,
@@ -132,9 +144,10 @@ class _NavBarState extends State<NavBar> with WindowListener {
                     ),
                     NavBarBtn(
                       onPressed: closeWindow,
-                      child: const FaIcon(
+                      hoverColor: Colors.redAccent.shade100,
+                      child: const Icon(
                         FontAwesomeIcons.xmark,
-                        color: Colors.red,
+                        color: Colors.redAccent,
                       ),
                     ),
                   ]
@@ -151,8 +164,10 @@ class _NavBarState extends State<NavBar> with WindowListener {
 }
 
 class NavBarBtn extends StatelessWidget {
-  const NavBarBtn({super.key, this.onPressed, required this.child});
+  const NavBarBtn(
+      {super.key, this.onPressed, required this.child, this.hoverColor});
   final Function? onPressed;
+  final Color? hoverColor;
   final Widget child;
 
   @override
@@ -160,7 +175,17 @@ class NavBarBtn extends StatelessWidget {
     return AnimationBtn(
       onHoverScale: 1.2,
       onPressed: onPressed,
+      hoverBgColor: hoverColor,
+      onHoverBgColorChangeEnabled: true,
+      onHoverAnimationEnabled: false,
       child: Container(
+        decoration: BoxDecoration(
+          // color: const Color.fromRGBO(245, 245, 247, 1),
+          borderRadius: BorderRadius.circular(
+            5,
+          ),
+          // border: Border.all(color: Colors.black54, width: 1.2),
+        ),
         padding: const EdgeInsets.symmetric(
           horizontal: 6,
           vertical: 2,

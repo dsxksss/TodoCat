@@ -1,11 +1,14 @@
+import 'package:dough/dough.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
-import 'package:todo_cat/pages/home/widgets/add_todo_card_btn.dart';
-import 'package:todo_cat/pages/home/widgets/todo_card.dart';
-import 'package:todo_cat/widgets/animation_btn.dart';
+import 'package:todo_cat/pages/home/widgets/task/task_dpd_menu_btn.dart';
+import 'package:todo_cat/pages/home/widgets/todo/add_todo_card_btn.dart';
+import 'package:todo_cat/pages/home/widgets/todo/todo_card.dart';
 
 class TaskCard extends StatelessWidget {
   TaskCard({super.key, required this.task});
@@ -68,17 +71,21 @@ class TaskCard extends StatelessWidget {
                     )
                 ],
               ),
-              AnimationBtn(
-                onClickScale: 0.8,
-                onClickDuration: 100.ms,
-                onHoverAnimationEnabled: false,
-                padding: const EdgeInsets.only(right: 15),
-                onPressed: () => {},
-                child: const Center(
-                  child: Icon(
-                    Icons.more_horiz,
-                    color: Color.fromRGBO(129, 127, 158, 1),
-                  ),
+              Padding(
+                padding: EdgeInsets.only(right: 15),
+                child: TaskDropDownMenuBtn(
+                  menuItems: [
+                    MenuItem(
+                      title: 'edit',
+                      iconData: FontAwesomeIcons.penToSquare,
+                      callback: () => {SmartDialog.showToast("编辑事项")},
+                    ),
+                    MenuItem(
+                      title: 'delete',
+                      iconData: FontAwesomeIcons.trashCan,
+                      callback: () => {ctrl.deleteTask(task.id)},
+                    ),
+                  ],
                 ),
               )
             ],
@@ -96,7 +103,7 @@ class TaskCard extends StatelessWidget {
             () => Column(
               children: [
                 ...ctrl.tasks[ctrl.tasks.indexOf(task)].todos
-                    .map((e) => TodoCard(todo: e))
+                    .map((e) => PressableDough(child: TodoCard(todo: e)))
               ].animate(interval: 100.ms).fadeIn(duration: 150.ms),
             ),
           ),

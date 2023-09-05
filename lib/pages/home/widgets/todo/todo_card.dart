@@ -70,7 +70,7 @@ class TodoCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const FaIcon(
+                    const Icon(
                       size: 15,
                       FontAwesomeIcons.calendarCheck,
                       color: Colors.grey,
@@ -80,6 +80,7 @@ class TodoCard extends StatelessWidget {
                     ),
                     Text(
                       timestampToDate(todo.finishedAt),
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11.5,
                         color: Colors.grey.shade600,
@@ -101,7 +102,7 @@ class TodoCard extends StatelessWidget {
                     const SizedBox(
                       width: 5,
                     ),
-                    FaIcon(
+                    Icon(
                       getStatusIconData(),
                       size: 15,
                       color: Colors.grey,

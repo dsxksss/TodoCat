@@ -21,5 +21,7 @@ const Map<String, String> enUS = {
   'reminderTime': 'Reminder Time',
   'selectReminderTime': 'Select reminder time',
   'status': 'Status',
-  'unknownDate': 'Unknown Date or doesn`t exist',
+  'unknownDate': 'Unknown Date',
+  'edit': 'Edit',
+  'delete': 'Delete',
 };

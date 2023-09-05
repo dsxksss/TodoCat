@@ -6,7 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
-import 'package:todo_cat/pages/home/widgets/task_card.dart';
+import 'package:todo_cat/pages/home/widgets/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:uuid/uuid.dart';
@@ -29,10 +29,10 @@ class HomePage extends GetView<HomeController> {
             ),
           );
         },
-        padding: const EdgeInsets.all(8),
         child: Container(
           width: 60,
           height: 60,
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(200),
             color: Colors.lightBlue,

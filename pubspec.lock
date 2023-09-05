@@ -201,14 +201,22 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.1.0"
-  dropdown_button2:
+  dough:
     dependency: "direct main"
     description:
-      name: dropdown_button2
-      sha256: bee4103caa1517fcc623bd5efbe1743956a276b3db3738aa9342afe23be48b48
+      name: dough
+      sha256: "61d80d91d861da4ab50fc52492cf2fb9ec94322179f9f81a30ac2ab4eb3e893e"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.3.8"
+    version: "1.0.4"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: c2b87cb7756efdf69892005af546c56c0b5037f54d2a88269b4f347a505e3ca2
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.5"
   fake_async:
     dependency: transitive
     description:
@@ -283,6 +291,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "5.8.4"
+  flutter_smart_dialog:
+    dependency: "direct main"
+    description:
+      name: flutter_smart_dialog
+      sha256: "8ffa51d55591227dbfe9fc2b1ff396b37bec7d09c241d875b9b932db99d2d5ea"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.9.4"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -677,6 +693,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.1.6"
+  sensors:
+    dependency: transitive
+    description:
+      name: sensors
+      sha256: "69c10fe94a63dd7c6f5e6557366e5329a713bf6c45d885d95a56642dd8722e35"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.3"
   shared_preferences:
     dependency: transitive
     description:

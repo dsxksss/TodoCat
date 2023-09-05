@@ -25,8 +25,6 @@ dependencies:
   flutter_animate: ^4.2.0+1
   # svg显示插件
   flutter_svg: ^2.0.7
-  # 下拉按钮插件
-  dropdown_button2: ^2.3.8
   # 日志插件
   logger: ^2.0.1
   # 时间选择插件
@@ -40,6 +38,10 @@ dependencies:
   # font awesome 图标库
   font_awesome_flutter: ^10.5.0
   json_annotation: ^4.8.1
+  # 简易dialog
+  flutter_smart_dialog: ^4.9.4
+  # 果冻拖拽
+  dough: ^1.0.4
 
 dev_dependencies:
   flutter_test:

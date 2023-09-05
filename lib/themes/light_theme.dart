@@ -11,7 +11,6 @@ final lightTheme = ThemeData(
     bodyLarge: TextStyle(
       color: Colors.black,
       fontSize: fontSize + 4,
-      fontWeight: FontWeight.bold,
     ),
     bodyMedium: TextStyle(
       color: Colors.black,
