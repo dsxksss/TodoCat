@@ -24,4 +24,5 @@ const Map<String, String> zhCN = {
   'unknownDate': '未知日期或不存在',
   'edit': '编辑',
   'delete': '删除',
+  'task': '任务'
 };

@@ -21,7 +21,6 @@ class HomeController extends GetxController {
 
   final tasks = RxList<Task>();
   final currentTask = Rx<Task?>(null);
-  final selectedPriority = Rx<TodoPriority>(TodoPriority.lowLevel);
 
   final AppController appCtrl = Get.find();
 
@@ -116,6 +115,7 @@ class HomeController extends GetxController {
 class AddTodoDialogController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final selectedTags = RxList<String>();
+  final selectedPriority = Rx<TodoPriority>(TodoPriority.lowLevel);
   final titleFormCtrl = TextEditingController();
   final descriptionFormCtrl = TextEditingController();
   final tagController = TextEditingController();

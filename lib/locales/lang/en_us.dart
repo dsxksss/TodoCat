@@ -24,4 +24,5 @@ const Map<String, String> enUS = {
   'unknownDate': 'Unknown Date',
   'edit': 'Edit',
   'delete': 'Delete',
+  'task': 'Task'
 };

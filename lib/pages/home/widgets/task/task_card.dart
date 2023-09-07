@@ -15,6 +15,19 @@ class TaskCard extends StatelessWidget {
   final HomeController ctrl = Get.find();
   final Task task;
 
+  Color getColor() {
+    switch (task.title) {
+      case 'todo':
+        return Colors.grey;
+      case 'inProgress':
+        return Colors.orangeAccent;
+      case 'done':
+        return Colors.greenAccent;
+      default:
+        return Colors.lightBlue;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final todosLength = task.todos.length;
@@ -40,16 +53,17 @@ class TaskCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 15),
                     child: Text(
-                      task.title,
+                      task.title.tr,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
+                  if (todosLength > 0)
+                    const SizedBox(
+                      width: 10,
+                    ),
                   if (todosLength > 0)
                     Container(
                       width: 24,
@@ -68,7 +82,18 @@ class TaskCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    )
+                    ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Container(
+                    width: 15,
+                    height: 15,
+                    decoration: BoxDecoration(
+                      color: getColor(),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
                 ],
               ),
               Padding(

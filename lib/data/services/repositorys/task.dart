@@ -1,4 +1,3 @@
-import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/services/strorage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -11,28 +10,28 @@ class TaskRepository extends Strorage<Task> {
 
   final Task _task1 = Task(
     id: const Uuid().v4(),
-    title: "todo".tr,
+    title: "todo",
     createdAt: DateTime.now().millisecondsSinceEpoch,
     tags: ["默认", "自带"],
     todos: [],
   );
   final Task _task2 = Task(
     id: const Uuid().v4(),
-    title: "inProgress".tr,
+    title: "inProgress",
     createdAt: DateTime.now().millisecondsSinceEpoch + 1,
     tags: ["默认", "自带"],
     todos: [],
   );
   final Task _task3 = Task(
     id: const Uuid().v4(),
-    title: "done".tr,
+    title: "done",
     createdAt: DateTime.now().millisecondsSinceEpoch + 2,
     tags: ["默认", "自带"],
     todos: [],
   );
   final Task _task4 = Task(
     id: const Uuid().v4(),
-    title: "another".tr,
+    title: "another",
     createdAt: DateTime.now().millisecondsSinceEpoch + 3,
     tags: ["默认", "自带"],
     todos: [],

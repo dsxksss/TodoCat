@@ -5,7 +5,8 @@ import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/pages/home/widgets/add_tag_screen.dart';
-import 'package:todo_cat/pages/home/widgets/date_picker.dart';
+import 'package:todo_cat/pages/home/widgets/date_picker_btn.dart';
+import 'package:todo_cat/pages/home/widgets/select_priority_panel.dart';
 import 'package:todo_cat/pages/home/widgets/text_form_field_item.dart';
 import 'package:uuid/uuid.dart';
 
@@ -77,7 +78,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                             description: dialogCtrl.descriptionFormCtrl.text,
                             createdAt: DateTime.now().millisecondsSinceEpoch,
                             tags: dialogCtrl.selectedTags,
-                            priority: homeCtrl.selectedPriority.value,
+                            priority: dialogCtrl.selectedPriority.value,
                             reminders: DateTime.now()
                                 .add(const Duration(seconds: 10))
                                 .millisecondsSinceEpoch,
@@ -108,9 +109,22 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     ),
                     SizedBox(
                       width: 0.3.sw,
-                      // child: SelectPriorityBotton(
-                      //   fieldTitle: "priority".tr,
-                      // ),
+                      child: SelectPriorityPanel(
+                        titile: "${'task'.tr}${'priority'.tr}",
+                        onTap: (index) => dialogCtrl.selectedPriority.value =
+                            TodoPriority.values[index],
+                        tabs: [
+                          Tab(
+                            text: "lowLevel".tr,
+                          ),
+                          Tab(
+                            text: "mediumLevel".tr,
+                          ),
+                          Tab(
+                            text: "highLevel".tr,
+                          )
+                        ],
+                      ),
                     ),
                   ],
                 ),
