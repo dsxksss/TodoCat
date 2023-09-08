@@ -34,29 +34,30 @@ class DatePickerBtn extends StatelessWidget {
           children: [
             Expanded(
               child: TextFormField(
-                  enabled: false,
-                  controller: editingController,
-                  decoration: InputDecoration(
-                    filled: true, // 是否填充背景色
-                    fillColor: const Color.fromRGBO(248, 250, 251, 1),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                    hintText: "Y-M-D - h:m:s",
-                    hintStyle: const TextStyle(color: Colors.grey),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
+                enabled: false,
+                controller: editingController,
+                decoration: InputDecoration(
+                  filled: true, // 是否填充背景色
+                  fillColor: const Color.fromRGBO(248, 250, 251, 1),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                  hintText: "Y-M-D - h:m:s",
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(5),
                   ),
-                  validator: validator),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                validator: validator,
+              ),
             ),
             const SizedBox(
               width: 10,
