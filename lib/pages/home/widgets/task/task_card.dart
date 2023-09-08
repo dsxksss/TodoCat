@@ -15,16 +15,19 @@ class TaskCard extends StatelessWidget {
   final HomeController ctrl = Get.find();
   final Task task;
 
-  Color getColor() {
+  List<dynamic> getColorAndIcon() {
     switch (task.title) {
       case 'todo':
-        return Colors.grey;
+        return [Colors.grey, FontAwesomeIcons.clipboard];
       case 'inProgress':
-        return Colors.orangeAccent;
+        return [Colors.orangeAccent, FontAwesomeIcons.pencil];
       case 'done':
-        return Colors.greenAccent;
+        return [
+          const Color.fromRGBO(46, 204, 147, 1),
+          FontAwesomeIcons.circleCheck
+        ];
       default:
-        return Colors.lightBlue;
+        return [Colors.lightBlue, FontAwesomeIcons.listOl];
     }
   }
 
@@ -50,50 +53,70 @@ class TaskCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15),
-                    child: Text(
-                      task.title.tr,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  if (todosLength > 0)
-                    const SizedBox(
-                      width: 10,
-                    ),
-                  if (todosLength > 0)
-                    Container(
-                      width: 24,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                        color: const Color.fromRGBO(225, 224, 240, 1),
-                      ),
-                      child: Center(
-                        child: Text(
-                          todosLength.toString(),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(17, 10, 76, 1),
-                          ),
-                        ),
-                      ),
-                    ),
                   const SizedBox(
-                    width: 10,
+                    width: 18,
                   ),
                   Container(
-                    width: 15,
-                    height: 15,
+                    width: 5,
+                    height: 20,
                     decoration: BoxDecoration(
-                      color: getColor(),
+                      color: getColorAndIcon()[0],
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Icon(
+                    getColorAndIcon()[1],
+                    size: 20,
+                    // color: getColorAndIcon()[0],
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    task.title.tr,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (todosLength > 0)
+                    Row(
+                      children: [
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Container(
+                          width: 24,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: const Color.fromRGBO(225, 224, 240, 1),
+                          ),
+                          child: Center(
+                            child: Text(
+                              todosLength.toString(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromRGBO(17, 10, 76, 1),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                  // Container(
+                  //   width: 15,
+                  //   height: 15,
+                  //   decoration: BoxDecoration(
+                  //     color: getColorAndIcon()[0],
+                  //     borderRadius: BorderRadius.circular(20),
+                  //   ),
+                  // ),
                 ],
               ),
               Padding(
