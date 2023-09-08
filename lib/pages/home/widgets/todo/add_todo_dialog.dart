@@ -25,7 +25,6 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
 
   @override
   void initState() {
-    Get.lazyPut(() => AddTodoDialogController());
     dialogCtrl = Get.find();
     super.initState();
   }
@@ -77,7 +76,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                             title: dialogCtrl.titleFormCtrl.text,
                             description: dialogCtrl.descriptionFormCtrl.text,
                             createdAt: DateTime.now().millisecondsSinceEpoch,
-                            tags: dialogCtrl.selectedTags,
+                            tags: dialogCtrl.selectedTags.toList(),
                             priority: dialogCtrl.selectedPriority.value,
                             reminders: DateTime.now()
                                 .add(const Duration(seconds: 10))

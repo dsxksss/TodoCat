@@ -136,5 +136,6 @@ class AddTodoDialogController extends GetxController {
     titleFormCtrl.clear();
     descriptionFormCtrl.clear();
     tagController.clear();
+    selectedTags.clear();
   }
 }
