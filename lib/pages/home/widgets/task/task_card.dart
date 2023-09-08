@@ -69,7 +69,9 @@ class TaskCard extends StatelessWidget {
                   ),
                   Icon(
                     getColorAndIcon()[1],
-                    size: 20,
+                    size: getColorAndIcon()[1] == FontAwesomeIcons.pencil
+                        ? 18
+                        : 20,
                     // color: getColorAndIcon()[0],
                   ),
                   const SizedBox(
@@ -108,19 +110,10 @@ class TaskCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                  // Container(
-                  //   width: 15,
-                  //   height: 15,
-                  //   decoration: BoxDecoration(
-                  //     color: getColorAndIcon()[0],
-                  //     borderRadius: BorderRadius.circular(20),
-                  //   ),
-                  // ),
                 ],
               ),
               Padding(
-                padding: EdgeInsets.only(right: 15),
+                padding: const EdgeInsets.only(right: 15),
                 child: TaskDropDownMenuBtn(
                   menuItems: [
                     MenuItem(
