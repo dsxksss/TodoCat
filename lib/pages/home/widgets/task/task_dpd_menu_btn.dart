@@ -27,41 +27,35 @@ class TaskDropDownMenuBtn extends StatelessWidget {
       content: Container(
         width: 120,
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.grey.shade300),
+          color: context.theme.cardColor,
+          border: Border.all(color: context.theme.dividerColor),
           borderRadius: BorderRadius.circular(5),
         ),
         child: Column(
           children: [
             ...menuItems.map(
-              (item) => Material(
-                borderRadius: BorderRadius.circular(5),
-                child: ListTile(
-                  shape: BeveledRectangleBorder(
-                      borderRadius: BorderRadius.circular(2)),
-                  minLeadingWidth: 0,
-                  leading: Icon(
-                    item.iconData,
+              (item) => ListTile(
+                minLeadingWidth: 0,
+                leading: Icon(
+                  item.iconData,
+                  color:
+                      item.title == 'delete' ? Colors.redAccent.shade200 : null,
+                  size: 18,
+                ),
+                title: Text(
+                  item.title.tr,
+                  style: TextStyle(
                     color: item.title == 'delete'
                         ? Colors.redAccent.shade200
                         : null,
-                    size: 18,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
                   ),
-                  title: Text(
-                    item.title.tr,
-                    style: TextStyle(
-                      color: item.title == 'delete'
-                          ? Colors.redAccent.shade200
-                          : null,
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  onTap: () {
-                    item.callback();
-                    SmartDialog.dismiss(tag: 'TaskDropDownMenuBtn');
-                  },
                 ),
+                onTap: () {
+                  item.callback();
+                  SmartDialog.dismiss(tag: 'TaskDropDownMenuBtn');
+                },
               ),
             ),
           ],

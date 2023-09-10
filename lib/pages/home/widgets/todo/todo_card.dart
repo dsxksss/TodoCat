@@ -20,10 +20,10 @@ class TodoCard extends StatelessWidget {
     }
   }
 
-  Color getPriorityColor() {
+  Color getPriorityColor(BuildContext context) {
     switch (todo.priority) {
       case TodoPriority.lowLevel:
-        return Colors.white;
+        return context.theme.cardColor;
       case TodoPriority.mediumLevel:
         return const Color.fromARGB(255, 247, 159, 101);
       case TodoPriority.highLevel:
@@ -37,8 +37,8 @@ class TodoCard extends StatelessWidget {
       margin: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
       padding: const EdgeInsets.only(left: 10, right: 10, top: 5),
       decoration: BoxDecoration(
-        color: getPriorityColor(),
-        border: Border.all(color: Colors.grey.shade300),
+        color: getPriorityColor(context),
+        border: Border.all(color: context.theme.dividerColor),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Padding(

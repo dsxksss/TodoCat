@@ -37,7 +37,7 @@ class TaskCard extends StatelessWidget {
     return Container(
       width: 240,
       decoration: BoxDecoration(
-        color: const Color.fromRGBO(245, 245, 247, 1),
+        color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(
           10,
         ),

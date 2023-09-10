@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/app.dart';
 import 'package:todo_cat/env.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:window_manager/window_manager.dart';
@@ -21,6 +22,7 @@ class NavBar extends StatefulWidget {
 
 class _NavBarState extends State<NavBar> with WindowListener {
   bool isMaximize = false;
+  final AppController controller = Get.find();
 
   @override
   void initState() {
@@ -76,7 +78,6 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapCancel: () => {windowManager.startDragging()},
       child: Container(
         width: 1.sw,
-        color: Colors.white,
         padding: Platform.isMacOS ? const EdgeInsets.only(top: 20) : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
@@ -86,7 +87,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
               Row(
                 children: [
                   Image.asset(
-                    'assets/imgs/logo.png',
+                    'assets/imgs/logo-light-rounded.png',
                     width: 50,
                     height: 50,
                     filterQuality: FilterQuality.medium,
@@ -108,17 +109,45 @@ class _NavBarState extends State<NavBar> with WindowListener {
                 ],
               ),
               if (Platform.isMacOS)
-                NavBarBtn(
-                  onPressed: () async => await Get.updateLocale(
-                      Get.locale == const Locale("zh", "CN")
-                          ? const Locale("en", "US")
-                          : const Locale("zh", "CN")),
-                  child: const Icon(FontAwesomeIcons.earthAsia),
+                Row(
+                  children: [
+                    NavBarBtn(
+                      onPressed: () => controller.isDarkMode.value =
+                          !controller.isDarkMode.value,
+                      child: Obx(
+                        () => Icon(controller.isDarkMode.value
+                            ? FontAwesomeIcons.moon
+                            : FontAwesomeIcons.sun),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    NavBarBtn(
+                      onPressed: () async => await Get.updateLocale(
+                          Get.locale == const Locale("zh", "CN")
+                              ? const Locale("en", "US")
+                              : const Locale("zh", "CN")),
+                      child: const Icon(FontAwesomeIcons.earthAsia),
+                    ),
+                  ],
                 ),
               if (!Platform.isMacOS)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    NavBarBtn(
+                      onPressed: () => controller.isDarkMode.value =
+                          !controller.isDarkMode.value,
+                      child: Obx(
+                        () => Icon(controller.isDarkMode.value
+                            ? FontAwesomeIcons.moon
+                            : FontAwesomeIcons.sun),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
                     NavBarBtn(
                       onPressed: () async => await Get.updateLocale(
                           Get.locale == const Locale("zh", "CN")

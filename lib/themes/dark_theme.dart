@@ -4,9 +4,12 @@ const double fontSize = 14;
 
 final darkTheme = ThemeData(
   brightness: Brightness.dark,
-  primaryColor: Colors.grey[900],
+  cardColor: Colors.grey.shade900,
+  primaryColor: Colors.black,
   hintColor: Colors.blue,
-  scaffoldBackgroundColor: Colors.grey[900],
+  dividerColor: Colors.grey.shade800,
+  inputDecorationTheme: const InputDecorationTheme(fillColor: Colors.black),
+  scaffoldBackgroundColor: Colors.black87,
   textTheme: const TextTheme(
     bodyLarge: TextStyle(
       color: Colors.white,

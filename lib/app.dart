@@ -7,10 +7,12 @@ import 'package:todo_cat/locales/locales.dart';
 import 'package:todo_cat/manager/local_notification_manager.dart';
 import 'package:todo_cat/pages/unknown.dart';
 import 'package:todo_cat/routers/router_map.dart';
+import 'package:todo_cat/themes/dark_theme.dart';
 import 'package:todo_cat/themes/light_theme.dart';
 
 class AppController extends GetxController {
   late final LocalNotificationManager localNotificationManager;
+  final isDarkMode = false.obs;
 
   @override
   void onInit() async {
@@ -52,25 +54,29 @@ class _AppState extends State<App> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return GetMaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: "TodoCat",
-          translations: Locales(),
-          // locale: const Locale("en", "US"),
-          locale: const Locale("zh", "CN"),
-          fallbackLocale: const Locale('en', 'US'),
-          builder: FlutterSmartDialog.init(),
-          navigatorObservers: [FlutterSmartDialog.observer],
-          theme: lightTheme,
-          // darkTheme: darkTheme,
-          useInheritedMediaQuery: true,
-          unknownRoute: GetPage(
-            name: '/notfound',
-            page: () => const UnknownPage(),
-            transition: Transition.fadeIn,
+        return Obx(
+          () => GetMaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: "TodoCat",
+            translations: Locales(),
+            // locale: const Locale("en", "US"),
+            locale: const Locale("zh", "CN"),
+            fallbackLocale: const Locale('en', 'US'),
+            builder: FlutterSmartDialog.init(),
+            navigatorObservers: [FlutterSmartDialog.observer],
+            themeMode:
+                controller.isDarkMode.value ? ThemeMode.light : ThemeMode.dark,
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            useInheritedMediaQuery: true,
+            unknownRoute: GetPage(
+              name: '/notfound',
+              page: () => const UnknownPage(),
+              transition: Transition.fadeIn,
+            ),
+            initialRoute: '/',
+            getPages: routerMap,
           ),
-          initialRoute: '/',
-          getPages: routerMap,
         );
       },
     );

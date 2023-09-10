@@ -29,7 +29,6 @@ class SelectPriorityPanel extends StatelessWidget {
             onTap: onTap,
             indicatorColor: Colors.lightBlue,
             unselectedLabelColor: Colors.grey,
-            labelColor: Colors.black,
             tabs: tabs,
           ),
         ),

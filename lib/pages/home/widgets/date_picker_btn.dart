@@ -38,7 +38,6 @@ class DatePickerBtn extends StatelessWidget {
                 controller: editingController,
                 decoration: InputDecoration(
                   filled: true, // 是否填充背景色
-                  fillColor: const Color.fromRGBO(248, 250, 251, 1),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                   hintText: "Y-M-D - h:m:s",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:todo_cat/widgets/date_panel.dart';
 import 'package:todo_cat/widgets/time_panel.dart';
 
@@ -18,8 +19,8 @@ class TodoCatDatePickerDialog extends StatelessWidget {
           height: 0.4.sw,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade300),
+            color: context.theme.primaryColor,
+            border: Border.all(color: context.theme.dividerColor),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(

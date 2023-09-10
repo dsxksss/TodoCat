@@ -88,11 +88,8 @@ class AddTagScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             filled: true, // 是否填充背景色
-            fillColor: const Color.fromRGBO(248, 250, 251, 1),
             border: InputBorder.none,
-
             contentPadding: const EdgeInsets.symmetric(horizontal: 5),
             hintStyle: const TextStyle(color: Colors.grey),
             hintText: "${"enter".tr}${"tag".tr}",

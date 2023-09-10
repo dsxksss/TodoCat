@@ -1,0 +1,4 @@
+enum TodoCatThemeMode {
+  light,
+  dark,
+}

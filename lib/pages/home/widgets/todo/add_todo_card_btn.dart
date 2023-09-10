@@ -22,8 +22,7 @@ class AddTodoCardBtn extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 15),
         decoration: BoxDecoration(
-          color: const Color.fromRGBO(238, 238, 240, 1),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: context.theme.dividerColor),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Padding(

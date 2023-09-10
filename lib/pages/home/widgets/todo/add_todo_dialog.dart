@@ -46,8 +46,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           height: 0.5.sw,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade300),
+            color: context.theme.primaryColor,
+            border: Border.all(color: context.theme.dividerColor),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Form(
