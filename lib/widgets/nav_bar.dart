@@ -101,14 +101,12 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapCancel: () => {windowManager.startDragging()},
       child: Column(
         children: [
-          Obx(
-            () => SizedBox(
-              height:
-                  Platform.isMacOS && !controller.isFullScreen.value ? 30 : 0,
-            ).animate(),
-          ),
           SizedBox(
+            height: Platform.isMacOS && !controller.isFullScreen.value ? 30 : 0,
+          ).animate(),
+          Container(
             width: 1.sw,
+            color: context.theme.scaffoldBackgroundColor,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               child: Row(
@@ -144,20 +142,17 @@ class _NavBarState extends State<NavBar> with WindowListener {
                         NavBarBtn(
                           onPressed: () => controller.isDarkMode.value =
                               !controller.isDarkMode.value,
-                          child: Obx(
-                            () => const Icon(FontAwesomeIcons.moon)
-                                .animate(
-                                    target: controller.isDarkMode.value ? 1 : 0)
-                                .fadeOut(duration: 200.ms)
-                                .rotate(end: 0.1, duration: 200.ms)
-                                .swap(
-                                    builder: (_, __) =>
-                                        const Icon(FontAwesomeIcons.sun)
-                                            .animate()
-                                            .fadeIn(duration: 200.ms)
-                                            .rotate(
-                                                end: 0.1, duration: 200.ms)),
-                          ),
+                          child: const Icon(FontAwesomeIcons.moon)
+                              .animate(
+                                  target: controller.isDarkMode.value ? 1 : 0)
+                              .fadeOut(duration: 200.ms)
+                              .rotate(end: 0.1, duration: 200.ms)
+                              .swap(
+                                  builder: (_, __) =>
+                                      const Icon(FontAwesomeIcons.sun)
+                                          .animate()
+                                          .fadeIn(duration: 200.ms)
+                                          .rotate(end: 0.1, duration: 200.ms)),
                         ),
                         const SizedBox(
                           width: 20,
@@ -178,20 +173,17 @@ class _NavBarState extends State<NavBar> with WindowListener {
                         NavBarBtn(
                           onPressed: () => controller.isDarkMode.value =
                               !controller.isDarkMode.value,
-                          child: Obx(
-                            () => const Icon(FontAwesomeIcons.moon)
-                                .animate(
-                                    target: controller.isDarkMode.value ? 1 : 0)
-                                .fadeOut(duration: 200.ms)
-                                .rotate(end: 0.1, duration: 200.ms)
-                                .swap(
-                                    builder: (_, __) =>
-                                        const Icon(FontAwesomeIcons.sun)
-                                            .animate()
-                                            .fadeIn(duration: 200.ms)
-                                            .rotate(
-                                                end: 0.1, duration: 200.ms)),
-                          ),
+                          child: const Icon(FontAwesomeIcons.moon)
+                              .animate(
+                                  target: controller.isDarkMode.value ? 1 : 0)
+                              .fadeOut(duration: 200.ms)
+                              .rotate(end: 0.1, duration: 200.ms)
+                              .swap(
+                                  builder: (_, __) =>
+                                      const Icon(FontAwesomeIcons.sun)
+                                          .animate()
+                                          .fadeIn(duration: 200.ms)
+                                          .rotate(end: 0.1, duration: 200.ms)),
                         ),
                         const SizedBox(
                           width: 20,
