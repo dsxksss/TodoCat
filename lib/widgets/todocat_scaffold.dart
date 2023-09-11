@@ -18,10 +18,12 @@ class TodoCatScaffold extends StatelessWidget {
           Positioned(
             child: Column(
               children: [
-                SizedBox(
-                  height: Platform.isMacOS && !controller.isFullScreen.value
-                      ? 110
-                      : 80,
+                Obx(
+                  () => SizedBox(
+                    height: Platform.isMacOS && !controller.isFullScreen.value
+                        ? 110
+                        : 80,
+                  ),
                 ),
                 Expanded(
                   child: body,

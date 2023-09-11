@@ -101,9 +101,12 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapCancel: () => {windowManager.startDragging()},
       child: Column(
         children: [
-          SizedBox(
-            height: Platform.isMacOS && !controller.isFullScreen.value ? 30 : 0,
-          ).animate(),
+          Obx(
+            () => SizedBox(
+              height:
+                  Platform.isMacOS && !controller.isFullScreen.value ? 30 : 0,
+            ),
+          ),
           Container(
             width: 1.sw,
             color: context.theme.scaffoldBackgroundColor,
@@ -209,10 +212,12 @@ class _NavBarState extends State<NavBar> with WindowListener {
                           onPressed: targetMaximizeWindow,
                           child: Transform.scale(
                             scale: 0.8,
-                            child: Icon(
-                              controller.isMaximize.value
-                                  ? FontAwesomeIcons.windowRestore
-                                  : FontAwesomeIcons.square,
+                            child: Obx(
+                              () => Icon(
+                                controller.isMaximize.value
+                                    ? FontAwesomeIcons.windowRestore
+                                    : FontAwesomeIcons.square,
+                              ),
                             ),
                           ),
                         ),
