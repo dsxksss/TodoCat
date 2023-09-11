@@ -65,7 +65,7 @@ class _AppState extends State<App> {
             builder: FlutterSmartDialog.init(),
             navigatorObservers: [FlutterSmartDialog.observer],
             themeMode:
-                controller.isDarkMode.value ? ThemeMode.light : ThemeMode.dark,
+                controller.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
             theme: lightTheme,
             darkTheme: darkTheme,
             useInheritedMediaQuery: true,

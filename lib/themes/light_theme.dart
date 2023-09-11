@@ -8,6 +8,7 @@ final lightTheme = ThemeData(
   primaryColor: Colors.grey[100],
   hintColor: Colors.blue,
   dividerColor: Colors.grey.shade300,
+  dialogBackgroundColor: Colors.white,
   inputDecorationTheme: const InputDecorationTheme(
     fillColor: Color.fromRGBO(248, 250, 251, 1),
   ),

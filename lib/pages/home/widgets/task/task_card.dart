@@ -37,11 +37,11 @@ class TaskCard extends StatelessWidget {
     return Container(
       width: 240,
       decoration: BoxDecoration(
-        color: context.theme.cardColor,
-        borderRadius: BorderRadius.circular(
-          10,
-        ),
-      ),
+          color: context.theme.cardColor,
+          borderRadius: BorderRadius.circular(
+            10,
+          ),
+          border: Border.all(width: 0.4, color: context.theme.dividerColor)),
       child: Flex(
         direction: Axis.vertical,
         children: [
