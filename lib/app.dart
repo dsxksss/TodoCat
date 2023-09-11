@@ -13,6 +13,8 @@ import 'package:todo_cat/themes/light_theme.dart';
 class AppController extends GetxController {
   late final LocalNotificationManager localNotificationManager;
   final isDarkMode = false.obs;
+  final isMaximize = false.obs;
+  final isFullScreen = false.obs;
 
   @override
   void onInit() async {

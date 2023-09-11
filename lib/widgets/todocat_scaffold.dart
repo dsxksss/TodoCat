@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:todo_cat/app.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 
 class TodoCatScaffold extends StatelessWidget {
-  const TodoCatScaffold({super.key, required this.body});
+  TodoCatScaffold({super.key, required this.body});
   final Widget body;
+  final AppController controller = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +18,12 @@ class TodoCatScaffold extends StatelessWidget {
           Positioned(
             child: Column(
               children: [
-                SizedBox(
-                  height: Platform.isMacOS ? 110 : 80,
+                Obx(
+                  () => SizedBox(
+                    height: Platform.isMacOS && !controller.isFullScreen.value
+                        ? 110
+                        : 80,
+                  ),
                 ),
                 Expanded(
                   child: body,

@@ -21,7 +21,6 @@ class NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<NavBar> with WindowListener {
-  bool isMaximize = false;
   final AppController controller = Get.find();
 
   @override
@@ -38,33 +37,57 @@ class _NavBarState extends State<NavBar> with WindowListener {
 
   @override
   void onWindowFocus() {
-    updateMaximized();
+    updateWindowStatus();
   }
 
   @override
   void onWindowMove() {
-    updateMaximized();
+    updateWindowStatus();
     super.onWindowMove();
+  }
+
+  @override
+  void onWindowMaximize() {
+    updateWindowStatus();
+    super.onWindowMaximize();
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    updateWindowStatus();
+    super.onWindowUnmaximize();
+  }
+
+  @override
+  void onWindowEnterFullScreen() {
+    updateWindowStatus();
+    super.onWindowEnterFullScreen();
+  }
+
+  @override
+  void onWindowLeaveFullScreen() {
+    updateWindowStatus();
+    super.onWindowLeaveFullScreen();
   }
 
   void minimizeWindow() async {
     await windowManager.minimize();
   }
 
-  void updateMaximized() async {
+  void updateWindowStatus() async {
     final maximized = await windowManager.isMaximized();
-    setState(() {
-      isMaximize = maximized;
-    });
+    controller.isMaximize.value = maximized;
+    final fullScreen = await windowManager.isFullScreen();
+    controller.isFullScreen.value = fullScreen;
   }
 
   void targetMaximizeWindow() async {
-    if (isMaximize) {
+    if (controller.isMaximize.value) {
       await windowManager.unmaximize();
     } else {
       await windowManager.maximize();
     }
-    updateMaximized();
+    updateWindowStatus();
   }
 
   void closeWindow() async {
@@ -76,141 +99,152 @@ class _NavBarState extends State<NavBar> with WindowListener {
     return GestureDetector(
       dragStartBehavior: DragStartBehavior.down,
       onTapCancel: () => {windowManager.startDragging()},
-      child: Container(
-        width: 1.sw,
-        padding: Platform.isMacOS ? const EdgeInsets.only(top: 30) : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+      child: Column(
+        children: [
+          Obx(
+            () => SizedBox(
+              height:
+                  Platform.isMacOS && !controller.isFullScreen.value ? 30 : 0,
+            ).animate(),
+          ),
+          SizedBox(
+            width: 1.sw,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Image.asset(
-                    'assets/imgs/logo-light-rounded.png',
-                    width: 50,
-                    height: 50,
-                    filterQuality: FilterQuality.medium,
-                  ),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  Text(
-                    "${"myTasks".tr} ${runMode.name}",
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ).animate(delay: 1000.ms).moveY(
-                        begin: -150,
-                        duration: 1000.ms,
-                        curve: Curves.bounceInOut,
+                  Row(
+                    children: [
+                      Image.asset(
+                        'assets/imgs/logo-light-rounded.png',
+                        width: 50,
+                        height: 50,
+                        filterQuality: FilterQuality.medium,
                       ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Text(
+                        "${"myTasks".tr} ${runMode.name}",
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ).animate(delay: 1000.ms).moveY(
+                            begin: -150,
+                            duration: 1000.ms,
+                            curve: Curves.bounceInOut,
+                          ),
+                    ],
+                  ),
+                  if (Platform.isMacOS)
+                    Row(
+                      children: [
+                        NavBarBtn(
+                          onPressed: () => controller.isDarkMode.value =
+                              !controller.isDarkMode.value,
+                          child: Obx(
+                            () => const Icon(FontAwesomeIcons.moon)
+                                .animate(
+                                    target: controller.isDarkMode.value ? 1 : 0)
+                                .fadeOut(duration: 200.ms)
+                                .rotate(end: 0.1, duration: 200.ms)
+                                .swap(
+                                    builder: (_, __) =>
+                                        const Icon(FontAwesomeIcons.sun)
+                                            .animate()
+                                            .fadeIn(duration: 200.ms)
+                                            .rotate(
+                                                end: 0.1, duration: 200.ms)),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        NavBarBtn(
+                          onPressed: () async => await Get.updateLocale(
+                              Get.locale == const Locale("zh", "CN")
+                                  ? const Locale("en", "US")
+                                  : const Locale("zh", "CN")),
+                          child: const Icon(FontAwesomeIcons.earthAsia),
+                        ),
+                      ],
+                    ),
+                  if (!Platform.isMacOS)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        NavBarBtn(
+                          onPressed: () => controller.isDarkMode.value =
+                              !controller.isDarkMode.value,
+                          child: Obx(
+                            () => const Icon(FontAwesomeIcons.moon)
+                                .animate(
+                                    target: controller.isDarkMode.value ? 1 : 0)
+                                .fadeOut(duration: 200.ms)
+                                .rotate(end: 0.1, duration: 200.ms)
+                                .swap(
+                                    builder: (_, __) =>
+                                        const Icon(FontAwesomeIcons.sun)
+                                            .animate()
+                                            .fadeIn(duration: 200.ms)
+                                            .rotate(
+                                                end: 0.1, duration: 200.ms)),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        NavBarBtn(
+                          onPressed: () async => await Get.updateLocale(
+                              Get.locale == const Locale("zh", "CN")
+                                  ? const Locale("en", "US")
+                                  : const Locale("zh", "CN")),
+                          child: const Icon(FontAwesomeIcons.earthAsia),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        NavBarBtn(
+                          onPressed: minimizeWindow,
+                          child: const Icon(FontAwesomeIcons.minus),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        NavBarBtn(
+                          onPressed: targetMaximizeWindow,
+                          child: Transform.scale(
+                            scale: 0.8,
+                            child: Icon(
+                              controller.isMaximize.value
+                                  ? FontAwesomeIcons.windowRestore
+                                  : FontAwesomeIcons.square,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        NavBarBtn(
+                          onPressed: closeWindow,
+                          hoverColor: Colors.redAccent.shade100,
+                          child: const Icon(
+                            FontAwesomeIcons.xmark,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                      ]
+                          .animate(interval: 100.ms, delay: 1000.ms)
+                          .moveY(duration: 400.ms)
+                          .fade(duration: 400.ms),
+                    ),
                 ],
               ),
-              if (Platform.isMacOS)
-                Row(
-                  children: [
-                    NavBarBtn(
-                      onPressed: () => controller.isDarkMode.value =
-                          !controller.isDarkMode.value,
-                      child: Obx(
-                        () => const Icon(FontAwesomeIcons.moon)
-                            .animate(
-                                target: controller.isDarkMode.value ? 1 : 0)
-                            .fadeOut(duration: 200.ms)
-                            .rotate(end: 0.1, duration: 200.ms)
-                            .swap(
-                                builder: (_, __) =>
-                                    const Icon(FontAwesomeIcons.sun)
-                                        .animate()
-                                        .fadeIn(duration: 200.ms)
-                                        .rotate(end: 0.1, duration: 200.ms)),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    NavBarBtn(
-                      onPressed: () async => await Get.updateLocale(
-                          Get.locale == const Locale("zh", "CN")
-                              ? const Locale("en", "US")
-                              : const Locale("zh", "CN")),
-                      child: const Icon(FontAwesomeIcons.earthAsia),
-                    ),
-                  ],
-                ),
-              if (!Platform.isMacOS)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    NavBarBtn(
-                      onPressed: () => controller.isDarkMode.value =
-                          !controller.isDarkMode.value,
-                      child: Obx(
-                        () => const Icon(FontAwesomeIcons.moon)
-                            .animate(
-                                target: controller.isDarkMode.value ? 1 : 0)
-                            .fadeOut(duration: 200.ms)
-                            .rotate(end: 0.1, duration: 200.ms)
-                            .swap(
-                                builder: (_, __) =>
-                                    const Icon(FontAwesomeIcons.sun)
-                                        .animate()
-                                        .fadeIn(duration: 200.ms)
-                                        .rotate(end: 0.1, duration: 200.ms)),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    NavBarBtn(
-                      onPressed: () async => await Get.updateLocale(
-                          Get.locale == const Locale("zh", "CN")
-                              ? const Locale("en", "US")
-                              : const Locale("zh", "CN")),
-                      child: const Icon(FontAwesomeIcons.earthAsia),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    NavBarBtn(
-                      onPressed: minimizeWindow,
-                      child: const Icon(FontAwesomeIcons.minus),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    NavBarBtn(
-                      onPressed: targetMaximizeWindow,
-                      child: Transform.scale(
-                        scale: 0.8,
-                        child: Icon(
-                          isMaximize
-                              ? FontAwesomeIcons.windowRestore
-                              : FontAwesomeIcons.square,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    NavBarBtn(
-                      onPressed: closeWindow,
-                      hoverColor: Colors.redAccent.shade100,
-                      child: const Icon(
-                        FontAwesomeIcons.xmark,
-                        color: Colors.redAccent,
-                      ),
-                    ),
-                  ]
-                      .animate(interval: 100.ms, delay: 1000.ms)
-                      .moveY(duration: 400.ms)
-                      .fade(duration: 400.ms),
-                ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
