@@ -78,7 +78,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapCancel: () => {windowManager.startDragging()},
       child: Container(
         width: 1.sw,
-        padding: Platform.isMacOS ? const EdgeInsets.only(top: 20) : null,
+        padding: Platform.isMacOS ? const EdgeInsets.only(top: 30) : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
           child: Row(
