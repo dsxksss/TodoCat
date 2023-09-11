@@ -115,9 +115,17 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       onPressed: () => controller.isDarkMode.value =
                           !controller.isDarkMode.value,
                       child: Obx(
-                        () => Icon(controller.isDarkMode.value
-                            ? FontAwesomeIcons.moon
-                            : FontAwesomeIcons.sun),
+                        () => const Icon(FontAwesomeIcons.moon)
+                            .animate(
+                                target: controller.isDarkMode.value ? 1 : 0)
+                            .fadeOut(duration: 200.ms)
+                            .rotate(end: 0.1, duration: 200.ms)
+                            .swap(
+                                builder: (_, __) =>
+                                    const Icon(FontAwesomeIcons.sun)
+                                        .animate()
+                                        .fadeIn(duration: 200.ms)
+                                        .rotate(end: 0.1, duration: 200.ms)),
                       ),
                     ),
                     const SizedBox(
@@ -140,9 +148,17 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       onPressed: () => controller.isDarkMode.value =
                           !controller.isDarkMode.value,
                       child: Obx(
-                        () => Icon(controller.isDarkMode.value
-                            ? FontAwesomeIcons.moon
-                            : FontAwesomeIcons.sun),
+                        () => const Icon(FontAwesomeIcons.moon)
+                            .animate(
+                                target: controller.isDarkMode.value ? 1 : 0)
+                            .fadeOut(duration: 200.ms)
+                            .rotate(end: 0.1, duration: 200.ms)
+                            .swap(
+                                builder: (_, __) =>
+                                    const Icon(FontAwesomeIcons.sun)
+                                        .animate()
+                                        .fadeIn(duration: 200.ms)
+                                        .rotate(end: 0.1, duration: 200.ms)),
                       ),
                     ),
                     const SizedBox(
