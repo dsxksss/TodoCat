@@ -28,13 +28,14 @@ class TaskDropDownMenuBtn extends StatelessWidget {
         width: 120,
         decoration: BoxDecoration(
           color: context.theme.cardColor,
-          border: Border.all(color: context.theme.dividerColor),
+          border: Border.all(width: 0.5, color: context.theme.dividerColor),
           borderRadius: BorderRadius.circular(5),
         ),
         child: Column(
           children: [
             ...menuItems.map(
               (item) => Material(
+                type: MaterialType.transparency,
                 child: ListTile(
                   minLeadingWidth: 0,
                   hoverColor: context.theme.dividerColor,
