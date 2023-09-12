@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:todo_cat/utils/date_time.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 
@@ -101,6 +102,12 @@ class _DatePanelState extends State<DatePanel> {
   Widget build(BuildContext context) {
     return Container(
       width: 350,
+      padding: EdgeInsets.only(left: 20, right: 20, top: 20),
+      decoration: BoxDecoration(
+        color: context.theme.cardColor,
+        border: Border.all(color: context.theme.dividerColor, width: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Column(
         children: [
           Row(
@@ -163,7 +170,7 @@ class _DatePanelState extends State<DatePanel> {
           ),
           Container(height: 250, child: _buildDateGrid()),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 2),
             child: Divider(),
           ),
           Row(

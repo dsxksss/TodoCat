@@ -16,8 +16,8 @@ class TodoCatDatePickerDialog extends StatelessWidget {
       child: Center(
         child: Container(
           width: 0.6.sw,
-          height: 0.4.sw,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          height: 0.36.sw,
+          padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: context.theme.dialogBackgroundColor,
             border: Border.all(width: 0.18, color: context.theme.dividerColor),
@@ -27,6 +27,14 @@ class TodoCatDatePickerDialog extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               DatePanel(),
+              Container(
+                height: 0.25.sw,
+                width: 1,
+                decoration: BoxDecoration(
+                  color: context.theme.dividerColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               TimePanel(),
             ],
           ),
