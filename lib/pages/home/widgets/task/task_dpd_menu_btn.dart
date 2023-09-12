@@ -34,28 +34,32 @@ class TaskDropDownMenuBtn extends StatelessWidget {
         child: Column(
           children: [
             ...menuItems.map(
-              (item) => ListTile(
-                minLeadingWidth: 0,
-                leading: Icon(
-                  item.iconData,
-                  color:
-                      item.title == 'delete' ? Colors.redAccent.shade200 : null,
-                  size: 18,
-                ),
-                title: Text(
-                  item.title.tr,
-                  style: TextStyle(
+              (item) => Material(
+                child: ListTile(
+                  minLeadingWidth: 0,
+                  hoverColor: context.theme.dividerColor,
+                  leading: Icon(
+                    item.iconData,
                     color: item.title == 'delete'
                         ? Colors.redAccent.shade200
                         : null,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w500,
+                    size: 18,
                   ),
+                  title: Text(
+                    item.title.tr,
+                    style: TextStyle(
+                      color: item.title == 'delete'
+                          ? Colors.redAccent.shade200
+                          : null,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onTap: () {
+                    item.callback();
+                    SmartDialog.dismiss(tag: 'TaskDropDownMenuBtn');
+                  },
                 ),
-                onTap: () {
-                  item.callback();
-                  SmartDialog.dismiss(tag: 'TaskDropDownMenuBtn');
-                },
               ),
             ),
           ],
