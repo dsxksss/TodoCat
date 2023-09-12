@@ -102,7 +102,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
       child: Column(
         children: [
           SizedBox(
-            height: Platform.isMacOS && !controller.isFullScreen.value ? 30 : 0,
+            height: Platform.isMacOS ? 30 : 0,
           ),
           Container(
             width: 1.sw,
