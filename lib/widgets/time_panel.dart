@@ -13,36 +13,7 @@ class TimePanel extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AnimationBtn(
-                child: Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.grey),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: Icon(FontAwesomeIcons.angleLeft, size: 15),
-                  ),
-                ),
-              ),
-              Text("date 2023"),
-              AnimationBtn(
-                child: Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.grey),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      FontAwesomeIcons.angleRight,
-                      size: 15,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            children: [],
           )
         ],
       ),
