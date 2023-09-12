@@ -101,11 +101,8 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapCancel: () => {windowManager.startDragging()},
       child: Column(
         children: [
-          Obx(
-            () => SizedBox(
-              height:
-                  Platform.isMacOS && !controller.isFullScreen.value ? 30 : 0,
-            ),
+          SizedBox(
+            height: Platform.isMacOS && !controller.isFullScreen.value ? 30 : 0,
           ),
           Container(
             width: 1.sw,
