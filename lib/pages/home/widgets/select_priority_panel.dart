@@ -28,7 +28,7 @@ class SelectPriorityPanel extends StatelessWidget {
           child: TabBar(
             onTap: onTap,
             indicatorColor: Colors.lightBlue,
-            unselectedLabelColor: Colors.grey,
+            unselectedLabelColor: const Color.fromARGB(199, 117, 117, 117),
             tabs: tabs,
           ),
         ),

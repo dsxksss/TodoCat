@@ -56,3 +56,23 @@ List<int> getMonthDays(int year, int month) {
   int monthDayCount = getMonthDayCount(year, month);
   return List<int>.generate(monthDayCount, (index) => index + 1);
 }
+
+// 获取当前月份的第一天是星期几
+int firstDayWeek(DateTime date) {
+  final firstDayOfMonth = DateTime(date.year, date.month, 1);
+  return firstDayOfMonth.weekday;
+}
+
+String getWeekName(DateTime date) {
+  const Map<int, String> weekMap = {
+    1: 'monday',
+    2: 'tuesday',
+    3: 'wednesday',
+    4: 'thursday',
+    5: 'friday',
+    6: 'saturday',
+    7: 'sunday',
+  };
+
+  return weekMap[date.weekday] ?? 'unknown';
+}

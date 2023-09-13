@@ -97,7 +97,7 @@ void showDatePickerDialog() {
   Get.generalDialog(
     barrierLabel: "showAddTodoDialog",
     barrierDismissible: true,
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.transparent,
     transitionDuration: 250.ms,
     pageBuilder: (_, __, ___) {
       return GestureDetector(child: const TodoCatDatePickerDialog());
