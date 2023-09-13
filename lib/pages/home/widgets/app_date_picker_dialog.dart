@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/utils/date_time.dart';
 import 'package:todo_cat/widgets/date_panel.dart';
 import 'package:todo_cat/widgets/time_panel.dart';
@@ -72,11 +73,13 @@ class TodoCatDatePickerDialog extends StatefulWidget {
 
 class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
   late final DatePickerController _ctrl;
+  late final AddTodoDialogController _dialogCtrl;
 
   @override
   void initState() {
     Get.put(DatePickerController());
     _ctrl = Get.find();
+    _dialogCtrl = Get.find();
     super.initState();
   }
 
@@ -137,6 +140,9 @@ class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
                             overlayColor:
                                 MaterialStatePropertyAll(Colors.transparent)),
                         onPressed: () {
+                          _dialogCtrl.remindersController.text = _ctrl
+                              .currentDate.value.millisecondsSinceEpoch
+                              .toString();
                           Get.back();
                         },
                         child: Text("done".tr),
