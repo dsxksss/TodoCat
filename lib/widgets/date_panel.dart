@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/home/widgets/app_date_picker_dialog.dart';
+import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 
 class DatePanel extends StatefulWidget {

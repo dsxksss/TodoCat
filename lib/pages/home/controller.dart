@@ -8,6 +8,7 @@ import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
+import 'package:todo_cat/utils/date_time.dart';
 
 class HomeController extends GetxController {
   late TaskRepository taskRepository;
@@ -137,5 +138,60 @@ class AddTodoDialogController extends GetxController {
     descriptionFormCtrl.clear();
     tagController.clear();
     selectedTags.clear();
+    remindersController.clear();
+  }
+}
+
+class DatePickerController extends GetxController {
+  late final currentDate = DateTime.now().obs;
+  late final defaultDate = DateTime.now().obs;
+  late final RxList<int> monthDays = <int>[].obs;
+  final selectedDay = 0.obs;
+  final firstDayOfWeek = 0.obs;
+  final daysInMonth = 0.obs;
+  final startPadding = RxNum(0);
+  final totalDays = RxNum(0);
+
+  @override
+  void onInit() {
+    monthDays.value = getMonthDays(
+      currentDate.value.year,
+      currentDate.value.month,
+    );
+
+    firstDayOfWeek.value = firstDayWeek(currentDate.value);
+    daysInMonth.value = monthDays.length;
+    startPadding.value = (firstDayOfWeek - 1) % 7;
+    totalDays.value = daysInMonth.value + startPadding.value;
+
+    selectedDay.value = defaultDate.value.day;
+
+    ever(selectedDay, (callback) => changeDate(day: selectedDay.value));
+    ever(currentDate, (callback) => selectedDay.value = currentDate.value.day);
+    super.onInit();
+  }
+
+  void resetDate() {
+    changeDate(
+      year: defaultDate.value.year,
+      month: defaultDate.value.month,
+      day: defaultDate.value.day,
+    );
+  }
+
+  void changeDate({int? year, int? month, int? day}) {
+    currentDate.value = DateTime(
+      year ?? currentDate.value.year,
+      month ?? currentDate.value.month,
+      day ?? currentDate.value.day,
+    );
+    monthDays.value = getMonthDays(
+      currentDate.value.year,
+      currentDate.value.month,
+    );
+    firstDayOfWeek.value = firstDayWeek(currentDate.value);
+    daysInMonth.value = monthDays.length;
+    startPadding.value = (firstDayOfWeek - 1) % 7;
+    totalDays.value = daysInMonth.value + startPadding.value;
   }
 }
