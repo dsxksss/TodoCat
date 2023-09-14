@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
@@ -120,7 +121,8 @@ class AddTodoDialogController extends GetxController {
   final titleFormCtrl = TextEditingController();
   final descriptionFormCtrl = TextEditingController();
   final tagController = TextEditingController();
-  final remindersController = TextEditingController();
+  final remindersText = RxString("${"enter".tr}${"time".tr}");
+  final remindersValue = RxInt(0);
 
   void addTag() {
     if (tagController.text.isNotEmpty && selectedTags.length < 3) {
@@ -138,7 +140,8 @@ class AddTodoDialogController extends GetxController {
     descriptionFormCtrl.clear();
     tagController.clear();
     selectedTags.clear();
-    remindersController.clear();
+    remindersText.value = "";
+    remindersValue.value = 0;
   }
 }
 
@@ -151,9 +154,13 @@ class DatePickerController extends GetxController {
   final daysInMonth = 0.obs;
   final startPadding = RxNum(0);
   final totalDays = RxNum(0);
+  late final PageController hController = PageController();
+  late final PageController mController = PageController();
+  final TextEditingController hEditingController = TextEditingController();
+  final TextEditingController mEditingController = TextEditingController();
 
   @override
-  void onInit() {
+  void onInit() async {
     monthDays.value = getMonthDays(
       currentDate.value.year,
       currentDate.value.month,
@@ -166,8 +173,18 @@ class DatePickerController extends GetxController {
 
     selectedDay.value = defaultDate.value.day;
 
+    await Future.delayed(200.ms, () {
+      hController.animateToPage(defaultDate.value.hour,
+          duration: 200.ms, curve: Curves.easeInOut);
+      mController.animateToPage(defaultDate.value.minute,
+          duration: 200.ms, curve: Curves.easeInOut);
+      hEditingController.text = defaultDate.value.hour.toString();
+      mEditingController.text = defaultDate.value.minute.toString();
+    });
+
     ever(selectedDay, (callback) => changeDate(day: selectedDay.value));
     ever(currentDate, (callback) => selectedDay.value = currentDate.value.day);
+
     super.onInit();
   }
 
@@ -176,19 +193,28 @@ class DatePickerController extends GetxController {
       year: defaultDate.value.year,
       month: defaultDate.value.month,
       day: defaultDate.value.day,
+      hour: 0,
+      minute: 0,
     );
+    hController.animateToPage(0, duration: 200.ms, curve: Curves.easeInOut);
+    mController.animateToPage(0, duration: 200.ms, curve: Curves.easeInOut);
+    hEditingController.text = 0.toString();
+    mEditingController.text = 0.toString();
   }
 
-  void changeDate({int? year, int? month, int? day}) {
+  void changeDate({int? year, int? month, int? day, int? hour, int? minute}) {
     currentDate.value = DateTime(
       year ?? currentDate.value.year,
       month ?? currentDate.value.month,
       day ?? currentDate.value.day,
+      hour ?? currentDate.value.hour,
+      minute ?? currentDate.value.minute,
     );
     monthDays.value = getMonthDays(
       currentDate.value.year,
       currentDate.value.month,
     );
+
     firstDayOfWeek.value = firstDayWeek(currentDate.value);
     daysInMonth.value = monthDays.length;
     startPadding.value = (firstDayOfWeek - 1) % 7;

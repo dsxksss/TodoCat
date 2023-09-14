@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/widgets/app_date_picker_dialog.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
@@ -7,13 +8,15 @@ import 'package:todo_cat/widgets/animation_btn.dart';
 class DatePickerBtn extends StatelessWidget {
   const DatePickerBtn({
     super.key,
-    required this.editingController,
     this.validator,
     required this.fieldTitle,
+    required this.text,
+    required this.value,
   });
 
   final String fieldTitle;
-  final TextEditingController editingController;
+  final RxString text;
+  final RxInt value;
   final String? Function(String?)? validator;
 
   @override
@@ -33,33 +36,63 @@ class DatePickerBtn extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: TextFormField(
-                enabled: false,
-                controller: editingController,
-                decoration: InputDecoration(
-                  filled: true, // 是否填充背景色
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                  hintText: "Y-M-D - h:m:s",
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 15),
+                margin: const EdgeInsets.only(left: 2),
+                decoration: BoxDecoration(
+                  color: context.theme.inputDecorationTheme.fillColor,
+                  borderRadius: BorderRadius.circular(5),
                 ),
-                validator: validator,
+                child: Row(
+                  children: [
+                    Obx(
+                      () => Text(
+                        text.value,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
             const SizedBox(
               width: 10,
+            ),
+            AnimationBtn(
+              onPressed: () {
+                text.value = "${"enter".tr}${"time".tr}";
+                value.value = 0;
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      "clear".tr,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    const Icon(
+                      FontAwesomeIcons.trashCan,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: 5,
             ),
             AnimationBtn(
               onPressed: () => showDatePickerDialog(),
@@ -67,8 +100,9 @@ class DatePickerBtn extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                 decoration: BoxDecoration(
-                    color: Colors.lightBlue,
-                    borderRadius: BorderRadius.circular(5)),
+                  color: Colors.lightBlue,
+                  borderRadius: BorderRadius.circular(5),
+                ),
                 child: Row(
                   children: [
                     Text(
@@ -79,7 +113,8 @@ class DatePickerBtn extends StatelessWidget {
                       width: 5,
                     ),
                     const Icon(
-                      Icons.timer_sharp,
+                      FontAwesomeIcons.clock,
+                      size: 18,
                       color: Colors.white,
                     ),
                   ],

@@ -47,4 +47,6 @@ const Map<String, String> enUS = {
   'friday': 'Friday',
   'saturday': 'Saturday',
   'sunday': 'Sunday',
+  'clear': 'Clear',
+  'reset': 'Reset',
 };

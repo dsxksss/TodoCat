@@ -143,7 +143,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   height: 20,
                 ),
                 DatePickerBtn(
-                  editingController: dialogCtrl.remindersController,
+                  text: dialogCtrl.remindersText,
+                  value: dialogCtrl.remindersValue,
                   fieldTitle: 'reminderTime'.tr,
                 ),
               ].animate(interval: 100.ms).moveX(begin: 20).fade(),

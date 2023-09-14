@@ -47,4 +47,6 @@ const Map<String, String> zhCN = {
   'friday': '星期五',
   'saturday': '星期六',
   'sunday': '星期天',
+  'clear': '清空',
+  'reset': '重置',
 };

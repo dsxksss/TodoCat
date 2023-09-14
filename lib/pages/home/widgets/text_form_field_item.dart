@@ -30,7 +30,9 @@ class TextFormFieldItem extends StatelessWidget {
         ),
         TextFormField(
           controller: editingController,
+          maxLength: 20,
           decoration: InputDecoration(
+            counter: const Text(""),
             filled: true, // 是否填充背景色
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(horizontal: 5),

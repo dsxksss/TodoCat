@@ -35,9 +35,9 @@ class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
       type: MaterialType.transparency,
       child: Center(
         child: Container(
-          width: 0.6.sw,
-          height: 0.36.sw,
-          padding: EdgeInsets.only(left: 20, right: 20, top: 15),
+          width: 800,
+          height: 550,
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 15),
           decoration: BoxDecoration(
             color: context.theme.dialogBackgroundColor,
             border: Border.all(width: 0.80, color: context.theme.dividerColor),
@@ -61,7 +61,7 @@ class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
                               _ctrl.currentDate.value.millisecondsSinceEpoch,
                             )} ${getWeekName(
                               _ctrl.currentDate.value,
-                            ).tr}",
+                            ).tr} ${getTimeName(_ctrl.currentDate.value)}",
                             style: const TextStyle(fontSize: 24),
                           ),
                         ),
@@ -71,24 +71,29 @@ class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
                   Row(
                     children: [
                       TextButton(
-                        // 取消按钮按下时出现的颜色
                         style: const ButtonStyle(
                             overlayColor:
                                 MaterialStatePropertyAll(Colors.transparent)),
                         onPressed: () {
                           _ctrl.resetDate();
                         },
-                        child: Text("clear".tr),
+                        child: Text("reset".tr),
                       ),
                       TextButton(
-                        // 取消按钮按下时出现的颜色
                         style: const ButtonStyle(
                             overlayColor:
                                 MaterialStatePropertyAll(Colors.transparent)),
                         onPressed: () {
-                          _dialogCtrl.remindersController.text = _ctrl
-                              .currentDate.value.millisecondsSinceEpoch
-                              .toString();
+                          // 显示时间
+                          _dialogCtrl.remindersText.value = "${timestampToDate(
+                            _ctrl.currentDate.value.millisecondsSinceEpoch,
+                          )} ${getWeekName(
+                            _ctrl.currentDate.value,
+                          ).tr} ${getTimeName(_ctrl.currentDate.value)}";
+
+                          // 时间戳
+                          _dialogCtrl.remindersValue.value =
+                              _ctrl.currentDate.value.millisecondsSinceEpoch;
                           Get.back();
                         },
                         child: Text("done".tr),

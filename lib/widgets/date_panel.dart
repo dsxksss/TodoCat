@@ -4,14 +4,9 @@ import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 
-class DatePanel extends StatefulWidget {
-  const DatePanel({super.key});
+class DatePanel extends StatelessWidget {
+  DatePanel({super.key});
 
-  @override
-  State<DatePanel> createState() => _DatePanelState();
-}
-
-class _DatePanelState extends State<DatePanel> {
   final DatePickerController _ctrl = Get.find();
 
   final List<String> _weekTags = [
@@ -23,15 +18,11 @@ class _DatePanelState extends State<DatePanel> {
     'sat',
     'sun'
   ];
+
   final TextStyle _dateStyle = const TextStyle(
     fontSize: 14,
     color: Colors.grey,
   );
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
 // 在 build 方法中添加日期渲染的部分
   Widget _buildDateGrid() {
@@ -113,7 +104,7 @@ class _DatePanelState extends State<DatePanel> {
               ),
               Obx(
                 () => Text(
-                  "${_ctrl.currentDate.value.year} year ${_ctrl.currentDate.value.month} month",
+                  "${_ctrl.currentDate.value.year} ${"year".tr} ${_ctrl.currentDate.value.month} ${"month".tr}",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
