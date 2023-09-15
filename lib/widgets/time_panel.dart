@@ -111,54 +111,57 @@ class TimePanel extends StatelessWidget {
             ],
           ),
           Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                SizedBox(
-                  width: 50,
-                  child: PageView.builder(
-                    itemCount: 24,
-                    controller: _ctrl.hController,
-                    scrollDirection: Axis.vertical,
-                    pageSnapping: true,
-                    // physics: AlwaysScrollableScrollPhysics(),
-                    itemBuilder: (ctx, index) {
-                      return Center(
-                          child: Text(
-                        '$index',
-                        style: const TextStyle(fontSize: 25),
-                      ));
-                    },
-                    onPageChanged: (int index) {
-                      _ctrl.changeDate(hour: index);
-                    },
-                  ),
+            child: Center(
+              child: SizedBox(
+                height: 50,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    SizedBox(
+                      width: 50,
+                      child: PageView.builder(
+                        itemCount: 24,
+                        controller: _ctrl.hController,
+                        scrollDirection: Axis.vertical,
+                        itemBuilder: (ctx, index) {
+                          return Center(
+                              child: Text(
+                            '$index',
+                            style: const TextStyle(fontSize: 25),
+                          ));
+                        },
+                        onPageChanged: (int index) {
+                          _ctrl.changeDate(hour: index);
+                        },
+                      ),
+                    ),
+                    const Text(
+                      ":",
+                      style: TextStyle(fontSize: 30),
+                    ),
+                    SizedBox(
+                      width: 50,
+                      child: PageView.builder(
+                        itemCount: 60,
+                        controller: _ctrl.mController,
+                        scrollDirection: Axis.vertical,
+                        pageSnapping: true,
+                        // physics: AlwaysScrollableScrollPhysics(),
+                        itemBuilder: (ctx, index) {
+                          return Center(
+                              child: Text(
+                            '$index',
+                            style: const TextStyle(fontSize: 25),
+                          ));
+                        },
+                        onPageChanged: (int index) {
+                          _ctrl.changeDate(minute: index);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                const Text(
-                  ":",
-                  style: TextStyle(fontSize: 30),
-                ),
-                SizedBox(
-                  width: 50,
-                  child: PageView.builder(
-                    itemCount: 60,
-                    controller: _ctrl.mController,
-                    scrollDirection: Axis.vertical,
-                    pageSnapping: true,
-                    // physics: AlwaysScrollableScrollPhysics(),
-                    itemBuilder: (ctx, index) {
-                      return Center(
-                          child: Text(
-                        '$index',
-                        style: const TextStyle(fontSize: 25),
-                      ));
-                    },
-                    onPageChanged: (int index) {
-                      _ctrl.changeDate(minute: index);
-                    },
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
