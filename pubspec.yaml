@@ -84,3 +84,4 @@ flutter_launcher_icons:
 flutter_native_splash:
   color: "#ffffff"
   image: "assets/imgs/logo-light-rounded.png"
+  web: false

@@ -1,0 +1,56 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:get/get.dart';
+
+class StartPage extends StatefulWidget {
+  const StartPage({super.key});
+
+  @override
+  State<StartPage> createState() => _StartPageState();
+}
+
+class _StartPageState extends State<StartPage> {
+  late bool isDark;
+
+  @override
+  void initState() {
+    goHomePage();
+    super.initState();
+  }
+
+  void goHomePage() async {
+    await Future.delayed(2500.ms);
+    Get.toNamed("/");
+  }
+
+  @override
+  Widget build(context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 150),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/imgs/logo-light-rounded.png',
+                width: 250,
+                height: 250,
+                filterQuality: FilterQuality.medium,
+              ),
+              const Text(
+                "Todo Cat",
+                style: TextStyle(
+                  fontSize: 60,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              )
+            ],
+          ),
+        ),
+      ).animate().fade(duration: 1200.ms, curve: Curves.easeInSine),
+    );
+  }
+}
