@@ -72,8 +72,9 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                         if (dialogCtrl.formKey.currentState!.validate()) {
                           final todo = Todo(
                             id: const Uuid().v4(),
-                            title: dialogCtrl.titleFormCtrl.text,
-                            description: dialogCtrl.descriptionFormCtrl.text,
+                            title: dialogCtrl.titleFormCtrl.text.trim(),
+                            description:
+                                dialogCtrl.descriptionFormCtrl.text.trim(),
                             createdAt: DateTime.now().millisecondsSinceEpoch,
                             tags: dialogCtrl.selectedTags.toList(),
                             priority: dialogCtrl.selectedPriority.value,
