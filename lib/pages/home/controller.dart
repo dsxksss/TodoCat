@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
-import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_cat/app.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
@@ -13,13 +10,6 @@ import 'package:todo_cat/utils/date_time.dart';
 
 class HomeController extends GetxController {
   late TaskRepository taskRepository;
-
-  final logger = Logger(
-    // printer: PrettyPrinter(),
-    output: FileOutput(
-      file: File("TodoCat-HomeCtrlLog.txt"),
-    ),
-  );
 
   final tasks = RxList<Task>();
   final currentTask = Rx<Task?>(null);
