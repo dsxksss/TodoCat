@@ -141,16 +141,21 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       children: [
                         NavBarBtn(
                           onPressed: () => controller.targetThemeMode(),
-                          child: const Icon(FontAwesomeIcons.moon)
+                          child: const Icon(
+                            Icons.nights_stay,
+                            size: 25,
+                          )
                               .animate(
-                                  target: controller.appConfig.value.isDarkMode
+                                  target: !controller.appConfig.value.isDarkMode
                                       ? 1
                                       : 0)
                               .fadeOut(duration: 200.ms)
                               .rotate(end: 0.1, duration: 200.ms)
                               .swap(
-                                  builder: (_, __) =>
-                                      const Icon(FontAwesomeIcons.sun)
+                                  builder: (_, __) => const Icon(
+                                        Icons.light_mode,
+                                        size: 25,
+                                      )
                                           .animate()
                                           .fadeIn(duration: 200.ms)
                                           .rotate(end: 0.1, duration: 200.ms)),
@@ -164,7 +169,10 @@ class _NavBarState extends State<NavBar> with WindowListener {
                                 ? const Locale("en", "US")
                                 : const Locale("zh", "CN"),
                           ),
-                          child: const Icon(FontAwesomeIcons.earthAsia),
+                          child: const Icon(
+                            Icons.g_translate,
+                            size: 22,
+                          ),
                         ),
                       ],
                     ),
@@ -174,16 +182,21 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       children: [
                         NavBarBtn(
                           onPressed: () => controller.targetThemeMode(),
-                          child: const Icon(FontAwesomeIcons.moon)
+                          child: const Icon(
+                            Icons.nights_stay,
+                            size: 25,
+                          )
                               .animate(
-                                  target: controller.appConfig.value.isDarkMode
+                                  target: !controller.appConfig.value.isDarkMode
                                       ? 1
                                       : 0)
                               .fadeOut(duration: 200.ms)
                               .rotate(end: 0.1, duration: 200.ms)
                               .swap(
-                                  builder: (_, __) =>
-                                      const Icon(FontAwesomeIcons.sun)
+                                  builder: (_, __) => const Icon(
+                                        Icons.light_mode,
+                                        size: 25,
+                                      )
                                           .animate()
                                           .fadeIn(duration: 200.ms)
                                           .rotate(end: 0.1, duration: 200.ms)),
@@ -197,7 +210,10 @@ class _NavBarState extends State<NavBar> with WindowListener {
                                 ? const Locale("en", "US")
                                 : const Locale("zh", "CN"),
                           ),
-                          child: const Icon(FontAwesomeIcons.earthAsia),
+                          child: const Icon(
+                            Icons.g_translate,
+                            size: 22,
+                          ),
                         ),
                         const SizedBox(
                           width: 20,
