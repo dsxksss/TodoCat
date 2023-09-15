@@ -3,16 +3,26 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/config/smart_dialog.dart';
+import 'package:todo_cat/data/schemas/app_config.dart';
+import 'package:todo_cat/data/services/repositorys/app_config.dart';
 import 'package:todo_cat/locales/locales.dart';
 import 'package:todo_cat/manager/local_notification_manager.dart';
 import 'package:todo_cat/pages/unknown.dart';
 import 'package:todo_cat/routers/router_map.dart';
 import 'package:todo_cat/themes/dark_theme.dart';
 import 'package:todo_cat/themes/light_theme.dart';
+import 'package:todo_cat/themes/theme_mode.dart';
 
 class AppController extends GetxController {
   late final LocalNotificationManager localNotificationManager;
-  final isDarkMode = false.obs;
+  late final AppConfigRepository appConfigRepository;
+  late final appConfig = Rx<AppConfig>(
+    AppConfig(
+      configName: "default",
+      isDarkMode: Get.isDarkMode,
+      locale: const Locale("zh", "CN"),
+    ),
+  );
   final isMaximize = false.obs;
   final isFullScreen = false.obs;
 
@@ -20,9 +30,40 @@ class AppController extends GetxController {
   void onInit() async {
     localNotificationManager = await LocalNotificationManager.getInstance();
     localNotificationManager.checkAllLocalNotification();
-    initSmartDialogConfiguration();
+    appConfigRepository = await AppConfigRepository.getInstance();
+    final AppConfig? currentAppConfig = appConfigRepository.read(
+      appConfig.value.configName,
+    );
+    if (currentAppConfig != null) {
+      appConfig.value = currentAppConfig;
+      changeLanguage(appConfig.value.locale);
+    } else {
+      appConfigRepository.write(appConfig.value.configName, appConfig.value);
+    }
 
+    ever(
+      appConfig,
+      (value) async => {appConfigRepository.update(value.configName, value)},
+    );
+
+    initSmartDialogConfiguration();
     super.onInit();
+  }
+
+  void changeThemeMode(TodoCatThemeMode mode) {
+    appConfig.value.isDarkMode = mode == TodoCatThemeMode.dark ? true : false;
+    appConfig.refresh();
+  }
+
+  void targetThemeMode() {
+    appConfig.value.isDarkMode = !appConfig.value.isDarkMode;
+    appConfig.refresh();
+  }
+
+  void changeLanguage(Locale language) async {
+    await Get.updateLocale(language);
+    appConfig.value.locale = Get.locale!;
+    appConfig.refresh();
   }
 
   @override
@@ -61,13 +102,13 @@ class _AppState extends State<App> {
             debugShowCheckedModeBanner: false,
             title: "TodoCat",
             translations: Locales(),
-            // locale: const Locale("en", "US"),
-            locale: const Locale("zh", "CN"),
+            locale: controller.appConfig.value.locale,
             fallbackLocale: const Locale('en', 'US'),
             builder: FlutterSmartDialog.init(),
             navigatorObservers: [FlutterSmartDialog.observer],
-            themeMode:
-                controller.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
+            themeMode: controller.appConfig.value.isDarkMode
+                ? ThemeMode.dark
+                : ThemeMode.light,
             theme: lightTheme,
             darkTheme: darkTheme,
             useInheritedMediaQuery: true,

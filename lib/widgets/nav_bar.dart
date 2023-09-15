@@ -140,11 +140,12 @@ class _NavBarState extends State<NavBar> with WindowListener {
                     Row(
                       children: [
                         NavBarBtn(
-                          onPressed: () => controller.isDarkMode.value =
-                              !controller.isDarkMode.value,
+                          onPressed: () => controller.targetThemeMode(),
                           child: const Icon(FontAwesomeIcons.moon)
                               .animate(
-                                  target: controller.isDarkMode.value ? 1 : 0)
+                                  target: controller.appConfig.value.isDarkMode
+                                      ? 1
+                                      : 0)
                               .fadeOut(duration: 200.ms)
                               .rotate(end: 0.1, duration: 200.ms)
                               .swap(
@@ -158,10 +159,11 @@ class _NavBarState extends State<NavBar> with WindowListener {
                           width: 20,
                         ),
                         NavBarBtn(
-                          onPressed: () async => await Get.updateLocale(
-                              Get.locale == const Locale("zh", "CN")
-                                  ? const Locale("en", "US")
-                                  : const Locale("zh", "CN")),
+                          onPressed: () => controller.changeLanguage(
+                            Get.locale == const Locale("zh", "CN")
+                                ? const Locale("en", "US")
+                                : const Locale("zh", "CN"),
+                          ),
                           child: const Icon(FontAwesomeIcons.earthAsia),
                         ),
                       ],
@@ -171,11 +173,12 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         NavBarBtn(
-                          onPressed: () => controller.isDarkMode.value =
-                              !controller.isDarkMode.value,
+                          onPressed: () => controller.targetThemeMode(),
                           child: const Icon(FontAwesomeIcons.moon)
                               .animate(
-                                  target: controller.isDarkMode.value ? 1 : 0)
+                                  target: controller.appConfig.value.isDarkMode
+                                      ? 1
+                                      : 0)
                               .fadeOut(duration: 200.ms)
                               .rotate(end: 0.1, duration: 200.ms)
                               .swap(
@@ -189,10 +192,11 @@ class _NavBarState extends State<NavBar> with WindowListener {
                           width: 20,
                         ),
                         NavBarBtn(
-                          onPressed: () async => await Get.updateLocale(
-                              Get.locale == const Locale("zh", "CN")
-                                  ? const Locale("en", "US")
-                                  : const Locale("zh", "CN")),
+                          onPressed: () => controller.changeLanguage(
+                            Get.locale == const Locale("zh", "CN")
+                                ? const Locale("en", "US")
+                                : const Locale("zh", "CN"),
+                          ),
                           child: const Icon(FontAwesomeIcons.earthAsia),
                         ),
                         const SizedBox(

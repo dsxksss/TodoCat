@@ -1,5 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
+import 'package:todo_cat/data/schemas/locale.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 
@@ -14,4 +16,6 @@ Future<void> initDB() async {
   Hive.registerAdapter(TodoStatusAdapter());
   Hive.registerAdapter(TodoPriorityAdapter());
   Hive.registerAdapter(LocalNoticeAdapter());
+  Hive.registerAdapter(AppConfigAdapter());
+  Hive.registerAdapter(LocaleAdapter());
 }
