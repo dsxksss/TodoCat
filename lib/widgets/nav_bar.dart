@@ -146,7 +146,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                             size: 25,
                           )
                               .animate(
-                                  target: !controller.appConfig.value.isDarkMode
+                                  target: controller.appConfig.value.isDarkMode
                                       ? 1
                                       : 0)
                               .fadeOut(duration: 200.ms)
@@ -187,7 +187,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                             size: 25,
                           )
                               .animate(
-                                  target: !controller.appConfig.value.isDarkMode
+                                  target: controller.appConfig.value.isDarkMode
                                       ? 1
                                       : 0)
                               .fadeOut(duration: 200.ms)
