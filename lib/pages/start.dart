@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -10,7 +12,7 @@ class StartPage extends StatefulWidget {
 }
 
 class _StartPageState extends State<StartPage> {
-  late bool isDark;
+  late bool isDesktop;
 
   @override
   void initState() {
@@ -19,7 +21,13 @@ class _StartPageState extends State<StartPage> {
   }
 
   void goHomePage() async {
-    await Future.delayed(2500.ms);
+    isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+    if (isDesktop) {
+      await Future.delayed(2500.ms);
+    } else {
+      await Future.delayed(1200.ms);
+    }
     Get.toNamed("/");
   }
 
@@ -50,7 +58,8 @@ class _StartPageState extends State<StartPage> {
             ],
           ),
         ),
-      ).animate().fade(duration: 1200.ms, curve: Curves.easeInSine),
+      ).animate().fade(
+          duration: isDesktop ? 1200.ms : 800.ms, curve: Curves.easeInSine),
     );
   }
 }
