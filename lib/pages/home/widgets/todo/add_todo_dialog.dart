@@ -42,7 +42,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
       child: Center(
         child: Container(
           width: 1000,
-          height: 600,
+          height: 610,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
             color: context.theme.dialogBackgroundColor,
@@ -99,8 +99,9 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-                      width: 400,
+                      width: 500,
                       child: TextFormFieldItem(
+                        maxLength: 40,
                         fieldTitle: "title".tr,
                         editingController: dialogCtrl.titleFormCtrl,
                       ),
@@ -127,14 +128,15 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   ],
                 ),
                 TextFormFieldItem(
+                  maxLength: 400,
+                  maxLines: 5,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
                   fieldTitle: "description".tr,
                   validator: (_) => null,
                   editingController: dialogCtrl.descriptionFormCtrl,
                 ),
                 AddTagScreen(),
-                const SizedBox(
-                  height: 30,
-                ),
                 DatePickerBtn(
                   text: dialogCtrl.remindersText,
                   value: dialogCtrl.remindersValue,

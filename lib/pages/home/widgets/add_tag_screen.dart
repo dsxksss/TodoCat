@@ -71,8 +71,10 @@ class AddTagScreen extends StatelessWidget {
           ),
         ),
         TextField(
+          maxLength: 6,
           controller: ctrl.tagController,
           decoration: InputDecoration(
+            counter: const Text(''),
             suffix: TextButton(
               // 取消按钮按下时出现的颜色
               style: const ButtonStyle(
