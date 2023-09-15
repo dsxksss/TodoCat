@@ -92,7 +92,7 @@ class DatePickerBtn extends StatelessWidget {
               ),
             ),
             const SizedBox(
-              width: 5,
+              width: 20,
             ),
             AnimationBtn(
               onPressed: () => showDatePickerDialog(),

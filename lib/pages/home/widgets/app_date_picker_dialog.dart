@@ -36,7 +36,7 @@ class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
       child: Center(
         child: Container(
           width: 800,
-          height: 550,
+          height: 570,
           padding: const EdgeInsets.only(left: 20, right: 20, top: 15),
           decoration: BoxDecoration(
             color: context.theme.dialogBackgroundColor,

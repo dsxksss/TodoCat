@@ -113,7 +113,7 @@ class TimePanel extends StatelessWidget {
           Expanded(
             child: Center(
               child: SizedBox(
-                height: 50,
+                height: 70,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [

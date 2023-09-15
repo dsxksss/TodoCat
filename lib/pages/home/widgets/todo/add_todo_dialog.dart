@@ -42,8 +42,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
       type: MaterialType.transparency,
       child: Center(
         child: Container(
-          width: 0.7.sw,
-          height: 0.5.sw,
+          width: 1000,
+          height: 600,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
             color: context.theme.dialogBackgroundColor,
@@ -93,21 +93,21 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   ],
                 ),
                 const SizedBox(
-                  height: 20,
+                  height: 40,
                 ),
-                Flex(
-                  direction: Axis.horizontal,
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-                      width: 0.3.sw,
+                      width: 400,
                       child: TextFormFieldItem(
                         fieldTitle: "title".tr,
                         editingController: dialogCtrl.titleFormCtrl,
                       ),
                     ),
                     SizedBox(
-                      width: 0.3.sw,
+                      width: 400,
                       child: SelectPriorityPanel(
                         titile: "${'task'.tr}${'priority'.tr}",
                         onTap: (index) => dialogCtrl.selectedPriority.value =
@@ -127,20 +127,14 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
                 TextFormFieldItem(
                   fieldTitle: "description".tr,
                   validator: (_) => null,
                   editingController: dialogCtrl.descriptionFormCtrl,
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
                 AddTagScreen(),
                 const SizedBox(
-                  height: 20,
+                  height: 30,
                 ),
                 DatePickerBtn(
                   text: dialogCtrl.remindersText,

@@ -132,6 +132,7 @@ class AddTodoDialogController extends GetxController {
     selectedTags.clear();
     remindersText.value = "";
     remindersValue.value = 0;
+    remindersText.value = "${"enter".tr}${"time".tr}";
   }
 }
 
