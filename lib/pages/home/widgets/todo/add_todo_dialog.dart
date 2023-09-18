@@ -25,6 +25,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
   @override
   void initState() {
     dialogCtrl = Get.find();
+    // 由于和其他组件生命周期不同，需要手动切换本地化
+    dialogCtrl.remindersText.value = "${"enter".tr}${"time".tr}";
     super.initState();
   }
 
