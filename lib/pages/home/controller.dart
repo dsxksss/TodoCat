@@ -84,13 +84,18 @@ class HomeController extends GetxController {
     if (todo.reminders != 0) {
       final LocalNotice notice = LocalNotice(
         id: todo.id,
-        title: "您有一个任务已经失效",
-        description: "${todo.title},创建时间:${todo.createdAt}",
+        title: "任务提醒",
+        description: "${todo.title} 创建时间:${timestampToDate(todo.createdAt)}",
         createdAt: DateTime.now().millisecondsSinceEpoch,
         remindersAt: todo.reminders,
       );
       appCtrl.localNotificationManager.saveNotification(notice.id, notice);
     }
+
+    // 按照完成优先级排序
+    tasks[taskIndex]
+        .todos
+        .sort((a, b) => b.priority.index.compareTo(a.priority.index));
 
     tasks.refresh();
     return true;
@@ -130,6 +135,7 @@ class AddTodoDialogController extends GetxController {
     descriptionFormCtrl.clear();
     tagController.clear();
     selectedTags.clear();
+    selectedPriority.value = TodoPriority.lowLevel;
     remindersText.value = "";
     remindersValue.value = 0;
     remindersText.value = "${"enter".tr}${"time".tr}";

@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
-  final taskKey = 'tasksxxxawxvvv';
+  final taskKey = 'tasksxxxawxl';
 
   final Task _task1 = Task(
     id: const Uuid().v4(),

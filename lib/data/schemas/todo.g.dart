@@ -119,26 +119,26 @@ class TodoPriorityAdapter extends TypeAdapter<TodoPriority> {
   TodoPriority read(BinaryReader reader) {
     switch (reader.readByte()) {
       case 0:
-        return TodoPriority.highLevel;
+        return TodoPriority.lowLevel;
       case 1:
         return TodoPriority.mediumLevel;
       case 2:
-        return TodoPriority.lowLevel;
-      default:
         return TodoPriority.highLevel;
+      default:
+        return TodoPriority.lowLevel;
     }
   }
 
   @override
   void write(BinaryWriter writer, TodoPriority obj) {
     switch (obj) {
-      case TodoPriority.highLevel:
+      case TodoPriority.lowLevel:
         writer.writeByte(0);
         break;
       case TodoPriority.mediumLevel:
         writer.writeByte(1);
         break;
-      case TodoPriority.lowLevel:
+      case TodoPriority.highLevel:
         writer.writeByte(2);
         break;
     }

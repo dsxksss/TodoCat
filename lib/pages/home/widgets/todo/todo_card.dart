@@ -20,14 +20,14 @@ class TodoCard extends StatelessWidget {
     }
   }
 
-  Color getPriorityColor(BuildContext context) {
+  Color getPriorityColor() {
     switch (todo.priority) {
       case TodoPriority.lowLevel:
-        return context.theme.cardColor;
+        return const Color.fromRGBO(46, 204, 147, 1);
       case TodoPriority.mediumLevel:
-        return const Color.fromARGB(255, 247, 159, 101);
+        return const Color.fromARGB(255, 251, 136, 94);
       case TodoPriority.highLevel:
-        return Colors.redAccent;
+        return const Color.fromARGB(255, 251, 98, 98);
     }
   }
 
@@ -37,7 +37,6 @@ class TodoCard extends StatelessWidget {
       margin: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
       padding: const EdgeInsets.only(left: 10, right: 10, top: 5),
       decoration: BoxDecoration(
-        color: getPriorityColor(context),
         border: Border.all(color: context.theme.dividerColor),
         borderRadius: BorderRadius.circular(10),
       ),
@@ -46,10 +45,26 @@ class TodoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              todo.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Icon(
+                  FontAwesomeIcons.solidCircle,
+                  size: 13,
+                  color: getPriorityColor(),
+                ),
+                const SizedBox(width: 5),
+                SizedBox(
+                  width: 150,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 1.0),
+                    child: Text(
+                      todo.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
             ),
             if (todo.tags.isNotEmpty)
               const SizedBox(

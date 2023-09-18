@@ -26,12 +26,7 @@ class DatePickerBtn extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 5),
-          child: Text(
-            fieldTitle,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: Text(fieldTitle),
         ),
         Row(
           children: [

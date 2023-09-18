@@ -39,11 +39,11 @@ enum TodoStatus {
 @HiveType(typeId: 4)
 enum TodoPriority {
   @HiveField(0)
-  highLevel,
+  lowLevel,
 
   @HiveField(1)
   mediumLevel,
 
   @HiveField(2)
-  lowLevel,
+  highLevel,
 }
