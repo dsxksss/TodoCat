@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+import 'dart:io';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:todo_cat/config/smart_dialog.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/services/repositorys/app_config.dart';
@@ -87,6 +89,10 @@ class _AppState extends State<App> {
   void initState() {
     controller = Get.find();
     super.initState();
+    if (Platform.isAndroid || Platform.isIOS) {
+      // 移除启动页面
+      FlutterNativeSplash.remove();
+    }
   }
 
   @override

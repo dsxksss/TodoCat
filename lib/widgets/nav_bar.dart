@@ -123,20 +123,21 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       const SizedBox(
                         width: 20,
                       ),
-                      Text(
-                        "${"myTasks".tr} ${runMode.name}",
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ).animate(delay: 1000.ms).moveY(
-                            begin: -150,
-                            duration: 1000.ms,
-                            curve: Curves.bounceInOut,
+                      if (!context.isPhone)
+                        Text(
+                          "${"myTasks".tr} ${runMode.name}",
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
                           ),
+                        ).animate(delay: 1000.ms).moveY(
+                              begin: -150,
+                              duration: 1000.ms,
+                              curve: Curves.bounceInOut,
+                            ),
                     ],
                   ),
-                  if (Platform.isMacOS)
+                  if (Platform.isMacOS || context.isPhone)
                     Row(
                       children: [
                         NavBarBtn(
@@ -176,7 +177,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                         ),
                       ],
                     ),
-                  if (!Platform.isMacOS)
+                  if (!Platform.isMacOS && !context.isPhone)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

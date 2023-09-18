@@ -52,8 +52,13 @@ class HomePage extends GetView<HomeController> {
           children: [
             Obx(
               () => Padding(
-                padding: const EdgeInsets.only(left: 30),
+                padding: context.isPhone
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.only(left: 30),
                 child: Wrap(
+                    alignment: context.isPhone
+                        ? WrapAlignment.center
+                        : WrapAlignment.start,
                     direction: Axis.horizontal,
                     spacing: 50,
                     runSpacing: 30,

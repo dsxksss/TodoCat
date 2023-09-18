@@ -30,8 +30,5 @@ void main() async {
 
   if (Platform.isAndroid || Platform.isIOS) {
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-    // 移除启动页面
-    FlutterNativeSplash.remove();
   }
 }
