@@ -128,6 +128,9 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     ),
                   ],
                 ),
+                const SizedBox(
+                  height: 10,
+                ),
                 TextFormFieldItem(
                   maxLength: 400,
                   maxLines: 5,

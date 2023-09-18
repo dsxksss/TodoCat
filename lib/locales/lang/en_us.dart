@@ -49,4 +49,5 @@ const Map<String, String> enUS = {
   'sunday': 'Sunday',
   'clear': 'Clear',
   'reset': 'Reset',
+  'pleaseCompleteItProperly': 'Please fill in correctly'
 };

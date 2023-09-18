@@ -57,7 +57,7 @@ class TextFormFieldItem extends StatelessWidget {
           validator: validator ??
               (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return "请填写完整内容";
+                  return "pleaseCompleteItProperly".tr;
                 }
                 return null;
               },

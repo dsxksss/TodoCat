@@ -10,7 +10,7 @@ final darkTheme = ThemeData(
   dividerColor: Colors.grey.shade800,
   dialogBackgroundColor: const Color.fromRGBO(14, 17, 23, 1),
   inputDecorationTheme:
-      const InputDecorationTheme(fillColor: Color.fromRGBO(14, 17, 23, 1)),
+      const InputDecorationTheme(fillColor: Color.fromRGBO(26, 30, 37, 1)),
   scaffoldBackgroundColor: Colors.black,
   textTheme: const TextTheme(
     bodyLarge: TextStyle(
