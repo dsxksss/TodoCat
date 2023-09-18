@@ -1,7 +1,6 @@
 import 'package:dough/dough.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +9,7 @@ import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/pages/home/widgets/task/task_dpd_menu_btn.dart';
 import 'package:todo_cat/pages/home/widgets/todo/add_todo_card_btn.dart';
 import 'package:todo_cat/pages/home/widgets/todo/todo_card.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 
 class TaskCard extends StatelessWidget {
   TaskCard({super.key, required this.task});
@@ -123,7 +123,7 @@ class TaskCard extends StatelessWidget {
                     MenuItem(
                       title: 'edit',
                       iconData: FontAwesomeIcons.penToSquare,
-                      callback: () => {SmartDialog.showToast("编辑事项")},
+                      callback: () => {showToast('编辑事件')},
                     ),
                     MenuItem(
                       title: 'delete',

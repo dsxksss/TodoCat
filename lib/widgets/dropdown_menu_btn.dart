@@ -36,27 +36,15 @@ class DropdownManuBtn extends StatelessWidget {
           animationTime: 100.ms,
           controller: controller,
           alignment: Alignment.bottomRight,
-          animationBuilder: (controller, child, animationParam) {
-            final fadeAnimation = CurvedAnimation(
-              parent: controller,
-              curve: Curves.easeInOut,
-            );
-
-            final scaleAnimation = Tween<double>(begin: 0.9, end: 1).animate(
-              CurvedAnimation(
-                parent: controller,
+          animationBuilder: (controller, child, animationParam) => child
+              .animate(controller: controller)
+              .fade(duration: controller.duration)
+              .scaleXY(
+                begin: 0.9,
+                end: 1,
                 curve: Curves.easeInOut,
+                duration: controller.duration,
               ),
-            );
-
-            return ScaleTransition(
-              scale: scaleAnimation,
-              child: FadeTransition(
-                opacity: fadeAnimation,
-                child: child,
-              ),
-            );
-          },
           builder: (_) => content,
         );
       },
