@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/pages/home/widgets/task/task_dpd_menu_btn.dart';
@@ -79,9 +80,12 @@ class TaskCard extends StatelessWidget {
                   ),
                   Text(
                     task.title.tr,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
+                    style: GoogleFonts.getFont(
+                      'Ubuntu',
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                   if (todosLength > 0)

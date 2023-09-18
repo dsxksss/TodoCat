@@ -16,7 +16,8 @@ dependencies:
   # 本地数据库存储hive
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  google_fonts: ^5.1.0
+  # google fonts
+  google_fonts: ^6.0.0
   # 尺寸适配框架
   flutter_screenutil: ^5.8.4
   # 桌面窗口管理插件
@@ -64,6 +65,7 @@ flutter:
   assets:
       - assets/
       - assets/imgs/
+      - assets/fonts/
 
 flutter_launcher_icons:
   android: "launcher_icon"

@@ -1,8 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class StartPage extends StatefulWidget {
   const StartPage({super.key});
@@ -47,12 +47,15 @@ class _StartPageState extends State<StartPage> {
                 height: 250,
                 filterQuality: FilterQuality.medium,
               ),
-              const Text(
+              Text(
                 "Todo Cat",
-                style: TextStyle(
-                  fontSize: 60,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                style: GoogleFonts.getFont(
+                  'Ubuntu',
+                  textStyle: const TextStyle(
+                    fontSize: 60,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
               )
             ],
