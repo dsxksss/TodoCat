@@ -1,6 +1,7 @@
 import 'package:dough/dough.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,7 +37,7 @@ class TaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final todosLength = task.todos.length;
     return Container(
-      width: 240,
+      width: context.isPhone ? 0.9.sw : 240,
       decoration: BoxDecoration(
           color: context.theme.cardColor,
           borderRadius: BorderRadius.circular(

@@ -49,6 +49,10 @@ class HomePage extends GetView<HomeController> {
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: TodoCatScaffold(
         body: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            //当内容不足时也可以启动反弹刷新
+            parent: BouncingScrollPhysics(),
+          ),
           children: [
             Obx(
               () => Padding(
@@ -60,8 +64,8 @@ class HomePage extends GetView<HomeController> {
                         ? WrapAlignment.center
                         : WrapAlignment.start,
                     direction: Axis.horizontal,
-                    spacing: 50,
-                    runSpacing: 30,
+                    spacing: context.isPhone ? 0 : 50,
+                    runSpacing: context.isPhone ? 50 : 30,
                     children: [
                       ...controller.tasks
                           .map((element) => TaskCard(task: element))
@@ -69,7 +73,7 @@ class HomePage extends GetView<HomeController> {
               ),
             ),
             SizedBox(
-              height: 0.05.sw,
+              height: context.isPhone ? 0.4.sw : 0.05.sw,
             )
           ],
         ),

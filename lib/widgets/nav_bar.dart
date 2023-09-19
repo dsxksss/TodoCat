@@ -98,7 +98,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
   Widget build(BuildContext context) {
     return GestureDetector(
       dragStartBehavior: DragStartBehavior.down,
-      onTapCancel: () => {windowManager.startDragging()},
+      onTapCancel: () => {if (!context.isPhone) windowManager.startDragging()},
       child: Column(
         children: [
           SizedBox(
@@ -123,18 +123,18 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       const SizedBox(
                         width: 20,
                       ),
-                      if (!context.isPhone)
-                        Text(
-                          "${"myTasks".tr} ${runMode.name}",
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ).animate(delay: 1000.ms).moveY(
-                              begin: -150,
-                              duration: 1000.ms,
-                              curve: Curves.bounceInOut,
-                            ),
+                      Text(
+                        context.isPhone
+                            ? "myTasks".tr
+                            : "${"myTasks".tr} ${runMode.name}",
+                        style: TextStyle(
+                          fontSize: context.isPhone ? 24 : 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                          .animate(delay: 1000.ms)
+                          .moveY(begin: -10, duration: 800.ms)
+                          .fade(duration: 800.ms),
                     ],
                   ),
                   if (Platform.isMacOS || context.isPhone)
