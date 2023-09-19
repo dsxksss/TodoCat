@@ -124,12 +124,32 @@ class TaskCard extends StatelessWidget {
                     MenuItem(
                       title: 'edit',
                       iconData: FontAwesomeIcons.penToSquare,
-                      callback: () => {showToast("${task.title} 编辑成功")},
+                      callback: () => {
+                        showToast(
+                          "${task.title} 编辑成功",
+                          toastStyleType: TodoCatToastStyleType.success,
+                        )
+                      },
                     ),
                     MenuItem(
                       title: 'delete',
                       iconData: FontAwesomeIcons.trashCan,
-                      callback: () => {ctrl.deleteTask(task.id)},
+                      callback: () => {
+                        if (ctrl.deleteTask(task.id))
+                          {
+                            showToast(
+                              "${task.title} 删除成功",
+                              toastStyleType: TodoCatToastStyleType.success,
+                            )
+                          }
+                        else
+                          {
+                            showToast(
+                              "${task.title} 删除失败",
+                              toastStyleType: TodoCatToastStyleType.error,
+                            )
+                          }
+                      },
                     ),
                   ],
                 ),
