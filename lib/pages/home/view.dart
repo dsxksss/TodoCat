@@ -32,7 +32,7 @@ class HomePage extends GetView<HomeController> {
         child: Container(
           width: 60,
           height: 60,
-          padding: const EdgeInsets.all(8),
+          padding: context.isPhone ? EdgeInsets.zero : const EdgeInsets.all(8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(200),
             color: Colors.lightBlue,

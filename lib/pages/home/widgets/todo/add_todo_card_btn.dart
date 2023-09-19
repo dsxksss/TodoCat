@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
@@ -17,7 +18,7 @@ class AddTodoCardBtn extends StatelessWidget {
     return AnimationBtn(
       onPressed: () => {
         ctrl.selectTask(task),
-        showAddTodoDialog(),
+        context.isPhone ? showAddTodoBottomSheet(context) : showAddTodoDialog(),
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -62,5 +63,20 @@ void showAddTodoDialog() {
     pageBuilder: (_, __, ___) {
       return GestureDetector(child: const AddTodoDialog());
     },
+  );
+}
+
+void showAddTodoBottomSheet(BuildContext context) {
+  Get.bottomSheet(
+    Container(
+      height: 0.6.sh,
+      decoration: BoxDecoration(
+        color: context.theme.dialogBackgroundColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: const Text("开发中..."),
+    ),
+    enterBottomSheetDuration: 200.ms,
+    exitBottomSheetDuration: 200.ms,
   );
 }
