@@ -44,7 +44,7 @@ class HomePage extends GetView<HomeController> {
           ),
         ),
       )
-          .animate(delay: 2200.ms)
+          .animate(delay: 1000.ms)
           .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: TodoCatScaffold(
