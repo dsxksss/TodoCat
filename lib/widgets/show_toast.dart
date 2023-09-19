@@ -4,16 +4,18 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 
-void showToast(String message,
-    {Duration? displayTime,
-    Duration? animationTime,
-    AlignmentGeometry? alignment,
-    Widget Function(BuildContext)? builder,
-    EdgeInsetsGeometry? margin,
-    Widget Function(AnimationController, Widget, AnimationParam)?
-        animationBuilder,
-    String? tag,
-    bool? keepSingle}) {
+void showToast(
+  String message, {
+  Duration? displayTime,
+  Duration? animationTime,
+  AlignmentGeometry? alignment,
+  Widget Function(BuildContext)? builder,
+  EdgeInsetsGeometry? margin,
+  Widget Function(AnimationController, Widget, AnimationParam)?
+      animationBuilder,
+  String? tag,
+  bool? keepSingle,
+}) {
   SmartDialog.show(
     displayTime: displayTime ?? 4000.ms,
     animationTime: animationTime ?? 1000.ms,
@@ -48,7 +50,7 @@ void showToast(String message,
               boxShadow: [
                 BoxShadow(
                   color: context.theme.dividerColor,
-                  blurRadius: context.isDarkMode ? 2 : 5,
+                  blurRadius: context.isDarkMode ? 1 : 5,
                 )
               ],
             ),
@@ -56,7 +58,10 @@ void showToast(String message,
               child: Row(
                 children: [
                   const SizedBox(width: 20),
-                  const Icon(FontAwesomeIcons.check),
+                  const Icon(
+                    FontAwesomeIcons.check,
+                    color: Colors.green,
+                  ),
                   const SizedBox(width: 20),
                   Text(message),
                 ],

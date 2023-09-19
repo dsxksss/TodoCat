@@ -124,7 +124,7 @@ class TaskCard extends StatelessWidget {
                     MenuItem(
                       title: 'edit',
                       iconData: FontAwesomeIcons.penToSquare,
-                      callback: () => {showToast('编辑事件')},
+                      callback: () => {showToast("${task.title} 编辑成功")},
                     ),
                     MenuItem(
                       title: 'delete',
