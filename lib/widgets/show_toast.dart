@@ -37,6 +37,7 @@ void showToast(
       animationBuilder,
   String? tag,
   bool? keepSingle,
+  bool? backDismiss,
 }) {
   SmartDialog.show(
     displayTime: displayTime ?? 4000.ms,
@@ -47,6 +48,7 @@ void showToast(
     maskColor: Colors.transparent,
     maskWidget: Container(),
     clickMaskDismiss: false,
+    backDismiss: backDismiss ?? false,
     animationBuilder: animationBuilder ??
         (controller, child, _) => child
             .animate(controller: controller)
