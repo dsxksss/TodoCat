@@ -29,6 +29,7 @@ void showToast(
   Duration? displayTime,
   Duration? animationTime,
   AlignmentGeometry? alignment,
+  bool fadeAnimation = false,
   Widget Function(BuildContext)? builder,
   EdgeInsetsGeometry? margin,
   TodoCatToastStyleType? toastStyleType,
@@ -50,14 +51,14 @@ void showToast(
         (controller, child, _) => child
             .animate(controller: controller)
             .moveY(
-              begin: 120,
+              begin: 150,
               end: 0,
               duration: controller.duration,
               curve: Curves.easeInOutBack,
             )
             .fade(
-              duration: controller.duration,
-              curve: Curves.easeInOut,
+              duration: fadeAnimation ? controller.duration : 0.ms,
+              curve: Curves.easeInOutBack,
             ),
     builder: builder ??
         (context) {

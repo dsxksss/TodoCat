@@ -36,6 +36,7 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final todosLength = task.todos.length;
+    final colorAndIcon = getColorAndIcon();
     return Container(
       width: context.isPhone ? 0.9.sw : 240,
       decoration: BoxDecoration(
@@ -62,7 +63,7 @@ class TaskCard extends StatelessWidget {
                     width: 5,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: getColorAndIcon()[0],
+                      color: colorAndIcon[0],
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
@@ -70,11 +71,8 @@ class TaskCard extends StatelessWidget {
                     width: 10,
                   ),
                   Icon(
-                    getColorAndIcon()[1],
-                    size: getColorAndIcon()[1] == FontAwesomeIcons.pencil
-                        ? 18
-                        : 20,
-                    // color: getColorAndIcon()[0],
+                    colorAndIcon[1],
+                    size: colorAndIcon[1] == FontAwesomeIcons.pencil ? 18 : 20,
                   ),
                   const SizedBox(
                     width: 10,
