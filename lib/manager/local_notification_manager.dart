@@ -138,25 +138,33 @@ class LocalNotificationManager {
       },
     );
 
-    const String url =
-        "https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com/sendReminders";
-    final res = await dio.post(
-      url,
-      data: {
-        "receivingEmail": notice.email,
-        "title": notice.title,
-        "description": notice.description,
-        "remindersAt": notice.remindersAt
-      },
-      options: Options(
-        sendTimeout: 1500.ms,
-        receiveTimeout: 1500.ms,
-      ),
-    );
-    if (res.statusCode == 200) {
-      showToast("邮箱提醒设置成功", toastStyleType: TodoCatToastStyleType.success);
-    } else {
-      showToast("邮箱提醒设置失败", toastStyleType: TodoCatToastStyleType.error);
+    try {
+      const String url =
+          "https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com/sendReminders";
+      await dio
+          .post(url,
+              data: {
+                "receivingEmail": notice.email,
+                "title": notice.title,
+                "description": notice.description,
+                "remindersAt": notice.remindersAt
+              },
+              options: Options(
+                sendTimeout: 1500.ms,
+                receiveTimeout: 1500.ms,
+              ))
+          .then((req) {
+        if (req.statusCode == 200) {
+          showToast("邮箱提醒设置成功", toastStyleType: TodoCatToastStyleType.success);
+        } else {
+          throw Exception();
+        }
+      });
+    } catch (_) {
+      showToast(
+        "邮箱提醒设置失败",
+        toastStyleType: TodoCatToastStyleType.error,
+      );
     }
   }
 
