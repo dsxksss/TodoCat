@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
@@ -48,33 +49,72 @@ class HomePage extends GetView<HomeController> {
           .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: TodoCatScaffold(
-        body: ListView(
-          physics: const AlwaysScrollableScrollPhysics(
-            //当内容不足时也可以启动反弹刷新
-            parent: BouncingScrollPhysics(),
-          ),
+        body: Column(
           children: [
-            Obx(
-              () => Padding(
-                padding: context.isPhone
-                    ? EdgeInsets.zero
-                    : const EdgeInsets.only(left: 30),
-                child: Wrap(
-                    alignment: context.isPhone
-                        ? WrapAlignment.center
-                        : WrapAlignment.start,
-                    direction: Axis.horizontal,
-                    spacing: context.isPhone ? 0 : 50,
-                    runSpacing: context.isPhone ? 50 : 30,
+            Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: context.isPhone ? 20 : 30, vertical: 5),
+              child: Row(
+                mainAxisAlignment: context.isPhone
+                    ? MainAxisAlignment.spaceBetween
+                    : MainAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ...controller.tasks
-                          .map((element) => TaskCard(task: element))
-                    ].animate(interval: 100.ms).moveX().fade()),
+                      Text(
+                        "${"task".tr}${"priority".tr}",
+                        style: TextStyle(fontSize: 22),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      FaIcon(
+                        FontAwesomeIcons.angleDown,
+                        size: 22,
+                      )
+                    ],
+                  ),
+                  SizedBox(width: 10),
+                  Icon(
+                    FontAwesomeIcons.filter,
+                    size: 18,
+                  ),
+                ],
               ),
             ),
-            SizedBox(
-              height: context.isPhone ? 0.4.sw : 0.05.sw,
-            )
+            SizedBox(height: 20),
+            Expanded(
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  //当内容不足时也可以启动反弹刷新
+                  parent: BouncingScrollPhysics(),
+                ),
+                children: [
+                  Obx(
+                    () => Padding(
+                      padding: context.isPhone
+                          ? EdgeInsets.zero
+                          : const EdgeInsets.only(left: 30),
+                      child: Wrap(
+                          alignment: context.isPhone
+                              ? WrapAlignment.center
+                              : WrapAlignment.start,
+                          direction: Axis.horizontal,
+                          spacing: context.isPhone ? 0 : 50,
+                          runSpacing: context.isPhone ? 50 : 30,
+                          children: [
+                            ...controller.tasks
+                                .map((element) => TaskCard(task: element))
+                          ].animate(interval: 100.ms).moveX().fade()),
+                    ),
+                  ),
+                  SizedBox(
+                    height: context.isPhone ? 0.4.sw : 0.05.sw,
+                  )
+                ],
+              ),
+            ),
           ],
         ),
       ),
