@@ -116,11 +116,6 @@ class LocalNotificationManager {
   }
 
   void saveNotification(String key, LocalNotice notice) async {
-    localNoticeRepository.write(key, notice);
-    registerNotification(
-      DateTime.fromMillisecondsSinceEpoch(notice.remindersAt),
-      notice,
-    );
     // email notification
     Dio dio = Dio();
 
@@ -164,6 +159,12 @@ class LocalNotificationManager {
       showToast(
         "邮箱提醒设置失败",
         toastStyleType: TodoCatToastStyleType.error,
+      );
+    } finally {
+      localNoticeRepository.write(key, notice);
+      registerNotification(
+        DateTime.fromMillisecondsSinceEpoch(notice.remindersAt),
+        notice,
       );
     }
   }
