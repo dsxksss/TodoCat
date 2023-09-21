@@ -14,5 +14,6 @@ class LocalNotice with _$LocalNotice {
     @HiveField(2) required String description,
     @HiveField(3) required int createdAt,
     @HiveField(4) required int remindersAt,
+    @HiveField(5) required String email,
   }) = _LocalNotice;
 }

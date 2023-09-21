@@ -94,13 +94,15 @@ void showAddTodoBottomSheet(BuildContext context) {
                     createdAt: DateTime.now().millisecondsSinceEpoch,
                     tags: ["test", "description", "default"],
                     priority: TodoPriority.lowLevel,
+                    reminders: DateTime.now()
+                        .add(const Duration(minutes: 1))
+                        .millisecondsSinceEpoch,
                   );
-
                   homeCtrl.addTodo(todo);
 
                   Get.back();
                 },
-                child: Text("add Todo"),
+                child: const Text("add Todo"),
               )
             ],
           ),

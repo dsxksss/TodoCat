@@ -84,10 +84,16 @@ class HomeController extends GetxController {
     if (todo.reminders != 0) {
       final LocalNotice notice = LocalNotice(
         id: todo.id,
-        title: "任务提醒",
-        description: "${todo.title} 创建时间:${timestampToDate(todo.createdAt)}",
-        createdAt: DateTime.now().millisecondsSinceEpoch,
+        title: "TodoCat 任务提醒",
+        description:
+            "${todo.title} 创建时间:${timestampToDate(todo.createdAt)} ${getTimeString(
+          DateTime.fromMillisecondsSinceEpoch(
+            todo.createdAt,
+          ),
+        )}",
+        createdAt: todo.createdAt,
         remindersAt: todo.reminders,
+        email: "2546650292@qq.com",
       );
       appCtrl.localNotificationManager.saveNotification(notice.id, notice);
     }

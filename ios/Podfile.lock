@@ -1,5 +1,7 @@
 PODS:
   - Flutter (1.0.0)
+  - flutter_local_notifications (0.0.1):
+    - Flutter
   - flutter_native_splash (0.0.1):
     - Flutter
   - path_provider_foundation (0.0.1):
@@ -13,6 +15,7 @@ PODS:
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - sensors (from `.symlinks/plugins/sensors/ios`)
@@ -21,6 +24,8 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  flutter_local_notifications:
+    :path: ".symlinks/plugins/flutter_local_notifications/ios"
   flutter_native_splash:
     :path: ".symlinks/plugins/flutter_native_splash/ios"
   path_provider_foundation:
@@ -32,6 +37,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
   flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
   path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
   sensors: 84eb7a30e47a649e4172b71d6e81be614c280336

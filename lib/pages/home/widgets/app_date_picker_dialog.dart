@@ -61,7 +61,7 @@ class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
                               _ctrl.currentDate.value.millisecondsSinceEpoch,
                             )} ${getWeekName(
                               _ctrl.currentDate.value,
-                            ).tr} ${getTimeName(_ctrl.currentDate.value)}",
+                            ).tr} ${getTimeString(_ctrl.currentDate.value)}",
                             style: const TextStyle(fontSize: 24),
                           ),
                         ),
@@ -89,7 +89,7 @@ class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
                             _ctrl.currentDate.value.millisecondsSinceEpoch,
                           )} ${getWeekName(
                             _ctrl.currentDate.value,
-                          ).tr} ${getTimeName(_ctrl.currentDate.value)}";
+                          ).tr} ${getTimeString(_ctrl.currentDate.value)}";
 
                           // 时间戳
                           _dialogCtrl.remindersValue.value =

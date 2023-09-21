@@ -36,6 +36,10 @@ mixin _$LocalNotice {
   int get remindersAt => throw _privateConstructorUsedError;
   @HiveField(4)
   set remindersAt(int value) => throw _privateConstructorUsedError;
+  @HiveField(5)
+  String get email => throw _privateConstructorUsedError;
+  @HiveField(5)
+  set email(String value) => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $LocalNoticeCopyWith<LocalNotice> get copyWith =>
@@ -53,7 +57,8 @@ abstract class $LocalNoticeCopyWith<$Res> {
       @HiveField(1) String title,
       @HiveField(2) String description,
       @HiveField(3) int createdAt,
-      @HiveField(4) int remindersAt});
+      @HiveField(4) int remindersAt,
+      @HiveField(5) String email});
 }
 
 /// @nodoc
@@ -74,6 +79,7 @@ class _$LocalNoticeCopyWithImpl<$Res, $Val extends LocalNotice>
     Object? description = null,
     Object? createdAt = null,
     Object? remindersAt = null,
+    Object? email = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -96,6 +102,10 @@ class _$LocalNoticeCopyWithImpl<$Res, $Val extends LocalNotice>
           ? _value.remindersAt
           : remindersAt // ignore: cast_nullable_to_non_nullable
               as int,
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -113,7 +123,8 @@ abstract class _$$_LocalNoticeCopyWith<$Res>
       @HiveField(1) String title,
       @HiveField(2) String description,
       @HiveField(3) int createdAt,
-      @HiveField(4) int remindersAt});
+      @HiveField(4) int remindersAt,
+      @HiveField(5) String email});
 }
 
 /// @nodoc
@@ -132,6 +143,7 @@ class __$$_LocalNoticeCopyWithImpl<$Res>
     Object? description = null,
     Object? createdAt = null,
     Object? remindersAt = null,
+    Object? email = null,
   }) {
     return _then(_$_LocalNotice(
       id: null == id
@@ -154,6 +166,10 @@ class __$$_LocalNoticeCopyWithImpl<$Res>
           ? _value.remindersAt
           : remindersAt // ignore: cast_nullable_to_non_nullable
               as int,
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -166,7 +182,8 @@ class _$_LocalNotice with DiagnosticableTreeMixin implements _LocalNotice {
       @HiveField(1) required this.title,
       @HiveField(2) required this.description,
       @HiveField(3) required this.createdAt,
-      @HiveField(4) required this.remindersAt});
+      @HiveField(4) required this.remindersAt,
+      @HiveField(5) required this.email});
 
   @override
   @HiveField(0)
@@ -183,10 +200,13 @@ class _$_LocalNotice with DiagnosticableTreeMixin implements _LocalNotice {
   @override
   @HiveField(4)
   int remindersAt;
+  @override
+  @HiveField(5)
+  String email;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'LocalNotice(id: $id, title: $title, description: $description, createdAt: $createdAt, remindersAt: $remindersAt)';
+    return 'LocalNotice(id: $id, title: $title, description: $description, createdAt: $createdAt, remindersAt: $remindersAt, email: $email)';
   }
 
   @override
@@ -198,7 +218,8 @@ class _$_LocalNotice with DiagnosticableTreeMixin implements _LocalNotice {
       ..add(DiagnosticsProperty('title', title))
       ..add(DiagnosticsProperty('description', description))
       ..add(DiagnosticsProperty('createdAt', createdAt))
-      ..add(DiagnosticsProperty('remindersAt', remindersAt));
+      ..add(DiagnosticsProperty('remindersAt', remindersAt))
+      ..add(DiagnosticsProperty('email', email));
   }
 
   @JsonKey(ignore: true)
@@ -214,7 +235,8 @@ abstract class _LocalNotice implements LocalNotice {
       @HiveField(1) required String title,
       @HiveField(2) required String description,
       @HiveField(3) required int createdAt,
-      @HiveField(4) required int remindersAt}) = _$_LocalNotice;
+      @HiveField(4) required int remindersAt,
+      @HiveField(5) required String email}) = _$_LocalNotice;
 
   @override
   @HiveField(0)
@@ -241,6 +263,11 @@ abstract class _LocalNotice implements LocalNotice {
   int get remindersAt;
   @HiveField(4)
   set remindersAt(int value);
+  @override
+  @HiveField(5)
+  String get email;
+  @HiveField(5)
+  set email(String value);
   @override
   @JsonKey(ignore: true)
   _$$_LocalNoticeCopyWith<_$_LocalNotice> get copyWith =>
