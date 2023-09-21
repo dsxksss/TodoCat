@@ -137,124 +137,94 @@ class _NavBarState extends State<NavBar> with WindowListener {
                           .fade(duration: 800.ms),
                     ],
                   ),
-                  if (Platform.isMacOS || context.isPhone)
-                    Row(
-                      children: [
-                        NavBarBtn(
-                          onPressed: () => controller.targetThemeMode(),
-                          child: const Icon(
-                            Icons.nights_stay,
-                            size: 25,
-                          )
-                              .animate(
-                                  target: controller.appConfig.value.isDarkMode
-                                      ? 1
-                                      : 0)
-                              .fadeOut(duration: 200.ms)
-                              .rotate(end: 0.1, duration: 200.ms)
-                              .swap(
-                                  builder: (_, __) => const Icon(
-                                        Icons.light_mode,
-                                        size: 25,
-                                      )
-                                          .animate()
-                                          .fadeIn(duration: 200.ms)
-                                          .rotate(end: 0.1, duration: 200.ms)),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        NavBarBtn(
-                          onPressed: () => controller.changeLanguage(
-                            Get.locale == const Locale("zh", "CN")
-                                ? const Locale("en", "US")
-                                : const Locale("zh", "CN"),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          NavBarBtn(
+                            onPressed: () => controller.targetThemeMode(),
+                            child: const Icon(
+                              Icons.nights_stay,
+                              size: 25,
+                            )
+                                .animate(
+                                    target:
+                                        controller.appConfig.value.isDarkMode
+                                            ? 1
+                                            : 0)
+                                .fadeOut(duration: 200.ms)
+                                .rotate(end: 0.1, duration: 200.ms)
+                                .swap(
+                                    builder: (_, __) => const Icon(
+                                          Icons.light_mode,
+                                          size: 25,
+                                        )
+                                            .animate()
+                                            .fadeIn(duration: 200.ms)
+                                            .rotate(
+                                                end: 0.1, duration: 200.ms)),
                           ),
-                          child: const Icon(
-                            Icons.g_translate,
-                            size: 22,
+                          const SizedBox(
+                            width: 20,
                           ),
-                        ),
-                      ],
-                    ),
-                  if (!Platform.isMacOS && !context.isPhone)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        NavBarBtn(
-                          onPressed: () => controller.targetThemeMode(),
-                          child: const Icon(
-                            Icons.nights_stay,
-                            size: 25,
-                          )
-                              .animate(
-                                  target: controller.appConfig.value.isDarkMode
-                                      ? 1
-                                      : 0)
-                              .fadeOut(duration: 200.ms)
-                              .rotate(end: 0.1, duration: 200.ms)
-                              .swap(
-                                  builder: (_, __) => const Icon(
-                                        Icons.light_mode,
-                                        size: 25,
-                                      )
-                                          .animate()
-                                          .fadeIn(duration: 200.ms)
-                                          .rotate(end: 0.1, duration: 200.ms)),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        NavBarBtn(
-                          onPressed: () => controller.changeLanguage(
-                            Get.locale == const Locale("zh", "CN")
-                                ? const Locale("en", "US")
-                                : const Locale("zh", "CN"),
-                          ),
-                          child: const Icon(
-                            Icons.g_translate,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        NavBarBtn(
-                          onPressed: minimizeWindow,
-                          child: const Icon(FontAwesomeIcons.minus),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        NavBarBtn(
-                          onPressed: targetMaximizeWindow,
-                          child: Transform.scale(
-                            scale: 0.8,
-                            child: Obx(
-                              () => Icon(
-                                controller.isMaximize.value
-                                    ? FontAwesomeIcons.windowRestore
-                                    : FontAwesomeIcons.square,
-                              ),
+                          NavBarBtn(
+                            onPressed: () => controller.changeLanguage(
+                              Get.locale == const Locale("zh", "CN")
+                                  ? const Locale("en", "US")
+                                  : const Locale("zh", "CN"),
+                            ),
+                            child: const Icon(
+                              Icons.g_translate,
+                              size: 22,
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        NavBarBtn(
-                          onPressed: closeWindow,
-                          hoverColor: Colors.redAccent.shade100,
-                          child: const Icon(
-                            FontAwesomeIcons.xmark,
-                            color: Colors.redAccent,
-                          ),
-                        ),
-                      ]
-                          .animate(interval: 100.ms, delay: 1000.ms)
-                          .moveY(duration: 400.ms)
-                          .fade(duration: 400.ms),
-                    ),
+                        ],
+                      ),
+                      if (Platform.isWindows || !context.isPhone)
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            NavBarBtn(
+                              onPressed: minimizeWindow,
+                              child: const Icon(FontAwesomeIcons.minus),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            NavBarBtn(
+                              onPressed: targetMaximizeWindow,
+                              child: Transform.scale(
+                                scale: 0.8,
+                                child: Obx(
+                                  () => Icon(
+                                    controller.isMaximize.value
+                                        ? FontAwesomeIcons.windowRestore
+                                        : FontAwesomeIcons.square,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            NavBarBtn(
+                              onPressed: closeWindow,
+                              hoverColor: Colors.redAccent.shade100,
+                              child: const Icon(
+                                FontAwesomeIcons.xmark,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          ],
+                        )
+                    ]
+                        .animate(interval: 100.ms, delay: 1000.ms)
+                        .moveY(duration: 400.ms)
+                        .fade(duration: 400.ms),
+                  ),
                 ],
               ),
             ),

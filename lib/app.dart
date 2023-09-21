@@ -21,7 +21,7 @@ class AppController extends GetxController {
   late final appConfig = Rx<AppConfig>(
     AppConfig(
       configName: "default",
-      isDarkMode: Get.isDarkMode,
+      isDarkMode: true,
       locale: const Locale("zh", "CN"),
     ),
   );
