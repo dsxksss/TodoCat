@@ -1,41 +1,12 @@
+import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/services/strorage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_cat/env.dart';
-import 'package:uuid/uuid.dart';
 
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
   final taskKey = 'tasksxxxawxl';
-
-  final Task _task1 = Task(
-    id: const Uuid().v4(),
-    title: "todo",
-    createdAt: DateTime.now().millisecondsSinceEpoch,
-    tags: ["默认", "自带"],
-    todos: [],
-  );
-  final Task _task2 = Task(
-    id: const Uuid().v4(),
-    title: "inProgress",
-    createdAt: DateTime.now().millisecondsSinceEpoch + 1,
-    tags: ["默认", "自带"],
-    todos: [],
-  );
-  final Task _task3 = Task(
-    id: const Uuid().v4(),
-    title: "done",
-    createdAt: DateTime.now().millisecondsSinceEpoch + 2,
-    tags: ["默认", "自带"],
-    todos: [],
-  );
-  final Task _task4 = Task(
-    id: const Uuid().v4(),
-    title: "another",
-    createdAt: DateTime.now().millisecondsSinceEpoch + 3,
-    tags: ["默认", "自带"],
-    todos: [],
-  );
 
   TaskRepository._();
 
@@ -54,7 +25,7 @@ class TaskRepository extends Strorage<Task> {
 
     if (isDebugMode) {
       await _box.clear();
-      writeMany([_task1, _task2, _task3, _task4]);
+      writeMany(defaultTasks);
     }
   }
 

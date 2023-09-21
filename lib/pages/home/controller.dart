@@ -1,11 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_cat/app.dart';
+import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
+import 'package:todo_cat/data/test/todo.dart';
+import 'package:todo_cat/env.dart';
 import 'package:todo_cat/utils/date_time.dart';
 
 class HomeController extends GetxController {
@@ -22,6 +27,16 @@ class HomeController extends GetxController {
     taskRepository = await TaskRepository.getInstance();
     final localTasks = await taskRepository.readAll();
     tasks.assignAll(localTasks);
+
+    if (isDebugMode) {
+      for (var task in defaultTasks) {
+        selectTask(task);
+        for (var i = 0; i < Random().nextInt(5); i++) {
+          addTodo(todoTestList[Random().nextInt(3)]);
+        }
+        deselectTask();
+      }
+    }
 
     // 按创建序号排序渲染
     sort(reverse: true);
