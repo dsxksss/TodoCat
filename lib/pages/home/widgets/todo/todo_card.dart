@@ -37,6 +37,7 @@ class TodoCard extends StatelessWidget {
       margin: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
       padding: const EdgeInsets.only(left: 10, right: 10, top: 5),
       decoration: BoxDecoration(
+        color: context.theme.cardColor,
         border: Border.all(color: context.theme.dividerColor),
         borderRadius: BorderRadius.circular(10),
       ),
