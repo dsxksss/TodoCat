@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:dio/io.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
@@ -120,14 +122,37 @@ class LocalNotificationManager {
       notice,
     );
     // email notification
+    Dio dio = Dio();
+
+    // 设置代理为空
+    dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.findProxy = (uri) {
+          // 将请求代理至 localhost:8888。
+          // 请注意，代理会在你正在运行应用的设备上生效，而不是在宿主平台生效。
+          // return 'PROXY localhost:8888';
+          return 'DIRECT';
+        };
+        return client;
+      },
+    );
+
     const String url =
         "https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com/sendReminders";
-    final res = await Dio().post(url, data: {
-      "receivingEmail": notice.email,
-      "title": notice.title,
-      "description": notice.description,
-      "remindersAt": notice.remindersAt
-    });
+    final res = await dio.post(
+      url,
+      data: {
+        "receivingEmail": notice.email,
+        "title": notice.title,
+        "description": notice.description,
+        "remindersAt": notice.remindersAt
+      },
+      options: Options(
+        sendTimeout: 1500.ms,
+        receiveTimeout: 1500.ms,
+      ),
+    );
     if (res.statusCode == 200) {
       showToast("邮箱提醒设置成功", toastStyleType: TodoCatToastStyleType.success);
     } else {
