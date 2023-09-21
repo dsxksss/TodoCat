@@ -181,7 +181,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                           ),
                         ],
                       ),
-                      if (Platform.isWindows || !context.isPhone)
+                      if (Platform.isWindows && !context.isPhone)
                         Row(
                           children: [
                             const SizedBox(
