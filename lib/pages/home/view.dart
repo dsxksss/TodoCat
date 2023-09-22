@@ -51,39 +51,6 @@ class HomePage extends GetView<HomeController> {
       body: TodoCatScaffold(
         body: Column(
           children: [
-            Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: context.isPhone ? 20 : 30, vertical: 5),
-              child: Row(
-                mainAxisAlignment: context.isPhone
-                    ? MainAxisAlignment.spaceBetween
-                    : MainAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        "${"task".tr}${"priority".tr}",
-                        style: TextStyle(fontSize: 22),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      FaIcon(
-                        FontAwesomeIcons.angleDown,
-                        size: 22,
-                      )
-                    ],
-                  ),
-                  SizedBox(width: 10),
-                  Icon(
-                    FontAwesomeIcons.filter,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
             Expanded(
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(
@@ -95,7 +62,7 @@ class HomePage extends GetView<HomeController> {
                     () => Padding(
                       padding: context.isPhone
                           ? EdgeInsets.zero
-                          : const EdgeInsets.only(left: 30),
+                          : const EdgeInsets.only(left: 20),
                       child: Wrap(
                           alignment: context.isPhone
                               ? WrapAlignment.center

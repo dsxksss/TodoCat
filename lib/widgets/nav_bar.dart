@@ -179,6 +179,16 @@ class _NavBarState extends State<NavBar> with WindowListener {
                               size: 22,
                             ),
                           ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          NavBarBtn(
+                            onPressed: () => {},
+                            child: const Icon(
+                              Icons.filter_alt_outlined,
+                              size: 26,
+                            ),
+                          ),
                         ],
                       ),
                       if (Platform.isWindows && !context.isPhone)
