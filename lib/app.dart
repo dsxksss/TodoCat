@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -45,6 +46,8 @@ class AppController extends GetxController {
     }
 
     if (Platform.isAndroid || Platform.isIOS) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
       changeSystemOverlayUI();
     }
 
@@ -62,26 +65,17 @@ class AppController extends GetxController {
     appConfig.refresh();
   }
 
-  void changeSystemOverlayUI() {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
-      statusBarIconBrightness:
-          appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
-      statusBarBrightness:
-          appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
-      systemNavigationBarIconBrightness:
-          appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
-    ));
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  void changeSystemOverlayUI() async {
+    await FlutterStatusbarcolor.setStatusBarWhiteForeground(
+        appConfig.value.isDarkMode ? true : false);
   }
 
   void targetThemeMode() {
     appConfig.value.isDarkMode = !appConfig.value.isDarkMode;
+    appConfig.refresh();
     if (Platform.isAndroid || Platform.isIOS) {
       changeSystemOverlayUI();
     }
-    appConfig.refresh();
   }
 
   void changeLanguage(Locale language) async {
