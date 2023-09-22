@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:todo_cat/app_lifecycle_observer.dart';
 import 'package:todo_cat/config/smart_dialog.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/services/repositorys/app_config.dart';
@@ -45,24 +45,23 @@ class AppController extends GetxController {
       appConfigRepository.write(appConfig.value.configName, appConfig.value);
     }
 
-    if (Platform.isAndroid || Platform.isIOS) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent,
-        ),
-      );
-      changeSystemOverlayUI();
-    }
-
     ever(
       appConfig,
       (value) async => {appConfigRepository.update(value.configName, value)},
     );
 
-    initSmartDialogConfiguration();
     super.onInit();
+  }
+
+  @override
+  void onReady() {
+    // 改变移动端顶部状态栏、底部导航栏样式
+    changeSystemOverlayUI();
+    // 初始化SmartDialogConfiguration
+    initSmartDialogConfiguration();
+    // 添加生命周期监听事件
+    WidgetsBinding.instance.addObserver(AppLifecycleObserver());
+    super.onReady();
   }
 
   void changeThemeMode(TodoCatThemeMode mode) {
@@ -71,8 +70,10 @@ class AppController extends GetxController {
   }
 
   void changeSystemOverlayUI() async {
-    await FlutterStatusbarcolor.setStatusBarWhiteForeground(
-        appConfig.value.isDarkMode ? true : false);
+    if (Platform.isAndroid || Platform.isIOS) {
+      await FlutterStatusbarcolor.setStatusBarWhiteForeground(
+          appConfig.value.isDarkMode ? true : false);
+    }
   }
 
   void targetThemeMode() {
@@ -110,7 +111,7 @@ class _AppState extends State<App> {
   void initState() {
     Get.put(AppController());
     controller = Get.find();
-    controller.changeSystemOverlayUI();
+
     super.initState();
     if (Platform.isAndroid || Platform.isIOS) {
       // 移除启动页面

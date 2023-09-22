@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/app.dart';
 import 'package:todo_cat/data/db.dart';
+import 'package:flutter/services.dart';
 import 'package:todo_cat/window/init_window.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
@@ -21,12 +22,19 @@ void main() async {
     initWindow();
   }
 
+  if (Platform.isAndroid || Platform.isIOS) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+      ),
+    );
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  }
+
   runApp(DevicePreview(
     enabled: false,
     builder: (_) => const App(),
   ));
-
-  if (Platform.isAndroid || Platform.isIOS) {
-    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  }
 }
