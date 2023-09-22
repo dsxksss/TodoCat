@@ -44,6 +44,10 @@ class AppController extends GetxController {
       appConfigRepository.write(appConfig.value.configName, appConfig.value);
     }
 
+    if (Platform.isAndroid || Platform.isIOS) {
+      changeSystemOverlayUI();
+    }
+
     ever(
       appConfig,
       (value) async => {appConfigRepository.update(value.configName, value)},
@@ -58,9 +62,10 @@ class AppController extends GetxController {
     appConfig.refresh();
   }
 
-  void targetThemeMode() {
-    appConfig.value.isDarkMode = !appConfig.value.isDarkMode;
+  void changeSystemOverlayUI() {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
       statusBarIconBrightness:
           appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
       statusBarBrightness:
@@ -69,6 +74,13 @@ class AppController extends GetxController {
           appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
     ));
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
+
+  void targetThemeMode() {
+    appConfig.value.isDarkMode = !appConfig.value.isDarkMode;
+    if (Platform.isAndroid || Platform.isIOS) {
+      changeSystemOverlayUI();
+    }
     appConfig.refresh();
   }
 
@@ -99,6 +111,7 @@ class _AppState extends State<App> {
   void initState() {
     Get.put(AppController());
     controller = Get.find();
+    controller.changeSystemOverlayUI();
     super.initState();
     if (Platform.isAndroid || Platform.isIOS) {
       // 移除启动页面
