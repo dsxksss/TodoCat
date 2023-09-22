@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -59,6 +60,15 @@ class AppController extends GetxController {
 
   void targetThemeMode() {
     appConfig.value.isDarkMode = !appConfig.value.isDarkMode;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarIconBrightness:
+          appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
+      statusBarBrightness:
+          appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
+      systemNavigationBarIconBrightness:
+          appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
+    ));
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     appConfig.refresh();
   }
 
@@ -87,6 +97,7 @@ class _AppState extends State<App> {
 
   @override
   void initState() {
+    Get.put(AppController());
     controller = Get.find();
     super.initState();
     if (Platform.isAndroid || Platform.isIOS) {
