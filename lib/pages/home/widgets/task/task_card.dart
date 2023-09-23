@@ -166,8 +166,10 @@ class TaskCard extends StatelessWidget {
           Obx(
             () => Column(
               children: [
-                ...ctrl.tasks[ctrl.tasks.indexOf(task)].todos
-                    .map((e) => PressableDough(child: TodoCard(todo: e)))
+                ...ctrl.tasks[ctrl.tasks.indexOf(task)].todos.map((e) =>
+                    context.isPhone
+                        ? TodoCard(todo: e)
+                        : PressableDough(child: TodoCard(todo: e)))
               ].animate(interval: 100.ms).fadeIn(duration: 150.ms),
             ),
           ),

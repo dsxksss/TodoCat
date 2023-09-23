@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
@@ -13,7 +12,8 @@ import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
 class HomePage extends GetView<HomeController> {
-  const HomePage({super.key});
+  HomePage({super.key});
+  final interval = 200.ms.obs;
 
   @override
   Widget build(context) {
@@ -45,7 +45,7 @@ class HomePage extends GetView<HomeController> {
           ),
         ),
       )
-          .animate(delay: 1000.ms)
+          .animate(delay: 200.ms)
           .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: TodoCatScaffold(
@@ -64,16 +64,27 @@ class HomePage extends GetView<HomeController> {
                           ? EdgeInsets.zero
                           : const EdgeInsets.only(left: 20),
                       child: Wrap(
-                          alignment: context.isPhone
-                              ? WrapAlignment.center
-                              : WrapAlignment.start,
-                          direction: Axis.horizontal,
-                          spacing: context.isPhone ? 0 : 50,
-                          runSpacing: context.isPhone ? 50 : 30,
+                        alignment: context.isPhone
+                            ? WrapAlignment.center
+                            : WrapAlignment.start,
+                        direction: Axis.horizontal,
+                        spacing: context.isPhone ? 0 : 50,
+                        runSpacing: context.isPhone ? 50 : 30,
+                        children: AnimateList(
+                          onComplete: (_) => interval.value = Duration.zero,
+                          effects: [
+                            context.isPhone
+                                ? const MoveEffect(begin: Offset(0, 10))
+                                : const MoveEffect(begin: Offset(-10, 0)),
+                            const FadeEffect()
+                          ],
+                          interval: interval.value,
                           children: [
                             ...controller.tasks
                                 .map((element) => TaskCard(task: element))
-                          ].animate(interval: 100.ms).moveX().fade()),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(

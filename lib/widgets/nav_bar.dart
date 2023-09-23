@@ -102,13 +102,13 @@ class _NavBarState extends State<NavBar> with WindowListener {
       child: Column(
         children: [
           SizedBox(
-            height: Platform.isMacOS ? 30 : 0,
+            height: Platform.isMacOS ? 30 : 5,
           ),
           Container(
             width: 1.sw,
             color: context.theme.scaffoldBackgroundColor,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -131,14 +131,13 @@ class _NavBarState extends State<NavBar> with WindowListener {
                           fontSize: context.isPhone ? 24 : 28,
                           fontWeight: FontWeight.bold,
                         ),
-                      )
-                          .animate(delay: 1000.ms)
-                          .moveY(begin: -10, duration: 800.ms)
-                          .fade(duration: 800.ms),
+                      ),
                     ],
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: context.isPhone
+                        ? MainAxisAlignment.start
+                        : MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
@@ -165,8 +164,8 @@ class _NavBarState extends State<NavBar> with WindowListener {
                                             .rotate(
                                                 end: 0.1, duration: 200.ms)),
                           ),
-                          const SizedBox(
-                            width: 20,
+                          SizedBox(
+                            width: context.isPhone ? 10 : 20,
                           ),
                           NavBarBtn(
                             onPressed: () => controller.changeLanguage(
@@ -179,8 +178,8 @@ class _NavBarState extends State<NavBar> with WindowListener {
                               size: 22,
                             ),
                           ),
-                          const SizedBox(
-                            width: 20,
+                          SizedBox(
+                            width: context.isPhone ? 10 : 20,
                           ),
                           NavBarBtn(
                             onPressed: () => {},
@@ -230,10 +229,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                             ),
                           ],
                         )
-                    ]
-                        .animate(interval: 100.ms, delay: 1000.ms)
-                        .moveY(duration: 400.ms)
-                        .fade(duration: 400.ms),
+                    ],
                   ),
                 ],
               ),

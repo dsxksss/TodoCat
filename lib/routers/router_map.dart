@@ -12,8 +12,7 @@ List<GetPage<dynamic>> routerMap = [
   ),
   GetPage(
     name: '/',
-    page: () => const HomePage(),
+    page: () => HomePage(),
     transition: Transition.fade,
-    binding: HomeBinding(),
   ),
 ];
