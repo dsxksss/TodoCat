@@ -48,8 +48,8 @@ class TaskRepository extends Strorage<Task> {
   }
 
   @override
-  void delete(String key) {
-    _box.delete(key);
+  void delete(String key) async {
+    await _box.delete(key);
   }
 
   @override

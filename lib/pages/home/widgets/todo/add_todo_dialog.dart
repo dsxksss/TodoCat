@@ -146,7 +146,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   value: dialogCtrl.remindersValue,
                   fieldTitle: 'reminderTime'.tr,
                 ),
-              ].animate(interval: 100.ms).moveX(begin: 20).fade(),
+              ],
             ),
           ),
         ),

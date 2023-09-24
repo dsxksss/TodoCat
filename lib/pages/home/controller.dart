@@ -58,8 +58,13 @@ class HomeController extends GetxController {
     if (taskRepository.hasNot(taskId)) {
       return false;
     }
+    Task task = tasks.singleWhere((task) => task.id == taskId);
+    for (var todo in task.todos) {
+      appCtrl.localNotificationManager.destroy(todo.id);
+    }
 
-    tasks.removeWhere((task) => task.id == taskId);
+    tasks.remove(task);
+    taskRepository.delete(taskId);
     return true;
   }
 
