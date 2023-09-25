@@ -39,9 +39,37 @@ void showToast(
   bool? keepSingle,
   bool? backDismiss,
 }) {
+  List<Effect<dynamic>> getToastAnimationEffect(
+      AnimationController controller) {
+    final List<Effect<dynamic>> animationEffect = [
+      MoveEffect(
+        begin: const Offset(0, 150),
+        duration: controller.duration,
+        curve: Curves.easeInOutBack,
+      ),
+      FadeEffect(
+        duration: controller.duration,
+        curve: Curves.easeInOutBack,
+      ),
+    ];
+    if (toastStyleType == TodoCatToastStyleType.error ||
+        toastStyleType == TodoCatToastStyleType.warning) {
+      animationEffect.addAll([
+        const ThenEffect(),
+        ShakeEffect(
+          hz: 4,
+          offset: const Offset(8, 0),
+          rotation: 0,
+          duration: controller.duration,
+        ),
+      ]);
+    }
+    return animationEffect;
+  }
+
   SmartDialog.show(
-    displayTime: displayTime ?? 4000.ms,
-    animationTime: animationTime ?? 1000.ms,
+    displayTime: displayTime ?? 3000.ms,
+    animationTime: animationTime ?? 600.ms,
     tag: tag,
     keepSingle: keepSingle ?? true,
     alignment: alignment ?? Alignment.bottomCenter,
@@ -50,17 +78,9 @@ void showToast(
     clickMaskDismiss: false,
     backDismiss: backDismiss ?? false,
     animationBuilder: animationBuilder ??
-        (controller, child, _) => child
-            .animate(controller: controller)
-            .moveY(
-              begin: 150,
-              end: 0,
-              duration: controller.duration,
-              curve: Curves.easeInOutBack,
-            )
-            .fade(
-              duration: fadeAnimation ? controller.duration : 0.ms,
-              curve: Curves.easeInOutBack,
+        (controller, child, _) => child.animate(
+              controller: controller,
+              effects: getToastAnimationEffect(controller),
             ),
     builder: builder ??
         (context) {

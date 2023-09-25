@@ -31,7 +31,7 @@ final test3 = Todo(
   title: "test3",
   description:
       "我有很多很多字我有很多很多字我有很多很多字我有很多很多字我有很多很多字我有很多很多字我有很多很多字我有很多很多字我有很多很多字我有很多很多字",
-  tags: ["个人事项"],
+  tags: [],
   status: TodoStatus.inProgress,
   priority: TodoPriority.highLevel,
   finishedAt:

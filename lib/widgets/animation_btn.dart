@@ -13,6 +13,8 @@ class AnimationBtn extends StatelessWidget {
     this.hoverScaleDuration,
     this.clickScaleDuration,
     this.bgColorChangeDuration,
+    this.disableAnimatDuration,
+    this.disable = false,
     this.onHoverAnimationEnabled = true,
     this.onHoverBgColorChangeEnabled = false,
     this.onClickAnimationEnabled = true,
@@ -20,10 +22,12 @@ class AnimationBtn extends StatelessWidget {
 
   final Widget child;
   final Function? onPressed;
+  final bool disable;
 
   final double? onHoverScale;
   final Duration? hoverScaleDuration;
   final Duration? bgColorChangeDuration;
+  final Duration? disableAnimatDuration;
   final bool onHoverAnimationEnabled;
   final bool onHoverBgColorChangeEnabled;
 
@@ -37,11 +41,19 @@ class AnimationBtn extends StatelessWidget {
   final onHover = false.obs;
   final onHoverbgColorChange = false.obs;
   final onClick = false.obs;
-  final isAnimating = false.obs;
+  final onClickDisableAnimat = false.obs;
 
   void playHoverAnimation() {
     if (onHoverAnimationEnabled) onHover.value = true;
     if (onHoverBgColorChangeEnabled) onHoverbgColorChange.value = true;
+  }
+
+  void playDisableAnimation() async {
+    onClickDisableAnimat.value = true;
+    await Future.delayed(
+      defaultDuration + 120.ms,
+      () => onClickDisableAnimat.value = false,
+    );
   }
 
   void playClickAnimation() {
@@ -65,17 +77,24 @@ class AnimationBtn extends StatelessWidget {
       },
       child: GestureDetector(
         onTap: () async {
-          playClickAnimation();
-          await Future.delayed((clickScaleDuration ?? defaultDuration) - 50.ms);
-          closeAllAnimation();
-          if (onPressed != null) onPressed!();
+          if (!disable) {
+            playClickAnimation();
+            await Future.delayed(
+                (clickScaleDuration ?? defaultDuration) - 50.ms);
+            closeAllAnimation();
+            if (onPressed != null) onPressed!();
+          } else {
+            playDisableAnimation();
+          }
         },
         onLongPressDown: (_) {
-          playClickAnimation();
+          if (!disable) {
+            playClickAnimation();
+          }
         },
         onLongPressUp: () {
           closeAllAnimation();
-          if (onPressed != null) onPressed!();
+          if (onPressed != null && !disable) onPressed!();
         },
         child: Obx(
           () => child
@@ -97,6 +116,17 @@ class AnimationBtn extends StatelessWidget {
                 end: onClickScale ?? 0.9,
                 duration: clickScaleDuration ?? defaultDuration,
                 curve: Curves.easeOut,
+              )
+              .animate(target: onClickDisableAnimat.value ? 1 : 0)
+              .tint(
+                end: 100,
+                color: Colors.redAccent,
+                duration: disableAnimatDuration ?? defaultDuration,
+              )
+              .shakeX(
+                hz: 4,
+                amount: 2,
+                duration: disableAnimatDuration ?? defaultDuration,
               ),
         ),
       ),
