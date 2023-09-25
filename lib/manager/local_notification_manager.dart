@@ -71,6 +71,7 @@ class LocalNotificationManager {
           );
           notification.show();
         } else if (anotherPlatform) {
+          const String groupKey = 'todoCatGroupKey';
           // 安卓的通知
           // 'your channel id'：用于指定通知通道的ID。
           // 'your channel name'：用于指定通知通道的名称。
@@ -86,14 +87,12 @@ class LocalNotificationManager {
             importance: Importance.max,
             priority: Priority.high,
             ticker: 'ticker',
+            groupKey: groupKey,
           );
 
           // ios的通知
-          const String darwinNotificationCategoryPlain = 'todoCatPlainCategory';
           const DarwinNotificationDetails iosNotificationDetails =
-              DarwinNotificationDetails(
-            categoryIdentifier: darwinNotificationCategoryPlain, // 通知分类
-          );
+              DarwinNotificationDetails(categoryIdentifier: groupKey);
 
           // 创建跨平台通知
           NotificationDetails platformChannelSpecifics = NotificationDetails(

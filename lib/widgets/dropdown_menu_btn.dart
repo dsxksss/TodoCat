@@ -11,11 +11,13 @@ class DropdownManuBtn extends StatelessWidget {
     this.controller,
     required this.id,
     this.onDismiss,
+    this.disable = false,
   });
 
   final String id;
   final Widget child;
   final Widget content;
+  final bool disable;
   final SmartDialogController? controller;
   final void Function()? onDismiss;
 
@@ -23,6 +25,7 @@ class DropdownManuBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimationBtn(
       onClickScale: 0.8,
+      disable: disable,
       clickScaleDuration: 100.ms,
       onHoverAnimationEnabled: false,
       onPressed: () {
