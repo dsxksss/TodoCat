@@ -6,11 +6,11 @@ import 'package:todo_cat/pages/home/widgets/tag.dart';
 import 'package:todo_cat/utils/date_time.dart';
 
 class TodoCard extends StatelessWidget {
-  const TodoCard({super.key, required this.todo});
-  final Todo todo;
+  const TodoCard({super.key, required Todo todo}) : _todo = todo;
+  final Todo _todo;
 
-  IconData getStatusIconData() {
-    switch (todo.status) {
+  IconData _getStatusIconData() {
+    switch (_todo.status) {
       case TodoStatus.todo:
         return FontAwesomeIcons.hourglassStart;
       case TodoStatus.inProgress:
@@ -20,8 +20,8 @@ class TodoCard extends StatelessWidget {
     }
   }
 
-  Color getPriorityColor() {
-    switch (todo.priority) {
+  Color _getPriorityColor() {
+    switch (_todo.priority) {
       case TodoPriority.lowLevel:
         return const Color.fromRGBO(46, 204, 147, 1);
       case TodoPriority.mediumLevel:
@@ -51,7 +51,7 @@ class TodoCard extends StatelessWidget {
                 Icon(
                   FontAwesomeIcons.solidCircle,
                   size: 13,
-                  color: getPriorityColor(),
+                  color: _getPriorityColor(),
                 ),
                 const SizedBox(width: 5),
                 SizedBox(
@@ -59,7 +59,7 @@ class TodoCard extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 1.0),
                     child: Text(
-                      todo.title,
+                      _todo.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -67,18 +67,18 @@ class TodoCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (todo.tags.isNotEmpty)
+            if (_todo.tags.isNotEmpty)
               const SizedBox(
                 height: 10,
               ),
-            if (todo.tags.isNotEmpty)
+            if (_todo.tags.isNotEmpty)
               SizedBox(
                 height: 20,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    ...todo.tags
-                        .sublist(0, todo.tags.length > 3 ? 3 : null)
+                    ..._todo.tags
+                        .sublist(0, _todo.tags.length > 3 ? 3 : null)
                         .map(
                           (e) => Padding(
                             padding: const EdgeInsets.only(right: 10),
@@ -106,7 +106,7 @@ class TodoCard extends StatelessWidget {
                       width: 3,
                     ),
                     Text(
-                      timestampToDate(todo.finishedAt),
+                      timestampToDate(_todo.finishedAt),
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11.5,
@@ -130,7 +130,7 @@ class TodoCard extends StatelessWidget {
                       width: 5,
                     ),
                     Icon(
-                      getStatusIconData(),
+                      _getStatusIconData(),
                       size: 15,
                       color: Colors.grey,
                     ),

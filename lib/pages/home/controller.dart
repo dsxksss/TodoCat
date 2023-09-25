@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_cat/app.dart';
@@ -12,13 +13,16 @@ import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/data/test/todo.dart';
 import 'package:todo_cat/env.dart';
 import 'package:todo_cat/utils/date_time.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 
 class HomeController extends GetxController {
   late TaskRepository taskRepository;
 
   final tasks = RxList<Task>();
   final currentTask = Rx<Task?>(null);
-
+  final listAnimatInterval = 200.ms.obs;
+  final ScrollController scrollController = ScrollController();
+  double currentScrollOffset = 0.0;
   final AppController appCtrl = Get.find();
 
   @override
@@ -38,11 +42,55 @@ class HomeController extends GetxController {
       }
     }
 
+    // 监听页面滚动时
+    scrollController.addListener(scrollListener);
+
     // 按创建序号排序渲染
     sort(reverse: true);
 
     // 后续数据发生改变则运行更新操作
     ever(tasks, (_) => taskRepository.updateMany(tasks));
+  }
+
+  void scrollListener() {
+    // 当滚动到顶部时
+    if (scrollController.offset <= scrollController.position.minScrollExtent &&
+        !scrollController.position.outOfRange) {}
+
+    // 当滚动到底部时
+    if (scrollController.offset >= scrollController.position.maxScrollExtent &&
+        !scrollController.position.outOfRange) {}
+
+    // 当滚动时
+    if (scrollController.offset != currentScrollOffset &&
+        !scrollController.position.outOfRange) {
+      SmartDialog.dismiss(tag: "TaskDropDownMenuBtn");
+    }
+
+    currentScrollOffset = scrollController.offset;
+  }
+
+  void scrollMaxDown() {
+    scrollController.animateTo(
+      scrollController.position.maxScrollExtent,
+      duration: 500.ms,
+      curve: Curves.linear,
+    );
+  }
+
+  void scrollMaxTop() {
+    scrollController.animateTo(
+      scrollController.position.minScrollExtent,
+      duration: 500.ms,
+      curve: Curves.linear,
+    );
+  }
+
+  @override
+  void onClose() {
+    scrollController.removeListener(scrollListener);
+    scrollController.dispose();
+    super.onClose();
   }
 
   bool addTask(Task task) {

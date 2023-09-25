@@ -11,16 +11,18 @@ import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:uuid/uuid.dart';
 
 class AddTodoCardBtn extends StatelessWidget {
-  AddTodoCardBtn({super.key, required this.task});
-  final HomeController ctrl = Get.find();
-  final Task task;
+  AddTodoCardBtn({super.key, required Task task}) : _task = task;
+  final HomeController _homeCtrl = Get.find();
+  final Task _task;
 
   @override
   Widget build(BuildContext context) {
     return AnimationBtn(
       onPressed: () => {
-        ctrl.selectTask(task),
-        context.isPhone ? showAddTodoBottomSheet(context) : showAddTodoDialog(),
+        _homeCtrl.selectTask(_task),
+        context.isPhone
+            ? _showAddTodoBottomSheet(context)
+            : _showAddTodoDialog(),
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -56,7 +58,7 @@ class AddTodoCardBtn extends StatelessWidget {
   }
 }
 
-void showAddTodoDialog() {
+void _showAddTodoDialog() {
   Get.generalDialog(
     barrierLabel: "showAddTodoDialog",
     barrierDismissible: true,
@@ -68,7 +70,7 @@ void showAddTodoDialog() {
   );
 }
 
-void showAddTodoBottomSheet(BuildContext context) {
+void _showAddTodoBottomSheet(BuildContext context) {
   final HomeController homeCtrl = Get.find();
 
   Get.bottomSheet(

@@ -7,9 +7,9 @@ class UnknownPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text("Unknown Page")),
-        body: Center(
-            child: Column(
+      appBar: AppBar(title: const Text("Unknown Page")),
+      body: Center(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text("Unknown Page Please Enter Go Back Button!"),
@@ -18,6 +18,8 @@ class UnknownPage extends StatelessWidget {
               onPressed: () => Get.back(),
             ),
           ],
-        )));
+        ),
+      ),
+    );
   }
 }

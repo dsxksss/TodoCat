@@ -4,20 +4,25 @@ import 'package:get/get.dart';
 class TextFormFieldItem extends StatelessWidget {
   const TextFormFieldItem({
     super.key,
-    required this.editingController,
-    required this.fieldTitle,
-    required this.maxLength,
-    this.maxLines = 1,
-    this.contentPadding = const EdgeInsets.symmetric(horizontal: 5),
-    this.validator,
-  });
+    required TextEditingController editingController,
+    required String fieldTitle,
+    required int maxLength,
+    int maxLines = 1,
+    EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
+    String? Function(String?)? validator,
+  })  : _validator = validator,
+        _editingController = editingController,
+        _contentPadding = contentPadding,
+        _maxLines = maxLines,
+        _maxLength = maxLength,
+        _fieldTitle = fieldTitle;
 
-  final String fieldTitle;
-  final int maxLength;
-  final int maxLines;
-  final EdgeInsets contentPadding;
-  final TextEditingController editingController;
-  final String? Function(String?)? validator;
+  final String _fieldTitle;
+  final int _maxLength;
+  final int _maxLines;
+  final EdgeInsets _contentPadding;
+  final TextEditingController _editingController;
+  final String? Function(String?)? _validator;
 
   @override
   Widget build(BuildContext context) {
@@ -26,18 +31,18 @@ class TextFormFieldItem extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 5),
-          child: Text(fieldTitle),
+          child: Text(_fieldTitle),
         ),
         TextFormField(
-          controller: editingController,
-          maxLength: maxLength,
-          maxLines: maxLines,
+          controller: _editingController,
+          maxLength: _maxLength,
+          maxLines: _maxLines,
           decoration: InputDecoration(
             counter: const Text(""),
             filled: true, // 是否填充背景色
             border: InputBorder.none,
-            contentPadding: contentPadding,
-            hintText: "${"enter".tr}${fieldTitle.tr}",
+            contentPadding: _contentPadding,
+            hintText: "${"enter".tr}${_fieldTitle.tr}",
             hintStyle: const TextStyle(color: Colors.grey),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide.none,
@@ -48,7 +53,7 @@ class TextFormFieldItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          validator: validator ??
+          validator: _validator ??
               (value) {
                 if (value == null || value.trim().isEmpty) {
                   return "pleaseCompleteItProperly".tr;

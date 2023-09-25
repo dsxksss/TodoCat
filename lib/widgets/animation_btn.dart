@@ -5,128 +5,140 @@ import 'package:get/get.dart';
 class AnimationBtn extends StatelessWidget {
   AnimationBtn({
     super.key,
-    required this.child,
-    this.onPressed,
-    this.onHoverScale,
-    this.onClickScale,
-    this.hoverBgColor,
-    this.hoverScaleDuration,
-    this.clickScaleDuration,
-    this.bgColorChangeDuration,
-    this.disableAnimatDuration,
-    this.disable = false,
-    this.onHoverAnimationEnabled = true,
-    this.onHoverBgColorChangeEnabled = false,
-    this.onClickAnimationEnabled = true,
-  });
+    required Widget child,
+    Function? onPressed,
+    double? onHoverScale,
+    double? onClickScale,
+    Color? hoverBgColor,
+    Duration? hoverScaleDuration,
+    Duration? clickScaleDuration,
+    Duration? bgColorChangeDuration,
+    Duration? disableAnimatDuration,
+    bool disable = false,
+    bool onHoverAnimationEnabled = true,
+    bool onHoverBgColorChangeEnabled = false,
+    bool onClickAnimationEnabled = true,
+  })  : _hoverBgColor = hoverBgColor,
+        _onClickAnimationEnabled = onClickAnimationEnabled,
+        _clickScaleDuration = clickScaleDuration,
+        _onClickScale = onClickScale,
+        _onHoverBgColorChangeEnabled = onHoverBgColorChangeEnabled,
+        _onHoverAnimationEnabled = onHoverAnimationEnabled,
+        _disableAnimatDuration = disableAnimatDuration,
+        _bgColorChangeDuration = bgColorChangeDuration,
+        _hoverScaleDuration = hoverScaleDuration,
+        _onHoverScale = onHoverScale,
+        _disable = disable,
+        _onPressed = onPressed,
+        _child = child;
 
-  final Widget child;
-  final Function? onPressed;
-  final bool disable;
+  final Widget _child;
+  final Function? _onPressed;
+  final bool _disable;
 
-  final double? onHoverScale;
-  final Duration? hoverScaleDuration;
-  final Duration? bgColorChangeDuration;
-  final Duration? disableAnimatDuration;
-  final bool onHoverAnimationEnabled;
-  final bool onHoverBgColorChangeEnabled;
+  final double? _onHoverScale;
+  final Duration? _hoverScaleDuration;
+  final Duration? _bgColorChangeDuration;
+  final Duration? _disableAnimatDuration;
+  final bool _onHoverAnimationEnabled;
+  final bool _onHoverBgColorChangeEnabled;
 
-  final double? onClickScale;
-  final Duration? clickScaleDuration;
-  final bool onClickAnimationEnabled;
+  final double? _onClickScale;
+  final Duration? _clickScaleDuration;
+  final bool _onClickAnimationEnabled;
 
-  final Color? hoverBgColor;
+  final Color? _hoverBgColor;
 
-  final Duration defaultDuration = 150.ms;
-  final onHover = false.obs;
-  final onHoverbgColorChange = false.obs;
-  final onClick = false.obs;
-  final onClickDisableAnimat = false.obs;
+  final Duration _defaultDuration = 150.ms;
+  final _onHover = false.obs;
+  final _onHoverbgColorChange = false.obs;
+  final _onClick = false.obs;
+  final _onClickDisableAnimat = false.obs;
 
-  void playHoverAnimation() {
-    if (onHoverAnimationEnabled) onHover.value = true;
-    if (onHoverBgColorChangeEnabled) onHoverbgColorChange.value = true;
+  void _playHoverAnimation() {
+    if (_onHoverAnimationEnabled) _onHover.value = true;
+    if (_onHoverBgColorChangeEnabled) _onHoverbgColorChange.value = true;
   }
 
-  void playDisableAnimation() async {
-    onClickDisableAnimat.value = true;
+  void _playDisableAnimation() async {
+    _onClickDisableAnimat.value = true;
     await Future.delayed(
-      defaultDuration + 120.ms,
-      () => onClickDisableAnimat.value = false,
+      _defaultDuration + 120.ms,
+      () => _onClickDisableAnimat.value = false,
     );
   }
 
-  void playClickAnimation() {
-    if (onClickAnimationEnabled) onClick.value = true;
+  void _playClickAnimation() {
+    if (_onClickAnimationEnabled) _onClick.value = true;
   }
 
-  void closeAllAnimation() {
-    onHover.value = false;
-    onHoverbgColorChange.value = false;
-    onClick.value = false;
+  void _closeAllAnimation() {
+    _onHover.value = false;
+    _onHoverbgColorChange.value = false;
+    _onClick.value = false;
   }
 
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) {
-        playHoverAnimation();
+        _playHoverAnimation();
       },
       onExit: (_) {
-        closeAllAnimation();
+        _closeAllAnimation();
       },
       child: GestureDetector(
         onTap: () async {
-          if (!disable) {
-            playClickAnimation();
+          if (!_disable) {
+            _playClickAnimation();
             await Future.delayed(
-                (clickScaleDuration ?? defaultDuration) - 50.ms);
-            closeAllAnimation();
-            if (onPressed != null) onPressed!();
+                (_clickScaleDuration ?? _defaultDuration) - 50.ms);
+            _closeAllAnimation();
+            if (_onPressed != null) _onPressed!();
           } else {
-            playDisableAnimation();
+            _playDisableAnimation();
           }
         },
         onLongPressDown: (_) {
-          if (!disable) {
-            playClickAnimation();
+          if (!_disable) {
+            _playClickAnimation();
           }
         },
         onLongPressUp: () {
-          closeAllAnimation();
-          if (onPressed != null && !disable) onPressed!();
+          _closeAllAnimation();
+          if (_onPressed != null && !_disable) _onPressed!();
         },
         child: Obx(
-          () => child
+          () => _child
               // Hover animation
-              .animate(target: onHover.value ? 1 : 0)
+              .animate(target: _onHover.value ? 1 : 0)
               .scaleXY(
-                end: onHoverScale ?? 1.05,
-                duration: hoverScaleDuration ?? defaultDuration,
+                end: _onHoverScale ?? 1.05,
+                duration: _hoverScaleDuration ?? _defaultDuration,
                 curve: Curves.easeIn,
               )
-              .animate(target: onHoverbgColorChange.value ? 1 : 0)
+              .animate(target: _onHoverbgColorChange.value ? 1 : 0)
               .tint(
-                color: hoverBgColor ?? Colors.grey.shade500,
-                duration: bgColorChangeDuration ?? defaultDuration,
+                color: _hoverBgColor ?? Colors.grey.shade500,
+                duration: _bgColorChangeDuration ?? _defaultDuration,
               )
               // Click animation
-              .animate(target: onClick.value ? 1 : 0)
+              .animate(target: _onClick.value ? 1 : 0)
               .scaleXY(
-                end: onClickScale ?? 0.9,
-                duration: clickScaleDuration ?? defaultDuration,
+                end: _onClickScale ?? 0.9,
+                duration: _clickScaleDuration ?? _defaultDuration,
                 curve: Curves.easeOut,
               )
-              .animate(target: onClickDisableAnimat.value ? 1 : 0)
+              .animate(target: _onClickDisableAnimat.value ? 1 : 0)
               .tint(
                 end: 100,
                 color: Colors.redAccent,
-                duration: disableAnimatDuration ?? defaultDuration,
+                duration: _disableAnimatDuration ?? _defaultDuration,
               )
               .shakeX(
                 hz: 4,
                 amount: 2,
-                duration: disableAnimatDuration ?? defaultDuration,
+                duration: _disableAnimatDuration ?? _defaultDuration,
               ),
         ),
       ),

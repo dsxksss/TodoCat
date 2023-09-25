@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
-Size minWindowSize = const Size(1280, 720);
-Size maxWindowSize = const Size(1920, 1080);
-Size windowSize = const Size(1400, 900);
-Size winWindowSize = const Size(1400, 800);
+const Size minWindowSize = Size(1280, 720);
+const Size maxWindowSize = Size(1920, 1080);
+const Size windowSize = Size(1400, 900);
+const Size winWindowSize = Size(1400, 800);
 
-WindowOptions winOptions = WindowOptions(
+WindowOptions winOptions = const WindowOptions(
   center: true,
   size: winWindowSize,
   minimumSize: minWindowSize,
@@ -18,7 +18,7 @@ WindowOptions winOptions = WindowOptions(
   titleBarStyle: TitleBarStyle.hidden,
 );
 
-WindowOptions macosOptions = WindowOptions(
+WindowOptions macosOptions = const WindowOptions(
   center: true,
   size: windowSize,
   minimumSize: minWindowSize,
@@ -28,7 +28,7 @@ WindowOptions macosOptions = WindowOptions(
   titleBarStyle: TitleBarStyle.hidden,
 );
 
-WindowOptions linuxOptions = WindowOptions(
+WindowOptions linuxOptions = const WindowOptions(
   center: true,
   size: windowSize,
   minimumSize: minWindowSize,

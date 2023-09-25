@@ -1,14 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:todo_cat/app.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 
 class TodoCatScaffold extends StatelessWidget {
-  TodoCatScaffold({super.key, required this.body});
-  final Widget body;
-  final AppController controller = Get.find();
+  const TodoCatScaffold({super.key, required Widget body}) : _body = body;
+  final Widget _body;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +19,7 @@ class TodoCatScaffold extends StatelessWidget {
                   height: Platform.isMacOS ? 110 : 85,
                 ),
                 Expanded(
-                  child: body,
+                  child: _body,
                 ),
               ],
             ),

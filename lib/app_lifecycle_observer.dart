@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:todo_cat/app.dart';
 
 class AppLifecycleObserver extends WidgetsBindingObserver {
-  final AppController appController = Get.find();
+  final AppController _appController = Get.find();
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -18,7 +18,7 @@ class AppLifecycleObserver extends WidgetsBindingObserver {
         break;
       case AppLifecycleState.resumed:
         // 应用程序从后台恢复到前台
-        appController.changeSystemOverlayUI();
+        _appController.changeSystemOverlayUI();
         break;
       case AppLifecycleState.detached:
         // 应用程序已分离（例如，iOS上应用程序已被强制退出）

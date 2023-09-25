@@ -13,12 +13,12 @@ import 'package:todo_cat/pages/home/widgets/todo/todo_card.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
 class TaskCard extends StatelessWidget {
-  TaskCard({super.key, required this.task});
-  final HomeController ctrl = Get.find();
-  final Task task;
+  TaskCard({super.key, required Task task}) : _task = task;
+  final HomeController _homeCtrl = Get.find();
+  final Task _task;
 
-  List<dynamic> getColorAndIcon() {
-    switch (task.title) {
+  List<dynamic> _getColorAndIcon() {
+    switch (_task.title) {
       case 'todo':
         return [Colors.grey, FontAwesomeIcons.clipboard];
       case 'inProgress':
@@ -35,8 +35,8 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todosLength = task.todos.length;
-    final colorAndIcon = getColorAndIcon();
+    final todosLength = _task.todos.length;
+    final colorAndIcon = _getColorAndIcon();
     return Container(
       width: context.isPhone ? 0.9.sw : 240,
       decoration: BoxDecoration(
@@ -78,7 +78,7 @@ class TaskCard extends StatelessWidget {
                     width: 10,
                   ),
                   Text(
-                    task.title.tr,
+                    _task.title.tr,
                     style: GoogleFonts.getFont(
                       'Ubuntu',
                       textStyle: const TextStyle(
@@ -124,7 +124,7 @@ class TaskCard extends StatelessWidget {
                       iconData: FontAwesomeIcons.penToSquare,
                       callback: () => {
                         showToast(
-                          "${task.title} 编辑成功",
+                          "${_task.title} 编辑成功",
                           toastStyleType: TodoCatToastStyleType.success,
                         )
                       },
@@ -133,17 +133,17 @@ class TaskCard extends StatelessWidget {
                       title: 'delete',
                       iconData: FontAwesomeIcons.trashCan,
                       callback: () => {
-                        if (ctrl.deleteTask(task.id))
+                        if (_homeCtrl.deleteTask(_task.id))
                           {
                             showToast(
-                              "${task.title} 删除成功",
+                              "${_task.title} 删除成功",
                               toastStyleType: TodoCatToastStyleType.success,
                             )
                           }
                         else
                           {
                             showToast(
-                              "${task.title} 删除失败",
+                              "${_task.title} 删除失败",
                               toastStyleType: TodoCatToastStyleType.error,
                             )
                           }
@@ -158,7 +158,7 @@ class TaskCard extends StatelessWidget {
             height: 15,
           ),
           AddTodoCardBtn(
-            task: task,
+            task: _task,
           ),
           const SizedBox(
             height: 15,
@@ -166,8 +166,8 @@ class TaskCard extends StatelessWidget {
           Obx(
             () => Column(
               children: [
-                ...ctrl.tasks[ctrl.tasks.indexOf(task)].todos.map((e) =>
-                    context.isPhone
+                ..._homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos.map(
+                    (e) => context.isPhone
                         ? TodoCard(todo: e)
                         : PressableDough(child: TodoCard(todo: e)))
               ].animate(interval: 100.ms).fadeIn(duration: 150.ms),

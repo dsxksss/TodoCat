@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/controller.dart';
@@ -19,21 +18,21 @@ class AddTodoDialog extends StatefulWidget {
 }
 
 class _AddTodoDialogState extends State<AddTodoDialog> {
-  final HomeController homeCtrl = Get.find();
-  late final AddTodoDialogController dialogCtrl;
+  final HomeController _homeCtrl = Get.find();
+  late final AddTodoDialogController _dialogCtrl;
 
   @override
   void initState() {
-    dialogCtrl = Get.find();
+    _dialogCtrl = Get.find();
     // 由于和其他组件生命周期不同，需要手动切换本地化
-    dialogCtrl.remindersText.value = "${"enter".tr}${"time".tr}";
+    _dialogCtrl.remindersText.value = "${"enter".tr}${"time".tr}";
     super.initState();
   }
 
   @override
   void dispose() {
-    dialogCtrl.onDialogClose();
-    homeCtrl.deselectTask();
+    _dialogCtrl.onDialogClose();
+    _homeCtrl.deselectTask();
     super.dispose();
   }
 
@@ -52,7 +51,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Form(
-            key: dialogCtrl.formKey,
+            key: _dialogCtrl.formKey,
             child: ListView(
               children: [
                 Row(
@@ -71,19 +70,19 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                           overlayColor:
                               MaterialStatePropertyAll(Colors.transparent)),
                       onPressed: () {
-                        if (dialogCtrl.formKey.currentState!.validate()) {
+                        if (_dialogCtrl.formKey.currentState!.validate()) {
                           final todo = Todo(
                             id: const Uuid().v4(),
-                            title: dialogCtrl.titleFormCtrl.text.trim(),
+                            title: _dialogCtrl.titleFormCtrl.text.trim(),
                             description:
-                                dialogCtrl.descriptionFormCtrl.text.trim(),
+                                _dialogCtrl.descriptionFormCtrl.text.trim(),
                             createdAt: DateTime.now().millisecondsSinceEpoch,
-                            tags: dialogCtrl.selectedTags.toList(),
-                            priority: dialogCtrl.selectedPriority.value,
-                            reminders: dialogCtrl.remindersValue.value,
+                            tags: _dialogCtrl.selectedTags.toList(),
+                            priority: _dialogCtrl.selectedPriority.value,
+                            reminders: _dialogCtrl.remindersValue.value,
                           );
 
-                          homeCtrl.addTodo(todo);
+                          _homeCtrl.addTodo(todo);
 
                           Get.back();
                         }
@@ -104,14 +103,14 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                       child: TextFormFieldItem(
                         maxLength: 40,
                         fieldTitle: "title".tr,
-                        editingController: dialogCtrl.titleFormCtrl,
+                        editingController: _dialogCtrl.titleFormCtrl,
                       ),
                     ),
                     SizedBox(
                       width: 400,
                       child: SelectPriorityPanel(
                         titile: "${'task'.tr}${'priority'.tr}",
-                        onTap: (index) => dialogCtrl.selectedPriority.value =
+                        onTap: (index) => _dialogCtrl.selectedPriority.value =
                             TodoPriority.values[index],
                         tabs: [
                           Tab(
@@ -138,12 +137,12 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
                   fieldTitle: "description".tr,
                   validator: (_) => null,
-                  editingController: dialogCtrl.descriptionFormCtrl,
+                  editingController: _dialogCtrl.descriptionFormCtrl,
                 ),
                 AddTagScreen(),
                 DatePickerBtn(
-                  text: dialogCtrl.remindersText,
-                  value: dialogCtrl.remindersValue,
+                  text: _dialogCtrl.remindersText,
+                  value: _dialogCtrl.remindersValue,
                   fieldTitle: 'reminderTime'.tr,
                 ),
               ],

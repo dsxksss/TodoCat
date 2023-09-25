@@ -16,9 +16,10 @@ class MenuItem {
 }
 
 class TaskDropDownMenuBtn extends StatelessWidget {
-  const TaskDropDownMenuBtn({super.key, required this.menuItems});
+  const TaskDropDownMenuBtn({super.key, required List<MenuItem> menuItems})
+      : _menuItems = menuItems;
 
-  final List<MenuItem> menuItems;
+  final List<MenuItem> _menuItems;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,7 @@ class TaskDropDownMenuBtn extends StatelessWidget {
         ),
         child: Column(
           children: [
-            ...menuItems.map(
+            ..._menuItems.map(
               (item) => Material(
                 type: MaterialType.transparency,
                 child: ListTile(

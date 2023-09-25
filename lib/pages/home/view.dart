@@ -12,15 +12,14 @@ import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
 class HomePage extends GetView<HomeController> {
-  HomePage({super.key});
-  final interval = 200.ms.obs;
+  const HomePage({super.key});
 
   @override
   Widget build(context) {
     return Scaffold(
       floatingActionButton: AnimationBtn(
         onPressed: () {
-          controller.addTask(
+          if (controller.addTask(
             Task(
               id: const Uuid().v4(),
               title: Random().nextInt(1000).toString(),
@@ -28,7 +27,9 @@ class HomePage extends GetView<HomeController> {
               tags: [],
               todos: [],
             ),
-          );
+          )) {
+            controller.scrollMaxDown();
+          }
         },
         child: Container(
           width: 60,
@@ -53,6 +54,7 @@ class HomePage extends GetView<HomeController> {
           children: [
             Expanded(
               child: ListView(
+                controller: controller.scrollController,
                 physics: const AlwaysScrollableScrollPhysics(
                   //当内容不足时也可以启动反弹刷新
                   parent: BouncingScrollPhysics(),
@@ -71,14 +73,15 @@ class HomePage extends GetView<HomeController> {
                         spacing: context.isPhone ? 0 : 50,
                         runSpacing: context.isPhone ? 50 : 30,
                         children: AnimateList(
-                          onComplete: (_) => interval.value = Duration.zero,
+                          onComplete: (_) => controller
+                              .listAnimatInterval.value = Duration.zero,
                           effects: [
                             context.isPhone
                                 ? const MoveEffect(begin: Offset(0, 10))
                                 : const MoveEffect(begin: Offset(-10, 0)),
                             const FadeEffect()
                           ],
-                          interval: interval.value,
+                          interval: controller.listAnimatInterval.value,
                           children: [
                             ...controller.tasks
                                 .map((element) => TaskCard(task: element))

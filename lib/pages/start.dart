@@ -12,7 +12,7 @@ class StartPage extends StatefulWidget {
 }
 
 class _StartPageState extends State<StartPage> {
-  late bool isDesktop;
+  late bool _isDesktop;
 
   @override
   void initState() {
@@ -21,9 +21,9 @@ class _StartPageState extends State<StartPage> {
   }
 
   void goHomePage() async {
-    isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    _isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
-    if (isDesktop) {
+    if (_isDesktop) {
       await Future.delayed(2500.ms);
     } else {
       await Future.delayed(1200.ms);
@@ -62,7 +62,7 @@ class _StartPageState extends State<StartPage> {
           ),
         ),
       ).animate().fade(
-          duration: isDesktop ? 1200.ms : 800.ms, curve: Curves.easeInSine),
+          duration: _isDesktop ? 1200.ms : 800.ms, curve: Curves.easeInSine),
     );
   }
 }

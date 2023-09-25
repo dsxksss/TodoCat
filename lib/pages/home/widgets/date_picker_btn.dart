@@ -8,16 +8,17 @@ import 'package:todo_cat/widgets/animation_btn.dart';
 class DatePickerBtn extends StatelessWidget {
   const DatePickerBtn({
     super.key,
-    this.validator,
-    required this.fieldTitle,
-    required this.text,
-    required this.value,
-  });
+    String? Function(String?)? validator,
+    required String fieldTitle,
+    required RxString text,
+    required RxInt value,
+  })  : _value = value,
+        _text = text,
+        _fieldTitle = fieldTitle;
 
-  final String fieldTitle;
-  final RxString text;
-  final RxInt value;
-  final String? Function(String?)? validator;
+  final String _fieldTitle;
+  final RxString _text;
+  final RxInt _value;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,7 @@ class DatePickerBtn extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 5),
-          child: Text(fieldTitle),
+          child: Text(_fieldTitle),
         ),
         Row(
           children: [
@@ -43,7 +44,7 @@ class DatePickerBtn extends StatelessWidget {
                   children: [
                     Obx(
                       () => Text(
-                        text.value,
+                        _text.value,
                         style: const TextStyle(
                           color: Colors.grey,
                         ),
@@ -58,8 +59,8 @@ class DatePickerBtn extends StatelessWidget {
             ),
             AnimationBtn(
               onPressed: () {
-                text.value = "${"enter".tr}${"time".tr}";
-                value.value = 0;
+                _text.value = "${"enter".tr}${"time".tr}";
+                _value.value = 0;
               },
               child: Container(
                 padding:

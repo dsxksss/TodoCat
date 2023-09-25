@@ -5,7 +5,7 @@ import 'package:todo_cat/pages/home/controller.dart';
 class AddTagScreen extends StatelessWidget {
   AddTagScreen({super.key});
 
-  final AddTodoDialogController ctrl = Get.find();
+  final AddTodoDialogController _ctrl = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class AddTagScreen extends StatelessWidget {
                   child: Flex(
                     direction: Axis.horizontal,
                     children: [
-                      ...ctrl.selectedTags.map(
+                      ..._ctrl.selectedTags.map(
                         (tag) => Container(
                           decoration: BoxDecoration(
                             color: Colors.lightBlue,
@@ -46,8 +46,8 @@ class AddTagScreen extends StatelessWidget {
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () => ctrl
-                                    .removeTag(ctrl.selectedTags.indexOf(tag)),
+                                onTap: () => _ctrl
+                                    .removeTag(_ctrl.selectedTags.indexOf(tag)),
                                 child: const Icon(
                                   Icons.close_rounded,
                                   size: 18,
@@ -67,7 +67,7 @@ class AddTagScreen extends StatelessWidget {
         ),
         TextField(
           maxLength: 6,
-          controller: ctrl.tagController,
+          controller: _ctrl.tagController,
           decoration: InputDecoration(
             counter: const Text(''),
             suffix: TextButton(
@@ -76,7 +76,7 @@ class AddTagScreen extends StatelessWidget {
                 overlayColor: MaterialStatePropertyAll(Colors.transparent),
                 backgroundColor: MaterialStatePropertyAll(Colors.lightBlue),
               ),
-              onPressed: () => {ctrl.addTag()},
+              onPressed: () => {_ctrl.addTag()},
               child: Text(
                 "addTag".tr,
                 style: const TextStyle(

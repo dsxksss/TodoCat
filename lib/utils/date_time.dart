@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
 
-const int minTimestampLength = 1000000000000;
+const int _minTimestampLength = 1000000000000;
 
 String timestampToDate(int timestamp) {
-  if (timestamp.isLowerThan(minTimestampLength)) {
+  if (timestamp.isLowerThan(_minTimestampLength)) {
     return "unknownDate".tr;
   }
 

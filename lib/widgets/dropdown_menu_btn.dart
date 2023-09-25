@@ -6,38 +6,43 @@ import 'package:todo_cat/widgets/animation_btn.dart';
 class DropdownManuBtn extends StatelessWidget {
   const DropdownManuBtn({
     super.key,
-    required this.child,
-    required this.content,
-    this.controller,
-    required this.id,
-    this.onDismiss,
-    this.disable = false,
-  });
+    required Widget child,
+    required Widget content,
+    SmartDialogController? controller,
+    required String id,
+    void Function()? onDismiss,
+    bool disable = false,
+  })  : _onDismiss = onDismiss,
+        _controller = controller,
+        _disable = disable,
+        _content = content,
+        _child = child,
+        _id = id;
 
-  final String id;
-  final Widget child;
-  final Widget content;
-  final bool disable;
-  final SmartDialogController? controller;
-  final void Function()? onDismiss;
+  final String _id;
+  final Widget _child;
+  final Widget _content;
+  final bool _disable;
+  final SmartDialogController? _controller;
+  final void Function()? _onDismiss;
 
   @override
   Widget build(BuildContext context) {
     return AnimationBtn(
       onClickScale: 0.8,
-      disable: disable,
+      disable: _disable,
       clickScaleDuration: 100.ms,
       onHoverAnimationEnabled: false,
       onPressed: () {
         SmartDialog.showAttach(
-          onDismiss: onDismiss,
-          tag: id,
+          onDismiss: _onDismiss,
+          tag: _id,
           targetContext: context,
           debounce: true,
           keepSingle: true,
           usePenetrate: true,
           animationTime: 100.ms,
-          controller: controller,
+          controller: _controller,
           alignment: Alignment.bottomRight,
           animationBuilder: (controller, child, animationParam) => child
               .animate(controller: controller)
@@ -48,10 +53,10 @@ class DropdownManuBtn extends StatelessWidget {
                 curve: Curves.easeInOut,
                 duration: controller.duration,
               ),
-          builder: (_) => content,
+          builder: (_) => _content,
         );
       },
-      child: child,
+      child: _child,
     );
   }
 }

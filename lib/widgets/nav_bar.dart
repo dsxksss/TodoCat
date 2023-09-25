@@ -21,7 +21,7 @@ class NavBar extends StatefulWidget {
 }
 
 class _NavBarState extends State<NavBar> with WindowListener {
-  final AppController controller = Get.find();
+  final AppController _appController = Get.find();
 
   @override
   void initState() {
@@ -37,61 +37,37 @@ class _NavBarState extends State<NavBar> with WindowListener {
 
   @override
   void onWindowFocus() {
-    updateWindowStatus();
+    _appController.updateWindowStatus();
   }
 
   @override
   void onWindowMove() {
-    updateWindowStatus();
+    _appController.updateWindowStatus();
     super.onWindowMove();
   }
 
   @override
   void onWindowMaximize() {
-    updateWindowStatus();
+    _appController.updateWindowStatus();
     super.onWindowMaximize();
   }
 
   @override
   void onWindowUnmaximize() {
-    updateWindowStatus();
+    _appController.updateWindowStatus();
     super.onWindowUnmaximize();
   }
 
   @override
   void onWindowEnterFullScreen() {
-    updateWindowStatus();
+    _appController.updateWindowStatus();
     super.onWindowEnterFullScreen();
   }
 
   @override
   void onWindowLeaveFullScreen() {
-    updateWindowStatus();
+    _appController.updateWindowStatus();
     super.onWindowLeaveFullScreen();
-  }
-
-  void minimizeWindow() async {
-    await windowManager.minimize();
-  }
-
-  void updateWindowStatus() async {
-    final maximized = await windowManager.isMaximized();
-    controller.isMaximize.value = maximized;
-    final fullScreen = await windowManager.isFullScreen();
-    controller.isFullScreen.value = fullScreen;
-  }
-
-  void targetMaximizeWindow() async {
-    if (controller.isMaximize.value) {
-      await windowManager.unmaximize();
-    } else {
-      await windowManager.maximize();
-    }
-    updateWindowStatus();
-  }
-
-  void closeWindow() async {
-    await windowManager.close();
   }
 
   @override
@@ -142,16 +118,16 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       Row(
                         children: [
                           NavBarBtn(
-                            onPressed: () => controller.targetThemeMode(),
+                            onPressed: () => _appController.targetThemeMode(),
                             child: const Icon(
                               Icons.nights_stay,
                               size: 25,
                             )
                                 .animate(
-                                    target:
-                                        controller.appConfig.value.isDarkMode
-                                            ? 1
-                                            : 0)
+                                    target: _appController
+                                            .appConfig.value.isDarkMode
+                                        ? 1
+                                        : 0)
                                 .fadeOut(duration: 200.ms)
                                 .rotate(end: 0.1, duration: 200.ms)
                                 .swap(
@@ -168,7 +144,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                             width: context.isPhone ? 10 : 20,
                           ),
                           NavBarBtn(
-                            onPressed: () => controller.changeLanguage(
+                            onPressed: () => _appController.changeLanguage(
                               Get.locale == const Locale("zh", "CN")
                                   ? const Locale("en", "US")
                                   : const Locale("zh", "CN"),
@@ -197,19 +173,19 @@ class _NavBarState extends State<NavBar> with WindowListener {
                               width: 20,
                             ),
                             NavBarBtn(
-                              onPressed: minimizeWindow,
+                              onPressed: _appController.minimizeWindow,
                               child: const Icon(FontAwesomeIcons.minus),
                             ),
                             const SizedBox(
                               width: 20,
                             ),
                             NavBarBtn(
-                              onPressed: targetMaximizeWindow,
+                              onPressed: _appController.targetMaximizeWindow,
                               child: Transform.scale(
                                 scale: 0.8,
                                 child: Obx(
                                   () => Icon(
-                                    controller.isMaximize.value
+                                    _appController.isMaximize.value
                                         ? FontAwesomeIcons.windowRestore
                                         : FontAwesomeIcons.square,
                                   ),
@@ -220,7 +196,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                               width: 20,
                             ),
                             NavBarBtn(
-                              onPressed: closeWindow,
+                              onPressed: _appController.closeWindow,
                               hoverColor: Colors.redAccent.shade100,
                               child: const Icon(
                                 FontAwesomeIcons.xmark,
@@ -243,17 +219,23 @@ class _NavBarState extends State<NavBar> with WindowListener {
 
 class NavBarBtn extends StatelessWidget {
   const NavBarBtn(
-      {super.key, this.onPressed, required this.child, this.hoverColor});
-  final Function? onPressed;
-  final Color? hoverColor;
-  final Widget child;
+      {super.key,
+      Function? onPressed,
+      required Widget child,
+      Color? hoverColor})
+      : _child = child,
+        _hoverColor = hoverColor,
+        _onPressed = onPressed;
+  final Function? _onPressed;
+  final Color? _hoverColor;
+  final Widget _child;
 
   @override
   Widget build(BuildContext context) {
     return AnimationBtn(
       onHoverScale: 1.2,
-      onPressed: onPressed,
-      hoverBgColor: hoverColor,
+      onPressed: _onPressed,
+      hoverBgColor: _hoverColor,
       onHoverBgColorChangeEnabled: true,
       onHoverAnimationEnabled: false,
       child: Container(
@@ -268,7 +250,7 @@ class NavBarBtn extends StatelessWidget {
           horizontal: 6,
           vertical: 2,
         ),
-        child: child,
+        child: _child,
       ),
     );
   }

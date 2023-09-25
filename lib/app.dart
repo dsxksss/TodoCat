@@ -16,6 +16,7 @@ import 'package:todo_cat/routers/router_map.dart';
 import 'package:todo_cat/themes/dark_theme.dart';
 import 'package:todo_cat/themes/light_theme.dart';
 import 'package:todo_cat/themes/theme_mode.dart';
+import 'package:window_manager/window_manager.dart';
 
 class AppController extends GetxController {
   late final LocalNotificationManager localNotificationManager;
@@ -95,6 +96,30 @@ class AppController extends GetxController {
     localNotificationManager.destroyLocalNotification();
     super.onClose();
   }
+
+  void minimizeWindow() async {
+    await windowManager.minimize();
+  }
+
+  void updateWindowStatus() async {
+    final maximized = await windowManager.isMaximized();
+    isMaximize.value = maximized;
+    final fullScreen = await windowManager.isFullScreen();
+    isFullScreen.value = fullScreen;
+  }
+
+  void targetMaximizeWindow() async {
+    if (isMaximize.value) {
+      await windowManager.unmaximize();
+    } else {
+      await windowManager.maximize();
+    }
+    updateWindowStatus();
+  }
+
+  void closeWindow() async {
+    await windowManager.close();
+  }
 }
 
 class App extends StatefulWidget {
@@ -105,12 +130,12 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  late final AppController controller;
+  late final AppController _appController;
 
   @override
   void initState() {
     Get.put(AppController());
-    controller = Get.find();
+    _appController = Get.find();
 
     super.initState();
     if (Platform.isAndroid || Platform.isIOS) {
@@ -131,11 +156,11 @@ class _AppState extends State<App> {
             debugShowCheckedModeBanner: false,
             title: "TodoCat",
             translations: Locales(),
-            locale: controller.appConfig.value.locale,
+            locale: _appController.appConfig.value.locale,
             fallbackLocale: const Locale('en', 'US'),
             builder: FlutterSmartDialog.init(),
             navigatorObservers: [FlutterSmartDialog.observer],
-            themeMode: controller.appConfig.value.isDarkMode
+            themeMode: _appController.appConfig.value.isDarkMode
                 ? ThemeMode.dark
                 : ThemeMode.light,
             theme: lightTheme,

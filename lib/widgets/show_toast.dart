@@ -11,7 +11,7 @@ enum TodoCatToastStyleType {
   warning,
 }
 
-List getIconData(TodoCatToastStyleType type) {
+List _getIconData(TodoCatToastStyleType type) {
   switch (type) {
     case TodoCatToastStyleType.success:
       return [FontAwesomeIcons.circleCheck, Colors.greenAccent];
@@ -85,7 +85,7 @@ void showToast(
     builder: builder ??
         (context) {
           final iconData =
-              getIconData(toastStyleType ?? TodoCatToastStyleType.info);
+              _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
           return Container(
             margin: margin ?? const EdgeInsets.only(bottom: 100),
             width: 250,
