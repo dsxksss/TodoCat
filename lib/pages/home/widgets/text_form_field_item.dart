@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 
 class TextFormFieldItem extends StatelessWidget {
   const TextFormFieldItem({
     super.key,
-    required TextEditingController editingController,
-    required String fieldTitle,
-    required int maxLength,
     int maxLines = 1,
-    EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
+    double radius = 10,
+    required int maxLength,
+    required String fieldTitle,
     String? Function(String?)? validator,
+    required TextEditingController editingController,
+    EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
   })  : _validator = validator,
         _editingController = editingController,
         _contentPadding = contentPadding,
         _maxLines = maxLines,
         _maxLength = maxLength,
-        _fieldTitle = fieldTitle;
+        _fieldTitle = fieldTitle,
+        _radius = radius;
 
   final String _fieldTitle;
   final int _maxLength;
   final int _maxLines;
+  final double _radius;
   final EdgeInsets _contentPadding;
   final TextEditingController _editingController;
   final String? Function(String?)? _validator;
@@ -42,17 +46,33 @@ class TextFormFieldItem extends StatelessWidget {
             hintStyle: const TextStyle(color: Colors.grey),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(_radius),
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(_radius),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(_radius),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(_radius),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(_radius),
             ),
           ),
           validator: _validator ??
               (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return "pleaseCompleteItProperly".tr;
+                  showToast(
+                    "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}",
+                    toastStyleType: TodoCatToastStyleType.warning,
+                  );
+                  return '';
                 }
                 return null;
               },
