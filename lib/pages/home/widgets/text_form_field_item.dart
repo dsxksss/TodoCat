@@ -29,10 +29,6 @@ class TextFormFieldItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 5),
-          child: Text(_fieldTitle),
-        ),
         TextFormField(
           controller: _editingController,
           maxLength: _maxLength,

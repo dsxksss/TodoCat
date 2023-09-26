@@ -20,10 +20,6 @@ class SelectPriorityPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(_titile),
-        const SizedBox(
-          height: 5,
-        ),
         DefaultTabController(
           length: _tabs.length,
           animationDuration: 400.ms,

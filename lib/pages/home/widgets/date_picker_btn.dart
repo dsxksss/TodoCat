@@ -13,10 +13,8 @@ class DatePickerBtn extends StatelessWidget {
     required RxString text,
     required RxInt value,
   })  : _value = value,
-        _text = text,
-        _fieldTitle = fieldTitle;
+        _text = text;
 
-  final String _fieldTitle;
   final RxString _text;
   final RxInt _value;
 
@@ -25,10 +23,6 @@ class DatePickerBtn extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 5),
-          child: Text(_fieldTitle),
-        ),
         Row(
           children: [
             Expanded(
@@ -58,43 +52,10 @@ class DatePickerBtn extends StatelessWidget {
               width: 10,
             ),
             AnimationBtn(
-              onPressed: () {
-                _text.value = "${"enter".tr}${"time".tr}";
-                _value.value = 0;
-              },
+              onPressed: () => _showDatePickerDialog(),
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.redAccent,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      "clear".tr,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    const Icon(
-                      FontAwesomeIcons.trashCan,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(
-              width: 20,
-            ),
-            AnimationBtn(
-              onPressed: () => showDatePickerDialog(),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.lightBlue,
                   borderRadius: BorderRadius.circular(5),
@@ -117,6 +78,39 @@ class DatePickerBtn extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(
+              width: 10,
+            ),
+            AnimationBtn(
+              onPressed: () {
+                _text.value = "${"enter".tr}${"time".tr}";
+                _value.value = 0;
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      "clear".tr,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    const Icon(
+                      FontAwesomeIcons.trashCan,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ],
@@ -124,7 +118,7 @@ class DatePickerBtn extends StatelessWidget {
   }
 }
 
-void showDatePickerDialog() {
+void _showDatePickerDialog() {
   Get.generalDialog(
     barrierLabel: "showAddTodoDialog",
     barrierDismissible: true,

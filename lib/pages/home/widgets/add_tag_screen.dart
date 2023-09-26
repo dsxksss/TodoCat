@@ -18,7 +18,6 @@ class AddTagScreen extends StatelessWidget {
             () => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("addTag".tr),
                 Container(
                   margin: const EdgeInsets.only(top: 5),
                   child: Flex(

@@ -127,14 +127,11 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
                 TextFormFieldItem(
                   maxLength: 400,
                   maxLines: 5,
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 12),
                   fieldTitle: "description".tr,
                   validator: (_) => null,
                   editingController: _dialogCtrl.descriptionFormCtrl,

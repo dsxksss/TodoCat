@@ -81,6 +81,7 @@ class AnimationBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) {
         _playHoverAnimation();
       },
@@ -131,8 +132,7 @@ class AnimationBtn extends StatelessWidget {
               )
               .animate(target: _onClickDisableAnimat.value ? 1 : 0)
               .tint(
-                end: 100,
-                color: Colors.redAccent,
+                color: Colors.red.withOpacity(0.9),
                 duration: _disableAnimatDuration ?? _defaultDuration,
               )
               .shakeX(
