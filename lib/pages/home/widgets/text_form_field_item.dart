@@ -5,8 +5,9 @@ import 'package:todo_cat/widgets/show_toast.dart';
 class TextFormFieldItem extends StatelessWidget {
   const TextFormFieldItem({
     super.key,
-    int maxLines = 1,
+    int? maxLines,
     double radius = 10,
+    bool obscureText = false,
     required int maxLength,
     required String fieldTitle,
     String? Function(String?)? validator,
@@ -18,13 +19,15 @@ class TextFormFieldItem extends StatelessWidget {
         _maxLines = maxLines,
         _maxLength = maxLength,
         _fieldTitle = fieldTitle,
+        _obscureText = obscureText,
         _radius = radius;
 
   final String _fieldTitle;
   final int _maxLength;
-  final int _maxLines;
+  final int? _maxLines;
   final double _radius;
   final EdgeInsets _contentPadding;
+  final bool _obscureText;
   final TextEditingController _editingController;
   final String? Function(String?)? _validator;
 
@@ -34,15 +37,16 @@ class TextFormFieldItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormField(
+          obscureText: _obscureText,
           controller: _editingController,
           maxLength: _maxLength,
           maxLines: _maxLines,
           decoration: InputDecoration(
             counter: const Text(""),
-            filled: true, // 是否填充背景色
+            filled: true,
             border: InputBorder.none,
             contentPadding: _contentPadding,
-            hintText: "${"enter".tr}${_fieldTitle.tr}",
+            hintText: _fieldTitle.tr,
             hintStyle: const TextStyle(color: Colors.grey),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide.none,

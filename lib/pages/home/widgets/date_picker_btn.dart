@@ -12,14 +12,18 @@ class DatePickerBtn extends StatelessWidget {
     required String fieldTitle,
     required RxString text,
     required RxInt value,
-  })  : _value = value,
+  })  : _fieldTitle = fieldTitle,
+        _value = value,
         _text = text;
 
   final RxString _text;
   final RxInt _value;
+  final String _fieldTitle;
 
   @override
   Widget build(BuildContext context) {
+    _text.value = _fieldTitle;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -52,63 +56,20 @@ class DatePickerBtn extends StatelessWidget {
               width: 10,
             ),
             AnimationBtn(
-              onPressed: () => _showDatePickerDialog(),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.lightBlue,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      "selectReminderTime".tr,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    const Icon(
-                      FontAwesomeIcons.clock,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
+              onPressed: _showDatePickerDialog,
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(FontAwesomeIcons.clock),
               ),
-            ),
-            const SizedBox(
-              width: 10,
             ),
             AnimationBtn(
               onPressed: () {
-                _text.value = "${"enter".tr}${"time".tr}";
+                _text.value = _fieldTitle;
                 _value.value = 0;
               },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.redAccent,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      "clear".tr,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    const Icon(
-                      FontAwesomeIcons.trashCan,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(FontAwesomeIcons.arrowRotateLeft),
               ),
             ),
           ],

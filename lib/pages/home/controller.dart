@@ -211,7 +211,6 @@ class AddTodoDialogController extends GetxController {
     selectedPriority.value = TodoPriority.lowLevel;
     remindersText.value = "";
     remindersValue.value = 0;
-    remindersText.value = "${"enter".tr}${"time".tr}";
   }
 }
 

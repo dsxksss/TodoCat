@@ -8,11 +8,9 @@ class SelectPriorityPanel extends StatelessWidget {
     required String titile,
     void Function(int)? onTap,
   })  : _onTap = onTap,
-        _titile = titile,
         _tabs = tabs;
 
   final List<Widget> _tabs;
-  final String _titile;
   final void Function(int)? _onTap;
 
   @override
