@@ -59,52 +59,119 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
       ),
       child: Stack(
         children: [
-          ListView(
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                "addTodo".tr,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 20),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  TagDialogBtn(
-                    title: Text("priority".tr),
-                    icon: Icon(
-                      Icons.flag_outlined,
+          Form(
+            key: _dialogCtrl.formKey,
+            child: ListView(
+              padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  "addTodo".tr,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TagDialogBtn(
+                      title: Text(
+                        "dueDate".tr,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      icon: const Icon(
+                        Icons.event_available_outlined,
+                        size: 20,
+                      ),
                     ),
-                  ),
-                  TagDialogBtn(
-                    title: Text("reminderTime".tr),
-                    icon: Icon(
-                      Icons.alarm,
+                    TagDialogBtn(
+                      title: Text(
+                        "reminderTime".tr,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      icon: const Icon(Icons.alarm, size: 20),
                     ),
-                  ),
-                  TagDialogBtn(
-                    title: Text("priority".tr),
-                    icon: Icon(
-                      Icons.event_available_outlined,
+                    TagDialogBtn(
+                      title: Text(
+                        "priority".tr,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      icon: const Icon(Icons.flag_outlined, size: 20),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 20),
+                TextFormFieldItem(
+                  maxLength: 20,
+                  maxLines: 1,
+                  radius: 6,
+                  fieldTitle: "title".tr,
+                  editingController: _dialogCtrl.titleFormCtrl,
+                ),
+                TextFormFieldItem(
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                  maxLength: 400,
+                  maxLines: 8,
+                  radius: 6,
+                  fieldTitle: "description".tr,
+                  editingController: _dialogCtrl.descriptionFormCtrl,
+                ),
+              ],
+            ),
           ),
           Positioned(
-            right: 5,
-            bottom: 10,
+            right: 20,
+            bottom: 20,
             child: Row(
               children: [
                 LabelBtn(
-                  label: Text("cancel".tr),
+                  onHoverAnimationEnabled: false,
+                  onHoverBgColorChangeEnabled: true,
+                  label: Text(
+                    "cancel".tr,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                   ghostStyle: true,
                   onPressed: () => SmartDialog.dismiss(tag: "AddTodoDialog"),
                 ),
-                SizedBox(width: 20),
-                LabelBtn(label: Text("create".tr)),
+                const SizedBox(width: 20),
+                LabelBtn(
+                  label: Text(
+                    "create".tr,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                  onPressed: () {
+                    if (_dialogCtrl.formKey.currentState!.validate()) {
+                      final todo = Todo(
+                        id: const Uuid().v4(),
+                        title: _dialogCtrl.titleFormCtrl.text.trim(),
+                        description:
+                            _dialogCtrl.descriptionFormCtrl.text.trim(),
+                        createdAt: DateTime.now().millisecondsSinceEpoch,
+                        tags: _dialogCtrl.selectedTags.toList(),
+                        priority: _dialogCtrl.selectedPriority.value,
+                        reminders: _dialogCtrl.remindersValue.value,
+                      );
+
+                      _homeCtrl.addTodo(todo);
+
+                      SmartDialog.dismiss(tag: "AddTodoDialog");
+                    }
+                  },
+                ),
               ],
             ),
           ),

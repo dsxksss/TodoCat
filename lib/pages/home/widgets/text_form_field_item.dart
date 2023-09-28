@@ -13,7 +13,11 @@ class TextFormFieldItem extends StatelessWidget {
     String? Function(String?)? validator,
     required TextEditingController editingController,
     EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
-  })  : _validator = validator,
+    bool? ghostStyle,
+    Color? fillColor,
+  })  : _fillColor = fillColor,
+        _ghostStyle = ghostStyle ?? false,
+        _validator = validator,
         _editingController = editingController,
         _contentPadding = contentPadding,
         _maxLines = maxLines,
@@ -23,9 +27,11 @@ class TextFormFieldItem extends StatelessWidget {
         _radius = radius;
 
   final String _fieldTitle;
+  final Color? _fillColor;
   final int _maxLength;
   final int? _maxLines;
   final double _radius;
+  final bool _ghostStyle;
   final EdgeInsets _contentPadding;
   final bool _obscureText;
   final TextEditingController _editingController;
@@ -33,6 +39,14 @@ class TextFormFieldItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final InputBorder inputBorder = _ghostStyle
+        ? InputBorder.none
+        : OutlineInputBorder(
+            borderSide:
+                BorderSide(color: context.theme.dividerColor, width: 0.5),
+            borderRadius: BorderRadius.circular(_radius),
+          );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -41,33 +55,28 @@ class TextFormFieldItem extends StatelessWidget {
           controller: _editingController,
           maxLength: _maxLength,
           maxLines: _maxLines,
+          cursorColor: Colors.blueGrey.shade400,
           decoration: InputDecoration(
             counter: const Text(""),
             filled: true,
-            border: InputBorder.none,
+            fillColor:
+                _fillColor ?? context.theme.inputDecorationTheme.fillColor,
             contentPadding: _contentPadding,
             hintText: _fieldTitle.tr,
+            hoverColor: Colors.transparent,
             hintStyle: const TextStyle(color: Colors.grey),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(_radius),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(_radius),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(_radius),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(_radius),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(_radius),
-            ),
+            border: inputBorder,
+            focusedBorder: _ghostStyle
+                ? InputBorder.none
+                : OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.grey.shade800, width: 1.5),
+                    borderRadius: BorderRadius.circular(_radius),
+                  ),
+            enabledBorder: inputBorder,
+            errorBorder: inputBorder,
+            focusedErrorBorder: inputBorder,
+            disabledBorder: inputBorder,
           ),
           validator: _validator ??
               (value) {

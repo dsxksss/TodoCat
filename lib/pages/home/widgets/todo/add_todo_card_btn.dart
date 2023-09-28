@@ -60,13 +60,16 @@ class AddTodoCardBtn extends StatelessWidget {
 }
 
 void _showAddTodoDialog() {
+  SmartDialog.dismiss();
   SmartDialog.show(
     useSystem: false,
+    debounce: true,
+    keepSingle: true,
     tag: "AddTodoDialog",
-    maskColor: Colors.transparent,
+    maskColor: Colors.black12,
     animationTime: 100.ms,
     builder: (context) {
-      return AddTodoDialog();
+      return const AddTodoDialog();
     },
     animationBuilder: (controller, child, _) => child
         .animate(controller: controller)

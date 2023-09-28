@@ -19,7 +19,6 @@ const Map<String, String> zhCN = {
   'mediumLevel': '中级别',
   'lowLevel': '低级别',
   'reminderTime': '提醒时间',
-  'selectReminderTime': '选择提醒时间',
   'status': '状态',
   'unknownDate': '未知日期或不存在',
   'edit': '编辑',
@@ -53,4 +52,5 @@ const Map<String, String> zhCN = {
   'select': '选择',
   'create': '创建',
   'cancel': '取消',
+  'dueDate': '截止日期',
 };

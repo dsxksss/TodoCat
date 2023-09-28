@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 
 class TagDialogBtn extends StatelessWidget {
@@ -18,6 +17,7 @@ class TagDialogBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return LabelBtn(
       interval: 5,
+      reverse: true,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       ghostStyle: true,
       label: _title,

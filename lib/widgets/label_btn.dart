@@ -11,6 +11,7 @@ class LabelBtn extends StatelessWidget {
     Widget? icon,
     bool? disable,
     bool? ghostStyle,
+    bool? reverse,
     Function? onPressed,
     Color? bgColor,
     Decoration? decoration,
@@ -27,6 +28,7 @@ class LabelBtn extends StatelessWidget {
   })  : _label = label,
         _icon = icon,
         _ghostStyle = ghostStyle ?? false,
+        _reverse = reverse ?? false,
         _padding = padding,
         _interval = interval,
         _disableAnimatDuration = disableAnimatDuration,
@@ -50,6 +52,7 @@ class LabelBtn extends StatelessWidget {
 
   final Widget _label;
   final bool _ghostStyle;
+  final bool _reverse;
   final EdgeInsets? _padding;
   final Widget? _icon;
   final Color? _bgColor;
@@ -90,23 +93,29 @@ class LabelBtn extends StatelessWidget {
             ? BoxDecoration(
                 borderRadius: BorderRadius.circular(5),
                 border: Border.all(
-                  width: 0.6,
+                  width: 0.8,
                   color: context.theme.dividerColor,
                 ),
               )
             : _decoration ??
                 BoxDecoration(
-                  color: _bgColor ?? Colors.lightBlueAccent,
+                  color: _bgColor ?? Colors.lightBlue,
                   borderRadius: BorderRadius.circular(5),
                 ),
         child: Flex(
           direction: Axis.horizontal,
           mainAxisSize: MainAxisSize.min,
-          children: [
-            _label,
-            if (_icon != null) SizedBox(width: _interval ?? 10),
-            if (_icon != null) _icon ?? const SizedBox(),
-          ],
+          children: _reverse
+              ? [
+                  if (_icon != null) _icon ?? const SizedBox(),
+                  if (_icon != null) SizedBox(width: _interval ?? 10),
+                  _label,
+                ]
+              : [
+                  _label,
+                  if (_icon != null) SizedBox(width: _interval ?? 10),
+                  if (_icon != null) _icon ?? const SizedBox(),
+                ],
         ),
       ),
     );
