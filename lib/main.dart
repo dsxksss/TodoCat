@@ -11,7 +11,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 void main() async {
   await initDB();
 
-  // google fonts don't use network getting
+  // GoogleFonts 不使用运行时获取
   GoogleFonts.config.allowRuntimeFetching = false;
 
   // 确保flutterBinding初始化成功

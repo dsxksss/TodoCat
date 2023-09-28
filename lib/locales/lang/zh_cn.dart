@@ -51,4 +51,6 @@ const Map<String, String> zhCN = {
   'reset': '重置',
   'pleaseCompleteItProperly': '请填写完整',
   'select': '选择',
+  'create': '创建',
+  'cancel': '取消',
 };

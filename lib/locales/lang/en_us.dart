@@ -51,4 +51,6 @@ const Map<String, String> enUS = {
   'reset': 'Reset',
   'pleaseCompleteItProperly': 'Please fill in correctly',
   'select': 'Select',
+  'create': 'Create',
+  'cancel': 'Cancel',
 };

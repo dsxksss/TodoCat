@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
@@ -59,14 +60,21 @@ class AddTodoCardBtn extends StatelessWidget {
 }
 
 void _showAddTodoDialog() {
-  Get.generalDialog(
-    barrierLabel: "showAddTodoDialog",
-    barrierDismissible: true,
-    barrierColor: Colors.black.withOpacity(0.5),
-    transitionDuration: 250.ms,
-    pageBuilder: (_, __, ___) {
-      return GestureDetector(child: const AddTodoDialog());
+  SmartDialog.show(
+    useSystem: false,
+    tag: "AddTodoDialog",
+    maskColor: Colors.transparent,
+    animationTime: 100.ms,
+    builder: (context) {
+      return AddTodoDialog();
     },
+    animationBuilder: (controller, child, _) => child
+        .animate(controller: controller)
+        .fade(duration: controller.duration)
+        .moveY(
+          begin: -2,
+          duration: controller.duration,
+        ),
   );
 }
 
