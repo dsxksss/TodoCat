@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -56,8 +58,10 @@ class AnimationBtn extends StatelessWidget {
   final _onClickDisableAnimat = false.obs;
 
   void _playHoverAnimation() {
-    if (_onHoverAnimationEnabled) _onHover.value = true;
-    if (_onHoverBgColorChangeEnabled) _onHoverbgColorChange.value = true;
+    if (!Platform.isAndroid || !Platform.isIOS) {
+      if (_onHoverAnimationEnabled) _onHover.value = true;
+      if (_onHoverBgColorChangeEnabled) _onHoverbgColorChange.value = true;
+    }
   }
 
   void _playDisableAnimation() async {

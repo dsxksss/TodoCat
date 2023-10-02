@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -87,17 +88,17 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     ),
                     TagDialogBtn(
                       title: Text(
-                        "reminderTime".tr,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      icon: const Icon(Icons.alarm, size: 20),
-                    ),
-                    TagDialogBtn(
-                      title: Text(
                         "priority".tr,
                         style: const TextStyle(fontSize: 16),
                       ),
                       icon: const Icon(Icons.flag_outlined, size: 20),
+                    ),
+                    TagDialogBtn(
+                      title: Text(
+                        "reminderTime".tr,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      icon: const Icon(Icons.alarm, size: 20),
                     ),
                   ],
                 ),
