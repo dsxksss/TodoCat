@@ -40,11 +40,18 @@ class TaskCard extends StatelessWidget {
     return Container(
       width: context.isPhone ? 0.9.sw : 240,
       decoration: BoxDecoration(
-          color: context.theme.cardColor,
-          borderRadius: BorderRadius.circular(
-            10,
+        color: context.theme.cardColor,
+        borderRadius: BorderRadius.circular(
+          10,
+        ),
+        border: Border.all(width: 0.4, color: context.theme.dividerColor),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: context.theme.dividerColor,
+            blurRadius: context.isDarkMode ? 0.2 : 3.5,
           ),
-          border: Border.all(width: 0.4, color: context.theme.dividerColor)),
+        ],
+      ),
       child: Flex(
         direction: Axis.vertical,
         children: [

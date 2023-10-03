@@ -8,6 +8,7 @@ class LabelBtn extends StatelessWidget {
     required Widget label,
     double? interval,
     EdgeInsets? padding,
+    EdgeInsets? margin,
     Widget? icon,
     bool? disable,
     bool? ghostStyle,
@@ -30,6 +31,7 @@ class LabelBtn extends StatelessWidget {
         _ghostStyle = ghostStyle ?? false,
         _reverse = reverse ?? false,
         _padding = padding,
+        _margin = margin,
         _interval = interval,
         _disableAnimatDuration = disableAnimatDuration,
         _bgColorChangeDuration = bgColorChangeDuration,
@@ -54,6 +56,7 @@ class LabelBtn extends StatelessWidget {
   final bool _ghostStyle;
   final bool _reverse;
   final EdgeInsets? _padding;
+  final EdgeInsets? _margin;
   final Widget? _icon;
   final Color? _bgColor;
   final Function? _onPressed;
@@ -89,6 +92,7 @@ class LabelBtn extends StatelessWidget {
       child: Container(
         padding:
             _padding ?? const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        margin: _margin,
         decoration: _ghostStyle
             ? BoxDecoration(
                 borderRadius: BorderRadius.circular(5),

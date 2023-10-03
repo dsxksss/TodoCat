@@ -7,16 +7,20 @@ class TagDialogBtn extends StatelessWidget {
     super.key,
     required Widget title,
     required Widget icon,
-  })  : _title = title,
+    EdgeInsets? margin,
+  })  : _margin = margin,
+        _title = title,
         _icon = icon;
 
   final Widget _title;
   final Widget _icon;
+  final EdgeInsets? _margin;
 
   @override
   Widget build(BuildContext context) {
     return LabelBtn(
       interval: 5,
+      margin: _margin,
       reverse: true,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       ghostStyle: true,

@@ -104,9 +104,10 @@ class AnimationBtn extends StatelessWidget {
             _playDisableAnimation();
           }
         },
-        onLongPressDown: (_) {
+        onLongPressDown: (_) async {
           if (!_disable) {
             _playClickAnimation();
+            await Future.delayed(1000.ms, _closeAllAnimation);
           }
         },
         onLongPressUp: () {

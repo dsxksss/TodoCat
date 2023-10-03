@@ -66,63 +66,38 @@ void _showAddTodoDialog() {
     debounce: true,
     keepSingle: true,
     tag: "AddTodoDialog",
-    maskColor: Colors.black12,
+    maskColor: Colors.transparent,
     animationTime: 100.ms,
-    builder: (context) {
-      return const AddTodoDialog();
-    },
+    builder: (context) => const AddTodoDialog(),
+    clickMaskDismiss: false,
+    onMask: () => SmartDialog.dismiss(tag: "AddTodoDialog"),
     animationBuilder: (controller, child, _) => child
         .animate(controller: controller)
         .fade(duration: controller.duration)
-        .moveY(
-          begin: -2,
+        .scaleXY(
+          begin: 0.95,
           duration: controller.duration,
         ),
   );
 }
 
 void _showAddTodoBottomSheet(BuildContext context) {
-  final HomeController homeCtrl = Get.find();
-
-  Get.bottomSheet(
-    Container(
-      height: 0.6.sh,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("开发中..."),
-              ElevatedButton(
-                onPressed: () {
-                  final todo = Todo(
-                    id: const Uuid().v4(),
-                    title: "Test",
-                    description: "Test description",
-                    createdAt: DateTime.now().millisecondsSinceEpoch,
-                    tags: ["test", "description", "default"],
-                    priority: TodoPriority.lowLevel,
-                    reminders: DateTime.now()
-                        .add(const Duration(minutes: 1))
-                        .millisecondsSinceEpoch,
-                  );
-                  homeCtrl.addTodo(todo);
-
-                  Get.back();
-                },
-                child: const Text("add Todo"),
-              )
-            ],
-          ),
-        ],
-      ),
-    ),
-    enterBottomSheetDuration: 200.ms,
-    exitBottomSheetDuration: 200.ms,
+  SmartDialog.dismiss();
+  SmartDialog.show(
+    debounce: true,
+    keepSingle: true,
+    tag: "AddTodoDialog",
+    maskColor: Colors.transparent,
+    animationTime: 300.ms,
+    alignment: Alignment.bottomCenter,
+    builder: (context) => const AddTodoDialog(),
+    clickMaskDismiss: false,
+    onMask: () => SmartDialog.dismiss(tag: "AddTodoDialog"),
+    animationBuilder: (controller, child, _) =>
+        child.animate(controller: controller).moveY(
+              begin: 0.6.sh,
+              duration: controller.duration,
+              curve: Curves.easeOut,
+            ),
   );
 }

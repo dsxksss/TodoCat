@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -43,7 +45,9 @@ void showToast(
       AnimationController controller) {
     final List<Effect<dynamic>> animationEffect = [
       MoveEffect(
-        begin: const Offset(0, 150),
+        begin: Platform.isAndroid || Platform.isIOS
+            ? const Offset(0, -150)
+            : const Offset(0, 150),
         duration: controller.duration,
         curve: Curves.easeInOutBack,
       ),
@@ -72,7 +76,10 @@ void showToast(
     animationTime: animationTime ?? 600.ms,
     tag: tag,
     keepSingle: keepSingle ?? true,
-    alignment: alignment ?? Alignment.bottomCenter,
+    alignment: alignment ??
+        (Platform.isAndroid || Platform.isIOS
+            ? Alignment.topCenter
+            : Alignment.bottomCenter),
     maskColor: Colors.transparent,
     maskWidget: Container(),
     clickMaskDismiss: false,
@@ -87,7 +94,10 @@ void showToast(
           final iconData =
               _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
           return Container(
-            margin: margin ?? const EdgeInsets.only(bottom: 100),
+            margin: margin ??
+                (Platform.isAndroid || Platform.isIOS
+                    ? const EdgeInsets.only(top: 110)
+                    : const EdgeInsets.only(bottom: 100)),
             width: 250,
             height: 60,
             decoration: BoxDecoration(
