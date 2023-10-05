@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/pages/home/widgets/task/task_card.dart';
@@ -61,31 +62,52 @@ class HomePage extends GetView<HomeController> {
                 ),
                 children: [
                   Obx(
-                    () => Padding(
-                      padding: context.isPhone
-                          ? EdgeInsets.zero
-                          : const EdgeInsets.only(left: 20),
-                      child: Wrap(
-                        alignment: context.isPhone
-                            ? WrapAlignment.center
-                            : WrapAlignment.start,
-                        direction: Axis.horizontal,
-                        spacing: context.isPhone ? 0 : 50,
-                        runSpacing: context.isPhone ? 50 : 30,
-                        children: AnimateList(
-                          onComplete: (_) => controller
-                              .listAnimatInterval.value = Duration.zero,
-                          effects: [
-                            context.isPhone
-                                ? const MoveEffect(begin: Offset(0, 10))
-                                : const MoveEffect(begin: Offset(-10, 0)),
-                            const FadeEffect()
-                          ],
-                          interval: controller.listAnimatInterval.value,
-                          children: [
-                            ...controller.tasks
-                                .map((element) => TaskCard(task: element))
-                          ],
+                    () => Animate(
+                      target: controller.tasks.isNotEmpty ? 0 : 1,
+                      effects: [
+                        SwapEffect(
+                          builder: (_, __) => SizedBox(
+                            height: 0.7.sh,
+                            child: Center(
+                              child: Text(
+                                "Do It Now !",
+                                style: GoogleFonts.getFont(
+                                  'Ubuntu',
+                                  textStyle: const TextStyle(
+                                    fontSize: 60,
+                                  ),
+                                ),
+                              ),
+                            ).animate().fade(),
+                          ),
+                        ),
+                      ],
+                      child: Padding(
+                        padding: context.isPhone
+                            ? EdgeInsets.zero
+                            : const EdgeInsets.only(left: 20),
+                        child: Wrap(
+                          alignment: context.isPhone
+                              ? WrapAlignment.center
+                              : WrapAlignment.start,
+                          direction: Axis.horizontal,
+                          spacing: context.isPhone ? 0 : 50,
+                          runSpacing: context.isPhone ? 50 : 30,
+                          children: AnimateList(
+                            onComplete: (_) => controller
+                                .listAnimatInterval.value = Duration.zero,
+                            effects: [
+                              context.isPhone
+                                  ? const MoveEffect(begin: Offset(0, 10))
+                                  : const MoveEffect(begin: Offset(-10, 0)),
+                              const FadeEffect(),
+                            ],
+                            interval: controller.listAnimatInterval.value,
+                            children: [
+                              ...controller.tasks
+                                  .map((element) => TaskCard(task: element))
+                            ],
+                          ),
                         ),
                       ),
                     ),
