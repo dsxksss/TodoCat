@@ -5,11 +5,10 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/controller.dart';
+import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/pages/home/widgets/todo/add_todo_dialog.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
-import 'package:uuid/uuid.dart';
 
 class AddTodoCardBtn extends StatelessWidget {
   AddTodoCardBtn({super.key, required Task task}) : _task = task;
@@ -65,18 +64,19 @@ void _showAddTodoDialog() {
     useSystem: false,
     debounce: true,
     keepSingle: true,
-    tag: "AddTodoDialog",
+    tag: addTodoDialogTag,
     maskColor: Colors.transparent,
-    animationTime: 100.ms,
+    animationTime: 150.ms,
     builder: (context) => const AddTodoDialog(),
     clickMaskDismiss: false,
-    onMask: () => SmartDialog.dismiss(tag: "AddTodoDialog"),
+    onMask: () => SmartDialog.dismiss(tag: addTodoDialogTag),
     animationBuilder: (controller, child, _) => child
         .animate(controller: controller)
         .fade(duration: controller.duration)
         .scaleXY(
-          begin: 0.95,
+          begin: 0.98,
           duration: controller.duration,
+          curve: Curves.easeIn,
         ),
   );
 }
@@ -86,13 +86,13 @@ void _showAddTodoBottomSheet(BuildContext context) {
   SmartDialog.show(
     debounce: true,
     keepSingle: true,
-    tag: "AddTodoDialog",
+    tag: addTodoDialogTag,
     maskColor: Colors.transparent,
     animationTime: 300.ms,
     alignment: Alignment.bottomCenter,
     builder: (context) => const AddTodoDialog(),
     clickMaskDismiss: false,
-    onMask: () => SmartDialog.dismiss(tag: "AddTodoDialog"),
+    onMask: () => SmartDialog.dismiss(tag: addTodoDialogTag),
     animationBuilder: (controller, child, _) =>
         child.animate(controller: controller).moveY(
               begin: 0.6.sh,

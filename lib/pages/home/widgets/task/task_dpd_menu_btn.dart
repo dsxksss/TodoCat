@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/widgets/dropdown_menu_btn.dart';
 
 class MenuItem {
@@ -24,7 +25,7 @@ class TaskDropDownMenuBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownManuBtn(
-      id: "TaskDropDownMenuBtn",
+      id: taskDropDownMenuBtnTag,
       content: Container(
         width: 120,
         decoration: BoxDecoration(
@@ -59,7 +60,7 @@ class TaskDropDownMenuBtn extends StatelessWidget {
                   ),
                   onTap: () {
                     item.callback();
-                    SmartDialog.dismiss(tag: 'TaskDropDownMenuBtn');
+                    SmartDialog.dismiss(tag: taskDropDownMenuBtnTag);
                   },
                 ),
               ),

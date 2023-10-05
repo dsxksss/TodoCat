@@ -13,6 +13,7 @@ import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/data/test/todo.dart';
 import 'package:todo_cat/env.dart';
 import 'package:todo_cat/utils/date_time.dart';
+import 'package:todo_cat/utils/dialog_keys.dart';
 
 class HomeController extends GetxController {
   late TaskRepository taskRepository;
@@ -63,7 +64,7 @@ class HomeController extends GetxController {
     // 当滚动时
     if (scrollController.offset != currentScrollOffset &&
         !scrollController.position.outOfRange) {
-      SmartDialog.dismiss(tag: "TaskDropDownMenuBtn");
+      SmartDialog.dismiss(tag: taskDropDownMenuBtnTag);
     }
 
     currentScrollOffset = scrollController.offset;
@@ -107,7 +108,10 @@ class HomeController extends GetxController {
     }
     Task task = tasks.singleWhere((task) => task.id == taskId);
     for (var todo in task.todos) {
-      appCtrl.localNotificationManager.destroy(todo.id);
+      appCtrl.localNotificationManager.destroy(
+        timerKey: todo.id,
+        sendDeleteReq: true,
+      );
     }
 
     tasks.remove(task);

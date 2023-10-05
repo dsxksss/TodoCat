@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/controller.dart';
+import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/pages/home/widgets/add_tag_screen.dart';
 import 'package:todo_cat/pages/home/widgets/date_picker_btn.dart';
 import 'package:todo_cat/pages/home/widgets/select_priority_panel.dart';
 import 'package:todo_cat/pages/home/widgets/text_form_field_item.dart';
-import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 import 'package:uuid/uuid.dart';
@@ -41,6 +39,27 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
     _dialogCtrl.onDialogClose();
     _homeCtrl.deselectTask();
     super.dispose();
+  }
+
+  void addTodoHandler() {
+    if (_dialogCtrl.formKey.currentState!.validate()) {
+      final todo = Todo(
+        id: const Uuid().v4(),
+        title: _dialogCtrl.titleFormCtrl.text.trim(),
+        description: _dialogCtrl.descriptionFormCtrl.text.trim(),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        tags: _dialogCtrl.selectedTags.toList(),
+        priority: _dialogCtrl.selectedPriority.value,
+        // reminders: _dialogCtrl.remindersValue.value,
+        reminders: DateTime.now()
+            .add(const Duration(minutes: 1))
+            .millisecondsSinceEpoch,
+      );
+
+      _homeCtrl.addTodo(todo);
+
+      SmartDialog.dismiss(tag: addTodoDialogTag);
+    }
   }
 
   @override
@@ -94,25 +113,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                           ),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 15, vertical: 2),
-                          onPressed: () {
-                            if (_dialogCtrl.formKey.currentState!.validate()) {
-                              final todo = Todo(
-                                id: const Uuid().v4(),
-                                title: _dialogCtrl.titleFormCtrl.text.trim(),
-                                description:
-                                    _dialogCtrl.descriptionFormCtrl.text.trim(),
-                                createdAt:
-                                    DateTime.now().millisecondsSinceEpoch,
-                                tags: _dialogCtrl.selectedTags.toList(),
-                                priority: _dialogCtrl.selectedPriority.value,
-                                reminders: _dialogCtrl.remindersValue.value,
-                              );
-
-                              _homeCtrl.addTodo(todo);
-
-                              SmartDialog.dismiss(tag: "AddTodoDialog");
-                            }
-                          },
+                          onPressed: addTodoHandler,
                         ),
                     ],
                   ),
@@ -213,7 +214,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                     ghostStyle: true,
-                    onPressed: () => SmartDialog.dismiss(tag: "AddTodoDialog"),
+                    onPressed: () => SmartDialog.dismiss(tag: addTodoDialogTag),
                   ),
                   const SizedBox(width: 20),
                   LabelBtn(
@@ -227,24 +228,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     ),
                     padding:
                         const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                    onPressed: () {
-                      if (_dialogCtrl.formKey.currentState!.validate()) {
-                        final todo = Todo(
-                          id: const Uuid().v4(),
-                          title: _dialogCtrl.titleFormCtrl.text.trim(),
-                          description:
-                              _dialogCtrl.descriptionFormCtrl.text.trim(),
-                          createdAt: DateTime.now().millisecondsSinceEpoch,
-                          tags: _dialogCtrl.selectedTags.toList(),
-                          priority: _dialogCtrl.selectedPriority.value,
-                          reminders: _dialogCtrl.remindersValue.value,
-                        );
-
-                        _homeCtrl.addTodo(todo);
-
-                        SmartDialog.dismiss(tag: "AddTodoDialog");
-                      }
-                    },
+                    onPressed: addTodoHandler,
                   ),
                 ],
               ),

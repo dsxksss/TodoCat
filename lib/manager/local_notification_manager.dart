@@ -9,6 +9,9 @@ import 'package:todo_cat/data/services/repositorys/local_notice.dart';
 import 'package:dio/dio.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
+const BASE_URL =
+    'https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com';
+
 class LocalNotificationManager {
   late final LocalNoticeRepository localNoticeRepository;
   final Map<String, Timer> timerPool = {};
@@ -107,8 +110,13 @@ class LocalNotificationManager {
           );
         }
 
-        // 销毁通知数据
-        destroy(notice.id);
+        await Future.delayed(
+          2000.ms,
+          () => {
+            // 销毁通知数据
+            destroy(timerKey: notice.id),
+          },
+        );
       });
       timerPool[notice.id] = timer;
     }
@@ -123,9 +131,6 @@ class LocalNotificationManager {
       createHttpClient: () {
         final client = HttpClient();
         client.findProxy = (uri) {
-          // 将请求代理至 localhost:8888。
-          // 请注意，代理会在你正在运行应用的设备上生效，而不是在宿主平台生效。
-          // return 'PROXY localhost:8888';
           return 'DIRECT';
         };
         return client;
@@ -133,11 +138,11 @@ class LocalNotificationManager {
     );
 
     try {
-      const String url =
-          "https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com/sendReminders";
+      const String url = "$BASE_URL/sendReminders";
       await dio
           .post(url,
               data: {
+                "id": notice.id,
                 "receivingEmail": notice.email,
                 "title": notice.title,
                 "description": notice.description,
@@ -178,14 +183,40 @@ class LocalNotificationManager {
     }
   }
 
-  void destroy(String timerKey) {
-    final timer = timerPool.remove(timerKey);
-    timer?.cancel();
+  void destroy({required String timerKey, bool sendDeleteReq = false}) async {
+    // email notification
+    Dio dio = Dio();
+
+    // 设置代理为空
+    dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.findProxy = (uri) {
+          return 'DIRECT';
+        };
+        return client;
+      },
+    );
+    try {
+      const String url = "$BASE_URL/destroyReminders";
+      if (sendDeleteReq && timerPool.containsKey(timerKey)) {
+        await dio.delete(url,
+            data: {"id": timerKey},
+            options: Options(
+              sendTimeout: 1500.ms,
+              receiveTimeout: 1500.ms,
+            ));
+      }
+    } catch (_) {
+    } finally {
+      final timer = timerPool.remove(timerKey);
+      timer?.cancel();
+    }
   }
 
   void destroyLocalNotification() {
-    for (var timer in timerPool.values) {
-      timer.cancel();
+    for (var timerKey in timerPool.keys) {
+      destroy(timerKey: timerKey, sendDeleteReq: true);
     }
 
     timerPool.clear();
