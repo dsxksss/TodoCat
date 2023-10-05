@@ -53,4 +53,6 @@ const Map<String, String> zhCN = {
   'create': '创建',
   'cancel': '取消',
   'dueDate': '截止日期',
+  'deletedSuccessfully': '删除成功',
+  'deletionFailed': '删除失败',
 };

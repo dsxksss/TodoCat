@@ -193,7 +193,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                               ),
                             ),
                             const SizedBox(
-                              width: 20,
+                              width: 10,
                             ),
                             NavBarBtn(
                               onPressed: _appController.closeWindow,

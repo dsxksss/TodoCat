@@ -53,4 +53,6 @@ const Map<String, String> enUS = {
   'create': 'Create',
   'cancel': 'Cancel',
   'dueDate': 'Due date',
+  'deletedSuccessfully': 'deleted successfully',
+  'deletionFailed': 'deletion failed',
 };
