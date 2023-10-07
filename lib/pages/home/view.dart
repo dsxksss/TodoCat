@@ -83,7 +83,7 @@ class HomePage extends GetView<HomeController> {
                   child: Padding(
                     padding: context.isPhone
                         ? const EdgeInsets.only(bottom: 50)
-                        : const EdgeInsets.only(left: 20),
+                        : const EdgeInsets.only(left: 20, bottom: 50),
                     child: Wrap(
                       alignment: context.isPhone
                           ? WrapAlignment.center
