@@ -89,9 +89,9 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
             key: _dialogCtrl.formKey,
             child: Column(
               children: [
-                const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -102,23 +102,42 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       if (context.isPhone)
-                        LabelBtn(
-                          label: Text(
-                            "create".tr,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
+                        Row(
+                          children: [
+                            LabelBtn(
+                              ghostStyle: true,
+                              label: Text(
+                                "cancel".tr,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 2),
+                              onPressed: () => SmartDialog.dismiss(
+                                tag: addTodoDialogTag,
+                              ),
                             ),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 15, vertical: 2),
-                          onPressed: addTodoHandler,
+                            const SizedBox(width: 20),
+                            LabelBtn(
+                              label: Text(
+                                "create".tr,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 2),
+                              onPressed: addTodoHandler,
+                            ),
+                          ],
                         ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
                 Expanded(
                   child: ListView(
                     padding:
