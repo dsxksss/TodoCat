@@ -110,23 +110,25 @@ void showToast(
                 )
               ],
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(width: 20),
-                Icon(
-                  iconData[0],
-                  color: iconData[1],
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Text(
-                    message,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    iconData[0],
+                    color: iconData[1],
                   ),
-                ),
-              ],
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Text(
+                      message,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },

@@ -143,14 +143,14 @@ class TaskCard extends StatelessWidget {
                         if (_homeCtrl.deleteTask(_task.id))
                           {
                             showToast(
-                              "${_task.title} ${"deletedSuccessfully".tr}",
+                              "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",
                               toastStyleType: TodoCatToastStyleType.success,
                             )
                           }
                         else
                           {
                             showToast(
-                              "${_task.title} ${"deletionFailed".tr}",
+                              "${"task".tr} '${_task.title.tr}' ${"deletionFailed".tr}",
                               toastStyleType: TodoCatToastStyleType.error,
                             )
                           }
