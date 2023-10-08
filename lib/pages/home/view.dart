@@ -51,67 +51,65 @@ class HomePage extends GetView<HomeController> {
           .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: TodoCatScaffold(
-        body: Expanded(
-          child: ListView(
-            controller: controller.scrollController,
-            physics: const AlwaysScrollableScrollPhysics(
-              //当内容不足时也可以启动反弹刷新
-              parent: BouncingScrollPhysics(),
-            ),
-            children: [
-              Obx(
-                () => Animate(
-                  target: controller.tasks.isNotEmpty ? 0 : 1,
-                  effects: [
-                    SwapEffect(
-                      builder: (_, __) => SizedBox(
-                        height: 0.7.sh,
-                        child: Center(
-                          child: Text(
-                            "Do It Now !",
-                            style: GoogleFonts.getFont(
-                              'Ubuntu',
-                              textStyle: const TextStyle(
-                                fontSize: 60,
-                              ),
+        body: ListView(
+          controller: controller.scrollController,
+          physics: const AlwaysScrollableScrollPhysics(
+            //当内容不足时也可以启动反弹刷新
+            parent: BouncingScrollPhysics(),
+          ),
+          children: [
+            Obx(
+              () => Animate(
+                target: controller.tasks.isNotEmpty ? 0 : 1,
+                effects: [
+                  SwapEffect(
+                    builder: (_, __) => SizedBox(
+                      height: 0.7.sh,
+                      child: Center(
+                        child: Text(
+                          "Do It Now !",
+                          style: GoogleFonts.getFont(
+                            'Ubuntu',
+                            textStyle: const TextStyle(
+                              fontSize: 60,
                             ),
                           ),
-                        ).animate().fade(),
-                      ),
+                        ),
+                      ).animate().fade(),
                     ),
-                  ],
-                  child: Padding(
-                    padding: context.isPhone
-                        ? const EdgeInsets.only(bottom: 50)
-                        : const EdgeInsets.only(left: 20, bottom: 50),
-                    child: Wrap(
-                      alignment: context.isPhone
-                          ? WrapAlignment.center
-                          : WrapAlignment.start,
-                      direction: Axis.horizontal,
-                      spacing: context.isPhone ? 0 : 50,
-                      runSpacing: context.isPhone ? 50 : 30,
-                      children: AnimateList(
-                        onComplete: (_) =>
-                            controller.listAnimatInterval.value = Duration.zero,
-                        effects: [
-                          context.isPhone
-                              ? const MoveEffect(begin: Offset(0, 10))
-                              : const MoveEffect(begin: Offset(-10, 0)),
-                          const FadeEffect(),
-                        ],
-                        interval: controller.listAnimatInterval.value,
-                        children: [
-                          ...controller.tasks
-                              .map((element) => TaskCard(task: element))
-                        ],
-                      ),
+                  ),
+                ],
+                child: Padding(
+                  padding: context.isPhone
+                      ? const EdgeInsets.only(bottom: 50)
+                      : const EdgeInsets.only(left: 20, bottom: 50),
+                  child: Wrap(
+                    alignment: context.isPhone
+                        ? WrapAlignment.center
+                        : WrapAlignment.start,
+                    direction: Axis.horizontal,
+                    spacing: context.isPhone ? 0 : 50,
+                    runSpacing: context.isPhone ? 50 : 30,
+                    children: AnimateList(
+                      onComplete: (_) =>
+                          controller.listAnimatInterval.value = Duration.zero,
+                      effects: [
+                        context.isPhone
+                            ? const MoveEffect(begin: Offset(0, 10))
+                            : const MoveEffect(begin: Offset(-10, 0)),
+                        const FadeEffect(),
+                      ],
+                      interval: controller.listAnimatInterval.value,
+                      children: [
+                        ...controller.tasks
+                            .map((element) => TaskCard(task: element))
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
