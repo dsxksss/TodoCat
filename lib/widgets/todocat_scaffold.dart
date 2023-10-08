@@ -10,21 +10,14 @@ class TodoCatScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Stack(
+      child: Column(
         children: [
-          Positioned(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: Platform.isMacOS ? 110 : 85,
-                ),
-                Expanded(
-                  child: _body,
-                ),
-              ],
-            ),
+          SizedBox(
+            height: Platform.isMacOS ? 30 : 0,
           ),
-          const Positioned(top: 0, child: NavBar()),
+          const NavBar(),
+          const SizedBox(height: 10),
+          Expanded(child: _body),
         ],
       ),
     );

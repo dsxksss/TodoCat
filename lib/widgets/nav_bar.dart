@@ -77,9 +77,6 @@ class _NavBarState extends State<NavBar> with WindowListener {
       onTapCancel: () => {if (!context.isPhone) windowManager.startDragging()},
       child: Column(
         children: [
-          SizedBox(
-            height: Platform.isMacOS ? 30 : 5,
-          ),
           Container(
             width: 1.sw,
             color: context.theme.scaffoldBackgroundColor,
