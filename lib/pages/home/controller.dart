@@ -70,20 +70,24 @@ class HomeController extends GetxController {
     currentScrollOffset = scrollController.offset;
   }
 
-  void scrollMaxDown() {
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
-      duration: 500.ms,
-      curve: Curves.linear,
-    );
+  void scrollMaxDown() async {
+    await Future.delayed(100.ms, () {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: 1000.ms,
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
-  void scrollMaxTop() {
-    scrollController.animateTo(
-      scrollController.position.minScrollExtent,
-      duration: 500.ms,
-      curve: Curves.linear,
-    );
+  void scrollMaxTop() async {
+    await Future.delayed(100.ms, () {
+      scrollController.animateTo(
+        scrollController.position.minScrollExtent,
+        duration: 1000.ms,
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   @override
@@ -248,9 +252,9 @@ class DatePickerController extends GetxController {
 
     await Future.delayed(200.ms, () {
       hController.animateToPage(defaultDate.value.hour,
-          duration: 200.ms, curve: Curves.easeInOut);
+          duration: 200.ms, curve: Curves.easeOutCubic);
       mController.animateToPage(defaultDate.value.minute,
-          duration: 200.ms, curve: Curves.easeInOut);
+          duration: 200.ms, curve: Curves.easeOutCubic);
       hEditingController.text = defaultDate.value.hour.toString();
       mEditingController.text = defaultDate.value.minute.toString();
     });
@@ -269,8 +273,8 @@ class DatePickerController extends GetxController {
       hour: 0,
       minute: 0,
     );
-    hController.animateToPage(0, duration: 200.ms, curve: Curves.easeInOut);
-    mController.animateToPage(0, duration: 200.ms, curve: Curves.easeInOut);
+    hController.animateToPage(0, duration: 200.ms, curve: Curves.easeOutCubic);
+    mController.animateToPage(0, duration: 200.ms, curve: Curves.easeOutCubic);
     hEditingController.text = 0.toString();
     mEditingController.text = 0.toString();
   }
