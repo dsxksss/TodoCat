@@ -1,19 +1,33 @@
-# todo_cat
+# Todo Cat <img src="readme_assets/imgs/logo-light-rounded.png" alt="Image Description" width="25" height="25" /> 
 
-## run app
 
-```bash
-flutter run
-```
 
-## 注意事项：
+## Demonstrations
+- Light theme
+![][home-screenshot]
+- Dark theme
+![][home-dark-screenshot]
 
-- ### 1、在使用前请先运行命令生成hive，freezed模板文件
+
+## Attention：
+
+- ### 1、Please run the command to generate the hive and freed template file before running it
 ```bash
 flutter packages pub run build_runner build
 ```
 
-- ### 2、在使用前请先运行命令生成移动端及网页端闪屏页面
+- ### 2、Before running the project, please run the command to generate mobile and web flash pages
 ```bash
 dart run flutter_native_splash:create
 ```
+
+## Run app
+
+```bash
+flutter run -d windows
+flutter run -d android
+flutter run -d macos
+```
+
+[home-screenshot]: readme_assets/imgs/home.png
+[home-dark-screenshot]: readme_assets/imgs/home-dark.png
