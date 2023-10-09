@@ -64,17 +64,17 @@ int firstDayWeek(DateTime date) {
 }
 
 String getWeekName(DateTime date) {
-  const Map<int, String> weekMap = {
-    1: 'monday',
-    2: 'tuesday',
-    3: 'wednesday',
-    4: 'thursday',
-    5: 'friday',
-    6: 'saturday',
-    7: 'sunday',
+  Map<int, String> weekMap = {
+    1: 'monday'.tr,
+    2: 'tuesday'.tr,
+    3: 'wednesday'.tr,
+    4: 'thursday'.tr,
+    5: 'friday'.tr,
+    6: 'saturday'.tr,
+    7: 'sunday'.tr,
   };
 
-  return weekMap[date.weekday] ?? 'unknown';
+  return weekMap[date.weekday] ?? 'unknown'.tr;
 }
 
 String getTimeString(DateTime date) {

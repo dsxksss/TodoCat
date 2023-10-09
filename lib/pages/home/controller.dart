@@ -159,9 +159,9 @@ class HomeController extends GetxController {
     if (todo.reminders != 0) {
       final LocalNotice notice = LocalNotice(
         id: todo.id,
-        title: "TodoCat 任务提醒",
+        title: "${"todoCat".tr} ${"taskReminder".tr}",
         description:
-            "${todo.title} 创建时间:${timestampToDate(todo.createdAt)} ${getTimeString(
+            "${todo.title} ${"createTime".tr}:${timestampToDate(todo.createdAt)} ${getTimeString(
           DateTime.fromMillisecondsSinceEpoch(
             todo.createdAt,
           ),

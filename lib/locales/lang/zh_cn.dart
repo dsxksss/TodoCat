@@ -55,4 +55,6 @@ const Map<String, String> zhCN = {
   'dueDate': '截止日期',
   'deletedSuccessfully': '删除成功',
   'deletionFailed': '删除失败',
+  'taskReminder': '任务提醒',
+  'createTime': '创建时间',
 };

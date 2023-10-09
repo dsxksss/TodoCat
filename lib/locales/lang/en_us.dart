@@ -55,4 +55,6 @@ const Map<String, String> enUS = {
   'dueDate': 'Due date',
   'deletedSuccessfully': 'deleted successfully',
   'deletionFailed': 'deletion failed',
+  'taskReminder': 'Task reminder',
+  'createTime': 'Create time',
 };
