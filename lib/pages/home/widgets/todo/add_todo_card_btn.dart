@@ -59,7 +59,6 @@ class AddTodoCardBtn extends StatelessWidget {
 }
 
 void _showAddTodoDialog() {
-  SmartDialog.dismiss();
   SmartDialog.show(
     useSystem: false,
     debounce: true,
