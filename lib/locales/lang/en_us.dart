@@ -57,4 +57,5 @@ const Map<String, String> enUS = {
   'deletionFailed': 'deletion failed',
   'taskReminder': 'Task reminder',
   'createTime': 'Create time',
+  'max': 'Max',
 };

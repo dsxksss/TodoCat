@@ -57,4 +57,5 @@ const Map<String, String> zhCN = {
   'deletionFailed': '删除失败',
   'taskReminder': '任务提醒',
   'createTime': '创建时间',
+  'max': '上限',
 };

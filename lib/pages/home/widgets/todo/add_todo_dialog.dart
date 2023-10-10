@@ -82,176 +82,192 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          Form(
-            key: _dialogCtrl.formKey,
-            child: Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "addTodo".tr,
-                        textAlign: context.isPhone ? null : TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      if (context.isPhone)
-                        Row(
-                          children: [
-                            LabelBtn(
-                              ghostStyle: true,
-                              label: Text(
-                                "cancel".tr,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 2),
-                              onPressed: () => SmartDialog.dismiss(
-                                tag: addTodoDialogTag,
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            LabelBtn(
-                              label: Text(
-                                "create".tr,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 2),
-                              onPressed: addTodoHandler,
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView(
-                    padding:
-                        const EdgeInsetsDirectional.symmetric(horizontal: 20),
-                    physics: const AlwaysScrollableScrollPhysics(
-                      //当内容不足时也可以启动反弹刷新
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    children: [
-                      Flex(
-                        direction:
-                            context.isPhone ? Axis.vertical : Axis.horizontal,
-                        mainAxisAlignment: context.isPhone
-                            ? MainAxisAlignment.start
-                            : MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: context.isPhone
-                            ? CrossAxisAlignment.stretch
-                            : CrossAxisAlignment.center,
-                        children: [
-                          TagDialogBtn(
-                            title: Text(
-                              "dueDate".tr,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            icon: const Icon(Icons.event_available_outlined,
-                                size: 20),
-                            margin: context.isPhone
-                                ? const EdgeInsets.symmetric(vertical: 5)
-                                : null,
-                          ),
-                          TagDialogBtn(
-                            title: Text(
-                              "priority".tr,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            icon: const Icon(Icons.flag_outlined, size: 20),
-                            margin: context.isPhone
-                                ? const EdgeInsets.symmetric(vertical: 5)
-                                : null,
-                          ),
-                          TagDialogBtn(
-                            title: Text(
-                              "reminderTime".tr,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            icon: const Icon(Icons.alarm, size: 20),
-                            margin: context.isPhone
-                                ? const EdgeInsets.symmetric(vertical: 5)
-                                : null,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      TextFormFieldItem(
-                        maxLength: 20,
-                        maxLines: 1,
-                        radius: 6,
-                        fieldTitle: "title".tr,
-                        editingController: _dialogCtrl.titleFormCtrl,
-                      ),
-                      TextFormFieldItem(
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                        maxLength: 400,
-                        maxLines: 8,
-                        radius: 6,
-                        fieldTitle: "description".tr,
-                        validator: (_) => null,
-                        editingController: _dialogCtrl.descriptionFormCtrl,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (!context.isPhone)
-            Positioned(
-              right: 20,
-              bottom: 20,
+      child: Form(
+        key: _dialogCtrl.formKey,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  LabelBtn(
-                    onHoverAnimationEnabled: false,
-                    onHoverBgColorChangeEnabled: true,
-                    label: Text(
-                      "cancel".tr,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                    ghostStyle: true,
-                    onPressed: () => SmartDialog.dismiss(tag: addTodoDialogTag),
+                  Text(
+                    "addTodo".tr,
+                    textAlign: context.isPhone ? null : TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(width: 20),
-                  LabelBtn(
-                    label: Text(
-                      "create".tr,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      LabelBtn(
+                        ghostStyle: true,
+                        label: Text(
+                          "cancel".tr,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 2),
+                        onPressed: () => SmartDialog.dismiss(
+                          tag: addTodoDialogTag,
+                        ),
                       ),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                    onPressed: addTodoHandler,
+                      const SizedBox(width: 20),
+                      LabelBtn(
+                        label: Text(
+                          "create".tr,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 2),
+                        onPressed: addTodoHandler,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-        ],
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+                physics: const AlwaysScrollableScrollPhysics(
+                  //当内容不足时也可以启动反弹刷新
+                  parent: BouncingScrollPhysics(),
+                ),
+                children: [
+                  Flex(
+                    direction:
+                        context.isPhone ? Axis.vertical : Axis.horizontal,
+                    mainAxisAlignment: context.isPhone
+                        ? MainAxisAlignment.start
+                        : MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: context.isPhone
+                        ? CrossAxisAlignment.stretch
+                        : CrossAxisAlignment.center,
+                    children: [
+                      TagDialogBtn(
+                        title: Text(
+                          "dueDate".tr,
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                        icon: const Icon(Icons.event_available_outlined,
+                            size: 20),
+                        margin: context.isPhone
+                            ? const EdgeInsets.symmetric(vertical: 5)
+                            : null,
+                      ),
+                      TagDialogBtn(
+                        title: Text(
+                          "priority".tr,
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                        icon: const Icon(Icons.flag_outlined, size: 20),
+                        margin: context.isPhone
+                            ? const EdgeInsets.symmetric(vertical: 5)
+                            : null,
+                      ),
+                      TagDialogBtn(
+                        title: Text(
+                          "reminderTime".tr,
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                        icon: const Icon(Icons.alarm, size: 20),
+                        margin: context.isPhone
+                            ? const EdgeInsets.symmetric(vertical: 5)
+                            : null,
+                      ),
+                    ],
+                  ),
+                  Obx(
+                    () => Column(
+                      children: [
+                        if (_dialogCtrl.selectedTags.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: SizedBox(
+                              height: 35,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  ..._dialogCtrl.selectedTags.map(
+                                    (tag) => Padding(
+                                      padding: const EdgeInsets.only(right: 10),
+                                      child: TagDialogBtn(
+                                        icon: const Icon(Icons.tag, size: 20),
+                                        title: Row(
+                                          children: [
+                                            Text(
+                                              tag,
+                                              style:
+                                                  const TextStyle(fontSize: 15),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            MouseRegion(
+                                              cursor: SystemMouseCursors.click,
+                                              child: GestureDetector(
+                                                onTap: () =>
+                                                    _dialogCtrl.removeTag(
+                                                        _dialogCtrl.selectedTags
+                                                            .indexOf(tag)),
+                                                child: const Icon(
+                                                  Icons.close_rounded,
+                                                  size: 18,
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormFieldItem(
+                    textInputAction: TextInputAction.next,
+                    maxLength: 20,
+                    maxLines: 1,
+                    radius: 6,
+                    fieldTitle: "title".tr,
+                    editingController: _dialogCtrl.titleFormCtrl,
+                  ),
+                  AddTagScreen(
+                    textInputAction: TextInputAction.next,
+                    maxLength: 6,
+                    maxLines: 1,
+                    radius: 6,
+                    fieldTitle: "tag".tr,
+                    validator: (_) => null,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+                    editingController: _dialogCtrl.tagController,
+                  ),
+                  TextFormFieldItem(
+                    textInputAction: TextInputAction.done,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    maxLength: 400,
+                    maxLines: 8,
+                    radius: 6,
+                    fieldTitle: "description".tr,
+                    validator: (_) => null,
+                    editingController: _dialogCtrl.descriptionFormCtrl,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

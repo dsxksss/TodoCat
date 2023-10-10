@@ -15,6 +15,9 @@ class TextFormFieldItem extends StatelessWidget {
     EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
     bool? ghostStyle,
     Color? fillColor,
+    Widget? suffix,
+    TextInputAction? textInputAction,
+    TextInputType? inputType = TextInputType.text,
   })  : _fillColor = fillColor,
         _ghostStyle = ghostStyle ?? false,
         _validator = validator,
@@ -24,9 +27,13 @@ class TextFormFieldItem extends StatelessWidget {
         _maxLength = maxLength,
         _fieldTitle = fieldTitle,
         _obscureText = obscureText,
-        _radius = radius;
+        _radius = radius,
+        _suffix = suffix,
+        _textInputAction = textInputAction,
+        _inputType = inputType;
 
   final String _fieldTitle;
+  final Widget? _suffix;
   final Color? _fillColor;
   final int _maxLength;
   final int? _maxLines;
@@ -34,8 +41,10 @@ class TextFormFieldItem extends StatelessWidget {
   final bool _ghostStyle;
   final EdgeInsets _contentPadding;
   final bool _obscureText;
+  final TextInputAction? _textInputAction;
   final TextEditingController _editingController;
   final String? Function(String?)? _validator;
+  final TextInputType? _inputType;
 
   @override
   Widget build(BuildContext context) {
@@ -47,50 +56,46 @@ class TextFormFieldItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(_radius),
           );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextFormField(
-          obscureText: _obscureText,
-          controller: _editingController,
-          maxLength: _maxLength,
-          maxLines: _maxLines,
-          cursorColor: Colors.blueGrey.shade400,
-          decoration: InputDecoration(
-            counter: const Text(""),
-            filled: true,
-            fillColor:
-                _fillColor ?? context.theme.inputDecorationTheme.fillColor,
-            contentPadding: _contentPadding,
-            hintText: _fieldTitle.tr,
-            hoverColor: Colors.transparent,
-            hintStyle: const TextStyle(color: Colors.grey),
-            border: inputBorder,
-            focusedBorder: _ghostStyle
-                ? InputBorder.none
-                : OutlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Colors.grey.shade800, width: 1.5),
-                    borderRadius: BorderRadius.circular(_radius),
-                  ),
-            enabledBorder: inputBorder,
-            errorBorder: inputBorder,
-            focusedErrorBorder: inputBorder,
-            disabledBorder: inputBorder,
-          ),
-          validator: _validator ??
-              (value) {
-                if (value == null || value.trim().isEmpty) {
-                  showToast(
-                    "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}",
-                    toastStyleType: TodoCatToastStyleType.warning,
-                  );
-                  return '';
-                }
-                return null;
-              },
-        ),
-      ],
+    return TextFormField(
+      textInputAction: _textInputAction,
+      obscureText: _obscureText,
+      controller: _editingController,
+      maxLength: _maxLength,
+      maxLines: _maxLines,
+      keyboardType: _inputType,
+      cursorColor: Colors.blueGrey.shade400,
+      decoration: InputDecoration(
+        suffix: _suffix,
+        counter: const Text(""),
+        filled: true,
+        fillColor: _fillColor ?? context.theme.inputDecorationTheme.fillColor,
+        contentPadding: _contentPadding,
+        hintText: _fieldTitle.tr,
+        hoverColor: Colors.transparent,
+        hintStyle: const TextStyle(color: Colors.grey),
+        border: inputBorder,
+        focusedBorder: _ghostStyle
+            ? InputBorder.none
+            : OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade800, width: 1.5),
+                borderRadius: BorderRadius.circular(_radius),
+              ),
+        enabledBorder: inputBorder,
+        errorBorder: inputBorder,
+        focusedErrorBorder: inputBorder,
+        disabledBorder: inputBorder,
+      ),
+      validator: _validator ??
+          (value) {
+            if (value == null || value.trim().isEmpty) {
+              showToast(
+                "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}",
+                toastStyleType: TodoCatToastStyleType.warning,
+              );
+              return '';
+            }
+            return null;
+          },
     );
   }
 }

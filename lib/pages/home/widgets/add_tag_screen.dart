@@ -1,105 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/controller.dart';
+import 'package:todo_cat/pages/home/widgets/text_form_field_item.dart';
 
 class AddTagScreen extends StatelessWidget {
-  AddTagScreen({super.key});
+  AddTagScreen({
+    super.key,
+    int? maxLines,
+    double radius = 10,
+    bool obscureText = false,
+    required int maxLength,
+    required String fieldTitle,
+    String? Function(String?)? validator,
+    required TextEditingController editingController,
+    EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
+    bool? ghostStyle,
+    Color? fillColor,
+    Widget? suffix,
+    TextInputAction? textInputAction,
+  })  : _fillColor = fillColor,
+        _ghostStyle = ghostStyle ?? false,
+        _validator = validator,
+        _editingController = editingController,
+        _contentPadding = contentPadding,
+        _maxLines = maxLines,
+        _maxLength = maxLength,
+        _fieldTitle = fieldTitle,
+        _obscureText = obscureText,
+        _radius = radius,
+        _textInputAction = textInputAction;
 
   final AddTodoDialogController _ctrl = Get.find();
 
+  final String _fieldTitle;
+  final Color? _fillColor;
+  final int _maxLength;
+  final int? _maxLines;
+  final double _radius;
+  final bool _ghostStyle;
+  final EdgeInsets _contentPadding;
+  final bool _obscureText;
+  final TextEditingController _editingController;
+  final String? Function(String?)? _validator;
+  final TextInputAction? _textInputAction;
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 5),
-          child: Obx(
-            () => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 5),
-                  child: Flex(
-                    direction: Axis.horizontal,
-                    children: [
-                      ..._ctrl.selectedTags.map(
-                        (tag) => Container(
-                          decoration: BoxDecoration(
-                            color: Colors.lightBlue,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          margin: const EdgeInsets.only(right: 10),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          child: Flex(
-                            direction: Axis.horizontal,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                tag,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () => _ctrl
-                                    .removeTag(_ctrl.selectedTags.indexOf(tag)),
-                                child: const Icon(
-                                  Icons.close_rounded,
-                                  size: 18,
-                                  color: Colors.white,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return TextFormFieldItem(
+      textInputAction: _textInputAction,
+      maxLength: _maxLength,
+      maxLines: _maxLines,
+      fillColor: _fillColor,
+      contentPadding: _contentPadding,
+      obscureText: _obscureText,
+      fieldTitle: _fieldTitle,
+      editingController: _editingController,
+      ghostStyle: _ghostStyle,
+      radius: _radius,
+      validator: _validator,
+      suffix: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () => {_ctrl.addTag()},
+          child: Text(
+            "addTag".tr,
+            style: const TextStyle(
+              fontSize: 13,
             ),
           ),
         ),
-        TextField(
-          maxLength: 6,
-          controller: _ctrl.tagController,
-          decoration: InputDecoration(
-            counter: const Text(''),
-            suffix: TextButton(
-              // 取消按钮按下时出现的颜色
-              style: const ButtonStyle(
-                overlayColor: MaterialStatePropertyAll(Colors.transparent),
-                backgroundColor: MaterialStatePropertyAll(Colors.lightBlue),
-              ),
-              onPressed: () => {_ctrl.addTag()},
-              child: Text(
-                "addTag".tr,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            filled: true, // 是否填充背景色
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 5),
-            hintStyle: const TextStyle(color: Colors.grey),
-            hintText: "${"enter".tr}${"tag".tr}",
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
