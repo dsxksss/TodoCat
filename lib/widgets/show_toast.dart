@@ -28,6 +28,10 @@ List _getIconData(TodoCatToastStyleType type) {
 
 void showToast(
   String message, {
+  bool confirmMode = false,
+  bool alwaysShow = false,
+  Function? onYesCallback,
+  Function? onNoCallback,
   Duration? displayTime,
   Duration? animationTime,
   AlignmentGeometry? alignment,
@@ -72,7 +76,8 @@ void showToast(
   }
 
   SmartDialog.show(
-    displayTime: displayTime ?? 3000.ms,
+    displayTime:
+        alwaysShow ? const Duration(days: 365) : displayTime ?? 3000.ms,
     animationTime: animationTime ?? 600.ms,
     tag: tag,
     keepSingle: keepSingle ?? true,
@@ -99,7 +104,7 @@ void showToast(
                     ? const EdgeInsets.only(top: 110)
                     : const EdgeInsets.only(bottom: 100)),
             width: 250,
-            height: 60,
+            height: confirmMode ? 90 : 60,
             decoration: BoxDecoration(
               color: context.theme.dialogBackgroundColor,
               borderRadius: BorderRadius.circular(5),
@@ -112,21 +117,75 @@ void showToast(
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Stack(
                 children: [
-                  Icon(
-                    iconData[0],
-                    color: iconData[1],
+                  Column(
+                    mainAxisAlignment: confirmMode
+                        ? MainAxisAlignment.start
+                        : MainAxisAlignment.center,
+                    children: [
+                      if (confirmMode) const SizedBox(height: 15),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            iconData[0],
+                            color: iconData[1],
+                          ),
+                          const SizedBox(width: 15),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Text(
+                                  message,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Text(
-                      message,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                  if (confirmMode)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Row(
+                        children: [
+                          IconButton.outlined(
+                            onPressed: () {
+                              if (onYesCallback != null) {
+                                SmartDialog.dismiss(tag: tag);
+                                onYesCallback();
+                              } else {
+                                SmartDialog.dismiss(tag: tag);
+                              }
+                            },
+                            icon: const Icon(
+                              Icons.check_rounded,
+                              color: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          IconButton.outlined(
+                            onPressed: () {
+                              if (onNoCallback != null) {
+                                SmartDialog.dismiss(tag: tag);
+                                onNoCallback();
+                              } else {
+                                SmartDialog.dismiss(tag: tag);
+                              }
+                            },
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

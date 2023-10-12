@@ -64,11 +64,11 @@ void _showAddTodoDialog() {
     debounce: true,
     keepSingle: true,
     tag: addTodoDialogTag,
+    backDismiss: false,
     maskColor: Colors.transparent,
     animationTime: 150.ms,
     builder: (context) => const AddTodoDialog(),
     clickMaskDismiss: false,
-    onMask: () => SmartDialog.dismiss(tag: addTodoDialogTag),
     animationBuilder: (controller, child, _) => child
         .animate(controller: controller)
         .fade(duration: controller.duration)
@@ -85,6 +85,7 @@ void _showAddTodoBottomSheet(BuildContext context) {
     debounce: true,
     keepSingle: true,
     tag: addTodoDialogTag,
+    backDismiss: false,
     animationTime: 250.ms,
     alignment: Alignment.bottomCenter,
     builder: (context) => const Scaffold(

@@ -213,6 +213,17 @@ class AddTodoDialogController extends GetxController {
     }
   }
 
+  bool isDataEmpty() {
+    return selectedTags.isEmpty &&
+        titleFormCtrl.text.isEmpty &&
+        descriptionFormCtrl.text.isEmpty &&
+        remindersValue.value == 0;
+  }
+
+  bool isDataNotEmpty() {
+    return !isDataEmpty();
+  }
+
   void removeTag(int index) {
     selectedTags.removeAt(index);
   }

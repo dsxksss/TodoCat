@@ -9,8 +9,7 @@ import 'package:todo_cat/data/services/repositorys/local_notice.dart';
 import 'package:dio/dio.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
-const BASE_URL =
-    'https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com';
+const baseUrl = 'https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com';
 
 class LocalNotificationManager {
   late final LocalNoticeRepository localNoticeRepository;
@@ -138,7 +137,7 @@ class LocalNotificationManager {
     );
 
     try {
-      const String url = "$BASE_URL/sendReminders";
+      const String url = "$baseUrl/sendReminders";
       await dio
           .post(url,
               data: {
@@ -198,7 +197,7 @@ class LocalNotificationManager {
       },
     );
     try {
-      const String url = "$BASE_URL/destroyReminders";
+      const String url = "$baseUrl/destroyReminders";
       if (sendDeleteReq && timerPool.containsKey(timerKey)) {
         await dio.delete(url,
             data: {"id": timerKey},

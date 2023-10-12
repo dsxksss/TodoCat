@@ -6,9 +6,9 @@ import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/pages/home/widgets/add_tag_screen.dart';
-import 'package:todo_cat/pages/home/widgets/select_priority_panel.dart';
 import 'package:todo_cat/pages/home/widgets/text_form_field_item.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 import 'package:uuid/uuid.dart';
 
@@ -110,9 +110,21 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                         ),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 15, vertical: 2),
-                        onPressed: () => SmartDialog.dismiss(
-                          tag: addTodoDialogTag,
-                        ),
+                        onPressed: () {
+                          if (_dialogCtrl.isDataNotEmpty()) {
+                            showToast(
+                              "有草稿,你确定不保存吗?",
+                              tag: confirmDialogTag,
+                              alwaysShow: true,
+                              confirmMode: true,
+                              onYesCallback: () {
+                                SmartDialog.dismiss(tag: addTodoDialogTag);
+                              },
+                            );
+                          } else {
+                            SmartDialog.dismiss(tag: addTodoDialogTag);
+                          }
+                        },
                       ),
                       const SizedBox(width: 20),
                       LabelBtn(
