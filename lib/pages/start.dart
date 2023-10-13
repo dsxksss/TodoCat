@@ -28,7 +28,7 @@ class _StartPageState extends State<StartPage> {
     } else {
       await Future.delayed(1200.ms);
     }
-    Get.toNamed("/");
+    Get.offAllNamed("/");
   }
 
   @override

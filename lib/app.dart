@@ -11,6 +11,7 @@ import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/services/repositorys/app_config.dart';
 import 'package:todo_cat/locales/locales.dart';
 import 'package:todo_cat/manager/local_notification_manager.dart';
+import 'package:todo_cat/pages/home/binding.dart';
 import 'package:todo_cat/pages/unknown.dart';
 import 'package:todo_cat/routers/router_map.dart';
 import 'package:todo_cat/themes/dark_theme.dart';
@@ -173,6 +174,7 @@ class _AppState extends State<App> {
             ),
             initialRoute: '/start',
             getPages: routerMap,
+            initialBinding: HomeBinding(),
           ),
         );
       },
