@@ -99,12 +99,12 @@ void showToast(
           final iconData =
               _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
           return Container(
+            width: 300,
+            height: confirmMode ? 110 : 60,
             margin: margin ??
                 (Platform.isAndroid || Platform.isIOS
                     ? const EdgeInsets.only(top: 110)
                     : const EdgeInsets.only(bottom: 100)),
-            width: 250,
-            height: confirmMode ? 90 : 60,
             decoration: BoxDecoration(
               color: context.theme.dialogBackgroundColor,
               borderRadius: BorderRadius.circular(5),
@@ -120,13 +120,14 @@ void showToast(
               child: Stack(
                 children: [
                   Column(
+                    mainAxisSize:
+                        confirmMode ? MainAxisSize.min : MainAxisSize.max,
                     mainAxisAlignment: confirmMode
                         ? MainAxisAlignment.start
                         : MainAxisAlignment.center,
                     children: [
                       if (confirmMode) const SizedBox(height: 15),
                       Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             iconData[0],
@@ -134,14 +135,10 @@ void showToast(
                           ),
                           const SizedBox(width: 15),
                           Expanded(
-                            child: Row(
-                              children: [
-                                Text(
-                                  message,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                            child: Text(
+                              message,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -150,8 +147,8 @@ void showToast(
                   ),
                   if (confirmMode)
                     Positioned(
-                      bottom: 0,
-                      right: 0,
+                      bottom: 2,
+                      right: 5,
                       child: Row(
                         children: [
                           IconButton.outlined(

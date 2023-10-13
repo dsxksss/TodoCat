@@ -113,7 +113,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                         onPressed: () {
                           if (_dialogCtrl.isDataNotEmpty()) {
                             showToast(
-                              "有草稿,你确定不保存吗?",
+                              "formExit".tr,
                               tag: confirmDialogTag,
                               alwaysShow: true,
                               confirmMode: true,

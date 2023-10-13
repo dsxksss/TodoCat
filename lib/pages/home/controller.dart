@@ -202,14 +202,16 @@ class AddTodoDialogController extends GetxController {
   final remindersValue = RxInt(0);
 
   void addTag() {
-    if (tagController.text.isNotEmpty && selectedTags.length < 3) {
-      selectedTags.add(tagController.text);
-      tagController.clear();
-    } else {
-      showToast(
-        "${"tag".tr}${"max".tr}",
-        toastStyleType: TodoCatToastStyleType.warning,
-      );
+    if (tagController.text.isNotEmpty) {
+      if (selectedTags.length < 3) {
+        selectedTags.add(tagController.text);
+        tagController.clear();
+      } else {
+        showToast(
+          "tagsUpperLimit".tr,
+          toastStyleType: TodoCatToastStyleType.warning,
+        );
+      }
     }
   }
 

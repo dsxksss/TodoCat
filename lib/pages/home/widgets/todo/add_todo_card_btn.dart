@@ -88,6 +88,7 @@ void _showAddTodoBottomSheet(BuildContext context) {
     backDismiss: false,
     animationTime: 250.ms,
     alignment: Alignment.bottomCenter,
+    maskColor: Colors.transparent,
     builder: (context) => const Scaffold(
       backgroundColor: Colors.transparent,
       body: Align(

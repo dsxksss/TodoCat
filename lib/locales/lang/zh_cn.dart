@@ -57,5 +57,6 @@ const Map<String, String> zhCN = {
   'deletionFailed': '删除失败',
   'taskReminder': '任务提醒',
   'createTime': '创建时间',
-  'max': '上限',
+  'tagsUpperLimit': '标签上限',
+  'formExit': '草稿尚未保存,确定取消编辑吗?',
 };
