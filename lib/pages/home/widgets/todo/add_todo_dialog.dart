@@ -87,7 +87,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: EdgeInsets.symmetric(
+                  horizontal: 20, vertical: context.isPhone ? 20 : 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -153,48 +154,41 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   parent: BouncingScrollPhysics(),
                 ),
                 children: [
-                  Flex(
-                    direction:
-                        context.isPhone ? Axis.vertical : Axis.horizontal,
-                    mainAxisAlignment: context.isPhone
-                        ? MainAxisAlignment.start
-                        : MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: context.isPhone
-                        ? CrossAxisAlignment.stretch
-                        : CrossAxisAlignment.center,
-                    children: [
-                      TagDialogBtn(
-                        title: Text(
-                          "dueDate".tr,
-                          style: const TextStyle(fontSize: 15),
-                        ),
-                        icon: const Icon(Icons.event_available_outlined,
-                            size: 20),
-                        margin: context.isPhone
-                            ? const EdgeInsets.symmetric(vertical: 5)
-                            : null,
+                  SizedBox(
+                    height: 35,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const AlwaysScrollableScrollPhysics(
+                        //当内容不足时也可以启动反弹刷新
+                        parent: BouncingScrollPhysics(),
                       ),
-                      TagDialogBtn(
-                        title: Text(
-                          "priority".tr,
-                          style: const TextStyle(fontSize: 15),
+                      children: [
+                        TagDialogBtn(
+                          title: Text(
+                            "dueDate".tr,
+                            style: const TextStyle(fontSize: 15),
+                          ),
+                          icon: const Icon(Icons.event_available_outlined,
+                              size: 20),
                         ),
-                        icon: const Icon(Icons.flag_outlined, size: 20),
-                        margin: context.isPhone
-                            ? const EdgeInsets.symmetric(vertical: 5)
-                            : null,
-                      ),
-                      TagDialogBtn(
-                        title: Text(
-                          "reminderTime".tr,
-                          style: const TextStyle(fontSize: 15),
+                        const SizedBox(width: 10),
+                        TagDialogBtn(
+                          title: Text(
+                            "priority".tr,
+                            style: const TextStyle(fontSize: 15),
+                          ),
+                          icon: const Icon(Icons.flag_outlined, size: 20),
                         ),
-                        icon: const Icon(Icons.alarm, size: 20),
-                        margin: context.isPhone
-                            ? const EdgeInsets.symmetric(vertical: 5)
-                            : null,
-                      ),
-                    ],
+                        const SizedBox(width: 10),
+                        TagDialogBtn(
+                          title: Text(
+                            "reminderTime".tr,
+                            style: const TextStyle(fontSize: 15),
+                          ),
+                          icon: const Icon(Icons.alarm, size: 20),
+                        ),
+                      ],
+                    ),
                   ),
                   Obx(
                     () => Column(
