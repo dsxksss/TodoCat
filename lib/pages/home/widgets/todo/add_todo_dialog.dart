@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -35,8 +36,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
 
   @override
   void dispose() {
-    _dialogCtrl.onDialogClose();
     _homeCtrl.deselectTask();
+    SmartDialog.dismiss(tag: confirmDialogTag);
     super.dispose();
   }
 
@@ -56,6 +57,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
       );
 
       _homeCtrl.addTodo(todo);
+      _dialogCtrl.clearForm();
 
       SmartDialog.dismiss(tag: addTodoDialogTag);
     }
@@ -78,7 +80,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         boxShadow: <BoxShadow>[
           BoxShadow(
             color: context.theme.dividerColor,
-            blurRadius: context.isDarkMode ? 1 : 5,
+            blurRadius: context.isDarkMode ? 1 : 2,
           ),
         ],
       ),
@@ -113,15 +115,16 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                             horizontal: 15, vertical: 2),
                         onPressed: () {
                           if (_dialogCtrl.isDataNotEmpty()) {
-                            showToast(
-                              "formExit".tr,
-                              tag: confirmDialogTag,
-                              alwaysShow: true,
-                              confirmMode: true,
-                              onYesCallback: () {
-                                SmartDialog.dismiss(tag: addTodoDialogTag);
-                              },
-                            );
+                            showToast("${"saveEditing".tr}?",
+                                tag: confirmDialogTag,
+                                alwaysShow: true,
+                                confirmMode: true, onYesCallback: () {
+                              SmartDialog.dismiss(tag: addTodoDialogTag);
+                            }, onNoCallback: () {
+                              SmartDialog.dismiss(tag: addTodoDialogTag);
+                              Future.delayed(
+                                  500.ms, () => _dialogCtrl.clearForm());
+                            });
                           } else {
                             SmartDialog.dismiss(tag: addTodoDialogTag);
                           }
@@ -200,6 +203,10 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                               height: 35,
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
+                                physics: const AlwaysScrollableScrollPhysics(
+                                  //当内容不足时也可以启动反弹刷新
+                                  parent: BouncingScrollPhysics(),
+                                ),
                                 children: [
                                   ..._dialogCtrl.selectedTags.map(
                                     (tag) => Padding(

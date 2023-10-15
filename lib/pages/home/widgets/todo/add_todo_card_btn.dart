@@ -65,7 +65,7 @@ void _showAddTodoDialog() {
     keepSingle: true,
     tag: addTodoDialogTag,
     backDismiss: false,
-    maskColor: Colors.transparent,
+    // maskColor: Colors.transparent,
     animationTime: 150.ms,
     builder: (context) => const AddTodoDialog(),
     clickMaskDismiss: false,
@@ -88,7 +88,6 @@ void _showAddTodoBottomSheet(BuildContext context) {
     backDismiss: false,
     animationTime: 250.ms,
     alignment: Alignment.bottomCenter,
-    maskColor: Colors.transparent,
     builder: (context) => const Scaffold(
       backgroundColor: Colors.transparent,
       body: Align(

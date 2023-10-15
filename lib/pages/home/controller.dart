@@ -219,6 +219,7 @@ class AddTodoDialogController extends GetxController {
     return selectedTags.isEmpty &&
         titleFormCtrl.text.isEmpty &&
         descriptionFormCtrl.text.isEmpty &&
+        tagController.text.isEmpty &&
         remindersValue.value == 0;
   }
 
@@ -230,7 +231,7 @@ class AddTodoDialogController extends GetxController {
     selectedTags.removeAt(index);
   }
 
-  void onDialogClose() {
+  void clearForm() {
     titleFormCtrl.clear();
     descriptionFormCtrl.clear();
     tagController.clear();

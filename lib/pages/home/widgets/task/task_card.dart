@@ -140,20 +140,28 @@ class TaskCard extends StatelessWidget {
                       title: 'delete',
                       iconData: FontAwesomeIcons.trashCan,
                       callback: () => {
-                        if (_homeCtrl.deleteTask(_task.id))
-                          {
-                            showToast(
-                              "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",
-                              toastStyleType: TodoCatToastStyleType.success,
-                            )
-                          }
-                        else
-                          {
-                            showToast(
-                              "${"task".tr} '${_task.title.tr}' ${"deletionFailed".tr}",
-                              toastStyleType: TodoCatToastStyleType.error,
-                            )
-                          }
+                        showToast(
+                          "sureDeleteTask".tr,
+                          alwaysShow: true,
+                          confirmMode: true,
+                          toastStyleType: TodoCatToastStyleType.error,
+                          onYesCallback: () {
+                            final isDeleted = _homeCtrl.deleteTask(_task.id);
+                            Future.delayed(500.ms, () {
+                              if (isDeleted) {
+                                showToast(
+                                  "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",
+                                  toastStyleType: TodoCatToastStyleType.success,
+                                );
+                              } else {
+                                showToast(
+                                  "${"task".tr} '${_task.title.tr}' ${"deletionFailed".tr}",
+                                  toastStyleType: TodoCatToastStyleType.error,
+                                );
+                              }
+                            });
+                          },
+                        )
                       },
                     ),
                   ],

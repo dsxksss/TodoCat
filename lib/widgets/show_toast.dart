@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
 
 enum TodoCatToastStyleType {
   info,
@@ -147,11 +148,13 @@ void showToast(
                   ),
                   if (confirmMode)
                     Positioned(
-                      bottom: 2,
+                      bottom: 10,
                       right: 5,
                       child: Row(
                         children: [
-                          IconButton.outlined(
+                          LabelBtn(
+                            label: Text("yes".tr),
+                            ghostStyle: true,
                             onPressed: () {
                               if (onYesCallback != null) {
                                 SmartDialog.dismiss(tag: tag);
@@ -160,13 +163,11 @@ void showToast(
                                 SmartDialog.dismiss(tag: tag);
                               }
                             },
-                            icon: const Icon(
-                              Icons.check_rounded,
-                              color: Colors.green,
-                            ),
                           ),
-                          const SizedBox(width: 5),
-                          IconButton.outlined(
+                          const SizedBox(width: 20),
+                          LabelBtn(
+                            label: Text("no".tr),
+                            ghostStyle: true,
                             onPressed: () {
                               if (onNoCallback != null) {
                                 SmartDialog.dismiss(tag: tag);
@@ -175,10 +176,6 @@ void showToast(
                                 SmartDialog.dismiss(tag: tag);
                               }
                             },
-                            icon: const Icon(
-                              Icons.close_rounded,
-                              color: Colors.redAccent,
-                            ),
                           ),
                         ],
                       ),

@@ -58,5 +58,8 @@ const Map<String, String> zhCN = {
   'taskReminder': '任务提醒',
   'createTime': '创建时间',
   'tagsUpperLimit': '标签上限',
-  'formExit': '草稿尚未保存,确定取消编辑吗?',
+  'saveEditing': '是否保存已编辑的内容',
+  'yes': '确定',
+  'no': '取消',
+  'sureDeleteTask': '你确定要删除此任务吗?'
 };

@@ -58,6 +58,8 @@ const Map<String, String> enUS = {
   'taskReminder': 'Task reminder',
   'createTime': 'Create time',
   'tagsUpperLimit': 'Tags upper limit',
-  'formExit':
-      'The form has not been saved yet. Are you sure to cancel editing?',
+  'saveEditing': 'Do you want to save edits',
+  'yes': 'Yes',
+  'no': 'No',
+  'sureDeleteTask': 'Would you like to delete the task ?'
 };
