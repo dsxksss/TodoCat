@@ -117,7 +117,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                           if (_dialogCtrl.isDataNotEmpty()) {
                             showToast("${"saveEditing".tr}?",
                                 tag: confirmDialogTag,
-                                alwaysShow: true,
+                                displayTime: 5000.ms,
                                 confirmMode: true, onYesCallback: () {
                               SmartDialog.dismiss(tag: addTodoDialogTag);
                             }, onNoCallback: () {
