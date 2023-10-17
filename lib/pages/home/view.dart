@@ -58,8 +58,8 @@ class HomePage extends GetView<HomeController> {
         leftWidgets: [
           Image.asset(
             'assets/imgs/logo-light-rounded.png',
-            width: 35,
-            height: 35,
+            width: 34,
+            height: 34,
             filterQuality: FilterQuality.medium,
           ),
           const SizedBox(

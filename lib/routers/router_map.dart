@@ -18,7 +18,6 @@ List<GetPage<dynamic>> routerMap = [
   GetPage(
     name: '/settings',
     page: () => const SettingsPage(),
-    transition: Transition.fade,
-    transitionDuration: 200.ms,
+    transitionDuration: 0.ms,
   )
 ];
