@@ -1,10 +1,8 @@
 import 'dart:math';
-
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:todo_cat/app.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/schemas/task.dart';
@@ -12,6 +10,7 @@ import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/data/test/todo.dart';
 import 'package:todo_cat/env.dart';
+import 'package:todo_cat/pages/controller.dart';
 import 'package:todo_cat/utils/date_time.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/widgets/show_toast.dart';

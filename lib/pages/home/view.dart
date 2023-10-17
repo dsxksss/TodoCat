@@ -6,9 +6,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/env.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/pages/home/widgets/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
+import 'package:todo_cat/widgets/nav_bar.dart';
 import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:uuid/uuid.dart';
 
@@ -51,6 +53,38 @@ class HomePage extends GetView<HomeController> {
           .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: TodoCatScaffold(
+        title:
+            context.isPhone ? "myTasks".tr : "${"myTasks".tr} ${runMode.name}",
+        leftWidgets: [
+          Image.asset(
+            'assets/imgs/logo-light-rounded.png',
+            width: 35,
+            height: 35,
+            filterQuality: FilterQuality.medium,
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+        ],
+        rightWidgets: [
+          NavBarBtn(
+            onPressed: () => {},
+            child: const Icon(
+              Icons.filter_alt_outlined,
+              size: 26,
+            ),
+          ),
+          SizedBox(
+            width: context.isPhone ? 10 : 20,
+          ),
+          NavBarBtn(
+            onPressed: () => Get.toNamed('/settings'),
+            child: const Icon(
+              Icons.settings,
+              size: 24,
+            ),
+          ),
+        ],
         body: ListView(
           controller: controller.scrollController,
           physics: const AlwaysScrollableScrollPhysics(

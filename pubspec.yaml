@@ -48,8 +48,10 @@ dependencies:
   dough: ^1.0.4
   # 启动闪屏页插件
   flutter_native_splash: ^2.3.2
-  
+  # 状态栏修改颜色插件
   flutter_statusbarcolor_ns: ^0.5.0
+  # 设置页面组件插件
+  settings_ui: ^2.0.2
 
 
 dev_dependencies:

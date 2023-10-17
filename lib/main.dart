@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:todo_cat/app.dart';
 import 'package:todo_cat/data/db.dart';
 import 'package:flutter/services.dart';
+import 'package:todo_cat/pages/app.dart';
 import 'package:todo_cat/window/init_window.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 

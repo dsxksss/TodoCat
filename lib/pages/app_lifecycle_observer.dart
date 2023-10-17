@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/app.dart';
+import 'package:todo_cat/pages/controller.dart';
 
 class AppLifecycleObserver extends WidgetsBindingObserver {
   final AppController _appController = Get.find();

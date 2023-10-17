@@ -61,5 +61,6 @@ const Map<String, String> zhCN = {
   'saveEditing': '是否保存已编辑的内容',
   'yes': '确定',
   'no': '取消',
-  'sureDeleteTask': '你确定要删除此任务吗?'
+  'sureDeleteTask': '你确定要删除此任务吗?',
+  'settings': '设置',
 };

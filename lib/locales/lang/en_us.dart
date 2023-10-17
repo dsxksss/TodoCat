@@ -61,5 +61,6 @@ const Map<String, String> enUS = {
   'saveEditing': 'Do you want to save edits',
   'yes': 'Yes',
   'no': 'No',
-  'sureDeleteTask': 'Would you like to delete the task ?'
+  'sureDeleteTask': 'Would you like to delete the task ?',
+  'settings': 'Settings',
 };

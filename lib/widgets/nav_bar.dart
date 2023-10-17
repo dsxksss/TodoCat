@@ -1,20 +1,25 @@
 import 'dart:io';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/app.dart';
 import 'package:todo_cat/env.dart';
+import 'package:todo_cat/pages/controller.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:window_manager/window_manager.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({
     super.key,
+    this.rightWidgets,
+    this.leftWidgets,
+    this.title,
   });
+
+  final String? title;
+  final List<Widget>? leftWidgets;
+  final List<Widget>? rightWidgets;
 
   @override
   State<NavBar> createState() => _NavBarState();
@@ -81,30 +86,33 @@ class _NavBarState extends State<NavBar> with WindowListener {
             width: 1.sw,
             color: context.theme.scaffoldBackgroundColor,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      Image.asset(
-                        'assets/imgs/logo-light-rounded.png',
-                        width: 50,
-                        height: 50,
-                        filterQuality: FilterQuality.medium,
-                      ),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      Text(
-                        context.isPhone
-                            ? "myTasks".tr
-                            : "${"myTasks".tr} ${runMode.name}",
-                        style: TextStyle(
-                          fontSize: context.isPhone ? 24 : 28,
-                          fontWeight: FontWeight.bold,
+                      if (Get.currentRoute != "/")
+                        NavBarBtn(
+                          onPressed: Get.back,
+                          child: const Icon(
+                            size: 30,
+                            Icons.keyboard_arrow_left_sharp,
+                          ),
                         ),
-                      ),
+                      ...?widget.leftWidgets,
+                      if (widget.title != null)
+                        SizedBox(
+                          width: context.isPhone ? 120 : 300,
+                          child: Text(
+                            widget.title ?? "",
+                            style: TextStyle(
+                              fontSize: context.isPhone ? 24 : 26,
+                              fontWeight: FontWeight.bold,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   Row(
@@ -113,55 +121,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                         : MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
-                        children: [
-                          NavBarBtn(
-                            onPressed: () => _appController.targetThemeMode(),
-                            child: const Icon(
-                              Icons.nights_stay,
-                              size: 25,
-                            )
-                                .animate(
-                                    target: _appController
-                                            .appConfig.value.isDarkMode
-                                        ? 1
-                                        : 0)
-                                .fadeOut(duration: 200.ms)
-                                .rotate(end: 0.1, duration: 200.ms)
-                                .swap(
-                                    builder: (_, __) => const Icon(
-                                          Icons.light_mode,
-                                          size: 25,
-                                        )
-                                            .animate()
-                                            .fadeIn(duration: 200.ms)
-                                            .rotate(
-                                                end: 0.1, duration: 200.ms)),
-                          ),
-                          SizedBox(
-                            width: context.isPhone ? 10 : 20,
-                          ),
-                          NavBarBtn(
-                            onPressed: () => _appController.changeLanguage(
-                              Get.locale == const Locale("zh", "CN")
-                                  ? const Locale("en", "US")
-                                  : const Locale("zh", "CN"),
-                            ),
-                            child: const Icon(
-                              Icons.g_translate,
-                              size: 22,
-                            ),
-                          ),
-                          SizedBox(
-                            width: context.isPhone ? 10 : 20,
-                          ),
-                          NavBarBtn(
-                            onPressed: () => {},
-                            child: const Icon(
-                              Icons.filter_alt_outlined,
-                              size: 26,
-                            ),
-                          ),
-                        ],
+                        children: [...?widget.rightWidgets],
                       ),
                       if (Platform.isWindows && !context.isPhone)
                         Row(
