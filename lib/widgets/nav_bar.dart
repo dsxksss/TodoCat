@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/env.dart';
 import 'package:todo_cat/pages/controller.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:window_manager/window_manager.dart';
@@ -27,6 +26,7 @@ class NavBar extends StatefulWidget {
 
 class _NavBarState extends State<NavBar> with WindowListener {
   final AppController _appController = Get.find();
+  final Rx<String> currentRoute = Get.currentRoute.obs;
 
   @override
   void initState() {
@@ -92,7 +92,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                 children: [
                   Row(
                     children: [
-                      if (Get.currentRoute != "/")
+                      if (currentRoute.value != "/")
                         NavBarBtn(
                           onPressed: Get.back,
                           child: const Icon(
@@ -107,7 +107,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                           child: Text(
                             widget.title ?? "",
                             style: TextStyle(
-                              fontSize: context.isPhone ? 24 : 26,
+                              fontSize: context.isPhone ? 24 : 25,
                               fontWeight: FontWeight.bold,
                               overflow: TextOverflow.ellipsis,
                             ),

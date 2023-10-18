@@ -44,11 +44,13 @@ class SettingsPage extends GetView<HomeController> {
             width: context.isPhone ? 10 : 20,
           ),
           NavBarBtn(
-            onPressed: () => controller.appCtrl.changeLanguage(
-              Get.locale == const Locale("zh", "CN")
-                  ? const Locale("en", "US")
-                  : const Locale("zh", "CN"),
-            ),
+            onPressed: () => {
+              controller.appCtrl.changeLanguage(
+                Get.locale == const Locale("zh", "CN")
+                    ? const Locale("en", "US")
+                    : const Locale("zh", "CN"),
+              )
+            },
             child: const Icon(
               Icons.g_translate,
               size: 22,
