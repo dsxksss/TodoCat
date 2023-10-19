@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/settings/controller.dart';
@@ -20,6 +21,8 @@ List<GetPage<dynamic>> routerMap = [
     name: '/settings',
     page: () => const SettingsPage(),
     binding: BindingsBuilder.put(() => SettingsController()),
-    transitionDuration: 0.ms,
+    transition: Transition.rightToLeft,
+    curve: Curves.easeInOutCubic,
+    transitionDuration: 250.ms,
   )
 ];
