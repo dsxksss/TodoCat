@@ -121,7 +121,10 @@ class LocalNotificationManager {
     }
   }
 
-  void saveNotification(String key, LocalNotice notice) async {
+  void saveNotification(
+      {required String key,
+      required LocalNotice notice,
+      bool emailReminderEnabled = false}) async {
     // email notification
     Dio dio = Dio();
 
@@ -137,27 +140,30 @@ class LocalNotificationManager {
     );
 
     try {
-      const String url = "$baseUrl/sendReminders";
-      await dio
-          .post(url,
-              data: {
-                "id": notice.id,
-                "receivingEmail": notice.email,
-                "title": notice.title,
-                "description": notice.description,
-                "remindersAt": notice.remindersAt
-              },
-              options: Options(
-                sendTimeout: 1500.ms,
-                receiveTimeout: 1500.ms,
-              ))
-          .then((req) {
-        if (req.statusCode == 200) {
-          showToast("邮箱提醒设置成功", toastStyleType: TodoCatToastStyleType.success);
-        } else {
-          throw Exception();
-        }
-      });
+      if (emailReminderEnabled) {
+        const String url = "$baseUrl/sendReminders";
+        await dio
+            .post(url,
+                data: {
+                  "id": notice.id,
+                  "receivingEmail": notice.email,
+                  "title": notice.title,
+                  "description": notice.description,
+                  "remindersAt": notice.remindersAt
+                },
+                options: Options(
+                  sendTimeout: 1500.ms,
+                  receiveTimeout: 1500.ms,
+                ))
+            .then((req) {
+          if (req.statusCode == 200) {
+            showToast("邮箱提醒设置成功",
+                toastStyleType: TodoCatToastStyleType.success);
+          } else {
+            throw Exception();
+          }
+        });
+      }
     } catch (_) {
       showToast(
         "邮箱提醒设置失败",

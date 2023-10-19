@@ -20,19 +20,22 @@ class AppConfigAdapter extends TypeAdapter<AppConfig> {
       configName: fields[0] as String,
       isDarkMode: fields[1] as bool,
       locale: fields[2] as Locale,
+      emailReminderEnabled: fields[3] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppConfig obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.configName)
       ..writeByte(1)
       ..write(obj.isDarkMode)
       ..writeByte(2)
-      ..write(obj.locale);
+      ..write(obj.locale)
+      ..writeByte(3)
+      ..write(obj.emailReminderEnabled);
   }
 
   @override

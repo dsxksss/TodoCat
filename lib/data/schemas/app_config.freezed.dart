@@ -28,6 +28,10 @@ mixin _$AppConfig {
   Locale get locale => throw _privateConstructorUsedError;
   @HiveField(2)
   set locale(Locale value) => throw _privateConstructorUsedError;
+  @HiveField(3)
+  bool get emailReminderEnabled => throw _privateConstructorUsedError;
+  @HiveField(3)
+  set emailReminderEnabled(bool value) => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $AppConfigCopyWith<AppConfig> get copyWith =>
@@ -42,7 +46,8 @@ abstract class $AppConfigCopyWith<$Res> {
   $Res call(
       {@HiveField(0) String configName,
       @HiveField(1) bool isDarkMode,
-      @HiveField(2) Locale locale});
+      @HiveField(2) Locale locale,
+      @HiveField(3) bool emailReminderEnabled});
 }
 
 /// @nodoc
@@ -61,6 +66,7 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
     Object? configName = null,
     Object? isDarkMode = null,
     Object? locale = null,
+    Object? emailReminderEnabled = null,
   }) {
     return _then(_value.copyWith(
       configName: null == configName
@@ -75,6 +81,10 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
           ? _value.locale
           : locale // ignore: cast_nullable_to_non_nullable
               as Locale,
+      emailReminderEnabled: null == emailReminderEnabled
+          ? _value.emailReminderEnabled
+          : emailReminderEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -89,7 +99,8 @@ abstract class _$$_AppConfigCopyWith<$Res> implements $AppConfigCopyWith<$Res> {
   $Res call(
       {@HiveField(0) String configName,
       @HiveField(1) bool isDarkMode,
-      @HiveField(2) Locale locale});
+      @HiveField(2) Locale locale,
+      @HiveField(3) bool emailReminderEnabled});
 }
 
 /// @nodoc
@@ -106,6 +117,7 @@ class __$$_AppConfigCopyWithImpl<$Res>
     Object? configName = null,
     Object? isDarkMode = null,
     Object? locale = null,
+    Object? emailReminderEnabled = null,
   }) {
     return _then(_$_AppConfig(
       configName: null == configName
@@ -120,6 +132,10 @@ class __$$_AppConfigCopyWithImpl<$Res>
           ? _value.locale
           : locale // ignore: cast_nullable_to_non_nullable
               as Locale,
+      emailReminderEnabled: null == emailReminderEnabled
+          ? _value.emailReminderEnabled
+          : emailReminderEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -130,7 +146,8 @@ class _$_AppConfig implements _AppConfig {
   _$_AppConfig(
       {@HiveField(0) required this.configName,
       @HiveField(1) required this.isDarkMode,
-      @HiveField(2) required this.locale});
+      @HiveField(2) required this.locale,
+      @HiveField(3) required this.emailReminderEnabled});
 
   @override
   @HiveField(0)
@@ -141,10 +158,13 @@ class _$_AppConfig implements _AppConfig {
   @override
   @HiveField(2)
   Locale locale;
+  @override
+  @HiveField(3)
+  bool emailReminderEnabled;
 
   @override
   String toString() {
-    return 'AppConfig(configName: $configName, isDarkMode: $isDarkMode, locale: $locale)';
+    return 'AppConfig(configName: $configName, isDarkMode: $isDarkMode, locale: $locale, emailReminderEnabled: $emailReminderEnabled)';
   }
 
   @JsonKey(ignore: true)
@@ -158,7 +178,8 @@ abstract class _AppConfig implements AppConfig {
   factory _AppConfig(
       {@HiveField(0) required String configName,
       @HiveField(1) required bool isDarkMode,
-      @HiveField(2) required Locale locale}) = _$_AppConfig;
+      @HiveField(2) required Locale locale,
+      @HiveField(3) required bool emailReminderEnabled}) = _$_AppConfig;
 
   @override
   @HiveField(0)
@@ -175,6 +196,11 @@ abstract class _AppConfig implements AppConfig {
   Locale get locale;
   @HiveField(2)
   set locale(Locale value);
+  @override
+  @HiveField(3)
+  bool get emailReminderEnabled;
+  @HiveField(3)
+  set emailReminderEnabled(bool value);
   @override
   @JsonKey(ignore: true)
   _$$_AppConfigCopyWith<_$_AppConfig> get copyWith =>

@@ -6,7 +6,6 @@ import 'package:todo_cat/utils/dialog_keys.dart';
 
 class SettingsController extends GetxController {
   final AppController appCtrl = Get.find();
-  final Rx<bool> emailReminderEnabled = false.obs;
   late final Rx<String> currentLanguage;
 
   @override
@@ -15,16 +14,6 @@ class SettingsController extends GetxController {
       appCtrl.appConfig.value.locale.languageCode,
     ).obs;
     super.onInit();
-  }
-
-  void changeLanguage(Locale local) {
-    appCtrl.changeLanguage(local);
-    currentLanguage.value = _getLanguageTitle(local.languageCode);
-    SmartDialog.dismiss(tag: settingsDropDownMenuBtnTag);
-  }
-
-  void targetEmailReminder() {
-    emailReminderEnabled.value = !emailReminderEnabled.value;
   }
 
   String _getLanguageTitle(String locale) {
@@ -36,5 +25,17 @@ class SettingsController extends GetxController {
       default:
         return "unknown";
     }
+  }
+
+  void changeLanguage(Locale local) {
+    appCtrl.changeLanguage(local);
+    currentLanguage.value = _getLanguageTitle(local.languageCode);
+    SmartDialog.dismiss(tag: settingsDropDownMenuBtnTag);
+  }
+
+  void targetEmailReminder() {
+    appCtrl.appConfig.value.emailReminderEnabled =
+        !appCtrl.appConfig.value.emailReminderEnabled;
+    appCtrl.appConfig.refresh();
   }
 }

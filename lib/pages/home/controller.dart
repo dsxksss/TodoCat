@@ -170,7 +170,11 @@ class HomeController extends GetxController {
         remindersAt: todo.reminders,
         email: "2546650292@qq.com",
       );
-      appCtrl.localNotificationManager.saveNotification(notice.id, notice);
+      appCtrl.localNotificationManager.saveNotification(
+        key: notice.id,
+        notice: notice,
+        emailReminderEnabled: appCtrl.appConfig.value.emailReminderEnabled,
+      );
     }
 
     // 按照完成优先级排序

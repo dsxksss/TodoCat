@@ -46,7 +46,6 @@ class SettingsPage extends GetView<SettingsController> {
           ],
           body: Obx(
             () => SettingsList(
-              // platform: DevicePlatform.windows,
               lightTheme: theme,
               darkTheme: theme,
               physics: const AlwaysScrollableScrollPhysics(
@@ -92,7 +91,8 @@ class SettingsPage extends GetView<SettingsController> {
                     SettingsTile.switchTile(
                       onToggle: (value) => controller.targetEmailReminder(),
                       onPressed: (context) => controller.targetEmailReminder(),
-                      initialValue: controller.emailReminderEnabled.value,
+                      initialValue: controller
+                          .appCtrl.appConfig.value.emailReminderEnabled,
                       leading: const Icon(Icons.mark_email_unread_outlined),
                       title: Text('emailReminder'.tr),
                     ),

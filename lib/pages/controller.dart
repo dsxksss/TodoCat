@@ -18,6 +18,7 @@ class AppController extends GetxController {
       configName: "default",
       isDarkMode: true,
       locale: const Locale("zh", "CN"),
+      emailReminderEnabled: false,
     ),
   );
   final isMaximize = false.obs;
