@@ -63,4 +63,9 @@ const Map<String, String> enUS = {
   'no': 'No',
   'sureDeleteTask': 'Would you like to delete the task ?',
   'settings': 'Settings',
+  'enable': 'Enable',
+  'disable': 'Disable',
+  'emailReminder': 'Email reminder',
+  'language': 'Language',
+  'common': 'Common',
 };

@@ -7,7 +7,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/pages/home/controller.dart';
-import 'package:todo_cat/pages/home/widgets/task/task_dpd_menu_btn.dart';
+import 'package:todo_cat/utils/dialog_keys.dart';
+import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/pages/home/widgets/todo/add_todo_card_btn.dart';
 import 'package:todo_cat/pages/home/widgets/todo/todo_card.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
@@ -124,7 +125,8 @@ class TaskCard extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 15),
-                child: TaskDropDownMenuBtn(
+                child: DPDMenuBtn(
+                  tag: taskDropDownMenuBtnTag,
                   menuItems: [
                     MenuItem(
                       title: 'edit',

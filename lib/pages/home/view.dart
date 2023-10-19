@@ -74,9 +74,7 @@ class HomePage extends GetView<HomeController> {
               size: 26,
             ),
           ),
-          SizedBox(
-            width: context.isPhone ? 10 : 20,
-          ),
+          const SizedBox(width: 10),
           NavBarBtn(
             onPressed: () => Get.toNamed('/settings'),
             child: const Icon(

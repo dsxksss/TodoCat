@@ -63,4 +63,9 @@ const Map<String, String> zhCN = {
   'no': '取消',
   'sureDeleteTask': '你确定要删除此任务吗?',
   'settings': '设置',
+  'enable': '启用',
+  'disable': '禁用',
+  'emailReminder': '邮箱提醒',
+  'language': '语言',
+  'common': '通用',
 };
