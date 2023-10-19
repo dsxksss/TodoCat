@@ -68,4 +68,6 @@ const Map<String, String> zhCN = {
   'emailReminder': '邮箱提醒',
   'language': '语言',
   'common': '通用',
+  'emailReminderSentSuccessfully': '电子邮件提醒发送成功',
+  'emailReminderSendingFailed': '电子邮件提醒发送失败',
 };

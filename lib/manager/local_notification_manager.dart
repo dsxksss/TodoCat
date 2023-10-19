@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/io.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/services/repositorys/local_notice.dart';
@@ -157,7 +158,7 @@ class LocalNotificationManager {
                 ))
             .then((req) {
           if (req.statusCode == 200) {
-            showToast("邮箱提醒设置成功",
+            showToast("emailReminderSentSuccessfully".tr,
                 toastStyleType: TodoCatToastStyleType.success);
           } else {
             throw Exception();
@@ -166,7 +167,7 @@ class LocalNotificationManager {
       }
     } catch (_) {
       showToast(
-        "邮箱提醒设置失败",
+        "emailReminderSendingFailed".tr,
         toastStyleType: TodoCatToastStyleType.error,
       );
     } finally {

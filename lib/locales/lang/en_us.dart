@@ -68,4 +68,6 @@ const Map<String, String> enUS = {
   'emailReminder': 'Email reminder',
   'language': 'Language',
   'common': 'Common',
+  'emailReminderSentSuccessfully': 'Email reminder sent successfully',
+  'emailReminderSendingFailed': 'Email reminder sent failed',
 };
