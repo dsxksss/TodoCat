@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 
@@ -49,8 +50,21 @@ class TagDialogBtn extends StatelessWidget {
         if (_openDialog != null) {
           SmartDialog.show(
             tag: _tag,
+            useSystem: false,
+            debounce: true,
+            keepSingle: true,
+            backDismiss: false,
+            animationTime: 150.ms,
             builder: (context) =>
                 _openDialog ?? const Text("open unknow dialog!!!"),
+            animationBuilder: (controller, child, _) => child
+                .animate(controller: controller)
+                .fade(duration: controller.duration)
+                .scaleXY(
+                  begin: 0.99,
+                  duration: controller.duration,
+                  curve: Curves.easeOutCubic,
+                ),
           );
         }
       },

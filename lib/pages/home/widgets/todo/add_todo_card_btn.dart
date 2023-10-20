@@ -65,7 +65,6 @@ void _showAddTodoDialog() {
     keepSingle: true,
     tag: addTodoDialogTag,
     backDismiss: false,
-    // maskColor: Colors.transparent,
     animationTime: 150.ms,
     builder: (context) => const AddTodoDialog(),
     clickMaskDismiss: false,

@@ -296,7 +296,7 @@ class DatePickerPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 400,
-      width: 330,
+      width: 340,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
         color: context.theme.dialogBackgroundColor,

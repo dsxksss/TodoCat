@@ -49,7 +49,9 @@ class DatePanel extends StatelessWidget {
               () => Container(
                 decoration: BoxDecoration(
                   color: day == _ctrl.selectedDay.value
-                      ? const Color.fromRGBO(232, 238, 254, 1)
+                      ? context.isDarkMode
+                          ? context.theme.dialogBackgroundColor
+                          : const Color.fromRGBO(232, 238, 254, 1)
                       : context.theme.dialogBackgroundColor,
                   borderRadius: BorderRadius.circular(99),
                   border: Border.all(
@@ -65,7 +67,9 @@ class DatePanel extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: day == _ctrl.selectedDay.value
-                          ? const Color.fromRGBO(42, 100, 255, 1)
+                          ? context.isDarkMode
+                              ? Colors.grey.shade300
+                              : const Color.fromRGBO(42, 100, 255, 1)
                           : null,
                     ),
                   ),
