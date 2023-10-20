@@ -5,6 +5,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/controller.dart';
+import 'package:todo_cat/pages/home/widgets/app_date_picker_dialog.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/pages/home/widgets/add_tag_screen.dart';
 import 'package:todo_cat/pages/home/widgets/text_form_field_item.dart';
@@ -167,27 +168,27 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                       ),
                       children: [
                         TagDialogBtn(
-                          title: Text(
-                            "dueDate".tr,
-                            style: const TextStyle(fontSize: 15),
-                          ),
+                          tag: addTodoTagDialogBtnTag,
+                          title: "dueDate".tr,
+                          titleStyle: const TextStyle(fontSize: 15),
                           icon: const Icon(Icons.event_available_outlined,
                               size: 20),
+                          openDialog: const TodoCatDatePickerDialog(
+                            dialogTag: addTodoTagDialogBtnTag,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         TagDialogBtn(
-                          title: Text(
-                            "priority".tr,
-                            style: const TextStyle(fontSize: 15),
-                          ),
+                          tag: addTodoTagDialogBtnTag,
+                          title: "priority".tr,
+                          titleStyle: const TextStyle(fontSize: 15),
                           icon: const Icon(Icons.flag_outlined, size: 20),
                         ),
                         const SizedBox(width: 10),
                         TagDialogBtn(
-                          title: Text(
-                            "reminderTime".tr,
-                            style: const TextStyle(fontSize: 15),
-                          ),
+                          tag: addTodoTagDialogBtnTag,
+                          title: "reminderTime".tr,
+                          titleStyle: const TextStyle(fontSize: 15),
                           icon: const Icon(Icons.alarm, size: 20),
                         ),
                       ],
@@ -212,8 +213,9 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                                     (tag) => Padding(
                                       padding: const EdgeInsets.only(right: 10),
                                       child: TagDialogBtn(
+                                        tag: addTodoTagDialogBtnTag,
                                         icon: const Icon(Icons.tag, size: 20),
-                                        title: Row(
+                                        titleWidget: Row(
                                           children: [
                                             Text(
                                               tag,

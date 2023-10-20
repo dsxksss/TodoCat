@@ -7,6 +7,7 @@ class AppBinding implements Bindings {
   void dependencies() {
     Get.lazyPut(() => HomeController());
     Get.lazyPut(() => SettingsController());
+    Get.lazyPut(() => DatePickerController());
     Get.put(AddTodoDialogController());
   }
 }

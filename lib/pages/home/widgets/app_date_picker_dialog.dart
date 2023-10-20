@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/utils/date_time.dart';
+import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/widgets/date_panel.dart';
 import 'package:todo_cat/widgets/time_panel.dart';
 
 class TodoCatDatePickerDialog extends StatefulWidget {
   const TodoCatDatePickerDialog({
     super.key,
+    required this.dialogTag,
   });
+  final String dialogTag;
 
   @override
   State<TodoCatDatePickerDialog> createState() =>
@@ -94,7 +98,7 @@ class _TodoCatDatePickerDialogState extends State<TodoCatDatePickerDialog> {
                           // 时间戳
                           _dialogCtrl.remindersValue.value =
                               _ctrl.currentDate.value.millisecondsSinceEpoch;
-                          Get.back();
+                          SmartDialog.dismiss(tag: widget.dialogTag);
                         },
                         child: Text("done".tr),
                       ),
