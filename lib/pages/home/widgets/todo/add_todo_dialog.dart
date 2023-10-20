@@ -5,10 +5,10 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/controller.dart';
-import 'package:todo_cat/pages/home/widgets/app_date_picker_dialog.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/pages/home/widgets/add_tag_screen.dart';
 import 'package:todo_cat/pages/home/widgets/text_form_field_item.dart';
+import 'package:todo_cat/widgets/date_panel.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
@@ -173,7 +173,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                           titleStyle: const TextStyle(fontSize: 15),
                           icon: const Icon(Icons.event_available_outlined,
                               size: 20),
-                          openDialog: const TodoCatDatePickerDialog(
+                          openDialog: const DatePickerPanel(
                             dialogTag: addTodoTagDialogBtnTag,
                           ),
                         ),
@@ -284,6 +284,25 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class DatePickerPanel extends StatelessWidget {
+  const DatePickerPanel({super.key, required this.dialogTag});
+  final String dialogTag;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400,
+      width: 330,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      decoration: BoxDecoration(
+        color: context.theme.dialogBackgroundColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: DatePanel(),
     );
   }
 }

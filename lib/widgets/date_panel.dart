@@ -20,7 +20,7 @@ class DatePanel extends StatelessWidget {
   ];
 
   final TextStyle _dateStyle = const TextStyle(
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.grey,
   );
 
@@ -49,17 +49,24 @@ class DatePanel extends StatelessWidget {
               () => Container(
                 decoration: BoxDecoration(
                   color: day == _ctrl.selectedDay.value
-                      ? Colors.lightBlue
+                      ? const Color.fromRGBO(232, 238, 254, 1)
                       : context.theme.dialogBackgroundColor,
                   borderRadius: BorderRadius.circular(99),
+                  border: Border.all(
+                    width: 4,
+                    color: day == _ctrl.selectedDay.value
+                        ? const Color.fromRGBO(42, 100, 255, 1)
+                        : context.theme.dialogBackgroundColor,
+                  ),
                 ),
                 child: Center(
                   child: Text(
                     day.toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color:
-                          day == _ctrl.selectedDay.value ? Colors.white : null,
+                      color: day == _ctrl.selectedDay.value
+                          ? const Color.fromRGBO(42, 100, 255, 1)
+                          : null,
                     ),
                   ),
                 ),
@@ -75,82 +82,81 @@ class DatePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 350,
-      color: context.theme.dialogBackgroundColor,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AnimationBtn(
-                onPressed: () {
-                  if (_ctrl.currentDate.value.month > 1) {
-                    _ctrl.changeDate(month: _ctrl.currentDate.value.month - 1);
-                  }
-                },
-                onHoverAnimationEnabled: false,
-                onClickAnimationEnabled: false,
-                onHoverBgColorChangeEnabled: true,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Center(
-                    child: Icon(FontAwesomeIcons.angleLeft, size: 15),
-                  ),
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Obx(
+              () => Text(
+                "${_ctrl.currentDate.value.year} ${"year".tr} ${_ctrl.currentDate.value.month} ${"month".tr}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
               ),
-              Obx(
-                () => Text(
-                  "${_ctrl.currentDate.value.year} ${"year".tr} ${_ctrl.currentDate.value.month} ${"month".tr}",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-              ),
-              AnimationBtn(
-                onPressed: () {
-                  if (_ctrl.currentDate.value.month < 12) {
-                    _ctrl.changeDate(month: _ctrl.currentDate.value.month + 1);
-                  }
-                },
-                onHoverAnimationEnabled: false,
-                onClickAnimationEnabled: false,
-                onHoverBgColorChangeEnabled: true,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      FontAwesomeIcons.angleRight,
-                      size: 15,
+            ),
+            Row(
+              children: [
+                AnimationBtn(
+                  onPressed: () {
+                    if (_ctrl.currentDate.value.month > 1) {
+                      _ctrl.changeDate(
+                          month: _ctrl.currentDate.value.month - 1);
+                    }
+                  },
+                  onHoverAnimationEnabled: false,
+                  onClickAnimationEnabled: false,
+                  onHoverBgColorChangeEnabled: true,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Center(
+                      child: Icon(FontAwesomeIcons.angleLeft, size: 15),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [..._weekTags.map((e) => Text(e.tr, style: _dateStyle))],
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          SizedBox(height: 300, child: Obx(() => _buildDateGrid())),
-          const SizedBox(
-            height: 10,
-          ),
-        ],
-      ),
+                AnimationBtn(
+                  onPressed: () {
+                    if (_ctrl.currentDate.value.month < 12) {
+                      _ctrl.changeDate(
+                          month: _ctrl.currentDate.value.month + 1);
+                    }
+                  },
+                  onHoverAnimationEnabled: false,
+                  onClickAnimationEnabled: false,
+                  onHoverBgColorChangeEnabled: true,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        FontAwesomeIcons.angleRight,
+                        size: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [..._weekTags.map((e) => Text(e.tr, style: _dateStyle))],
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        SizedBox(height: 280, child: Obx(() => _buildDateGrid())),
+      ],
     );
   }
 }
