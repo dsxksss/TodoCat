@@ -14,6 +14,8 @@ class TextFormFieldItem extends StatelessWidget {
     required TextEditingController editingController,
     EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
     bool? ghostStyle,
+    bool? autofocus,
+    FocusNode? focusNode,
     Color? fillColor,
     Widget? suffix,
     TextInputAction? textInputAction,
@@ -21,6 +23,7 @@ class TextFormFieldItem extends StatelessWidget {
   })  : _fillColor = fillColor,
         _ghostStyle = ghostStyle ?? false,
         _validator = validator,
+        _autofocus = autofocus ?? false,
         _editingController = editingController,
         _contentPadding = contentPadding,
         _maxLines = maxLines,
@@ -29,18 +32,21 @@ class TextFormFieldItem extends StatelessWidget {
         _obscureText = obscureText,
         _radius = radius,
         _suffix = suffix,
+        _focusNode = focusNode,
         _textInputAction = textInputAction,
         _inputType = inputType;
 
   final String _fieldTitle;
   final Widget? _suffix;
   final Color? _fillColor;
+  final FocusNode? _focusNode;
   final int _maxLength;
   final int? _maxLines;
   final double _radius;
   final bool _ghostStyle;
   final EdgeInsets _contentPadding;
   final bool _obscureText;
+  final bool _autofocus;
   final TextInputAction? _textInputAction;
   final TextEditingController _editingController;
   final String? Function(String?)? _validator;
@@ -62,6 +68,8 @@ class TextFormFieldItem extends StatelessWidget {
       controller: _editingController,
       maxLength: _maxLength,
       maxLines: _maxLines,
+      autofocus: _autofocus,
+      focusNode: _focusNode,
       keyboardType: _inputType,
       cursorColor: Colors.blueGrey.shade400,
       decoration: InputDecoration(

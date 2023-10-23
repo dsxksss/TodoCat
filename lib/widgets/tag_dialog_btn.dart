@@ -14,16 +14,22 @@ class TagDialogBtn extends StatelessWidget {
     required Widget? icon,
     TextStyle? titleStyle,
     EdgeInsets? margin,
+    VoidCallback? onDialogClose,
+    VoidCallback? onDialogOpen,
   })  : _margin = margin,
         _tag = tag,
         _title = title ?? "",
         _titleStyle = titleStyle,
         _titleWidget = titleWidget,
         _openDialog = openDialog,
-        _icon = icon;
+        _icon = icon,
+        _onDialogOpen = onDialogOpen,
+        _onDialogClose = onDialogClose;
 
   final String _tag;
   final String _title;
+  final VoidCallback? _onDialogOpen;
+  final VoidCallback? _onDialogClose;
   final Widget? _openDialog;
   final TextStyle? _titleStyle;
   final Widget? _titleWidget;
@@ -55,6 +61,7 @@ class TagDialogBtn extends StatelessWidget {
             keepSingle: true,
             backDismiss: false,
             animationTime: 150.ms,
+            onDismiss: _onDialogClose,
             builder: (context) =>
                 _openDialog ?? const Text("open unknow dialog!!!"),
             animationBuilder: (controller, child, _) => child
@@ -66,6 +73,7 @@ class TagDialogBtn extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                 ),
           );
+          if (_openDialog != null) _onDialogOpen!();
         }
       },
     );

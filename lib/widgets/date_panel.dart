@@ -31,6 +31,7 @@ class DatePanel extends StatelessWidget {
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
       ),
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         if (index < _ctrl.startPadding.value) {
           return const Text('');

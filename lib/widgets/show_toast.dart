@@ -27,6 +27,24 @@ List _getIconData(TodoCatToastStyleType type) {
   }
 }
 
+List<Effect<dynamic>> _getToastAnimationEffect(
+    AnimationController controller, TodoCatToastStyleType? toastStyleType) {
+  final List<Effect<dynamic>> animationEffect = [
+    MoveEffect(
+      begin: Platform.isAndroid || Platform.isIOS
+          ? const Offset(0, -150)
+          : const Offset(0, 150),
+      duration: controller.duration,
+      curve: Curves.easeInOutBack,
+    ),
+    FadeEffect(
+      duration: controller.duration,
+      curve: Curves.easeInOutBack,
+    ),
+  ];
+  return animationEffect;
+}
+
 void showToast(
   String message, {
   bool confirmMode = false,
@@ -46,36 +64,6 @@ void showToast(
   bool? keepSingle,
   bool? backDismiss,
 }) {
-  List<Effect<dynamic>> getToastAnimationEffect(
-      AnimationController controller) {
-    final List<Effect<dynamic>> animationEffect = [
-      MoveEffect(
-        begin: Platform.isAndroid || Platform.isIOS
-            ? const Offset(0, -150)
-            : const Offset(0, 150),
-        duration: controller.duration,
-        curve: Curves.easeInOutBack,
-      ),
-      FadeEffect(
-        duration: controller.duration,
-        curve: Curves.easeInOutBack,
-      ),
-    ];
-    if (toastStyleType == TodoCatToastStyleType.error ||
-        toastStyleType == TodoCatToastStyleType.warning) {
-      animationEffect.addAll([
-        const ThenEffect(),
-        ShakeEffect(
-          hz: 4,
-          offset: const Offset(8, 0),
-          rotation: 0,
-          duration: controller.duration,
-        ),
-      ]);
-    }
-    return animationEffect;
-  }
-
   SmartDialog.show(
     displayTime:
         alwaysShow ? const Duration(days: 365) : displayTime ?? 3000.ms,
@@ -93,7 +81,7 @@ void showToast(
     animationBuilder: animationBuilder ??
         (controller, child, _) => child.animate(
               controller: controller,
-              effects: getToastAnimationEffect(controller),
+              effects: _getToastAnimationEffect(controller, toastStyleType),
             ),
     builder: builder ??
         (context) {

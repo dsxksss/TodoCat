@@ -251,6 +251,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   const SizedBox(height: 10),
                   TextFormFieldItem(
                     textInputAction: TextInputAction.next,
+                    autofocus: true,
+                    focusNode: FocusNode(),
                     maxLength: 20,
                     maxLines: 1,
                     radius: 6,
