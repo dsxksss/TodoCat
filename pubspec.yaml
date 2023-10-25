@@ -52,6 +52,8 @@ dependencies:
   flutter_statusbarcolor_ns: ^0.5.0
   # 设置页面组件插件
   settings_ui: ^2.0.2
+  # 设备显示模式插件
+  flutter_displaymode: ^0.6.0
 
 
 dev_dependencies:

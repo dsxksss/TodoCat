@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -31,7 +32,13 @@ class _AppState extends State<App> {
     if (Platform.isAndroid || Platform.isIOS) {
       // 移除启动页面
       FlutterNativeSplash.remove();
+      // 支持高帧率
+      setHighRefreshRate();
     }
+  }
+
+  void setHighRefreshRate() async {
+    await FlutterDisplayMode.setHighRefreshRate();
   }
 
   @override
