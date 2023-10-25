@@ -27,14 +27,27 @@ class DatePanel extends StatelessWidget {
 // 在 build 方法中添加日期渲染的部分
   Widget _buildDateGrid() {
     return GridView.builder(
+      clipBehavior: Clip.antiAliasWithSaveLayer,
       itemCount: _ctrl.totalDays.value as int,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-      ),
+          crossAxisCount: 7, mainAxisSpacing: 2, crossAxisSpacing: 2),
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         if (index < _ctrl.startPadding.value) {
-          return const Text('');
+          // 渲染前一个月的日期
+          final prevMonthDay =
+              _ctrl.daysInMonth.value - _ctrl.startPadding.value - index + 1;
+          return Center(
+            child: Text(
+              prevMonthDay.toString(),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+          );
         } else if (index < _ctrl.totalDays.value) {
           // 渲染当前月的日期
           final day = index - _ctrl.startPadding.value + 1;
@@ -79,7 +92,17 @@ class DatePanel extends StatelessWidget {
             ),
           );
         } else {
-          return const Text('');
+          // 渲染下一个月的日期
+          final nextMonthDay = index - _ctrl.totalDays.value + 1;
+          return Center(
+            child: Text(
+              nextMonthDay.toString(),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+          );
         }
       },
     );
@@ -150,17 +173,13 @@ class DatePanel extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [..._weekTags.map((e) => Text(e.tr, style: _dateStyle))],
         ),
-        const SizedBox(
-          height: 10,
-        ),
-        SizedBox(height: 280, child: Obx(() => _buildDateGrid())),
+        const SizedBox(height: 10),
+        Obx(() => _buildDateGrid()),
       ],
     );
   }

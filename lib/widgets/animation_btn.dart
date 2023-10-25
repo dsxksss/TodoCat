@@ -8,7 +8,7 @@ class AnimationBtn extends StatelessWidget {
   AnimationBtn({
     super.key,
     required Widget child,
-    Function? onPressed,
+    required VoidCallback onPressed,
     double? onHoverScale,
     double? onClickScale,
     Color? hoverBgColor,
@@ -35,7 +35,7 @@ class AnimationBtn extends StatelessWidget {
         _child = child;
 
   final Widget _child;
-  final Function? _onPressed;
+  final VoidCallback _onPressed;
   final bool _disable;
 
   final double? _onHoverScale;
@@ -99,7 +99,7 @@ class AnimationBtn extends StatelessWidget {
             await Future.delayed(
                 (_clickScaleDuration ?? _defaultDuration) - 50.ms);
             _closeAllAnimation();
-            if (_onPressed != null) _onPressed!();
+            _onPressed();
           } else {
             _playDisableAnimation();
           }
@@ -112,7 +112,7 @@ class AnimationBtn extends StatelessWidget {
         },
         onLongPressUp: () {
           _closeAllAnimation();
-          if (_onPressed != null && !_disable) _onPressed!();
+          if (!_disable) _onPressed();
         },
         child: Obx(
           () => _child

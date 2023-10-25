@@ -73,7 +73,7 @@ class TagDialogBtn extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                 ),
           );
-          if (_openDialog != null) _onDialogOpen!();
+          _onDialogOpen?.call();
         }
       },
     );

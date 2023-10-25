@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 
@@ -13,7 +12,6 @@ class TimePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 350,
-      height: 350,
       child: Column(
         children: [
           Row(
@@ -39,11 +37,7 @@ class TimePanel extends StatelessWidget {
                       return;
                     }
                     if (page <= 24 || page >= 0) {
-                      _ctrl.hController.animateToPage(
-                        page,
-                        duration: 200.ms,
-                        curve: Curves.easeInOut,
-                      );
+                      _ctrl.changeDate(hour: page);
                     }
                   },
                   decoration: InputDecoration(
@@ -83,11 +77,7 @@ class TimePanel extends StatelessWidget {
                       return;
                     }
                     if (page <= 60 || page >= 0) {
-                      _ctrl.mController.animateToPage(
-                        page,
-                        duration: 200.ms,
-                        curve: Curves.easeInOut,
-                      );
+                      _ctrl.changeDate(minute: page);
                     }
                   },
                   decoration: InputDecoration(
@@ -109,60 +99,6 @@ class TimePanel extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          Expanded(
-            child: Center(
-              child: SizedBox(
-                height: 70,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    SizedBox(
-                      width: 50,
-                      child: PageView.builder(
-                        itemCount: 24,
-                        controller: _ctrl.hController,
-                        scrollDirection: Axis.vertical,
-                        itemBuilder: (ctx, index) {
-                          return Center(
-                              child: Text(
-                            '$index',
-                            style: const TextStyle(fontSize: 25),
-                          ));
-                        },
-                        onPageChanged: (int index) {
-                          _ctrl.changeDate(hour: index);
-                        },
-                      ),
-                    ),
-                    const Text(
-                      ":",
-                      style: TextStyle(fontSize: 30),
-                    ),
-                    SizedBox(
-                      width: 50,
-                      child: PageView.builder(
-                        itemCount: 60,
-                        controller: _ctrl.mController,
-                        scrollDirection: Axis.vertical,
-                        pageSnapping: true,
-                        // physics: AlwaysScrollableScrollPhysics(),
-                        itemBuilder: (ctx, index) {
-                          return Center(
-                              child: Text(
-                            '$index',
-                            style: const TextStyle(fontSize: 25),
-                          ));
-                        },
-                        onPageChanged: (int index) {
-                          _ctrl.changeDate(minute: index);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ),
         ],
       ),

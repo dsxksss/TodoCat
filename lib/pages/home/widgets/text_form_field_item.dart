@@ -72,9 +72,16 @@ class TextFormFieldItem extends StatelessWidget {
       focusNode: _focusNode,
       keyboardType: _inputType,
       cursorColor: Colors.blueGrey.shade400,
+      buildCounter: (context,
+              {required currentLength, required isFocused, maxLength}) =>
+          Text(
+        "这个地方有点问题喔.",
+        style: TextStyle(color: Colors.red),
+      ),
       decoration: InputDecoration(
         suffix: _suffix,
-        counter: const Text(""),
+        isCollapsed: false,
+        counterText: "",
         filled: true,
         fillColor: _fillColor ?? context.theme.inputDecorationTheme.fillColor,
         contentPadding: _contentPadding,
@@ -100,7 +107,7 @@ class TextFormFieldItem extends StatelessWidget {
                 "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}",
                 toastStyleType: TodoCatToastStyleType.warning,
               );
-              return '';
+              return "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}";
             }
             return null;
           },

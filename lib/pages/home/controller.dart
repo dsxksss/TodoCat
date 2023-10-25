@@ -254,8 +254,6 @@ class DatePickerController extends GetxController {
   final daysInMonth = 0.obs;
   final startPadding = RxNum(0);
   final totalDays = RxNum(0);
-  late final PageController hController = PageController();
-  late final PageController mController = PageController();
   final TextEditingController hEditingController = TextEditingController();
   final TextEditingController mEditingController = TextEditingController();
 
@@ -274,10 +272,6 @@ class DatePickerController extends GetxController {
     selectedDay.value = defaultDate.value.day;
 
     await Future.delayed(200.ms, () {
-      hController.animateToPage(defaultDate.value.hour,
-          duration: 200.ms, curve: Curves.easeOutCubic);
-      mController.animateToPage(defaultDate.value.minute,
-          duration: 200.ms, curve: Curves.easeOutCubic);
       hEditingController.text = defaultDate.value.hour.toString();
       mEditingController.text = defaultDate.value.minute.toString();
     });
@@ -296,8 +290,6 @@ class DatePickerController extends GetxController {
       hour: 0,
       minute: 0,
     );
-    hController.animateToPage(0, duration: 200.ms, curve: Curves.easeOutCubic);
-    mController.animateToPage(0, duration: 200.ms, curve: Curves.easeOutCubic);
     hEditingController.text = 0.toString();
     mEditingController.text = 0.toString();
   }

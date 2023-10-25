@@ -6,6 +6,7 @@ class LabelBtn extends StatelessWidget {
   const LabelBtn({
     super.key,
     required Widget label,
+    required VoidCallback onPressed,
     double? interval,
     EdgeInsets? padding,
     EdgeInsets? margin,
@@ -13,7 +14,6 @@ class LabelBtn extends StatelessWidget {
     bool? disable,
     bool? ghostStyle,
     bool? reverse,
-    Function? onPressed,
     Color? bgColor,
     Decoration? decoration,
     bool? onHoverAnimationEnabled,
@@ -59,7 +59,7 @@ class LabelBtn extends StatelessWidget {
   final EdgeInsets? _margin;
   final Widget? _icon;
   final Color? _bgColor;
-  final Function? _onPressed;
+  final VoidCallback _onPressed;
   final Decoration? _decoration;
   final bool? _onHoverAnimationEnabled;
   final bool? _onClickAnimationEnabled;

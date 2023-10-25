@@ -177,13 +177,13 @@ class _NavBarState extends State<NavBar> with WindowListener {
 class NavBarBtn extends StatelessWidget {
   const NavBarBtn(
       {super.key,
-      Function? onPressed,
+      required VoidCallback onPressed,
       required Widget child,
       Color? hoverColor})
       : _child = child,
         _hoverColor = hoverColor,
         _onPressed = onPressed;
-  final Function? _onPressed;
+  final VoidCallback _onPressed;
   final Color? _hoverColor;
   final Widget _child;
 
