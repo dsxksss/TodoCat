@@ -30,10 +30,10 @@ class _AppState extends State<App> {
 
     super.initState();
     if (Platform.isAndroid || Platform.isIOS) {
-      // 移除启动页面
-      FlutterNativeSplash.remove();
       // 支持高帧率
       setHighRefreshRate();
+      // 移除启动页面
+      FlutterNativeSplash.remove();
     }
   }
 
