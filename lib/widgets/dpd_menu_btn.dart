@@ -101,7 +101,8 @@ void showDpdMenu({
   required BuildContext targetContext,
   void Function()? onDismiss,
   SmartDialogController? controller,
-}) {
+}) async {
+  SmartDialog.dismiss(tag: tag);
   SmartDialog.showAttach(
     onDismiss: onDismiss,
     tag: tag,
