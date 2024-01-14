@@ -50,7 +50,7 @@ class TodoCard extends StatelessWidget {
               children: [
                 Icon(
                   FontAwesomeIcons.solidCircle,
-                  size: 13,
+                  size: 11,
                   color: _getPriorityColor(),
                 ),
                 const SizedBox(width: 5),
