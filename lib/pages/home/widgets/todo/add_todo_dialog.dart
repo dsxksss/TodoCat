@@ -153,7 +153,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
             Expanded(
               child: ListView(
                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
-                physics: BouncingScrollPhysics(
+                physics: const BouncingScrollPhysics(
                   parent: BouncingScrollPhysics(),
                   decelerationRate: ScrollDecelerationRate.fast,
                 ),
