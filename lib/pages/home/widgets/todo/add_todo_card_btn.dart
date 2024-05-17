@@ -85,7 +85,7 @@ void _showAddTodoBottomSheet(BuildContext context) {
     keepSingle: true,
     tag: addTodoDialogTag,
     backDismiss: false,
-    animationTime: 250.ms,
+    animationTime: 120.ms,
     alignment: Alignment.bottomCenter,
     builder: (context) => const Scaffold(
       backgroundColor: Colors.transparent,

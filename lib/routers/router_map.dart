@@ -22,7 +22,6 @@ List<GetPage<dynamic>> routerMap = [
     page: () => const SettingsPage(),
     binding: BindingsBuilder.put(() => SettingsController()),
     transition: Transition.rightToLeft,
-    curve: Curves.easeInOutCubic,
-    transitionDuration: 250.ms,
+    transitionDuration: 100.ms,
   )
 ];
