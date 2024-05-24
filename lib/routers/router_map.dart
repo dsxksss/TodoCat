@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -21,7 +23,9 @@ List<GetPage<dynamic>> routerMap = [
     name: '/settings',
     page: () => const SettingsPage(),
     binding: BindingsBuilder.put(() => SettingsController()),
-    transition: Transition.rightToLeft,
-    transitionDuration: 100.ms,
+    transition: Platform.isAndroid || Platform.isIOS
+        ? Transition.rightToLeft
+        : Transition.downToUp,
+    transitionDuration: 170.ms,
   )
 ];
