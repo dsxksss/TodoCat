@@ -74,7 +74,7 @@ class TextFormFieldItem extends StatelessWidget {
       cursorColor: Colors.blueGrey.shade400,
       buildCounter: (context,
               {required currentLength, required isFocused, maxLength}) =>
-          Text(
+          const Text(
         "这个地方有点问题喔.",
         style: TextStyle(color: Colors.red),
       ),
@@ -103,10 +103,6 @@ class TextFormFieldItem extends StatelessWidget {
       validator: _validator ??
           (value) {
             if (value == null || value.trim().isEmpty) {
-              showToast(
-                "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}",
-                toastStyleType: TodoCatToastStyleType.warning,
-              );
               return "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}";
             }
             return null;
