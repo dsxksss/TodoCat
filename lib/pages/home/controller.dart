@@ -9,7 +9,6 @@ import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/data/test/todo.dart';
-import 'package:todo_cat/env.dart';
 import 'package:todo_cat/pages/controller.dart';
 import 'package:todo_cat/utils/date_time.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
@@ -32,7 +31,7 @@ class HomeController extends GetxController {
     final localTasks = await taskRepository.readAll();
     tasks.assignAll(localTasks);
 
-    if (isDebugMode) {
+    if (appCtrl.appConfig.value.isDebugMode) {
       for (var task in defaultTasks) {
         selectTask(task);
         for (var i = 0; i < Random().nextInt(5); i++) {
@@ -182,6 +181,27 @@ class HomeController extends GetxController {
         .todos
         .sort((a, b) => b.priority.index.compareTo(a.priority.index));
 
+    tasks.refresh();
+    return true;
+  }
+
+  bool deleteTodo(String taskId, String todoId) {
+    if (taskRepository.hasNot(taskId)) {
+      return false;
+    }
+
+    Task task = tasks.singleWhere((task) => task.id == taskId);
+    int taskIndex = tasks.indexOf(task);
+    if (taskIndex == -1) {
+      return false;
+    }
+
+    Todo todo = task.todos.singleWhere((todo) => todo.id == todoId);
+    appCtrl.localNotificationManager.destroy(
+      timerKey: todoId,
+      sendDeleteReq: true,
+    );
+    task.todos.remove(todo);
     tasks.refresh();
     return true;
   }

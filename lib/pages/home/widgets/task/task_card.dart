@@ -185,8 +185,9 @@ class TaskCard extends StatelessWidget {
               children: [
                 ..._homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos.map(
                     (e) => context.isPhone
-                        ? TodoCard(todo: e)
-                        : PressableDough(child: TodoCard(todo: e)))
+                        ? TodoCard(taskId: _task.id, todo: e)
+                        : PressableDough(
+                            child: TodoCard(taskId: _task.id, todo: e)))
               ].animate(interval: 100.ms).fadeIn(duration: 150.ms),
             ),
           ),

@@ -62,6 +62,7 @@ const Map<String, String> enUS = {
   'yes': 'Yes',
   'no': 'No',
   'sureDeleteTask': 'Would you like to delete the task ?',
+  'sureDeleteTodo': 'Would you like to delete the todo ?',
   'settings': 'Settings',
   'enable': 'Enable',
   'disable': 'Disable',
@@ -70,4 +71,6 @@ const Map<String, String> enUS = {
   'common': 'Common',
   'emailReminderSentSuccessfully': 'Email reminder sent successfully',
   'emailReminderSendingFailed': 'Email reminder sent failed',
+  'resetSettings': 'Reset settings',
+  'enbleDebugMode': 'Enable debug mode'
 };

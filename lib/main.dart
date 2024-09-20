@@ -17,7 +17,6 @@ void main() async {
   // 确保flutterBinding初始化成功
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-  // 设置桌面平台window属性
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     initWindow();
   }

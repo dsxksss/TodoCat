@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/pages/home/widgets/tag.dart';
 import 'package:todo_cat/utils/date_time.dart';
+import 'package:todo_cat/utils/dialog_keys.dart';
+import 'package:todo_cat/widgets/dpd_menu_btn.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 
 class TodoCard extends StatelessWidget {
-  const TodoCard({super.key, required Todo todo}) : _todo = todo;
+  TodoCard({super.key, required String taskId, required Todo todo})
+      : _taskId = taskId,
+        _todo = todo;
+  final HomeController _homeCtrl = Get.find();
+  final String _taskId;
   final Todo _todo;
 
   IconData _getStatusIconData() {
@@ -47,23 +56,72 @@ class TodoCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  FontAwesomeIcons.solidCircle,
-                  size: 11,
-                  color: _getPriorityColor(),
-                ),
-                const SizedBox(width: 5),
-                SizedBox(
-                  width: 150,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 1.0),
-                    child: Text(
-                      _todo.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Icon(
+                      FontAwesomeIcons.solidCircle,
+                      size: 11,
+                      color: _getPriorityColor(),
                     ),
-                  ),
+                    const SizedBox(width: 5),
+                    SizedBox(
+                      width: 120,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 1.0),
+                        child: Text(
+                          _todo.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                DPDMenuBtn(
+                  tag: taskDropDownMenuBtnTag,
+                  menuItems: [
+                    MenuItem(
+                      title: 'edit',
+                      iconData: FontAwesomeIcons.penToSquare,
+                      callback: () => {
+                        showToast(
+                          "${_todo.title} 编辑成功",
+                          toastStyleType: TodoCatToastStyleType.success,
+                        )
+                      },
+                    ),
+                    MenuItem(
+                      title: 'delete',
+                      iconData: FontAwesomeIcons.trashCan,
+                      callback: () => {
+                        showToast(
+                          "sureDeleteTodo".tr,
+                          alwaysShow: true,
+                          confirmMode: true,
+                          toastStyleType: TodoCatToastStyleType.error,
+                          onYesCallback: () {
+                            final isDeleted =
+                                _homeCtrl.deleteTodo(_taskId, _todo.id);
+                            Future.delayed(500.ms, () {
+                              if (isDeleted) {
+                                showToast(
+                                  "${"todo".tr} '${_todo.title.tr}' ${"deletedSuccessfully".tr}",
+                                  toastStyleType: TodoCatToastStyleType.success,
+                                );
+                              } else {
+                                showToast(
+                                  "${"todo".tr} '${_todo.title.tr}' ${"deletionFailed".tr}",
+                                  toastStyleType: TodoCatToastStyleType.error,
+                                );
+                              }
+                            });
+                          },
+                        )
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -12,7 +12,7 @@ part of 'todo.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$Todo {
@@ -57,7 +57,9 @@ mixin _$Todo {
   @HiveField(9)
   set progress(int value) => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Todo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $TodoCopyWith<Todo> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -89,6 +91,8 @@ class _$TodoCopyWithImpl<$Res, $Val extends Todo>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Todo
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -149,9 +153,10 @@ class _$TodoCopyWithImpl<$Res, $Val extends Todo>
 }
 
 /// @nodoc
-abstract class _$$_TodoCopyWith<$Res> implements $TodoCopyWith<$Res> {
-  factory _$$_TodoCopyWith(_$_Todo value, $Res Function(_$_Todo) then) =
-      __$$_TodoCopyWithImpl<$Res>;
+abstract class _$$TodoImplCopyWith<$Res> implements $TodoCopyWith<$Res> {
+  factory _$$TodoImplCopyWith(
+          _$TodoImpl value, $Res Function(_$TodoImpl) then) =
+      __$$TodoImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -168,11 +173,14 @@ abstract class _$$_TodoCopyWith<$Res> implements $TodoCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_TodoCopyWithImpl<$Res> extends _$TodoCopyWithImpl<$Res, _$_Todo>
-    implements _$$_TodoCopyWith<$Res> {
-  __$$_TodoCopyWithImpl(_$_Todo _value, $Res Function(_$_Todo) _then)
+class __$$TodoImplCopyWithImpl<$Res>
+    extends _$TodoCopyWithImpl<$Res, _$TodoImpl>
+    implements _$$TodoImplCopyWith<$Res> {
+  __$$TodoImplCopyWithImpl(_$TodoImpl _value, $Res Function(_$TodoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Todo
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -187,7 +195,7 @@ class __$$_TodoCopyWithImpl<$Res> extends _$TodoCopyWithImpl<$Res, _$_Todo>
     Object? reminders = null,
     Object? progress = null,
   }) {
-    return _then(_$_Todo(
+    return _then(_$TodoImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -234,8 +242,8 @@ class __$$_TodoCopyWithImpl<$Res> extends _$TodoCopyWithImpl<$Res, _$_Todo>
 
 /// @nodoc
 
-class _$_Todo implements _Todo {
-  _$_Todo(
+class _$TodoImpl implements _Todo {
+  _$TodoImpl(
       {@HiveField(0) required this.id,
       @HiveField(1) required this.title,
       @HiveField(2) required this.tags,
@@ -289,11 +297,13 @@ class _$_Todo implements _Todo {
     return 'Todo(id: $id, title: $title, tags: $tags, createdAt: $createdAt, description: $description, priority: $priority, finishedAt: $finishedAt, status: $status, reminders: $reminders, progress: $progress)';
   }
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Todo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$_TodoCopyWith<_$_Todo> get copyWith =>
-      __$$_TodoCopyWithImpl<_$_Todo>(this, _$identity);
+  _$$TodoImplCopyWith<_$TodoImpl> get copyWith =>
+      __$$TodoImplCopyWithImpl<_$TodoImpl>(this, _$identity);
 }
 
 abstract class _Todo implements Todo {
@@ -307,7 +317,7 @@ abstract class _Todo implements Todo {
       @HiveField(6) int finishedAt,
       @HiveField(7) TodoStatus status,
       @HiveField(8) int reminders,
-      @HiveField(9) int progress}) = _$_Todo;
+      @HiveField(9) int progress}) = _$TodoImpl;
 
   @override
   @HiveField(0)
@@ -359,7 +369,11 @@ abstract class _Todo implements Todo {
   int get progress;
   @HiveField(9)
   set progress(int value);
+
+  /// Create a copy of Todo
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
-  _$$_TodoCopyWith<_$_Todo> get copyWith => throw _privateConstructorUsedError;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$TodoImplCopyWith<_$TodoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

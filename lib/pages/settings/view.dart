@@ -5,6 +5,7 @@ import 'package:todo_cat/pages/settings/controller.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -88,13 +89,38 @@ class SettingsPage extends GetView<SettingsController> {
                         );
                       },
                     ),
+                    SettingsTile(
+                      // TODO 修改此处本地化文字
+                      // TODO 优化本地化文字处理模式
+                      onPressed: (_) => showToast(
+                        "确定要重置设置吗?",
+                        confirmMode: true,
+                        alwaysShow: true,
+                        toastStyleType: TodoCatToastStyleType.warning,
+                        onYesCallback: () {
+                          controller.resetConfig();
+                          showToast("设置已重置",
+                              toastStyleType: TodoCatToastStyleType.success);
+                        },
+                      ),
+                      leading: const Icon(Icons.restart_alt_rounded),
+                      title: Text('resetSettings'.tr),
+                    ),
                     SettingsTile.switchTile(
-                      onToggle: (value) => controller.targetEmailReminder(),
-                      onPressed: (context) => controller.targetEmailReminder(),
+                      onToggle: (_) => controller.targetEmailReminder(),
+                      onPressed: (_) => controller.targetEmailReminder(),
                       initialValue: controller
                           .appCtrl.appConfig.value.emailReminderEnabled,
                       leading: const Icon(Icons.mark_email_unread_outlined),
                       title: Text('emailReminder'.tr),
+                    ),
+                    SettingsTile.switchTile(
+                      onToggle: (_) => controller.targetDebugMode(),
+                      onPressed: (_) => controller.targetDebugMode(),
+                      initialValue:
+                          controller.appCtrl.appConfig.value.isDebugMode,
+                      leading: const Icon(Icons.bug_report_outlined),
+                      title: Text('enbleDebugMode'.tr),
                     ),
                   ],
                 ),

@@ -5,7 +5,7 @@ import '../strorage.dart';
 
 class AppConfigRepository extends Strorage<AppConfig> {
   late Box<AppConfig> _box;
-  final configKey = 'appConfigxxxwwas';
+  final configKey = 'appConfigx';
 
   // 私有构造函数
   AppConfigRepository._();

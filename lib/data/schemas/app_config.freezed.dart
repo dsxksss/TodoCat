@@ -12,7 +12,7 @@ part of 'app_config.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$AppConfig {
@@ -32,8 +32,14 @@ mixin _$AppConfig {
   bool get emailReminderEnabled => throw _privateConstructorUsedError;
   @HiveField(3)
   set emailReminderEnabled(bool value) => throw _privateConstructorUsedError;
+  @HiveField(4)
+  bool get isDebugMode => throw _privateConstructorUsedError;
+  @HiveField(4)
+  set isDebugMode(bool value) => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of AppConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $AppConfigCopyWith<AppConfig> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -47,7 +53,8 @@ abstract class $AppConfigCopyWith<$Res> {
       {@HiveField(0) String configName,
       @HiveField(1) bool isDarkMode,
       @HiveField(2) Locale locale,
-      @HiveField(3) bool emailReminderEnabled});
+      @HiveField(3) bool emailReminderEnabled,
+      @HiveField(4) bool isDebugMode});
 }
 
 /// @nodoc
@@ -60,6 +67,8 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of AppConfig
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -67,6 +76,7 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
     Object? isDarkMode = null,
     Object? locale = null,
     Object? emailReminderEnabled = null,
+    Object? isDebugMode = null,
   }) {
     return _then(_value.copyWith(
       configName: null == configName
@@ -85,32 +95,40 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
           ? _value.emailReminderEnabled
           : emailReminderEnabled // ignore: cast_nullable_to_non_nullable
               as bool,
+      isDebugMode: null == isDebugMode
+          ? _value.isDebugMode
+          : isDebugMode // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
 
 /// @nodoc
-abstract class _$$_AppConfigCopyWith<$Res> implements $AppConfigCopyWith<$Res> {
-  factory _$$_AppConfigCopyWith(
-          _$_AppConfig value, $Res Function(_$_AppConfig) then) =
-      __$$_AppConfigCopyWithImpl<$Res>;
+abstract class _$$AppConfigImplCopyWith<$Res>
+    implements $AppConfigCopyWith<$Res> {
+  factory _$$AppConfigImplCopyWith(
+          _$AppConfigImpl value, $Res Function(_$AppConfigImpl) then) =
+      __$$AppConfigImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
       {@HiveField(0) String configName,
       @HiveField(1) bool isDarkMode,
       @HiveField(2) Locale locale,
-      @HiveField(3) bool emailReminderEnabled});
+      @HiveField(3) bool emailReminderEnabled,
+      @HiveField(4) bool isDebugMode});
 }
 
 /// @nodoc
-class __$$_AppConfigCopyWithImpl<$Res>
-    extends _$AppConfigCopyWithImpl<$Res, _$_AppConfig>
-    implements _$$_AppConfigCopyWith<$Res> {
-  __$$_AppConfigCopyWithImpl(
-      _$_AppConfig _value, $Res Function(_$_AppConfig) _then)
+class __$$AppConfigImplCopyWithImpl<$Res>
+    extends _$AppConfigCopyWithImpl<$Res, _$AppConfigImpl>
+    implements _$$AppConfigImplCopyWith<$Res> {
+  __$$AppConfigImplCopyWithImpl(
+      _$AppConfigImpl _value, $Res Function(_$AppConfigImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of AppConfig
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -118,8 +136,9 @@ class __$$_AppConfigCopyWithImpl<$Res>
     Object? isDarkMode = null,
     Object? locale = null,
     Object? emailReminderEnabled = null,
+    Object? isDebugMode = null,
   }) {
-    return _then(_$_AppConfig(
+    return _then(_$AppConfigImpl(
       configName: null == configName
           ? _value.configName
           : configName // ignore: cast_nullable_to_non_nullable
@@ -136,18 +155,23 @@ class __$$_AppConfigCopyWithImpl<$Res>
           ? _value.emailReminderEnabled
           : emailReminderEnabled // ignore: cast_nullable_to_non_nullable
               as bool,
+      isDebugMode: null == isDebugMode
+          ? _value.isDebugMode
+          : isDebugMode // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
 /// @nodoc
 
-class _$_AppConfig implements _AppConfig {
-  _$_AppConfig(
+class _$AppConfigImpl implements _AppConfig {
+  _$AppConfigImpl(
       {@HiveField(0) required this.configName,
       @HiveField(1) required this.isDarkMode,
       @HiveField(2) required this.locale,
-      @HiveField(3) required this.emailReminderEnabled});
+      @HiveField(3) required this.emailReminderEnabled,
+      @HiveField(4) required this.isDebugMode});
 
   @override
   @HiveField(0)
@@ -161,17 +185,22 @@ class _$_AppConfig implements _AppConfig {
   @override
   @HiveField(3)
   bool emailReminderEnabled;
+  @override
+  @HiveField(4)
+  bool isDebugMode;
 
   @override
   String toString() {
-    return 'AppConfig(configName: $configName, isDarkMode: $isDarkMode, locale: $locale, emailReminderEnabled: $emailReminderEnabled)';
+    return 'AppConfig(configName: $configName, isDarkMode: $isDarkMode, locale: $locale, emailReminderEnabled: $emailReminderEnabled, isDebugMode: $isDebugMode)';
   }
 
-  @JsonKey(ignore: true)
+  /// Create a copy of AppConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AppConfigCopyWith<_$_AppConfig> get copyWith =>
-      __$$_AppConfigCopyWithImpl<_$_AppConfig>(this, _$identity);
+  _$$AppConfigImplCopyWith<_$AppConfigImpl> get copyWith =>
+      __$$AppConfigImplCopyWithImpl<_$AppConfigImpl>(this, _$identity);
 }
 
 abstract class _AppConfig implements AppConfig {
@@ -179,7 +208,8 @@ abstract class _AppConfig implements AppConfig {
       {@HiveField(0) required String configName,
       @HiveField(1) required bool isDarkMode,
       @HiveField(2) required Locale locale,
-      @HiveField(3) required bool emailReminderEnabled}) = _$_AppConfig;
+      @HiveField(3) required bool emailReminderEnabled,
+      @HiveField(4) required bool isDebugMode}) = _$AppConfigImpl;
 
   @override
   @HiveField(0)
@@ -202,7 +232,15 @@ abstract class _AppConfig implements AppConfig {
   @HiveField(3)
   set emailReminderEnabled(bool value);
   @override
-  @JsonKey(ignore: true)
-  _$$_AppConfigCopyWith<_$_AppConfig> get copyWith =>
+  @HiveField(4)
+  bool get isDebugMode;
+  @HiveField(4)
+  set isDebugMode(bool value);
+
+  /// Create a copy of AppConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$AppConfigImplCopyWith<_$AppConfigImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

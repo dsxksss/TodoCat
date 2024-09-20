@@ -6,7 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/env.dart';
 import 'package:todo_cat/pages/home/controller.dart';
 import 'package:todo_cat/pages/home/widgets/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
@@ -53,8 +52,9 @@ class HomePage extends GetView<HomeController> {
           .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
           .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut),
       body: TodoCatScaffold(
-        title:
-            context.isPhone ? "myTasks".tr : "${"myTasks".tr} ${runMode.name}",
+        title: context.isPhone
+            ? "myTasks".tr
+            : "${"myTasks".tr} ${controller.appCtrl.appConfig.value.isDebugMode ? 'Debug' : 'Release'}",
         leftWidgets: [
           Image.asset(
             'assets/imgs/logo-light-rounded.png',

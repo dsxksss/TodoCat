@@ -13,5 +13,6 @@ class AppConfig with _$AppConfig {
     @HiveField(1) required bool isDarkMode,
     @HiveField(2) required Locale locale,
     @HiveField(3) required bool emailReminderEnabled,
+    @HiveField(4) required bool isDebugMode,
   }) = _AppConfig;
 }

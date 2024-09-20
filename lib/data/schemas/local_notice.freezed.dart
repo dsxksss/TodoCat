@@ -12,7 +12,7 @@ part of 'local_notice.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$LocalNotice {
@@ -41,7 +41,9 @@ mixin _$LocalNotice {
   @HiveField(5)
   set email(String value) => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of LocalNotice
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $LocalNoticeCopyWith<LocalNotice> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -71,6 +73,8 @@ class _$LocalNoticeCopyWithImpl<$Res, $Val extends LocalNotice>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of LocalNotice
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -111,11 +115,11 @@ class _$LocalNoticeCopyWithImpl<$Res, $Val extends LocalNotice>
 }
 
 /// @nodoc
-abstract class _$$_LocalNoticeCopyWith<$Res>
+abstract class _$$LocalNoticeImplCopyWith<$Res>
     implements $LocalNoticeCopyWith<$Res> {
-  factory _$$_LocalNoticeCopyWith(
-          _$_LocalNotice value, $Res Function(_$_LocalNotice) then) =
-      __$$_LocalNoticeCopyWithImpl<$Res>;
+  factory _$$LocalNoticeImplCopyWith(
+          _$LocalNoticeImpl value, $Res Function(_$LocalNoticeImpl) then) =
+      __$$LocalNoticeImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -128,13 +132,15 @@ abstract class _$$_LocalNoticeCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_LocalNoticeCopyWithImpl<$Res>
-    extends _$LocalNoticeCopyWithImpl<$Res, _$_LocalNotice>
-    implements _$$_LocalNoticeCopyWith<$Res> {
-  __$$_LocalNoticeCopyWithImpl(
-      _$_LocalNotice _value, $Res Function(_$_LocalNotice) _then)
+class __$$LocalNoticeImplCopyWithImpl<$Res>
+    extends _$LocalNoticeCopyWithImpl<$Res, _$LocalNoticeImpl>
+    implements _$$LocalNoticeImplCopyWith<$Res> {
+  __$$LocalNoticeImplCopyWithImpl(
+      _$LocalNoticeImpl _value, $Res Function(_$LocalNoticeImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of LocalNotice
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -145,7 +151,7 @@ class __$$_LocalNoticeCopyWithImpl<$Res>
     Object? remindersAt = null,
     Object? email = null,
   }) {
-    return _then(_$_LocalNotice(
+    return _then(_$LocalNoticeImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -176,8 +182,8 @@ class __$$_LocalNoticeCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_LocalNotice with DiagnosticableTreeMixin implements _LocalNotice {
-  _$_LocalNotice(
+class _$LocalNoticeImpl with DiagnosticableTreeMixin implements _LocalNotice {
+  _$LocalNoticeImpl(
       {@HiveField(0) required this.id,
       @HiveField(1) required this.title,
       @HiveField(2) required this.description,
@@ -222,11 +228,13 @@ class _$_LocalNotice with DiagnosticableTreeMixin implements _LocalNotice {
       ..add(DiagnosticsProperty('email', email));
   }
 
-  @JsonKey(ignore: true)
+  /// Create a copy of LocalNotice
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$_LocalNoticeCopyWith<_$_LocalNotice> get copyWith =>
-      __$$_LocalNoticeCopyWithImpl<_$_LocalNotice>(this, _$identity);
+  _$$LocalNoticeImplCopyWith<_$LocalNoticeImpl> get copyWith =>
+      __$$LocalNoticeImplCopyWithImpl<_$LocalNoticeImpl>(this, _$identity);
 }
 
 abstract class _LocalNotice implements LocalNotice {
@@ -236,7 +244,7 @@ abstract class _LocalNotice implements LocalNotice {
       @HiveField(2) required String description,
       @HiveField(3) required int createdAt,
       @HiveField(4) required int remindersAt,
-      @HiveField(5) required String email}) = _$_LocalNotice;
+      @HiveField(5) required String email}) = _$LocalNoticeImpl;
 
   @override
   @HiveField(0)
@@ -268,8 +276,11 @@ abstract class _LocalNotice implements LocalNotice {
   String get email;
   @HiveField(5)
   set email(String value);
+
+  /// Create a copy of LocalNotice
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
-  _$$_LocalNoticeCopyWith<_$_LocalNotice> get copyWith =>
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$LocalNoticeImplCopyWith<_$LocalNoticeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

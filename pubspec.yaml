@@ -35,8 +35,8 @@ dependencies:
   # uuid生成
   uuid: ^3.0.7
   # 桌面端手机端本地通知插件
-  flutter_local_notifications: ^15.1.1
-  local_notifier: ^0.1.5
+  flutter_local_notifications: ^17.2.2
+  local_notifier: ^0.1.6
   # freezed代码生成插件
   freezed_annotation: ^2.4.1
   # font awesome 图标库

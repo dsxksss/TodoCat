@@ -1,11 +1,13 @@
+import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/services/strorage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:todo_cat/env.dart';
+import 'package:todo_cat/pages/controller.dart';
 
 class TaskRepository extends Strorage<Task> {
   late Box<Task> _box;
+  final AppController appCtrl = Get.find();
   final taskKey = 'tasksxxxawxl';
 
   TaskRepository._();
@@ -23,7 +25,7 @@ class TaskRepository extends Strorage<Task> {
     await Hive.openBox<Task>(taskKey);
     _box = Hive.box(taskKey);
 
-    if (isDebugMode) {
+    if (appCtrl.appConfig.value.isDebugMode) {
       await _box.clear();
       writeMany(defaultTasks);
     }

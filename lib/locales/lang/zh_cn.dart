@@ -62,6 +62,7 @@ const Map<String, String> zhCN = {
   'yes': '确定',
   'no': '取消',
   'sureDeleteTask': '你确定要删除此任务吗?',
+  'sureDeleteTodo': '你确定要删除此代办事项吗?',
   'settings': '设置',
   'enable': '启用',
   'disable': '禁用',
@@ -70,4 +71,6 @@ const Map<String, String> zhCN = {
   'common': '通用',
   'emailReminderSentSuccessfully': '电子邮件提醒发送成功',
   'emailReminderSendingFailed': '电子邮件提醒发送失败',
+  'resetSettings': '重置设置',
+  'enbleDebugMode': '启用调试模式'
 };

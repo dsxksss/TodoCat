@@ -1,3 +1,5 @@
+import 'dart:ui';
+import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,3 +33,11 @@ final Task defaultTask4 = Task(
 );
 
 final defaultTasks = [defaultTask1, defaultTask2, defaultTask3, defaultTask4];
+
+final defaultAppConfig = AppConfig(
+  isDebugMode: false,
+  configName: "defaultConfig",
+  isDarkMode: true,
+  locale: const Locale("zh", "CN"),
+  emailReminderEnabled: false,
+);

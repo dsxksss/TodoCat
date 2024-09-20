@@ -1,11 +1,13 @@
+import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/services/strorage.dart';
-import 'package:todo_cat/env.dart';
+import 'package:todo_cat/pages/controller.dart';
 
 class LocalNoticeRepository extends Strorage<LocalNotice> {
   late Box<LocalNotice> _box;
   final noticeKey = 'localNoticesx';
+  final AppController appCtrl = Get.find();
 
   // 私有构造函数
   LocalNoticeRepository._();
@@ -24,7 +26,7 @@ class LocalNoticeRepository extends Strorage<LocalNotice> {
     await Hive.openBox<LocalNotice>(noticeKey);
     _box = Hive.box(noticeKey);
 
-    if (isDebugMode) {
+    if (appCtrl.appConfig.value.isDebugMode) {
       await _box.clear();
     }
   }
