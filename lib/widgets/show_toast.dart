@@ -29,7 +29,7 @@ List _getIconData(TodoCatToastStyleType type) {
 
 List<Effect<dynamic>> _getToastAnimationEffect(
     AnimationController controller, TodoCatToastStyleType? toastStyleType) {
-  final List<Effect<dynamic>> animationEffect = [
+  return [
     MoveEffect(
       begin: Platform.isAndroid || Platform.isIOS
           ? const Offset(0, -150)
@@ -42,7 +42,6 @@ List<Effect<dynamic>> _getToastAnimationEffect(
       curve: Curves.easeInOutBack,
     ),
   ];
-  return animationEffect;
 }
 
 void showToast(
@@ -53,7 +52,7 @@ void showToast(
   Function? onNoCallback,
   Duration? displayTime,
   Duration? animationTime,
-  AlignmentGeometry? alignment,
+  Alignment? alignment,
   bool fadeAnimation = false,
   Widget Function(BuildContext)? builder,
   EdgeInsetsGeometry? margin,
@@ -77,7 +76,9 @@ void showToast(
     maskColor: Colors.transparent,
     maskWidget: Container(),
     clickMaskDismiss: false,
-    backDismiss: backDismiss ?? false,
+    backType: (backDismiss == null
+        ? SmartBackType.normal
+        : (backDismiss ? SmartBackType.normal : SmartBackType.block)),
     animationBuilder: animationBuilder ??
         (controller, child, _) => child.animate(
               controller: controller,

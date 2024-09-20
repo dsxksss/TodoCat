@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/settings/controller.dart';
