@@ -52,5 +52,6 @@ class SettingsController extends GetxController {
     // 这里因为是浅拷贝所以不会触发更新，需要进行值传递而非引用传递
     // 并且不需要手动refresh，因为是整体对象发生了变动，ever监听是可以被触发的
     appCtrl.appConfig.value = defaultAppConfig.copyWith();
+    changeLanguage(defaultAppConfig.locale);
   }
 }
