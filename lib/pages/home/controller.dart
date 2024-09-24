@@ -35,7 +35,10 @@ class HomeController extends GetxController {
       for (var task in defaultTasks) {
         selectTask(task);
         for (var i = 0; i < Random().nextInt(5); i++) {
-          addTodo(todoTestList[Random().nextInt(3)]);
+          int rnum = Random().nextInt(3);
+          if (!task.todos.contains(todoTestList[rnum])) {
+            addTodo(todoTestList[rnum]);
+          }
         }
         deselectTask();
       }

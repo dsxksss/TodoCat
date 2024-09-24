@@ -89,6 +89,7 @@ class TodoCard extends StatelessWidget {
                         showToast(
                           _todo.title,
                           suffix: "编辑成功",
+                          suffixGap: 5,
                           toastStyleType: TodoCatToastStyleType.success,
                         )
                       },

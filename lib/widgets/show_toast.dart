@@ -47,7 +47,9 @@ List<Effect<dynamic>> _getToastAnimationEffect(
 void showToast(
   String message, {
   String prefix = "",
+  double prefixGap = 0,
   String suffix = "",
+  double suffixGap = 0,
   bool confirmMode = false,
   bool alwaysShow = false,
   Function? onYesCallback,
@@ -65,6 +67,14 @@ void showToast(
   bool? keepSingle,
   bool? backDismiss,
 }) {
+  double _getHight() {
+    double hight = 80;
+    hight = confirmMode ? hight + 50 : hight;
+    hight = message.length > 30 ? hight + 30 : hight;
+
+    return hight;
+  }
+
   SmartDialog.show(
     displayTime:
         alwaysShow ? const Duration(days: 365) : displayTime ?? 3000.ms,
@@ -92,7 +102,7 @@ void showToast(
               _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
           return Container(
             width: 300,
-            height: message.length > 30 ? 150 : 80,
+            height: _getHight(),
             margin: margin ??
                 (Platform.isAndroid || Platform.isIOS
                     ? const EdgeInsets.only(top: 110)
@@ -120,37 +130,50 @@ void showToast(
                     children: [
                       if (confirmMode) const SizedBox(height: 15),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Icon(
                             iconData[0],
                             color: iconData[1],
                           ),
                           const SizedBox(width: 15),
-                          if (prefix.isNotEmpty)
-                            SizedBox(
-                              child: Text(
-                                prefix,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
                           Expanded(
-                            child: Text(
-                              message,
-                              maxLines: confirmMode ? 3 : 1,
-                              overflow: TextOverflow.ellipsis,
+                            child: Flex(
+                              direction: Axis.horizontal,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (prefix.isNotEmpty)
+                                  Flexible(
+                                    flex: 1,
+                                    child: Text(
+                                      prefix,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                SizedBox(
+                                  width: prefixGap,
+                                ),
+                                Flexible(
+                                  child: Text(
+                                    message,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: suffixGap,
+                                ),
+                                if (suffix.isNotEmpty)
+                                  Flexible(
+                                    flex: 1,
+                                    child: Text(
+                                      suffix,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                          if (suffix.isNotEmpty)
-                            Expanded(
-                              child: SizedBox(
-                                child: Text(
-                                  suffix,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
                         ],
                       ),
                     ],
