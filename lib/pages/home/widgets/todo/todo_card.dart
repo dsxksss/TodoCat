@@ -87,7 +87,8 @@ class TodoCard extends StatelessWidget {
                       iconData: FontAwesomeIcons.penToSquare,
                       callback: () => {
                         showToast(
-                          "${_todo.title} 编辑成功",
+                          _todo.title,
+                          suffix: "编辑成功",
                           toastStyleType: TodoCatToastStyleType.success,
                         )
                       },

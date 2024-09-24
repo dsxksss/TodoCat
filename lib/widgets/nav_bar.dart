@@ -154,10 +154,9 @@ class _NavBarState extends State<NavBar> with WindowListener {
                             ),
                             NavBarBtn(
                               onPressed: _appController.closeWindow,
-                              hoverColor: Colors.redAccent.shade100,
+                              hoverColor: Colors.redAccent,
                               child: const Icon(
                                 FontAwesomeIcons.xmark,
-                                color: Colors.redAccent,
                               ),
                             ),
                           ],

@@ -46,6 +46,8 @@ List<Effect<dynamic>> _getToastAnimationEffect(
 
 void showToast(
   String message, {
+  String prefix = "",
+  String suffix = "",
   bool confirmMode = false,
   bool alwaysShow = false,
   Function? onYesCallback,
@@ -90,7 +92,7 @@ void showToast(
               _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
           return Container(
             width: 300,
-            height: confirmMode ? 110 : 60,
+            height: message.length > 30 ? 150 : 80,
             margin: margin ??
                 (Platform.isAndroid || Platform.isIOS
                     ? const EdgeInsets.only(top: 110)
@@ -118,19 +120,37 @@ void showToast(
                     children: [
                       if (confirmMode) const SizedBox(height: 15),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Icon(
                             iconData[0],
                             color: iconData[1],
                           ),
                           const SizedBox(width: 15),
+                          if (prefix.isNotEmpty)
+                            SizedBox(
+                              child: Text(
+                                prefix,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           Expanded(
                             child: Text(
                               message,
-                              maxLines: 3,
+                              maxLines: confirmMode ? 3 : 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (suffix.isNotEmpty)
+                            Expanded(
+                              child: SizedBox(
+                                child: Text(
+                                  suffix,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ],
