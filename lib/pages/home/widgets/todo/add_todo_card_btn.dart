@@ -85,7 +85,7 @@ void _showAddTodoBottomSheet(BuildContext context) {
     keepSingle: true,
     tag: addTodoDialogTag,
     backDismiss: false,
-    animationTime: 120.ms,
+    animationTime: 110.ms,
     alignment: Alignment.bottomCenter,
     builder: (context) => const Scaffold(
       backgroundColor: Colors.transparent,
@@ -95,11 +95,18 @@ void _showAddTodoBottomSheet(BuildContext context) {
       ),
     ),
     clickMaskDismiss: false,
-    animationBuilder: (controller, child, _) =>
-        child.animate(controller: controller).moveY(
-              begin: 0.6.sh,
-              duration: controller.duration,
-              curve: Curves.easeOut,
-            ),
+    animationBuilder: (controller, child, _) => child
+        .animate(controller: controller)
+        .fade(duration: controller.duration)
+        .scaleXY(
+          begin: 0.97,
+          duration: controller.duration,
+          curve: Curves.easeIn,
+        )
+        .moveY(
+          begin: 0.6.sh,
+          duration: controller.duration,
+          curve: Curves.easeOutCirc,
+        ),
   );
 }

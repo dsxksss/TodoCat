@@ -1,6 +1,5 @@
 const addTodoDialogTag = "AddTodoDialogTag";
-const taskDropDownMenuBtnTag = "TaskDropDownMenuBtnTag";
+const dropDownMenuBtnTag = "DropDownMenuBtnTag";
 const settingsDropDownMenuBtnTag = "SettingsDropDownMenuBtnTag";
-const todoCardDropDownMenuBtnTag = "TodoCardDropDownMenuBtnTag";
 const confirmDialogTag = "ConfirmDialogTag";
 const addTodoTagDialogBtnTag = "AddTodoTagDialogBtnTag";

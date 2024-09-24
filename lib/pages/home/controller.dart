@@ -63,7 +63,7 @@ class HomeController extends GetxController {
     // 当滚动时
     if (scrollController.offset != currentScrollOffset &&
         !scrollController.position.outOfRange) {
-      SmartDialog.dismiss(tag: taskDropDownMenuBtnTag);
+      SmartDialog.dismiss(tag: dropDownMenuBtnTag);
     }
 
     currentScrollOffset = scrollController.offset;

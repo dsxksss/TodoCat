@@ -60,7 +60,7 @@ class DPDMenuContent extends StatelessWidget {
                 ),
                 onTap: () {
                   item.callback();
-                  SmartDialog.dismiss(tag: taskDropDownMenuBtnTag);
+                  SmartDialog.dismiss(tag: dropDownMenuBtnTag);
                 },
               ),
             ),
