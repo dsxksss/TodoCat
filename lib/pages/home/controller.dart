@@ -29,7 +29,18 @@ class HomeController extends GetxController {
     super.onInit();
     taskRepository = await TaskRepository.getInstance();
     final localTasks = await taskRepository.readAll();
-    tasks.assignAll(localTasks);
+
+    if (localTasks.isEmpty) {
+      await Future.delayed(2000.ms);
+      showToast(
+        "当前任务为空, 是否需要添加任务示例模板?",
+        alwaysShow: true,
+        confirmMode: true,
+        onYesCallback: () => tasks.assignAll(defaultTasks),
+      );
+    } else {
+      tasks.assignAll(localTasks);
+    }
 
     if (appCtrl.appConfig.value.isDebugMode) {
       for (var task in defaultTasks) {
