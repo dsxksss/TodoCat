@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/pages/home/controller.dart';
+import 'package:todo_cat/pages/home/home_ctr.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/pages/home/widgets/add_tag_screen.dart';
 import 'package:todo_cat/pages/home/widgets/text_form_field_item.dart';

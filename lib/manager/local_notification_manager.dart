@@ -12,6 +12,7 @@ import 'package:todo_cat/widgets/show_toast.dart';
 
 const baseUrl = 'https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com';
 
+/// 本地通知管理器类
 class LocalNotificationManager {
   late final LocalNoticeRepository localNoticeRepository;
   final Map<String, Timer> timerPool = {};
@@ -22,25 +23,23 @@ class LocalNotificationManager {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  /// 获取单例实例
   static Future<LocalNotificationManager> getInstance() async {
     _instance ??= LocalNotificationManager._();
     await _instance!._init();
     return _instance!;
   }
 
+  /// 初始化本地通知管理器
   Future<void> _init() async {
-    // winodws平台本地通知插件初始化
+    // Windows平台本地通知插件初始化
     await localNotifier.setup(appName: 'TodoCat');
 
     // 其他平台本地通知插件初始化
-
-    // AndroidInitializationSettings是一个用于设置Android上的本地通知初始化的类
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    // DarwinInitializationSettings是一个用于设置IOS以及MacOS上的本地通知初始化的类
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings();
-    // LinuxInitializationSettings是一个用于设置Linux上的本地通知初始化的类
     const LinuxInitializationSettings initializationSettingsLinux =
         LinuxInitializationSettings(defaultActionName: 'Open notification');
 
@@ -56,6 +55,7 @@ class LocalNotificationManager {
     localNoticeRepository = await LocalNoticeRepository.getInstance();
   }
 
+  /// 注册通知
   void registerNotification(DateTime specifiedTime, LocalNotice notice) {
     final currentTime = DateTime.now();
 
@@ -75,13 +75,6 @@ class LocalNotificationManager {
           notification.show();
         } else if (anotherPlatform) {
           const String groupKey = 'todoCatGroupKey';
-          // 安卓的通知
-          // 'your channel id'：用于指定通知通道的ID。
-          // 'your channel name'：用于指定通知通道的名称。
-          // 'your channel description'：用于指定通知通道的描述。
-          // Importance.max：用于指定通知的重要性，设置为最高级别。
-          // Priority.high：用于指定通知的优先级，设置为高优先级。
-          // 'ticker'：用于指定通知的提示文本，即通知出现在通知中心的文本内容。
           final AndroidNotificationDetails androidNotificationDetails =
               AndroidNotificationDetails(
             notice.id,
@@ -93,15 +86,14 @@ class LocalNotificationManager {
             groupKey: groupKey,
           );
 
-          // ios的通知
           const DarwinNotificationDetails iosNotificationDetails =
               DarwinNotificationDetails(categoryIdentifier: groupKey);
 
-          // 创建跨平台通知
-          NotificationDetails platformChannelSpecifics = NotificationDetails(
-              android: androidNotificationDetails, iOS: iosNotificationDetails);
+          final NotificationDetails platformChannelSpecifics =
+              NotificationDetails(
+                  android: androidNotificationDetails,
+                  iOS: iosNotificationDetails);
 
-          // 发起一个通知
           _notificationsPlugin.show(
             notice.id.hashCode,
             notice.title,
@@ -122,23 +114,13 @@ class LocalNotificationManager {
     }
   }
 
-  void saveNotification(
-      {required String key,
-      required LocalNotice notice,
-      bool emailReminderEnabled = false}) async {
-    // email notification
-    Dio dio = Dio();
-
-    // 设置代理为空
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final client = HttpClient();
-        client.findProxy = (uri) {
-          return 'DIRECT';
-        };
-        return client;
-      },
-    );
+  /// 保存通知
+  void saveNotification({
+    required String key,
+    required LocalNotice notice,
+    bool emailReminderEnabled = false,
+  }) async {
+    final Dio dio = _createDio();
 
     try {
       if (emailReminderEnabled) {
@@ -161,11 +143,11 @@ class LocalNotificationManager {
             showToast("emailReminderSentSuccessfully".tr,
                 toastStyleType: TodoCatToastStyleType.success);
           } else {
-            throw Exception();
+            throw Exception('Failed to send email reminder');
           }
         });
       }
-    } catch (_) {
+    } catch (e) {
       showToast(
         "emailReminderSendingFailed".tr,
         toastStyleType: TodoCatToastStyleType.error,
@@ -179,6 +161,7 @@ class LocalNotificationManager {
     }
   }
 
+  /// 检查所有本地通知
   Future<void> checkAllLocalNotification() async {
     final localNotices = await localNoticeRepository.readAll();
     for (final notice in localNotices) {
@@ -189,20 +172,9 @@ class LocalNotificationManager {
     }
   }
 
+  /// 销毁通知
   void destroy({required String timerKey, bool sendDeleteReq = false}) async {
-    // email notification
-    Dio dio = Dio();
-
-    // 设置代理为空
-    dio.httpClientAdapter = IOHttpClientAdapter(
-      createHttpClient: () {
-        final client = HttpClient();
-        client.findProxy = (uri) {
-          return 'DIRECT';
-        };
-        return client;
-      },
-    );
+    final Dio dio = _createDio();
     try {
       const String url = "$baseUrl/destroyReminders";
       if (sendDeleteReq && timerPool.containsKey(timerKey)) {
@@ -213,18 +185,35 @@ class LocalNotificationManager {
               receiveTimeout: 1500.ms,
             ));
       }
-    } catch (_) {
+    } catch (e) {
+      // 错误处理
     } finally {
       final timer = timerPool.remove(timerKey);
       timer?.cancel();
     }
   }
 
+  /// 销毁所有本地通知
   void destroyLocalNotification() {
     for (var timerKey in timerPool.keys) {
       destroy(timerKey: timerKey, sendDeleteReq: true);
     }
 
     timerPool.clear();
+  }
+
+  /// 创建 Dio 实例
+  Dio _createDio() {
+    final dio = Dio();
+    dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.findProxy = (uri) {
+          return 'DIRECT';
+        };
+        return client;
+      },
+    );
+    return dio;
   }
 }

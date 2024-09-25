@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/settings/controller.dart';
+import 'package:todo_cat/pages/settings/settings_ctr.dart';
 import 'package:todo_cat/pages/start.dart';
-import 'package:todo_cat/pages/home/view.dart';
-import 'package:todo_cat/pages/settings/view.dart';
+import 'package:todo_cat/pages/home/home_page.dart';
+import 'package:todo_cat/pages/settings/settings_page.dart';
 
 List<GetPage<dynamic>> routerMap = [
   GetPage(

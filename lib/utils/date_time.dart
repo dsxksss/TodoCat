@@ -77,6 +77,5 @@ String getWeekName(DateTime date) {
   return weekMap[date.weekday] ?? 'unknown'.tr;
 }
 
-String getTimeString(DateTime date) {
-  return "${date.hour}${"hour".tr} ${date.minute}${"minute".tr}";
-}
+String getTimeString(DateTime date) =>
+    "${date.hour}${"hour".tr} ${date.minute}${"minute".tr}";

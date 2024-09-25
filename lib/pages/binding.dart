@@ -1,13 +1,13 @@
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/home/controller.dart';
-import 'package:todo_cat/pages/settings/controller.dart';
+import 'package:todo_cat/pages/home/home_ctr.dart';
+import 'package:todo_cat/pages/settings/settings_ctr.dart';
 
 class AppBinding implements Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => HomeController());
-    Get.lazyPut(() => SettingsController());
-    Get.lazyPut(() => DatePickerController());
+    Get.put(HomeController());
+    Get.put(SettingsController());
+    Get.put(DatePickerController());
     Get.put(AddTodoDialogController());
   }
 }

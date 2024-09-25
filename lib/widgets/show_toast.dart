@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 
+/// Toast 样式类型枚举
 enum TodoCatToastStyleType {
   info,
   success,
@@ -14,6 +15,7 @@ enum TodoCatToastStyleType {
   warning,
 }
 
+/// 根据 Toast 样式类型获取图标和颜色
 List _getIconData(TodoCatToastStyleType type) {
   switch (type) {
     case TodoCatToastStyleType.success:
@@ -27,6 +29,7 @@ List _getIconData(TodoCatToastStyleType type) {
   }
 }
 
+/// 获取 Toast 动画效果
 List<Effect<dynamic>> _getToastAnimationEffect(
     AnimationController controller, TodoCatToastStyleType? toastStyleType) {
   return [
@@ -44,6 +47,7 @@ List<Effect<dynamic>> _getToastAnimationEffect(
   ];
 }
 
+/// 显示 Toast
 void showToast(
   String message, {
   String prefix = "",
@@ -67,12 +71,11 @@ void showToast(
   bool? keepSingle,
   bool? backDismiss,
 }) {
-  double _getHight() {
-    double hight = 80;
-    hight = confirmMode ? hight + 50 : hight;
-    hight = message.length > 30 ? hight + 30 : hight;
-
-    return hight;
+  double getHeight() {
+    double height = 80;
+    height = confirmMode ? height + 50 : height;
+    height = message.length > 30 ? height + 30 : height;
+    return height;
   }
 
   SmartDialog.show(
@@ -102,7 +105,7 @@ void showToast(
               _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
           return Container(
             width: 300,
-            height: _getHight(),
+            height: getHeight(),
             margin: margin ??
                 (Platform.isAndroid || Platform.isIOS
                     ? const EdgeInsets.only(top: 110)

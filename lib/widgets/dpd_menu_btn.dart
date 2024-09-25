@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/widgets/dropdown_menu_btn.dart';
 
+/// 菜单项类，包含标题、图标和回调函数
 class MenuItem {
   String title;
   IconData? iconData;
@@ -17,6 +18,7 @@ class MenuItem {
   });
 }
 
+/// 菜单内容组件，显示菜单项
 class DPDMenuContent extends StatelessWidget {
   const DPDMenuContent({super.key, required List<MenuItem> menuItems})
       : _menuItems = menuItems;
@@ -32,45 +34,45 @@ class DPDMenuContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(5),
       ),
       child: Column(
-        children: [
-          ..._menuItems.map(
-            (item) => Material(
-              type: MaterialType.transparency,
-              child: ListTile(
-                minLeadingWidth: 0,
-                hoverColor: context.theme.dividerColor,
-                leading: item.iconData == null
-                    ? null
-                    : Icon(
-                        item.iconData,
-                        color: item.title == 'delete'
-                            ? Colors.redAccent.shade200
-                            : null,
-                        size: 18,
-                      ),
-                title: Text(
-                  item.title.tr,
-                  style: TextStyle(
-                    color: item.title == 'delete'
-                        ? Colors.redAccent.shade200
-                        : null,
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                onTap: () {
-                  item.callback();
-                  SmartDialog.dismiss(tag: dropDownMenuBtnTag);
-                },
+        children:
+            _menuItems.map((item) => _buildMenuItem(context, item)).toList(),
+      ),
+    );
+  }
+
+  /// 构建单个菜单项
+  Widget _buildMenuItem(BuildContext context, MenuItem item) {
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        minLeadingWidth: 0,
+        hoverColor: context.theme.dividerColor,
+        leading: item.iconData == null
+            ? null
+            : Icon(
+                item.iconData,
+                color:
+                    item.title == 'delete' ? Colors.redAccent.shade200 : null,
+                size: 18,
               ),
-            ),
+        title: Text(
+          item.title.tr,
+          style: TextStyle(
+            color: item.title == 'delete' ? Colors.redAccent.shade200 : null,
+            fontSize: 14.5,
+            fontWeight: FontWeight.w500,
           ),
-        ],
+        ),
+        onTap: () {
+          item.callback();
+          SmartDialog.dismiss(tag: dropDownMenuBtnTag);
+        },
       ),
     );
   }
 }
 
+/// 下拉菜单按钮组件
 class DPDMenuBtn extends StatelessWidget {
   const DPDMenuBtn(
       {super.key, required String tag, required List<MenuItem> menuItems})
@@ -95,6 +97,7 @@ class DPDMenuBtn extends StatelessWidget {
   }
 }
 
+/// 显示下拉菜单
 void showDpdMenu({
   required String tag,
   required List<MenuItem> menuItems,

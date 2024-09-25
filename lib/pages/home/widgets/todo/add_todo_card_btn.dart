@@ -5,7 +5,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/pages/home/controller.dart';
+import 'package:todo_cat/pages/home/home_ctr.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/pages/home/widgets/todo/add_todo_dialog.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';

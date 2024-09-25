@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 
+/// 自定义 Scaffold 组件，包含导航栏和主体内容
 class TodoCatScaffold extends StatelessWidget {
   const TodoCatScaffold({
     super.key,
@@ -15,10 +16,10 @@ class TodoCatScaffold extends StatelessWidget {
         _rightWidgets = rightWidgets,
         _title = title;
 
-  final Widget _body;
-  final String? _title;
-  final List<Widget>? _leftWidgets;
-  final List<Widget>? _rightWidgets;
+  final Widget _body; // 主体内容组件
+  final String? _title; // 导航栏的标题
+  final List<Widget>? _leftWidgets; // 导航栏左侧的组件列表
+  final List<Widget>? _rightWidgets; // 导航栏右侧的组件列表
 
   @override
   Widget build(BuildContext context) {
@@ -26,15 +27,15 @@ class TodoCatScaffold extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            height: Platform.isMacOS ? 30 : 0,
+            height: Platform.isMacOS ? 30 : 0, // MacOS 系统上增加顶部间距
           ),
           NavBar(
-            title: _title,
-            leftWidgets: _leftWidgets,
-            rightWidgets: _rightWidgets,
+            title: _title, // 导航栏的标题
+            leftWidgets: _leftWidgets, // 导航栏左侧的组件列表
+            rightWidgets: _rightWidgets, // 导航栏右侧的组件列表
           ),
-          const SizedBox(height: 10),
-          Expanded(child: _body),
+          const SizedBox(height: 10), // 导航栏与主体内容之间的间距
+          Expanded(child: _body), // 主体内容组件，填充剩余空间
         ],
       ),
     );

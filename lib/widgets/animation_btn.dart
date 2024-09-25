@@ -4,52 +4,55 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 
+/// AnimationBtn 是一个自定义的 Flutter 按钮组件，支持多种动画效果。
+///
+/// [child] 是按钮的子组件。
+/// [onPressed] 是按钮点击时的回调函数。
+/// [onHoverScale] 是鼠标悬停时的缩放比例。
+/// [onClickScale] 是点击时的缩放比例。
+/// [hoverBgColor] 是鼠标悬停时的背景颜色。
+/// [hoverScaleDuration] 是鼠标悬停时的缩放动画持续时间。
+/// [clickScaleDuration] 是点击时的缩放动画持续时间。
+/// [bgColorChangeDuration] 是背景颜色变化的动画持续时间。
+/// [disableAnimatDuration] 是禁用动画的持续时间。
+/// [disable] 是按钮是否禁用。
+/// [onHoverAnimationEnabled] 是是否启用悬停动画。
+/// [onHoverBgColorChangeEnabled] 是是否启用悬停背景颜色变化动画。
+/// [onClickAnimationEnabled] 是是否启用点击动画。
 class AnimationBtn extends StatelessWidget {
   AnimationBtn({
     super.key,
-    required Widget child,
-    required VoidCallback onPressed,
-    double? onHoverScale,
-    double? onClickScale,
-    Color? hoverBgColor,
-    Duration? hoverScaleDuration,
-    Duration? clickScaleDuration,
-    Duration? bgColorChangeDuration,
-    Duration? disableAnimatDuration,
-    bool disable = false,
-    bool onHoverAnimationEnabled = true,
-    bool onHoverBgColorChangeEnabled = false,
-    bool onClickAnimationEnabled = true,
-  })  : _hoverBgColor = hoverBgColor,
-        _onClickAnimationEnabled = onClickAnimationEnabled,
-        _clickScaleDuration = clickScaleDuration,
-        _onClickScale = onClickScale,
-        _onHoverBgColorChangeEnabled = onHoverBgColorChangeEnabled,
-        _onHoverAnimationEnabled = onHoverAnimationEnabled,
-        _disableAnimatDuration = disableAnimatDuration,
-        _bgColorChangeDuration = bgColorChangeDuration,
-        _hoverScaleDuration = hoverScaleDuration,
-        _onHoverScale = onHoverScale,
-        _disable = disable,
-        _onPressed = onPressed,
-        _child = child;
+    required this.child,
+    required this.onPressed,
+    this.onHoverScale = 1.05,
+    this.onClickScale = 0.9,
+    this.hoverBgColor,
+    this.hoverScaleDuration,
+    this.clickScaleDuration,
+    this.bgColorChangeDuration,
+    this.disableAnimatDuration,
+    this.disable = false,
+    this.onHoverAnimationEnabled = true,
+    this.onHoverBgColorChangeEnabled = false,
+    this.onClickAnimationEnabled = true,
+  });
 
-  final Widget _child;
-  final VoidCallback _onPressed;
-  final bool _disable;
+  final Widget child;
+  final VoidCallback onPressed;
+  final bool disable;
 
-  final double? _onHoverScale;
-  final Duration? _hoverScaleDuration;
-  final Duration? _bgColorChangeDuration;
-  final Duration? _disableAnimatDuration;
-  final bool _onHoverAnimationEnabled;
-  final bool _onHoverBgColorChangeEnabled;
+  final double onHoverScale;
+  final Duration? hoverScaleDuration;
+  final Duration? bgColorChangeDuration;
+  final Duration? disableAnimatDuration;
+  final bool onHoverAnimationEnabled;
+  final bool onHoverBgColorChangeEnabled;
 
-  final double? _onClickScale;
-  final Duration? _clickScaleDuration;
-  final bool _onClickAnimationEnabled;
+  final double onClickScale;
+  final Duration? clickScaleDuration;
+  final bool onClickAnimationEnabled;
 
-  final Color? _hoverBgColor;
+  final Color? hoverBgColor;
 
   final Duration _defaultDuration = 150.ms;
   final _onHover = false.obs;
@@ -57,13 +60,15 @@ class AnimationBtn extends StatelessWidget {
   final _onClick = false.obs;
   final _onClickDisableAnimat = false.obs;
 
+  /// 播放悬停动画
   void _playHoverAnimation() {
-    if (!Platform.isAndroid || !Platform.isIOS) {
-      if (_onHoverAnimationEnabled) _onHover.value = true;
-      if (_onHoverBgColorChangeEnabled) _onHoverbgColorChange.value = true;
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      if (onHoverAnimationEnabled) _onHover.value = true;
+      if (onHoverBgColorChangeEnabled) _onHoverbgColorChange.value = true;
     }
   }
 
+  /// 播放禁用动画
   void _playDisableAnimation() async {
     _onClickDisableAnimat.value = true;
     await Future.delayed(
@@ -72,10 +77,12 @@ class AnimationBtn extends StatelessWidget {
     );
   }
 
+  /// 播放点击动画
   void _playClickAnimation() {
-    if (_onClickAnimationEnabled) _onClick.value = true;
+    if (onClickAnimationEnabled) _onClick.value = true;
   }
 
+  /// 关闭所有动画
   void _closeAllAnimation() {
     _onHover.value = false;
     _onHoverbgColorChange.value = false;
@@ -86,64 +93,60 @@ class AnimationBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) {
-        _playHoverAnimation();
-      },
-      onExit: (_) {
-        _closeAllAnimation();
-      },
+      onEnter: (_) => _playHoverAnimation(),
+      onExit: (_) => _closeAllAnimation(),
       child: GestureDetector(
         onTap: () async {
-          if (!_disable) {
+          if (!disable) {
             _playClickAnimation();
             await Future.delayed(
-                (_clickScaleDuration ?? _defaultDuration) - 50.ms);
+                (clickScaleDuration ?? _defaultDuration) - 50.ms);
             _closeAllAnimation();
-            _onPressed();
+            onPressed();
           } else {
             _playDisableAnimation();
           }
         },
         onLongPressDown: (_) async {
-          if (!_disable) {
+          if (!disable) {
             _playClickAnimation();
             await Future.delayed(1000.ms, _closeAllAnimation);
           }
         },
         onLongPressUp: () {
           _closeAllAnimation();
-          if (!_disable) _onPressed();
+          if (!disable) onPressed();
         },
         child: Obx(
-          () => _child
-              // Hover animation
+          () => child
+              // 悬停动画
               .animate(target: _onHover.value ? 1 : 0)
               .scaleXY(
-                end: _onHoverScale ?? 1.05,
-                duration: _hoverScaleDuration ?? _defaultDuration,
+                end: onHoverScale,
+                duration: hoverScaleDuration ?? _defaultDuration,
                 curve: Curves.easeIn,
               )
               .animate(target: _onHoverbgColorChange.value ? 1 : 0)
               .tint(
-                color: _hoverBgColor ?? Colors.grey.shade500,
-                duration: _bgColorChangeDuration ?? _defaultDuration,
+                color: hoverBgColor ?? Colors.grey.shade500,
+                duration: bgColorChangeDuration ?? _defaultDuration,
               )
-              // Click animation
+              // 点击动画
               .animate(target: _onClick.value ? 1 : 0)
               .scaleXY(
-                end: _onClickScale ?? 0.9,
-                duration: _clickScaleDuration ?? _defaultDuration,
+                end: onClickScale,
+                duration: clickScaleDuration ?? _defaultDuration,
                 curve: Curves.easeOut,
               )
               .animate(target: _onClickDisableAnimat.value ? 1 : 0)
               .tint(
                 color: Colors.red.withOpacity(0.9),
-                duration: _disableAnimatDuration ?? _defaultDuration,
+                duration: disableAnimatDuration ?? _defaultDuration,
               )
               .shakeX(
                 hz: 4,
                 amount: 2,
-                duration: _disableAnimatDuration ?? _defaultDuration,
+                duration: disableAnimatDuration ?? _defaultDuration,
               ),
         ),
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/home/controller.dart';
+import 'package:todo_cat/pages/home/home_ctr.dart';
 
 class TimePanel extends StatelessWidget {
   TimePanel({super.key});

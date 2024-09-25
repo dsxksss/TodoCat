@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/pages/home/controller.dart';
+import 'package:todo_cat/pages/home/home_ctr.dart';
 import 'package:todo_cat/utils/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/pages/home/widgets/todo/add_todo_card_btn.dart';
