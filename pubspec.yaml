@@ -25,7 +25,7 @@ dependencies:
   # 桌面窗口管理插件
   window_manager: ^0.3.5
   # 动画控制插件
-  flutter_animate: ^4.2.0+1
+  flutter_animate: ^4.5.0
   # svg显示插件
   flutter_svg: ^2.0.7
   # 日志插件
