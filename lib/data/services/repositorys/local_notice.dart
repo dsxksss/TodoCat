@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/services/strorage.dart';
-import 'package:todo_cat/pages/app_ctr.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
 
 class LocalNoticeRepository extends Storage<LocalNotice> {
   final AppController appCtrl = Get.find();

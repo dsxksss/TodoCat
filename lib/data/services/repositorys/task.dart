@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/services/strorage.dart';
-import 'package:todo_cat/pages/app_ctr.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
 
 class TaskRepository extends Storage<Task> {
   final AppController appCtrl = Get.find();

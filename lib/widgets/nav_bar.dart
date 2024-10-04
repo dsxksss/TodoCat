@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/app_ctr.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:window_manager/window_manager.dart';
 
