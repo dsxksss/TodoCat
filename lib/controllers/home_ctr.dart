@@ -48,7 +48,6 @@ class HomeController extends GetxController {
     // 每当任务列表变化时，更新仓库中的任务。
     ever(tasks, (_) {
       taskRepository.updateMany(tasks, (task) => task.id);
-      tasks.refresh();
     });
   }
 
