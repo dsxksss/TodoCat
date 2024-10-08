@@ -43,7 +43,7 @@ class DatePickerController extends GetxController {
 
   // 初始化时间数据。
   Future<void> _initializeTimeData() async {
-    await Future.delayed(200.ms, () {
+    await 2.delay(() {
       hEditingController.text =
           defaultDate.value.hour.toString(); // 将小时输入设置为默认日期的小时。
       mEditingController.text =

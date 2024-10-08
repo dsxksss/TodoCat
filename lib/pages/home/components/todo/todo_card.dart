@@ -106,7 +106,7 @@ class TodoCard extends StatelessWidget {
                           onYesCallback: () {
                             final isDeleted =
                                 _homeCtrl.deleteTodo(_taskId, _todo.id);
-                            Future.delayed(500.ms, () {
+                            0.5.delay(() {
                               if (isDeleted) {
                                 showToast(
                                   "${"todo".tr} '${_todo.title.tr}' ${"deletedSuccessfully".tr}",

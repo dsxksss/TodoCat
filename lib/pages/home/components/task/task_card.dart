@@ -149,7 +149,7 @@ class TaskCard extends StatelessWidget {
                           toastStyleType: TodoCatToastStyleType.error,
                           onYesCallback: () {
                             final isDeleted = _homeCtrl.deleteTask(_task.id);
-                            Future.delayed(500.ms, () {
+                            0.5.delay(() {
                               if (isDeleted) {
                                 showToast(
                                   "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",

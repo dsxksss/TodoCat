@@ -54,7 +54,7 @@ class HomeController extends GetxController {
 
   // 显示空任务提示。
   Future<void> _showEmptyTaskToast() async {
-    await Future.delayed(2000.ms);
+    await 2.delay();
     showToast(
       "当前任务为空, 是否需要添加任务示例模板?", // 显示的信息。
       alwaysShow: true,
@@ -107,24 +107,22 @@ class HomeController extends GetxController {
 
   // 滚动到底部。
   Future<void> scrollMaxDown() async {
-    await Future.delayed(100.ms, () {
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
-        duration: 1000.ms,
-        curve: Curves.easeOutCubic,
-      );
-    });
+    await 0.1.delay(() => scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: 1000.ms,
+          curve: Curves.easeOutCubic,
+        ));
   }
 
   // 滚动到顶部。
   Future<void> scrollMaxTop() async {
-    await Future.delayed(100.ms, () {
-      scrollController.animateTo(
+    await 0.1.delay(
+      () => scrollController.animateTo(
         scrollController.position.minScrollExtent,
         duration: 1000.ms,
         curve: Curves.easeOutCubic,
-      );
-    });
+      ),
+    );
   }
 
   // 清理方法。

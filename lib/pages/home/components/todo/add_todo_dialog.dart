@@ -124,8 +124,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                               SmartDialog.dismiss(tag: addTodoDialogTag);
                             }, onNoCallback: () {
                               SmartDialog.dismiss(tag: addTodoDialogTag);
-                              Future.delayed(
-                                  500.ms, () => _dialogCtrl.clearForm());
+                              0.5.delay(() => _dialogCtrl.clearForm());
                             });
                           } else {
                             SmartDialog.dismiss(tag: addTodoDialogTag);

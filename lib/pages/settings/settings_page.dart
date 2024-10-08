@@ -41,9 +41,7 @@ class SettingsPage extends GetView<SettingsController> {
         controller.appCtrl.targetThemeMode();
         controller.isAnimating.value = true; // 启动动画
         // 动画结束后将 isAnimating 设为 false
-        Future.delayed(const Duration(milliseconds: 400), () {
-          controller.isAnimating.value = false;
-        });
+        0.4.delay(() => controller.isAnimating.value = false);
       },
       child: Obx(() {
         final isDarkMode = controller.appCtrl.appConfig.value.isDarkMode;

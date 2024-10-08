@@ -18,7 +18,7 @@ class _StartPageState extends State<StartPage> {
   }
 
   void goHomePage() async {
-    await Future.delayed(1000.ms);
+    await 1.delay();
     Get.offAllNamed("/");
   }
 
