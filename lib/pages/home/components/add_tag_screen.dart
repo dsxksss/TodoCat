@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/home/widgets/text_form_field_item.dart';
+import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/controllers/add_todo_dialog_ctr.dart';
 
 class AddTagScreen extends StatelessWidget {

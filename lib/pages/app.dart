@@ -68,7 +68,7 @@ class _AppState extends State<App> {
               page: () => const UnknownPage(),
               transition: Transition.fadeIn,
             ),
-            initialRoute: '/start',
+            initialRoute: context.isPhone ? '/start' : '/',
             getPages: routerMap,
             initialBinding: AppBinding(),
           ),

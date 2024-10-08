@@ -6,8 +6,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/utils/dialog_keys.dart';
-import 'package:todo_cat/pages/home/widgets/todo/add_todo_dialog.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
+import 'package:todo_cat/pages/home/components/todo/add_todo_dialog.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 
 class AddTodoCardBtn extends StatelessWidget {

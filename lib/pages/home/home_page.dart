@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/pages/home/widgets/task/task_card.dart';
+import 'package:todo_cat/pages/home/components/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 import 'package:todo_cat/widgets/todocat_scaffold.dart';

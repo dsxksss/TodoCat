@@ -10,8 +10,8 @@ import 'package:todo_cat/data/schemas/todo.dart'; // 导入待办事项模式。
 import 'package:todo_cat/data/services/repositorys/task.dart'; // 导入任务仓库。
 import 'package:todo_cat/data/test/todo.dart'; // 导入测试待办事项数据。
 import 'package:todo_cat/controllers/app_ctr.dart'; // 导入应用控制器。
-import 'package:todo_cat/utils/date_time.dart'; // 导入日期时间工具。
-import 'package:todo_cat/utils/dialog_keys.dart'; // 导入对话框键。
+import 'package:todo_cat/core/utils/date_time.dart'; // 导入日期时间工具。
+import 'package:todo_cat/keys/dialog_keys.dart'; // 导入对话框键。
 import 'package:todo_cat/widgets/show_toast.dart'; // 导入显示提示的组件。
 
 // HomeController 类用于管理主页状态。
@@ -46,7 +46,10 @@ class HomeController extends GetxController {
     sort(reverse: true); // 逆序排序任务。
 
     // 每当任务列表变化时，更新仓库中的任务。
-    ever(tasks, (_) => taskRepository.updateMany(tasks, (task) => task.id));
+    ever(tasks, (_) {
+      taskRepository.updateMany(tasks, (task) => task.id);
+      tasks.refresh();
+    });
   }
 
   // 显示空任务提示。

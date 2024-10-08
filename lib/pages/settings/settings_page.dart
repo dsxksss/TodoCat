@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
-import 'package:todo_cat/utils/dialog_keys.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 import 'package:todo_cat/widgets/show_toast.dart';

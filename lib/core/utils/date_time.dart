@@ -52,10 +52,8 @@ int getMonthDayCount(int year, int month) {
   }
 }
 
-List<int> getMonthDays(int year, int month) {
-  int monthDayCount = getMonthDayCount(year, month);
-  return List<int>.generate(monthDayCount, (index) => index + 1);
-}
+List<int> getMonthDays(int year, int month) =>
+    List<int>.generate(getMonthDayCount(year, month), (index) => index + 1);
 
 // 获取当前月份的第一天是星期几
 int firstDayWeek(DateTime date) {
