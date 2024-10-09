@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/settings/settings_ctr.dart';
-import 'package:todo_cat/utils/dialog_keys.dart';
+import 'package:todo_cat/controllers/settings_ctr.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
@@ -41,9 +41,7 @@ class SettingsPage extends GetView<SettingsController> {
         controller.appCtrl.targetThemeMode();
         controller.isAnimating.value = true; // 启动动画
         // 动画结束后将 isAnimating 设为 false
-        Future.delayed(const Duration(milliseconds: 400), () {
-          controller.isAnimating.value = false;
-        });
+        0.4.delay(() => controller.isAnimating.value = false);
       },
       child: Obx(() {
         final isDarkMode = controller.appCtrl.appConfig.value.isDarkMode;

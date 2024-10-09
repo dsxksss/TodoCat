@@ -102,12 +102,9 @@ class LocalNotificationManager {
           );
         }
 
-        await Future.delayed(
-          2000.ms,
-          () => {
-            // 销毁通知数据
-            destroy(timerKey: notice.id),
-          },
+        await 2.delay(
+          // 销毁通知数据
+          () => destroy(timerKey: notice.id),
         );
       });
       timerPool[notice.id] = timer;

@@ -71,10 +71,8 @@ class AnimationBtn extends StatelessWidget {
   /// 播放禁用动画
   void _playDisableAnimation() async {
     _onClickDisableAnimat.value = true;
-    await Future.delayed(
-      _defaultDuration + 120.ms,
-      () => _onClickDisableAnimat.value = false,
-    );
+    await (_defaultDuration + 120.ms)
+        .delay(() => _onClickDisableAnimat.value = false);
   }
 
   /// 播放点击动画
@@ -99,8 +97,7 @@ class AnimationBtn extends StatelessWidget {
         onTap: () async {
           if (!disable) {
             _playClickAnimation();
-            await Future.delayed(
-                (clickScaleDuration ?? _defaultDuration) - 50.ms);
+            await ((clickScaleDuration ?? _defaultDuration) - 50.ms).delay();
             _closeAllAnimation();
             onPressed();
           } else {
@@ -110,7 +107,7 @@ class AnimationBtn extends StatelessWidget {
         onLongPressDown: (_) async {
           if (!disable) {
             _playClickAnimation();
-            await Future.delayed(1000.ms, _closeAllAnimation);
+            await 1.delay(_closeAllAnimation);
           }
         },
         onLongPressUp: () {

@@ -6,11 +6,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/pages/home/home_ctr.dart';
-import 'package:todo_cat/utils/dialog_keys.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
-import 'package:todo_cat/pages/home/widgets/todo/add_todo_card_btn.dart';
-import 'package:todo_cat/pages/home/widgets/todo/todo_card.dart';
+import 'package:todo_cat/pages/home/components/todo/add_todo_card_btn.dart';
+import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
 class TaskCard extends StatelessWidget {
@@ -149,7 +149,7 @@ class TaskCard extends StatelessWidget {
                           toastStyleType: TodoCatToastStyleType.error,
                           onYesCallback: () {
                             final isDeleted = _homeCtrl.deleteTask(_task.id);
-                            Future.delayed(500.ms, () {
+                            0.5.delay(() {
                               if (isDeleted) {
                                 showToast(
                                   "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",

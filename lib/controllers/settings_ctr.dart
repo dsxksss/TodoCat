@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
-import 'package:todo_cat/pages/app_ctr.dart';
-import 'package:todo_cat/utils/dialog_keys.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 
 class SettingsController extends GetxController {
   final AppController appCtrl = Get.find();

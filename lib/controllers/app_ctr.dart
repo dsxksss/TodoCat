@@ -7,7 +7,7 @@ import 'package:todo_cat/pages/app_lifecycle_observer.dart';
 import 'package:todo_cat/config/smart_dialog.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/services/repositorys/app_config.dart';
-import 'package:todo_cat/manager/local_notification_manager.dart';
+import 'package:todo_cat/core/local_notification_manager.dart';
 import 'package:todo_cat/themes/theme_mode.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -115,10 +115,8 @@ class AppController extends GetxController {
   }
 
   void updateWindowStatus() async {
-    final maximized = await windowManager.isMaximized();
-    isMaximize.value = maximized;
-    final fullScreen = await windowManager.isFullScreen();
-    isFullScreen.value = fullScreen;
+    isMaximize.value = await windowManager.isMaximized();
+    isFullScreen.value = await windowManager.isFullScreen();
   }
 
   void targetMaximizeWindow() async {

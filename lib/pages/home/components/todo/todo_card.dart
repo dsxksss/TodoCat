@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/pages/home/home_ctr.dart';
-import 'package:todo_cat/pages/home/widgets/tag.dart';
-import 'package:todo_cat/utils/date_time.dart';
-import 'package:todo_cat/utils/dialog_keys.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/pages/home/components/tag.dart';
+import 'package:todo_cat/core/utils/date_time.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
@@ -106,7 +105,7 @@ class TodoCard extends StatelessWidget {
                           onYesCallback: () {
                             final isDeleted =
                                 _homeCtrl.deleteTodo(_taskId, _todo.id);
-                            Future.delayed(500.ms, () {
+                            0.5.delay(() {
                               if (isDeleted) {
                                 showToast(
                                   "${"todo".tr} '${_todo.title.tr}' ${"deletedSuccessfully".tr}",

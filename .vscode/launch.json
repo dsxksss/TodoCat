@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "todo_cat",
+            "name": "TodoCat",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "todo_cat (profile mode)",
+            "name": "TodoCat (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "todo_cat (release mode)",
+            "name": "TodoCat (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
