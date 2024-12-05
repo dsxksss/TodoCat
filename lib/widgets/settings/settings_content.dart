@@ -94,7 +94,7 @@ class SettingsContent extends GetView<SettingsController> {
             const Icon(Icons.arrow_drop_down_rounded)
           ],
         ),
-        onPressed: (context) => _showLanguageMenu(context),
+        onPressed: (context) => controller.showLanguageMenu(context),
       ),
       SettingsTile(
         onPressed: (_) => _showResetSettingsToast(),
@@ -116,27 +116,6 @@ class SettingsContent extends GetView<SettingsController> {
         title: Text('enbleDebugMode'.tr),
       ),
     ];
-  }
-
-  void _showLanguageMenu(BuildContext context) {
-    showDpdMenu(
-      tag: settingsDropDownMenuBtnTag,
-      targetContext: context,
-      menuItems: [
-        MenuItem(
-          title: "English",
-          callback: () {
-            controller.changeLanguage(const Locale("en", "US"));
-          },
-        ),
-        MenuItem(
-          title: "中文简体",
-          callback: () {
-            controller.changeLanguage(const Locale("zh", "CN"));
-          },
-        ),
-      ],
-    );
   }
 
   void _showResetSettingsToast() {
