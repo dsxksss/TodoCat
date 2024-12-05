@@ -1,57 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/core/utils/date_time.dart';
+import 'package:logger/logger.dart';
 
 class DatePickerController extends GetxController {
-  late final currentDate = DateTime.now().obs; // 可观察的当前日期。
-  late final defaultDate = DateTime.now().obs; // 可观察的默认日期。
-  late final RxList<int> monthDays = <int>[].obs; // 可观察的当前月份的天数列表。
-  final selectedDay = 0.obs; // 可观察的选中日期。
-  final firstDayOfWeek = 0.obs; // 可观察的星期的第一天。
-  final daysInMonth = 0.obs; // 可观察的当前月份的天数。
-  final startPadding = RxNum(0); // 可观察的月份第一天的填充。
-  final totalDays = RxNum(0); // 可观察的总天数。
-  final TextEditingController hEditingController =
-      TextEditingController(); // 小时输入控制器。
-  final TextEditingController mEditingController =
-      TextEditingController(); // 分钟输入控制器。
+  static final _logger = Logger();
+  final currentDate = DateTime.now().obs;
+  final defaultDate = DateTime.now().obs;
+  final monthDays = <int>[].obs;
+  final selectedDay = 0.obs;
+  final firstDayOfWeek = 0.obs;
+  final daysInMonth = 0.obs;
+  final startPadding = 0.obs;
+  final totalDays = 0.obs;
 
-  // 初始化方法。
+  final TextEditingController hEditingController = TextEditingController();
+  final TextEditingController mEditingController = TextEditingController();
+
+  // 计算属性
+  bool get isCurrentMonth =>
+      currentDate.value.year == DateTime.now().year &&
+      currentDate.value.month == DateTime.now().month;
+
+  bool get isSelectedDayValid =>
+      selectedDay.value > 0 && selectedDay.value <= daysInMonth.value;
+
   @override
   void onInit() async {
     super.onInit();
-    _initializeDateData(); // 初始化日期数据。
-    await _initializeTimeData(); // 初始化时间数据。
+    _logger.i('Initializing DatePickerController');
+    _initializeDateData();
+    await _initializeTimeData();
 
-    // 每当当前日期变化时更新选中日期。
-    ever(selectedDay, (callback) => changeDate(day: selectedDay.value));
-    // 将选中日期更新为当前日期的天数。
-    ever(currentDate, (callback) => selectedDay.value = currentDate.value.day);
-  }
+    // 监听选中日期变化
+    ever(selectedDay, (_) {
+      _logger.d('Selected day changed to: $selectedDay');
+      if (isSelectedDayValid) {
+        changeDate(day: selectedDay.value);
+      }
+    });
 
-  // 初始化日期数据。
-  void _initializeDateData() {
-    monthDays.value = getMonthDays(
-        currentDate.value.year, currentDate.value.month); // 获取当前月份的天数。
-    firstDayOfWeek.value = firstDayWeek(currentDate.value); // 获取星期的第一天。
-    daysInMonth.value = monthDays.length; // 获取月份的天数。
-    startPadding.value = (firstDayOfWeek - 1) % 7; // 计算开始填充。
-    totalDays.value = daysInMonth.value + startPadding.value; // 计算总天数。
-    selectedDay.value = defaultDate.value.day; // 将选中日期设置为默认日期的天数。
-  }
-
-  // 初始化时间数据。
-  Future<void> _initializeTimeData() async {
-    await 2.delay(() {
-      hEditingController.text =
-          defaultDate.value.hour.toString(); // 将小时输入设置为默认日期的小时。
-      mEditingController.text =
-          defaultDate.value.minute.toString(); // 将分钟输入设置为默认日期的分钟。
+    // 监听当前日期变化
+    ever(currentDate, (_) {
+      _logger.d('Current date changed to: ${currentDate.value}');
+      selectedDay.value = currentDate.value.day;
+      _updateMonthData();
     });
   }
 
-  // 重置日期为默认日期。
+  void _initializeDateData() {
+    _logger.d('Initializing date data');
+    _updateMonthData();
+    selectedDay.value = defaultDate.value.day;
+  }
+
+  void _updateMonthData() {
+    monthDays.value = getMonthDays(
+      currentDate.value.year,
+      currentDate.value.month,
+    );
+    firstDayOfWeek.value = firstDayWeek(currentDate.value);
+    daysInMonth.value = monthDays.length;
+    startPadding.value = (firstDayOfWeek.value - 1) % 7;
+    totalDays.value = daysInMonth.value + startPadding.value;
+  }
+
+  Future<void> _initializeTimeData() async {
+    _logger.d('Initializing time data');
+    await 2.delay(() {
+      _updateTimeInputs(
+        defaultDate.value.hour,
+        defaultDate.value.minute,
+      );
+    });
+  }
+
+  void _updateTimeInputs(int hours, int minutes) {
+    hEditingController.text = hours.toString();
+    mEditingController.text = minutes.toString();
+  }
+
   void resetDate() {
+    _logger.d('Resetting date to default');
     changeDate(
       year: defaultDate.value.year,
       month: defaultDate.value.month,
@@ -59,19 +89,37 @@ class DatePickerController extends GetxController {
       hour: 0,
       minute: 0,
     );
-    hEditingController.text = '0'; // 重置小时输入。
-    mEditingController.text = '0'; // 重置分钟输入。
+    _updateTimeInputs(0, 0);
   }
 
-  // 更改当前日期。
-  void changeDate({int? year, int? month, int? day, int? hour, int? minute}) {
-    currentDate.value = DateTime(
-      year ?? currentDate.value.year,
-      month ?? currentDate.value.month,
-      day ?? currentDate.value.day,
-      hour ?? currentDate.value.hour,
-      minute ?? currentDate.value.minute,
-    );
-    _initializeDateData(); // 重新初始化日期数据。
+  void changeDate({
+    int? year,
+    int? month,
+    int? day,
+    int? hour,
+    int? minute,
+  }) {
+    _logger.d(
+        'Changing date with parameters: year=$year, month=$month, day=$day, hour=$hour, minute=$minute');
+    try {
+      final newDate = DateTime(
+        year ?? currentDate.value.year,
+        month ?? currentDate.value.month,
+        day ?? currentDate.value.day,
+        hour ?? currentDate.value.hour,
+        minute ?? currentDate.value.minute,
+      );
+      currentDate.value = newDate;
+    } catch (e) {
+      _logger.e('Error changing date: $e');
+    }
+  }
+
+  @override
+  void onClose() {
+    _logger.d('Cleaning up DatePickerController resources');
+    hEditingController.dispose();
+    mEditingController.dispose();
+    super.onClose();
   }
 }

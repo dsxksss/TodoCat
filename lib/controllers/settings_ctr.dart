@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
+import 'package:todo_cat/pages/settings/settings_page.dart';
 
 class SettingsController extends GetxController {
   final AppController appCtrl = Get.find();
@@ -27,6 +28,28 @@ class SettingsController extends GetxController {
       default:
         return "unknown";
     }
+  }
+
+  void showSettings() {
+    SmartDialog.show(
+      tag: 'settings',
+      alignment: Alignment.centerRight,
+      builder: (_) => const SettingsPage(),
+      maskColor: Colors.black38,
+      clickMaskDismiss: true,
+      animationBuilder: (controller, child, animationParam) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: controller,
+            curve: Curves.easeOutCubic,
+          )),
+          child: child,
+        );
+      },
+    );
   }
 
   void changeLanguage(Locale local) {

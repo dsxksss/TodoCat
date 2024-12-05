@@ -8,7 +8,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:todo_cat/locales/locales.dart';
 import 'package:todo_cat/pages/binding.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
-import 'package:todo_cat/pages/unknown.dart';
+import 'package:todo_cat/pages/unknown_page.dart';
 import 'package:todo_cat/routers/router_map.dart';
 import 'package:todo_cat/themes/dark_theme.dart';
 import 'package:todo_cat/themes/light_theme.dart';

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/controllers/settings_ctr.dart';
 import 'package:todo_cat/pages/home/components/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
@@ -18,6 +19,9 @@ class HomePage extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    // 在构建页面时就初始化 SettingsController
+    Get.put(SettingsController(), permanent: true);
+
     return Scaffold(
       floatingActionButton: _buildFloatingActionButton(context),
       body: TodoCatScaffold(
@@ -99,7 +103,11 @@ class HomePage extends GetView<HomeController> {
       ),
       const SizedBox(width: 10),
       NavBarBtn(
-        onPressed: () => Get.toNamed('/settings'),
+        onPressed: () {
+          // 直接获取已初始化的控制器
+          final settingsController = Get.find<SettingsController>();
+          settingsController.showSettings();
+        },
         child: const Icon(
           Icons.settings,
           size: 24,
