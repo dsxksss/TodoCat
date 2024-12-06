@@ -61,7 +61,7 @@ class TagDialogBtn extends StatelessWidget {
             useSystem: false, // 是否使用系统对话框
             debounce: true, // 防抖动
             keepSingle: true, // 保持单一实例
-            backDismiss: false, // 是否允许返回键关闭对话框
+            backType: SmartBackType.normal, // 添加这行
             animationTime: 150.ms, // 动画持续时间
             onDismiss: _onDialogClose, // 对话框关闭时的回调函数
             builder: (context) =>

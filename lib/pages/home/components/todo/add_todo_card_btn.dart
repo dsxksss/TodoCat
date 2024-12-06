@@ -67,7 +67,7 @@ void _showAddTodoDialog() {
     debounce: true,
     keepSingle: true,
     tag: addTodoDialogTag,
-    backDismiss: false,
+    backType: SmartBackType.normal,
     animationTime: const Duration(milliseconds: 150),
     builder: (_) => const AddTodoDialog(),
     clickMaskDismiss: false,
@@ -87,9 +87,9 @@ void _showAddTodoBottomSheet(BuildContext context) {
     debounce: true,
     keepSingle: true,
     tag: addTodoDialogTag,
-    backDismiss: false,
+    backType: SmartBackType.normal,
     animationTime: const Duration(milliseconds: 110),
-    alignment: Alignment.bottomCenter,
+    alignment: context.isPhone ? Alignment.bottomCenter : Alignment.centerRight,
     builder: (_) => const Scaffold(
       backgroundColor: Colors.transparent,
       body: Align(

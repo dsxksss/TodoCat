@@ -7,13 +7,13 @@ import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/data/test/todo.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:logger/logger.dart';
+import 'package:todo_cat/controllers/task_manager.dart';
 
 mixin ScrollControllerMixin {
   final ScrollController scrollController = ScrollController();
@@ -74,11 +74,40 @@ mixin ScrollControllerMixin {
 
 class HomeController extends GetxController with ScrollControllerMixin {
   static final _logger = Logger();
-  late TaskRepository taskRepository;
-  final tasks = RxList<Task>();
+  final TaskManager _taskManager = TaskManager();
   final currentTask = Rx<Task?>(null);
   final listAnimatInterval = 200.ms.obs;
   final AppController appCtrl = Get.find();
+  final shouldAnimate = true.obs;
+
+  final groupByStatus = false.obs;
+
+  final searchQuery = ''.obs;
+
+  List<Task> get filteredTasks {
+    if (searchQuery.value.isEmpty) return tasks;
+    return tasks
+        .where((task) =>
+            task.title
+                .toLowerCase()
+                .contains(searchQuery.value.toLowerCase()) ||
+            task.tags.any((tag) =>
+                tag.toLowerCase().contains(searchQuery.value.toLowerCase())))
+        .toList();
+  }
+
+  Map<TaskStatus, List<Task>> get groupedTasks {
+    if (!groupByStatus.value) {
+      return {TaskStatus.todo: tasks};
+    }
+
+    return {
+      TaskStatus.todo: tasks.where((t) => t.status == TaskStatus.todo).toList(),
+      TaskStatus.inProgress:
+          tasks.where((t) => t.status == TaskStatus.inProgress).toList(),
+      TaskStatus.done: tasks.where((t) => t.status == TaskStatus.done).toList(),
+    };
+  }
 
   @override
   void onInit() async {
@@ -86,16 +115,14 @@ class HomeController extends GetxController with ScrollControllerMixin {
     _logger.i('Initializing HomeController');
     await _initializeTasks();
     initScrollController();
+    await 1.delay(() => shouldAnimate.value = false);
   }
 
   Future<void> _initializeTasks() async {
-    taskRepository = await TaskRepository.getInstance();
-    final localTasks = await taskRepository.readAll();
+    await _taskManager.initialize();
 
-    if (localTasks.isEmpty) {
+    if (_taskManager.tasks.isEmpty) {
       await _showEmptyTaskToast();
-    } else {
-      tasks.assignAll(localTasks);
     }
 
     if (appCtrl.appConfig.value.isDebugMode) {
@@ -104,9 +131,9 @@ class HomeController extends GetxController with ScrollControllerMixin {
 
     sort(reverse: true);
 
-    ever(tasks, (_) {
+    ever(_taskManager.tasks, (_) {
       _logger.d('Tasks changed, updating repository');
-      taskRepository.updateMany(tasks, (task) => task.id);
+      _taskManager.updateMany(_taskManager.tasks, (task) => task.id);
     });
   }
 
@@ -116,7 +143,7 @@ class HomeController extends GetxController with ScrollControllerMixin {
       "当前任务为空, 是否需要添加任务示例模板?",
       alwaysShow: true,
       confirmMode: true,
-      onYesCallback: () => tasks.assignAll(defaultTasks),
+      onYesCallback: () => _taskManager.assignAll(defaultTasks),
     );
   }
 
@@ -136,29 +163,20 @@ class HomeController extends GetxController with ScrollControllerMixin {
     }
   }
 
-  bool addTask(Task task) {
-    if (taskRepository.has(task.id)) {
-      _logger.w('Task ${task.id} already exists');
-      return false;
-    }
-
-    _logger.d('Adding new task: ${task.id}');
-    tasks.add(task);
-    return true;
+  void addTask(Task task) {
+    _taskManager.addTask(task);
   }
 
   bool deleteTask(String taskId) {
-    if (taskRepository.hasNot(taskId)) {
-      _logger.w('Task $taskId not found');
+    try {
+      final task = _taskManager.tasks.firstWhere((task) => task.id == taskId);
+      _cleanupTaskNotifications(task);
+      _taskManager.removeTask(taskId);
+      return true;
+    } catch (e) {
+      _logger.e('Error deleting task: $e');
       return false;
     }
-
-    _logger.d('Deleting task: $taskId');
-    Task task = tasks.singleWhere((task) => task.id == taskId);
-    _cleanupTaskNotifications(task);
-    tasks.remove(task);
-    taskRepository.delete(taskId);
-    return true;
   }
 
   void _cleanupTaskNotifications(Task task) {
@@ -171,13 +189,13 @@ class HomeController extends GetxController with ScrollControllerMixin {
   }
 
   bool updateTask(String taskId, Task task) {
-    if (!taskRepository.has(taskId)) {
+    if (!_taskManager.has(taskId)) {
       _logger.w('Task $taskId not found for update');
       return false;
     }
 
     _logger.d('Updating task: $taskId');
-    taskRepository.update(taskId, task);
+    _taskManager.updateTask(taskId, task);
     return true;
   }
 
@@ -192,26 +210,24 @@ class HomeController extends GetxController with ScrollControllerMixin {
   }
 
   bool addTodo(Todo todo) {
-    if (currentTask.value == null ||
-        taskRepository.hasNot(currentTask.value!.id)) {
+    if (currentTask.value == null || !_taskManager.has(currentTask.value!.id)) {
       _logger.w('No current task selected or task not found');
       return false;
     }
 
-    int taskIndex = tasks.indexOf(currentTask.value);
+    int taskIndex = _taskManager.tasks.indexOf(currentTask.value);
     if (taskIndex == -1) {
       _logger.w('Task index not found');
       return false;
     }
 
     _logger.d('Adding todo to task: ${currentTask.value!.id}');
-    tasks[taskIndex].todos.add(todo);
+    _taskManager.tasks[taskIndex].todos.add(todo);
     _handleTodoReminder(todo);
 
-    tasks[taskIndex]
-        .todos
+    _taskManager.tasks[taskIndex].todos
         .sort((a, b) => b.priority.index.compareTo(a.priority.index));
-    tasks.refresh();
+    _taskManager.refresh();
     return true;
   }
 
@@ -236,13 +252,13 @@ class HomeController extends GetxController with ScrollControllerMixin {
   }
 
   bool deleteTodo(String taskId, String todoId) {
-    if (taskRepository.hasNot(taskId)) {
+    if (!_taskManager.has(taskId)) {
       _logger.w('Task $taskId not found for todo deletion');
       return false;
     }
 
-    Task task = tasks.singleWhere((task) => task.id == taskId);
-    int taskIndex = tasks.indexOf(task);
+    Task task = _taskManager.tasks.singleWhere((task) => task.id == taskId);
+    int taskIndex = _taskManager.tasks.indexOf(task);
     if (taskIndex == -1) {
       _logger.w('Task index not found');
       return false;
@@ -255,16 +271,14 @@ class HomeController extends GetxController with ScrollControllerMixin {
       sendDeleteReq: true,
     );
     task.todos.remove(todo);
-    tasks.refresh();
+    _taskManager.refresh();
     return true;
   }
 
   void sort({bool reverse = false}) {
     _logger.d('Sorting tasks by creation date (reverse: $reverse)');
-    tasks.sort((a, b) => reverse
-        ? a.createdAt.compareTo(b.createdAt)
-        : b.createdAt.compareTo(a.createdAt));
-    tasks.refresh();
+    _taskManager.sort(reverse: reverse);
+    _taskManager.refresh();
   }
 
   @override
@@ -273,4 +287,46 @@ class HomeController extends GetxController with ScrollControllerMixin {
     disposeScrollController();
     super.onClose();
   }
+
+  /// 获取任务列表
+  RxList<Task> get tasks => _taskManager.tasks;
+
+  /// 重新排序任务
+  void reorderTask(int oldIndex, int newIndex) {
+    final task = _taskManager.tasks.removeAt(oldIndex);
+    _taskManager.tasks.insert(newIndex, task);
+    _taskManager.refresh();
+  }
+
+  void startDragging() {
+    shouldAnimate.value = true;
+  }
+
+  void endDragging() {
+    shouldAnimate.value = false;
+  }
+
+  TaskStats get taskStats => TaskStats(
+        total: tasks.length,
+        todo: tasks.where((t) => t.status == TaskStatus.todo).length,
+        inProgress:
+            tasks.where((t) => t.status == TaskStatus.inProgress).length,
+        done: tasks.where((t) => t.status == TaskStatus.done).length,
+      );
+}
+
+class TaskStats {
+  final int total;
+  final int todo;
+  final int inProgress;
+  final int done;
+
+  TaskStats({
+    required this.total,
+    required this.todo,
+    required this.inProgress,
+    required this.done,
+  });
+
+  double get completionRate => total > 0 ? done / total : 0;
 }

@@ -1,6 +1,4 @@
-import 'package:dough/dough.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -38,13 +36,12 @@ class TaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final todosLength = _task.todos.length;
     final colorAndIcon = _getColorAndIcon();
+
     return Container(
       width: context.isPhone ? 0.9.sw : 240,
       decoration: BoxDecoration(
         color: context.theme.cardColor,
-        borderRadius: BorderRadius.circular(
-          10,
-        ),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(width: 0.4, color: context.theme.dividerColor),
         boxShadow: <BoxShadow>[
           BoxShadow(
@@ -148,7 +145,8 @@ class TaskCard extends StatelessWidget {
                           confirmMode: true,
                           toastStyleType: TodoCatToastStyleType.error,
                           onYesCallback: () {
-                            final isDeleted = _homeCtrl.deleteTask(_task.id);
+                            final bool isDeleted =
+                                _homeCtrl.deleteTask(_task.id);
                             0.5.delay(() {
                               if (isDeleted) {
                                 showToast(
@@ -182,13 +180,13 @@ class TaskCard extends StatelessWidget {
           ),
           Obx(
             () => Column(
-              children: [
-                ..._homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos.map(
+              children: _homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos
+                  .map(
                     (e) => context.isPhone
                         ? TodoCard(taskId: _task.id, todo: e)
-                        : PressableDough(
-                            child: TodoCard(taskId: _task.id, todo: e)))
-              ].animate(interval: 100.ms).fadeIn(duration: 150.ms),
+                        : TodoCard(taskId: _task.id, todo: e),
+                  )
+                  .toList(),
             ),
           ),
         ],

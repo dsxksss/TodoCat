@@ -28,7 +28,7 @@ class DatePanel extends StatelessWidget {
   Widget _buildDateGrid() {
     return GridView.builder(
       clipBehavior: Clip.antiAliasWithSaveLayer,
-      itemCount: _ctrl.totalDays.value as int,
+      itemCount: _ctrl.totalDays.value,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 7, mainAxisSpacing: 2, crossAxisSpacing: 2),
       padding: EdgeInsets.zero,
@@ -57,7 +57,7 @@ class DatePanel extends StatelessWidget {
             onHoverAnimationEnabled: false,
             hoverBgColor: Colors.blueGrey.withOpacity(0.3),
             onPressed: () {
-              _ctrl.selectedDay.value = day as int;
+              _ctrl.selectedDay.value = day;
             },
             child: Obx(
               () => Container(

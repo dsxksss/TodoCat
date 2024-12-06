@@ -46,7 +46,8 @@ abstract class Storage<T> extends GetxService {
 
   Future<void> updateMany(
       List<T> values, String Function(T) keyExtractor) async {
-    for (var element in values) {
+    final valuesCopy = List<T>.from(values);
+    for (var element in valuesCopy) {
       await update(keyExtractor(element), element);
     }
   }
