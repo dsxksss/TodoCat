@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
-import 'package:todo_cat/keys/dialog_keys.dart';
-import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
 class SettingsContent extends GetView<SettingsController> {
@@ -80,6 +78,7 @@ class SettingsContent extends GetView<SettingsController> {
       settingsSectionBackground: context.theme.scaffoldBackgroundColor,
       settingsListBackground: context.theme.scaffoldBackgroundColor,
       dividerColor: context.theme.dividerColor,
+      tileHighlightColor: context.theme.hoverColor,
     );
   }
 

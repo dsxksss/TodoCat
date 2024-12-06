@@ -95,14 +95,6 @@ class HomePage extends GetView<HomeController> {
   List<Widget> _buildRightWidgets(BuildContext context) {
     return [
       NavBarBtn(
-        onPressed: () => {},
-        child: const Icon(
-          Icons.filter_alt_outlined,
-          size: 26,
-        ),
-      ),
-      const SizedBox(width: 10),
-      NavBarBtn(
         onPressed: () {
           // 直接获取已初始化的控制器
           final settingsController = Get.find<SettingsController>();

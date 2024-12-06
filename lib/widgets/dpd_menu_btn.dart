@@ -52,8 +52,7 @@ class DPDMenuContent extends StatelessWidget {
       child: ListTile(
         enabled: !isDisabled,
         minLeadingWidth: 0,
-        hoverColor:
-            isDisabled ? Colors.transparent : context.theme.dividerColor,
+        hoverColor: isDisabled ? Colors.transparent : context.theme.hoverColor,
         leading: item.iconData == null
             ? null
             : Icon(
