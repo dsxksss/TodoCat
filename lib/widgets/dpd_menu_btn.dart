@@ -10,11 +10,13 @@ class MenuItem {
   String title;
   IconData? iconData;
   VoidCallback callback;
+  bool isDisabled;
 
   MenuItem({
     this.iconData,
     required this.title,
     required this.callback,
+    this.isDisabled = false,
   });
 }
 
@@ -42,31 +44,38 @@ class DPDMenuContent extends StatelessWidget {
 
   /// 构建单个菜单项
   Widget _buildMenuItem(BuildContext context, MenuItem item) {
+    final bool isDelete = item.title == 'delete';
+    final bool isDisabled = item.isDisabled;
+
     return Material(
       type: MaterialType.transparency,
       child: ListTile(
+        enabled: !isDisabled,
         minLeadingWidth: 0,
-        hoverColor: context.theme.dividerColor,
+        hoverColor: isDisabled ? Colors.transparent : context.theme.hoverColor,
         leading: item.iconData == null
             ? null
             : Icon(
                 item.iconData,
-                color:
-                    item.title == 'delete' ? Colors.redAccent.shade200 : null,
+                color: isDelete ? Colors.redAccent.shade200 : null,
                 size: 18,
               ),
         title: Text(
           item.title.tr,
           style: TextStyle(
-            color: item.title == 'delete' ? Colors.redAccent.shade200 : null,
+            color: isDisabled
+                ? Colors.grey
+                : (isDelete ? Colors.redAccent.shade200 : null),
             fontSize: 14.5,
             fontWeight: FontWeight.w500,
           ),
         ),
-        onTap: () {
-          item.callback();
-          SmartDialog.dismiss(tag: dropDownMenuBtnTag);
-        },
+        onTap: isDisabled
+            ? null
+            : () {
+                item.callback();
+                SmartDialog.dismiss(tag: dropDownMenuBtnTag);
+              },
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/controllers/add_todo_dialog_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/todo/add_todo_dialog.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
@@ -13,16 +14,18 @@ import 'package:todo_cat/widgets/animation_btn.dart';
 class AddTodoCardBtn extends StatelessWidget {
   AddTodoCardBtn({super.key, required Task task}) : _task = task;
   final HomeController _homeCtrl = Get.find();
+  final AddTodoDialogController _addTodoCtrl = Get.find();
   final Task _task;
 
   @override
   Widget build(BuildContext context) {
     return AnimationBtn(
-      onPressed: () => {
-        _homeCtrl.selectTask(_task),
+      onPressed: () {
+        _homeCtrl.selectTask(_task);
+        _addTodoCtrl.clearForm();
         context.isPhone
             ? _showAddTodoBottomSheet(context)
-            : _showAddTodoDialog(),
+            : _showAddTodoDialog();
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -65,8 +68,8 @@ void _showAddTodoDialog() {
     keepSingle: true,
     tag: addTodoDialogTag,
     backDismiss: false,
-    animationTime: 150.ms,
-    builder: (context) => const AddTodoDialog(),
+    animationTime: const Duration(milliseconds: 150),
+    builder: (_) => const AddTodoDialog(),
     clickMaskDismiss: false,
     animationBuilder: (controller, child, _) => child
         .animate(controller: controller)
@@ -85,9 +88,9 @@ void _showAddTodoBottomSheet(BuildContext context) {
     keepSingle: true,
     tag: addTodoDialogTag,
     backDismiss: false,
-    animationTime: 110.ms,
+    animationTime: const Duration(milliseconds: 110),
     alignment: Alignment.bottomCenter,
-    builder: (context) => const Scaffold(
+    builder: (_) => const Scaffold(
       backgroundColor: Colors.transparent,
       body: Align(
         alignment: Alignment.bottomCenter,

@@ -6,6 +6,7 @@ final lightTheme = ThemeData(
   brightness: Brightness.light,
   cardColor: Colors.white,
   primaryColor: Colors.grey[100],
+  hoverColor: Colors.grey.withOpacity(0.1),
   hintColor: Colors.blue,
   dividerColor: Colors.grey.shade300,
   dialogBackgroundColor: Colors.white,
