@@ -39,25 +39,64 @@ class SettingsController extends GetxController {
   }
 
   void showSettings() {
-    SmartDialog.show(
-      tag: 'settings',
-      alignment: Alignment.centerRight,
-      builder: (_) => const SettingsPage(),
-      maskColor: Colors.black38,
-      clickMaskDismiss: true,
-      animationBuilder: (controller, child, animationParam) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: controller,
-            curve: Curves.easeOutCubic,
-          )),
-          child: child,
-        );
-      },
-    );
+    if (Get.context!.isPhone) {
+      SmartDialog.show(
+        tag: 'settings',
+        alignment: Alignment.bottomCenter,
+        maskColor: Colors.black38,
+        clickMaskDismiss: true,
+        useAnimation: true,
+        animationTime: const Duration(milliseconds: 200),
+        builder: (_) => Container(
+          width: Get.width,
+          height: Get.height * 0.6,
+          margin: EdgeInsets.only(
+            top: MediaQuery.of(Get.context!).padding.top + 20,
+          ),
+          decoration: BoxDecoration(
+            color: Get.theme.dialogBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: const ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            child: SettingsPage(),
+          ),
+        ),
+        animationBuilder: (controller, child, animationParam) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: controller,
+              curve: Curves.easeOutCubic,
+            )),
+            child: child,
+          );
+        },
+      );
+    } else {
+      // 桌面端保持原来的右侧滑入
+      SmartDialog.show(
+        tag: 'settings',
+        alignment: Alignment.centerRight,
+        builder: (_) => const SettingsPage(),
+        maskColor: Colors.black38,
+        clickMaskDismiss: true,
+        animationBuilder: (controller, child, animationParam) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: controller,
+              curve: Curves.easeOutCubic,
+            )),
+            child: child,
+          );
+        },
+      );
+    }
   }
 
   void showLanguageMenu(BuildContext context) {
