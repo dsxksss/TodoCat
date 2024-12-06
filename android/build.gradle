@@ -1,16 +1,61 @@
-allprojects {
+buildscript {
+    ext.kotlin_version = '1.7.10'
     repositories {
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
         google()
         mavenCentral()
     }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
 }
 
-rootProject.buildDir = "../build"
+allprojects {
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        google()
+        mavenCentral()
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.9.0'
+            force 'androidx.core:core-ktx:1.9.0'
+            force 'androidx.appcompat:appcompat:1.6.1'
+        }
+    }
+}
+
+subprojects {
+    afterEvaluate {project ->
+        if (project.hasProperty('android')) {
+            android {
+                compileSdkVersion 34
+                
+                defaultConfig {
+                    targetSdkVersion 34
+                    minSdkVersion 21
+                }
+
+                lintOptions {
+                    checkReleaseBuilds false
+                    disable 'InvalidPackage'
+                }
+            }
+        }
+    }
+}
+
+rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(":app")
+    project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {
