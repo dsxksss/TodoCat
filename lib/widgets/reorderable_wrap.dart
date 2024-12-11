@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -30,14 +31,16 @@ class _ReorderableWrapState extends State<ReorderableWrap>
     with SingleTickerProviderStateMixin {
   int? dragSourceIndex;
   int? hoverIndex;
-  bool isInitialLoad = true;
-  final cardWidth = 240.0;
+  late double cardWidth;
   final animDuration = 400.ms;
   Timer? _debounceTimer;
-  final _debounceTime = const Duration(milliseconds: 16);
-  int _rowItemCount = 0;
+  final _debounceTime = const Duration(milliseconds: 8);
   late AnimationController _controller;
   Map<int, Animation<Offset>> _offsetAnimations = {};
+  final ScrollController _scrollController = ScrollController();
+  Timer? _scrollTimer;
+  final _scrollThreshold = 100.0; // 触发滚动的边缘距离
+  final _scrollSpeed = 5.0; // 滚动速度
 
   @override
   void initState() {
@@ -46,13 +49,16 @@ class _ReorderableWrapState extends State<ReorderableWrap>
       vsync: this,
       duration: animDuration,
     );
+    cardWidth = 240.0;
     _calculateLayout();
   }
 
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _scrollTimer?.cancel();
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -60,8 +66,9 @@ class _ReorderableWrapState extends State<ReorderableWrap>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final screenWidth = MediaQuery.of(context).size.width;
-      final itemWidth = cardWidth + widget.spacing;
-      _rowItemCount = (screenWidth / itemWidth).floor();
+      setState(() {
+        cardWidth = context.isPhone ? screenWidth * 0.9 : 240.0;
+      });
     });
   }
 
@@ -74,66 +81,52 @@ class _ReorderableWrapState extends State<ReorderableWrap>
   }
 
   Offset _getOffsetForIndex(int index) {
-    if (dragSourceIndex == null || hoverIndex == null) return Offset.zero;
-    if (index == dragSourceIndex) return Offset.zero;
+    if (dragSourceIndex == null ||
+        hoverIndex == null ||
+        index == dragSourceIndex) {
+      return Offset.zero;
+    }
 
     final movingForward = dragSourceIndex! < hoverIndex!;
-    final sourceRow = dragSourceIndex! ~/ _rowItemCount;
-    final targetRow = hoverIndex! ~/ _rowItemCount;
-    final currentRow = index ~/ _rowItemCount;
+    final moveDistance = cardWidth + widget.spacing;
 
-    // 如果在同一行
-    if (sourceRow == targetRow && currentRow == sourceRow) {
-      final inRange = movingForward
-          ? index > dragSourceIndex! && index <= hoverIndex!
-          : index < dragSourceIndex! && index >= hoverIndex!;
-
-      if (!inRange) return Offset.zero;
-
-      final moveDistance = cardWidth + widget.spacing;
-      return Offset(movingForward ? -moveDistance : moveDistance, 0);
+    if (movingForward) {
+      return (index > dragSourceIndex! && index <= hoverIndex!)
+          ? Offset(-moveDistance, 0)
+          : Offset.zero;
+    } else {
+      return (index < dragSourceIndex! && index >= hoverIndex!)
+          ? Offset(moveDistance, 0)
+          : Offset.zero;
     }
-
-    // 如果跨行
-    if (currentRow > sourceRow && currentRow <= targetRow ||
-        currentRow < sourceRow && currentRow >= targetRow) {
-      final verticalOffset = widget.runSpacing * (targetRow - sourceRow).sign;
-      final moveDistance = cardWidth + widget.spacing;
-
-      // 计算水平偏移
-      double horizontalOffset = 0;
-      if (currentRow == targetRow) {
-        final targetPosition = hoverIndex! % _rowItemCount;
-        final currentPosition = index % _rowItemCount;
-        if (currentPosition >= targetPosition) {
-          horizontalOffset = moveDistance;
-        }
-      }
-
-      return Offset(horizontalOffset, verticalOffset);
-    }
-
-    return Offset.zero;
   }
 
   void _updateAnimations() {
     if (!mounted || dragSourceIndex == null) return;
 
-    _controller.reset();
-    _offsetAnimations.clear();
-
-    for (int i = 0; i < widget.children.length; i++) {
-      final endOffset = _getOffsetForIndex(i);
-      _offsetAnimations[i] = Tween<Offset>(
-        begin: Offset.zero,
-        end: endOffset,
-      ).animate(CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutQuint,
-      ));
+    if (_controller.isAnimating) {
+      _controller.stop();
     }
 
-    _controller.forward();
+    setState(() {
+      _offsetAnimations = Map.fromEntries(
+        List.generate(widget.children.length, (i) {
+          final endOffset = _getOffsetForIndex(i);
+          return MapEntry(
+            i,
+            Tween<Offset>(
+              begin: _offsetAnimations[i]?.value ?? Offset.zero,
+              end: endOffset,
+            ).animate(CurvedAnimation(
+              parent: _controller,
+              curve: Curves.easeOutCubic,
+            )),
+          );
+        }),
+      );
+    });
+
+    _controller.forward(from: 0.0);
   }
 
   void _updateHoverIndex(int? newHoverIndex) {
@@ -144,7 +137,17 @@ class _ReorderableWrapState extends State<ReorderableWrap>
       if (mounted && dragSourceIndex != null) {
         setState(() {
           if (hoverIndex != newHoverIndex) {
+            final oldHoverIndex = hoverIndex;
             hoverIndex = newHoverIndex;
+
+            if (oldHoverIndex != null &&
+                newHoverIndex != null &&
+                (oldHoverIndex - newHoverIndex).abs() == 1) {
+              _controller.duration = 300.ms;
+            } else {
+              _controller.duration = animDuration;
+            }
+
             _updateAnimations();
           }
         });
@@ -166,6 +169,98 @@ class _ReorderableWrapState extends State<ReorderableWrap>
     );
   }
 
+  Widget _buildDragFeedback(Widget child) {
+    return Material(
+      color: Colors.transparent,
+      elevation: 8.0,
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: cardWidth,
+        child: child.animate().scale(
+              begin: const Offset(1, 1),
+              end: const Offset(1.1, 1.1),
+              duration: 200.ms,
+              curve: Curves.easeOutCubic,
+            ),
+      ),
+    );
+  }
+
+  void handleScroll(DragUpdateDetails details, BuildContext context) {
+    _scrollTimer?.cancel();
+    final RenderBox box = context.findRenderObject() as RenderBox;
+    final position = box.globalToLocal(details.globalPosition);
+    final height = box.size.height;
+
+    if (position.dy < _scrollThreshold) {
+      // 向上滚动
+      _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+        if (_scrollController.position.pixels <= 0) {
+          timer.cancel();
+          return;
+        }
+        _scrollController.animateTo(
+          _scrollController.position.pixels - _scrollSpeed,
+          duration: const Duration(milliseconds: 16),
+          curve: Curves.linear,
+        );
+      });
+    } else if (position.dy > height - _scrollThreshold) {
+      // 向下滚动
+      _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+        if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent) {
+          timer.cancel();
+          return;
+        }
+        _scrollController.animateTo(
+          _scrollController.position.pixels + _scrollSpeed,
+          duration: const Duration(milliseconds: 16),
+          curve: Curves.linear,
+        );
+      });
+    }
+  }
+
+  void handleDragEnd(DraggableDetails details) {
+    setState(() {
+      dragSourceIndex = null;
+      hoverIndex = null;
+      _offsetAnimations.clear();
+      _controller.reset();
+    });
+    _scrollTimer?.cancel();
+    HapticFeedback.lightImpact();
+  }
+
+  void _resetDragState() {
+    if (!mounted) return;
+
+    final currentOffsets = Map<int, Offset>.fromEntries(
+      _offsetAnimations.entries.map((e) => MapEntry(e.key, e.value.value)),
+    );
+
+    setState(() {
+      dragSourceIndex = null;
+      hoverIndex = null;
+
+      _offsetAnimations = Map.fromEntries(
+        currentOffsets.entries.map((e) => MapEntry(
+              e.key,
+              Tween<Offset>(
+                begin: e.value,
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: _controller,
+                curve: Curves.easeOutCubic,
+              )),
+            )),
+      );
+    });
+
+    _controller.forward(from: 0.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -175,124 +270,137 @@ class _ReorderableWrapState extends State<ReorderableWrap>
         child: Wrap(
           spacing: widget.spacing,
           runSpacing: widget.runSpacing,
-          children: AnimateList(
-            effects: [
-              context.isPhone
-                  ? MoveEffect(
-                      begin: const Offset(0, 10),
-                      end: Offset.zero,
-                      duration: 500.ms,
-                      curve: Curves.easeOutCubic)
-                  : MoveEffect(
-                      begin: const Offset(-10, 0),
-                      end: Offset.zero,
-                      duration: 500.ms,
-                      curve: Curves.easeOutCubic),
-              FadeEffect(duration: 500.ms, curve: Curves.easeOutCubic),
-            ],
-            interval: 80.ms,
-            children: [
-              ...widget.children.asMap().entries.map((entry) {
-                final index = entry.key;
-                final child = entry.value;
-                return Container(
-                  width: cardWidth,
-                  child: DragTarget<int>(
-                    hitTestBehavior: HitTestBehavior.opaque,
-                    onWillAccept: (sourceIndex) {
-                      if (sourceIndex != null && sourceIndex != index) {
-                        _updateHoverIndex(index);
-                        return true;
-                      }
-                      return false;
-                    },
-                    onLeave: (data) {
-                      _updateHoverIndex(null);
-                    },
-                    onAccept: (sourceIndex) {
-                      if (sourceIndex != index) {
-                        widget.onReorder(sourceIndex, index);
-                      }
-                      setState(() {
-                        dragSourceIndex = null;
-                        hoverIndex = null;
-                        _offsetAnimations.clear();
-                        _controller.reset();
-                      });
-                    },
-                    builder: (context, candidateData, rejectedData) {
-                      return LongPressDraggable<int>(
-                        maxSimultaneousDrags: 1,
-                        hapticFeedbackOnStart: true,
-                        delay: const Duration(milliseconds: 300),
-                        data: index,
-                        onDragStarted: () {
-                          setState(() => dragSourceIndex = index);
-                        },
-                        onDragEnd: (_) {
-                          setState(() {
-                            dragSourceIndex = null;
-                            hoverIndex = null;
-                            _offsetAnimations.clear();
-                            _controller.reset();
-                          });
-                        },
-                        feedback: Material(
-                          color: Colors.transparent,
-                          child: SizedBox(
-                            width: cardWidth,
-                            child: child.animate().scale(
-                                  begin: const Offset(1, 1),
-                                  end: const Offset(1.05, 1.05),
-                                  duration: 150.ms,
-                                  curve: Curves.easeOutQuint,
-                                ),
-                          ),
-                        ),
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.grab,
-                          child: Opacity(
-                            opacity: dragSourceIndex == index ? 0.0 : 1.0,
-                            child: SizedBox(
-                              width: cardWidth,
-                              child: _buildAnimatedChild(child, index),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }),
-              DragTarget<int>(
-                hitTestBehavior: HitTestBehavior.opaque,
-                onWillAccept: (sourceIndex) {
-                  if (sourceIndex != null) {
-                    _updateHoverIndex(widget.children.length);
-                    return true;
-                  }
-                  return false;
-                },
-                onLeave: (data) {
-                  _updateHoverIndex(null);
-                },
-                onAccept: (sourceIndex) {
-                  widget.onReorder(sourceIndex, widget.children.length);
-                  setState(() {
-                    dragSourceIndex = null;
-                    hoverIndex = null;
-                    _offsetAnimations.clear();
-                    _controller.reset();
-                  });
-                },
-                builder: (context, candidateData, rejectedData) {
+          children: [
+            ...widget.children.asMap().entries.map((entry) {
+              final index = entry.key;
+              final child = entry.value;
+              return LayoutBuilder(
+                builder: (context, constraints) {
                   return SizedBox(
-                    width: hoverIndex == widget.children.length ? cardWidth : 0,
-                    height: hoverIndex == widget.children.length ? 100 : 0,
+                    width: cardWidth,
+                    child: DragTarget<int>(
+                      hitTestBehavior: HitTestBehavior.translucent,
+                      onWillAcceptWithDetails: (details) {
+                        final RenderBox renderBox =
+                            context.findRenderObject() as RenderBox;
+                        final localPosition =
+                            renderBox.globalToLocal(details.offset);
+
+                        // 扩大检测区域到卡片两侧
+                        final expandedRect = Rect.fromLTWH(
+                          -widget.spacing / 2,
+                          0,
+                          cardWidth + widget.spacing,
+                          renderBox.size.height,
+                        );
+
+                        if (details.data != index &&
+                            expandedRect.contains(localPosition)) {
+                          _updateHoverIndex(index);
+                          return true;
+                        }
+                        return false;
+                      },
+                      onLeave: (data) {
+                        _updateHoverIndex(null);
+                      },
+                      onAcceptWithDetails: (details) {
+                        final sourceIndex = details.data;
+                        if (sourceIndex != index) {
+                          widget.onReorder(sourceIndex, index);
+                        }
+                        _resetDragState();
+                      },
+                      builder: (context, candidateData, rejectedData) {
+                        return _buildDraggable(index, child);
+                      },
+                    ),
                   );
                 },
-              ),
-            ],
+              );
+            }),
+            // 末尾的拖放目标
+            DragTarget<int>(
+              hitTestBehavior: HitTestBehavior.translucent,
+              onWillAcceptWithDetails: (details) {
+                _updateHoverIndex(widget.children.length);
+                return true;
+              },
+              onLeave: (data) {
+                _updateHoverIndex(null);
+              },
+              onAcceptWithDetails: (details) {
+                final sourceIndex = details.data;
+                widget.onReorder(sourceIndex, widget.children.length);
+                _resetDragState();
+              },
+              builder: (context, candidateData, rejectedData) {
+                return SizedBox(
+                  width: hoverIndex == widget.children.length ? cardWidth : 0,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDraggable(int index, Widget child) {
+    return LongPressDraggable<int>(
+      maxSimultaneousDrags: 1,
+      hapticFeedbackOnStart: true,
+      delay: const Duration(milliseconds: 300),
+      data: index,
+      onDragStarted: () {
+        setState(() => dragSourceIndex = index);
+        _updateAnimations();
+        HapticFeedback.mediumImpact();
+      },
+      onDragUpdate: (details) {
+        // 获取拖拽卡片的位置和尺寸
+        final RenderBox renderBox = context.findRenderObject() as RenderBox;
+        final dragCardRect = Rect.fromLTWH(
+          details.globalPosition.dx - (cardWidth / 2),
+          details.globalPosition.dy - 20,
+          cardWidth,
+          renderBox.size.height,
+        );
+
+        // 获取目标卡片的位置和尺寸
+        final targetCardRect =
+            renderBox.localToGlobal(Offset.zero) & renderBox.size;
+
+        // 计算重叠区域
+        if (index != dragSourceIndex) {
+          final overlapRect = dragCardRect.overlaps(targetCardRect)
+              ? dragCardRect.intersect(targetCardRect)
+              : Rect.zero;
+
+          // 计算重叠面积占卡片面积的比例
+          final overlapArea = overlapRect.width * overlapRect.height;
+          final cardArea = cardWidth * renderBox.size.height;
+          final overlapRatio = overlapArea / cardArea;
+
+          // 当重叠面积超过 40% 时触发
+          if (overlapRatio > 0.4) {
+            _updateHoverIndex(index);
+          }
+        }
+      },
+      onDragEnd: (_) {
+        _resetDragState();
+        HapticFeedback.lightImpact();
+      },
+      feedback: _buildDragFeedback(child),
+      childWhenDragging: const SizedBox(),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.grab,
+        child: Opacity(
+          opacity: dragSourceIndex == index ? 0.0 : 1.0,
+          child: SizedBox(
+            width: cardWidth,
+            child: _buildAnimatedChild(child, index),
           ),
         ),
       ),
