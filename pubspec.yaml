@@ -44,8 +44,6 @@ dependencies:
   json_annotation: ^4.8.1
   # 简易dialog
   flutter_smart_dialog: ^4.9.4
-  # 果冻拖拽
-  dough: ^1.0.4
   # 启动闪屏页插件
   flutter_native_splash: ^2.3.2
   # 状态栏修改颜色插件

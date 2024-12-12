@@ -13,7 +13,6 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/widgets/reorderable_wrap.dart';
-import 'package:dough/dough.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -30,82 +29,71 @@ class HomePage extends GetView<HomeController> {
         title: _buildTitle(context),
         leftWidgets: _buildLeftWidgets(),
         rightWidgets: _buildRightWidgets(context),
-        body: DoughRecipe(
-          data: DoughRecipeData(
-            adhesion: 8,
-            viscosity: 4000,
-            expansion: 0.8,
-            entryCurve: Curves.easeOutCubic,
-            exitCurve: Curves.easeInCubic,
-            entryDuration: const Duration(milliseconds: 200),
-            exitDuration: const Duration(milliseconds: 200),
+        body: ListView(
+          controller: controller.scrollController,
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-          child: ListView(
-            controller: controller.scrollController,
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            children: [
-              Obx(
-                () => Animate(
-                  target: controller.tasks.isEmpty ? 1 : 0,
-                  effects: [
-                    SwapEffect(
-                      builder: (_, __) => SizedBox(
-                        height: 0.7.sh,
-                        child: Center(
-                          child: Text(
-                            "Do It Now !",
-                            style: GoogleFonts.getFont(
-                              'Ubuntu',
-                              textStyle: const TextStyle(
-                                fontSize: 60,
-                              ),
+          children: [
+            Obx(
+              () => Animate(
+                target: controller.tasks.isEmpty ? 1 : 0,
+                effects: [
+                  SwapEffect(
+                    builder: (_, __) => SizedBox(
+                      height: 0.7.sh,
+                      child: Center(
+                        child: Text(
+                          "Do It Now !",
+                          style: GoogleFonts.getFont(
+                            'Ubuntu',
+                            textStyle: const TextStyle(
+                              fontSize: 60,
                             ),
                           ),
-                        ).animate().fade(),
+                        ),
+                      ).animate().fade(),
+                    ),
+                  ),
+                ],
+                child: Padding(
+                  padding: context.isPhone
+                      ? const EdgeInsets.only(bottom: 50)
+                      : const EdgeInsets.only(left: 20, bottom: 50),
+                  child: ReorderableWrap(
+                    spacing: context.isPhone ? 0 : 50,
+                    runSpacing: context.isPhone ? 50 : 30,
+                    animationInterval: 100.ms,
+                    effects: [
+                      SlideEffect(
+                        begin: context.isPhone
+                            ? const Offset(0, 0.3)
+                            : const Offset(-0.3, 0),
+                        end: const Offset(0, 0),
+                        duration: 400.ms,
+                        curve: Curves.easeOutCubic,
                       ),
-                    ),
-                  ],
-                  child: Padding(
-                    padding: context.isPhone
-                        ? const EdgeInsets.only(bottom: 50)
-                        : const EdgeInsets.only(left: 20, bottom: 50),
-                    child: ReorderableWrap(
-                      spacing: context.isPhone ? 0 : 50,
-                      runSpacing: context.isPhone ? 50 : 30,
-                      animationInterval: 100.ms,
-                      effects: [
-                        SlideEffect(
-                          begin: context.isPhone
-                              ? const Offset(0, 0.3)
-                              : const Offset(-0.3, 0),
-                          end: const Offset(0, 0),
-                          duration: 400.ms,
-                          curve: Curves.easeOutCubic,
-                        ),
-                        FadeEffect(
-                          begin: 0,
-                          end: 1,
-                          duration: 400.ms,
-                          curve: Curves.easeOutCubic,
-                        ),
-                      ],
-                      onReorder: (oldIndex, newIndex) {
-                        controller.reorderTask(oldIndex, newIndex);
-                      },
-                      children: [
-                        ...controller.tasks.map((task) => TaskCard(
-                              key: ValueKey(task.id),
-                              task: task,
-                            ))
-                      ],
-                    ),
+                      FadeEffect(
+                        begin: 0,
+                        end: 1,
+                        duration: 400.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
+                    ],
+                    onReorder: (oldIndex, newIndex) {
+                      controller.reorderTask(oldIndex, newIndex);
+                    },
+                    children: [
+                      ...controller.tasks.map((task) => TaskCard(
+                            key: ValueKey(task.id),
+                            task: task,
+                          ))
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

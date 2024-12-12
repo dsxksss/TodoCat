@@ -34,7 +34,6 @@ class _ReorderableWrapState extends State<ReorderableWrap>
   late double cardWidth;
   final animDuration = 400.ms;
   Timer? _debounceTimer;
-  final _debounceTime = const Duration(milliseconds: 8);
   late AnimationController _controller;
   Map<int, Animation<Offset>> _offsetAnimations = {};
   final ScrollController _scrollController = ScrollController();
@@ -87,22 +86,27 @@ class _ReorderableWrapState extends State<ReorderableWrap>
       return Offset.zero;
     }
 
-    final movingForward = dragSourceIndex! < hoverIndex!;
     final moveDistance = cardWidth + widget.spacing;
+    final sourceIndex = dragSourceIndex!;
+    final targetIndex = hoverIndex!;
 
-    if (movingForward) {
-      return (index > dragSourceIndex! && index <= hoverIndex!)
-          ? Offset(-moveDistance, 0)
-          : Offset.zero;
-    } else {
-      return (index < dragSourceIndex! && index >= hoverIndex!)
-          ? Offset(moveDistance, 0)
-          : Offset.zero;
+    // 只移动源索引和目标索引之间的卡片
+    if (sourceIndex < targetIndex) {
+      // 向后移动，只移动直接相关的卡片
+      if (index > sourceIndex && index < targetIndex) {
+        return Offset(-moveDistance, 0);
+      }
+    } else if (sourceIndex > targetIndex) {
+      // 向前移动，只移动直接相关的卡片
+      if (index < sourceIndex && index >= targetIndex) {
+        return Offset(moveDistance, 0);
+      }
     }
+    return Offset.zero;
   }
 
   void _updateAnimations() {
-    if (!mounted || dragSourceIndex == null) return;
+    if (!mounted || dragSourceIndex == null || hoverIndex == null) return;
 
     if (_controller.isAnimating) {
       _controller.stop();
@@ -132,25 +136,20 @@ class _ReorderableWrapState extends State<ReorderableWrap>
   void _updateHoverIndex(int? newHoverIndex) {
     if (newHoverIndex == dragSourceIndex) return;
 
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(_debounceTime, () {
-      if (mounted && dragSourceIndex != null) {
-        setState(() {
-          if (hoverIndex != newHoverIndex) {
-            final oldHoverIndex = hoverIndex;
-            hoverIndex = newHoverIndex;
+    // ��加额外的检查，确保新的hover索引是有效的
+    if (newHoverIndex != null) {
+      // 如果新位置与当前位置相邻，且动画正在进行，则忽略这次更新
+      if (hoverIndex != null &&
+          _controller.isAnimating &&
+          (newHoverIndex - hoverIndex!).abs() == 1) {
+        return;
+      }
+    }
 
-            if (oldHoverIndex != null &&
-                newHoverIndex != null &&
-                (oldHoverIndex - newHoverIndex).abs() == 1) {
-              _controller.duration = 300.ms;
-            } else {
-              _controller.duration = animDuration;
-            }
-
-            _updateAnimations();
-          }
-        });
+    setState(() {
+      if (hoverIndex != newHoverIndex) {
+        hoverIndex = newHoverIndex;
+        _updateAnimations();
       }
     });
   }
@@ -236,110 +235,129 @@ class _ReorderableWrapState extends State<ReorderableWrap>
   void _resetDragState() {
     if (!mounted) return;
 
-    final currentOffsets = Map<int, Offset>.fromEntries(
-      _offsetAnimations.entries.map((e) => MapEntry(e.key, e.value.value)),
-    );
+    // 如果有有效的拖拽目标，先执行位交换
+    if (dragSourceIndex != null &&
+        hoverIndex != null &&
+        dragSourceIndex! < widget.children.length &&
+        hoverIndex! <= widget.children.length) {
+      // 注意这里用 <= 因为可以拖到末尾
+      widget.onReorder(dragSourceIndex!, hoverIndex!);
+    }
 
+    // 然后清除状态
     setState(() {
       dragSourceIndex = null;
       hoverIndex = null;
-
-      _offsetAnimations = Map.fromEntries(
-        currentOffsets.entries.map((e) => MapEntry(
-              e.key,
-              Tween<Offset>(
-                begin: e.value,
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: _controller,
-                curve: Curves.easeOutCubic,
-              )),
-            )),
-      );
+      _offsetAnimations.clear();
     });
-
-    _controller.forward(from: 0.0);
   }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       child: SizedBox(
         width: 1.sw,
-        child: Wrap(
-          spacing: widget.spacing,
-          runSpacing: widget.runSpacing,
+        child: Stack(
           children: [
-            ...widget.children.asMap().entries.map((entry) {
-              final index = entry.key;
-              final child = entry.value;
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  return SizedBox(
-                    width: cardWidth,
-                    child: DragTarget<int>(
-                      hitTestBehavior: HitTestBehavior.translucent,
-                      onWillAcceptWithDetails: (details) {
-                        final RenderBox renderBox =
-                            context.findRenderObject() as RenderBox;
-                        final localPosition =
-                            renderBox.globalToLocal(details.offset);
+            Wrap(
+              spacing: widget.spacing,
+              runSpacing: widget.runSpacing,
+              children: [
+                ...widget.children.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final child = entry.value;
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SizedBox(
+                        width: cardWidth,
+                        child: DragTarget<int>(
+                          hitTestBehavior: HitTestBehavior.translucent,
+                          onWillAcceptWithDetails: (details) {
+                            if (details.data == index) return false;
 
-                        // 扩大检测区域到卡片两侧
-                        final expandedRect = Rect.fromLTWH(
-                          -widget.spacing / 2,
-                          0,
-                          cardWidth + widget.spacing,
-                          renderBox.size.height,
-                        );
+                            final RenderBox renderBox =
+                                context.findRenderObject() as RenderBox;
+                            final localPosition =
+                                renderBox.globalToLocal(details.offset);
 
-                        if (details.data != index &&
-                            expandedRect.contains(localPosition)) {
-                          _updateHoverIndex(index);
-                          return true;
-                        }
-                        return false;
-                      },
-                      onLeave: (data) {
-                        _updateHoverIndex(null);
-                      },
-                      onAcceptWithDetails: (details) {
-                        final sourceIndex = details.data;
-                        if (sourceIndex != index) {
-                          widget.onReorder(sourceIndex, index);
-                        }
-                        _resetDragState();
-                      },
-                      builder: (context, candidateData, rejectedData) {
-                        return _buildDraggable(index, child);
-                      },
-                    ),
+                            // 扩大接受区域，包括两侧的间距
+                            final acceptArea = Rect.fromLTWH(
+                              -widget.spacing, // 扩大左侧接受区域
+                              0,
+                              cardWidth + widget.spacing * 2, // 扩大右侧接受区域
+                              renderBox.size.height,
+                            );
+
+                            if (acceptArea.contains(localPosition)) {
+                              if (localPosition.dx < cardWidth / 2) {
+                                _updateHoverIndex(index);
+                              } else {
+                                _updateHoverIndex(index + 1);
+                              }
+                              return true;
+                            }
+                            return false;
+                          },
+                          onLeave: (data) {
+                            _updateHoverIndex(null);
+                          },
+                          onAcceptWithDetails: (details) {
+                            _resetDragState();
+                          },
+                          builder: (context, candidateData, rejectedData) {
+                            return _buildDraggable(index, child);
+                          },
+                        ),
+                      );
+                    },
                   );
-                },
-              );
-            }),
-            // 末尾的拖放目标
-            DragTarget<int>(
-              hitTestBehavior: HitTestBehavior.translucent,
-              onWillAcceptWithDetails: (details) {
-                _updateHoverIndex(widget.children.length);
-                return true;
-              },
-              onLeave: (data) {
-                _updateHoverIndex(null);
-              },
-              onAcceptWithDetails: (details) {
-                final sourceIndex = details.data;
-                widget.onReorder(sourceIndex, widget.children.length);
-                _resetDragState();
-              },
-              builder: (context, candidateData, rejectedData) {
-                return SizedBox(
-                  width: hoverIndex == widget.children.length ? cardWidth : 0,
-                );
-              },
+                }),
+                // 添加一个占位的空白区域，确保有足够的拖放空间
+                if (dragSourceIndex != null)
+                  SizedBox(
+                    width: cardWidth,
+                    height: 100, // 给一个合适的高度
+                  ),
+              ],
             ),
+            // 末尾的拖放目标区域覆盖在整个容器上
+            if (dragSourceIndex != null)
+              Positioned.fill(
+                child: DragTarget<int>(
+                  hitTestBehavior: HitTestBehavior.translucent,
+                  onWillAcceptWithDetails: (details) {
+                    final RenderBox renderBox =
+                        context.findRenderObject() as RenderBox;
+                    final localPosition =
+                        renderBox.globalToLocal(details.offset);
+
+                    // 计算最后一个卡片的右边界
+                    final lastCardRight = (widget.children.length *
+                            (cardWidth + widget.spacing)) -
+                        widget.spacing;
+
+                    // 只有当拖拽位置超过最后一个卡片时才接受
+                    if (localPosition.dx > lastCardRight) {
+                      _updateHoverIndex(widget.children.length);
+                      return true;
+                    }
+                    return false;
+                  },
+                  onLeave: (data) {
+                    if (hoverIndex == widget.children.length) {
+                      _updateHoverIndex(null);
+                    }
+                  },
+                  onAcceptWithDetails: (details) {
+                    _resetDragState();
+                  },
+                  builder: (context, candidateData, rejectedData) {
+                    return const SizedBox.expand();
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -358,35 +376,58 @@ class _ReorderableWrapState extends State<ReorderableWrap>
         HapticFeedback.mediumImpact();
       },
       onDragUpdate: (details) {
-        // 获取拖拽卡片的位置和尺寸
         final RenderBox renderBox = context.findRenderObject() as RenderBox;
-        final dragCardRect = Rect.fromLTWH(
-          details.globalPosition.dx - (cardWidth / 2),
-          details.globalPosition.dy - 20,
-          cardWidth,
-          renderBox.size.height,
-        );
+        final localPosition = renderBox.globalToLocal(details.globalPosition);
 
-        // 获取目标卡片的位置和尺寸
-        final targetCardRect =
-            renderBox.localToGlobal(Offset.zero) & renderBox.size;
+        // 计算容器的总宽度
+        final totalItemWidth = cardWidth + widget.spacing;
+        final containerWidth = widget.children.length * totalItemWidth;
 
-        // 计算重叠区域
-        if (index != dragSourceIndex) {
-          final overlapRect = dragCardRect.overlaps(targetCardRect)
-              ? dragCardRect.intersect(targetCardRect)
-              : Rect.zero;
+        // 处理边界情况
+        if (localPosition.dx <= 0) {
+          // 如果拖到最左边，直接设置为第一个位置
+          if (dragSourceIndex != 0) {
+            _updateHoverIndex(0);
+          }
+          return;
+        }
 
-          // 计算重叠面积占卡片面积的比例
-          final overlapArea = overlapRect.width * overlapRect.height;
-          final cardArea = cardWidth * renderBox.size.height;
-          final overlapRatio = overlapArea / cardArea;
+        if (localPosition.dx >= containerWidth) {
+          // 如果拖到最右边，直接设置为最后位置
+          if (dragSourceIndex != widget.children.length) {
+            _updateHoverIndex(widget.children.length);
+          }
+          return;
+        }
 
-          // 当重叠面积超过 40% 时触发
-          if (overlapRatio > 0.4) {
-            _updateHoverIndex(index);
+        // 计算拖拽点相对于整个容器的位置
+        final relativeX = localPosition.dx;
+
+        // 计算相对于每个卡片中心点的距离
+        final cardCenters = List.generate(widget.children.length + 1, (i) {
+          return i * totalItemWidth - widget.spacing / 2;
+        });
+
+        // 找到最近的插入点
+        double minDistance = double.infinity;
+        int nearestIndex = 0;
+
+        for (int i = 0; i < cardCenters.length; i++) {
+          final distance = (relativeX - cardCenters[i]).abs();
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearestIndex = i;
           }
         }
+
+        // 添加最小距离阈值，避免频繁切换
+        if (minDistance < totalItemWidth / 3) {
+          if (nearestIndex != dragSourceIndex) {
+            _updateHoverIndex(nearestIndex);
+          }
+        }
+
+        handleScroll(details, context);
       },
       onDragEnd: (_) {
         _resetDragState();

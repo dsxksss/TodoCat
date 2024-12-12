@@ -293,9 +293,15 @@ class HomeController extends GetxController with ScrollControllerMixin {
 
   /// 重新排序任务
   void reorderTask(int oldIndex, int newIndex) {
-    final task = _taskManager.tasks.removeAt(oldIndex);
-    _taskManager.tasks.insert(newIndex, task);
-    _taskManager.refresh();
+    if (oldIndex < 0 || oldIndex >= tasks.length) return;
+    if (newIndex < 0 || newIndex > tasks.length) return;
+
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+
+    final task = tasks.removeAt(oldIndex);
+    tasks.insert(newIndex, task);
   }
 
   void startDragging() {
