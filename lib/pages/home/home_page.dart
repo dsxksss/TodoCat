@@ -12,7 +12,7 @@ import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reorderables/reorderables.dart' as reorderables;
+import 'package:reorderables/reorderables.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -60,49 +60,91 @@ class HomePage extends GetView<HomeController> {
                   padding: context.isPhone
                       ? const EdgeInsets.only(bottom: 50)
                       : const EdgeInsets.only(left: 20, bottom: 50),
-                  child: reorderables.ReorderableWrap(
-                    controller: ScrollController(),
-                    spacing: context.isPhone ? 0 : 50,
-                    runSpacing: context.isPhone ? 50 : 30,
-                    onReorder: (oldIndex, int newIndex) async {
-                      await controller.reorderTask(oldIndex, newIndex);
-                    },
-                    onNoReorder: (index) {
-                      debugPrint('重新排序已取消，索引: $index');
-                    },
-                    onReorderStarted: (index) {
-                      controller.startDragging();
-                      debugPrint('开始重新排序，索引: $index');
-                    },
-                    buildDraggableFeedback: (context, constraints, child) {
-                      return Material(
-                        elevation: 6.0,
-                        color: Colors.transparent,
-                        child: SizedBox(
-                          width: context.isPhone ? 0.9.sw : 240,
-                          child: child,
+                  child: context.isPhone
+                      ? ReorderableColumn(
+                          needsLongPressDraggable: true,
+                          onReorder: (oldIndex, int newIndex) {
+                            controller
+                                .reorderTask(oldIndex, newIndex)
+                                .then((_) {
+                              controller.endDragging();
+                            });
+                          },
+                          onNoReorder: (index) {
+                            controller.endDragging();
+                          },
+                          onReorderStarted: (index) {
+                            controller.startDragging();
+                          },
+                          buildDraggableFeedback:
+                              (context, constraints, child) {
+                            return child.animate().scaleXY(
+                                  begin: 1.0,
+                                  end: 1.1,
+                                  duration: 60.ms,
+                                  curve: Curves.easeOut,
+                                );
+                          },
+                          children: controller.tasks
+                              .map((task) => Padding(
+                                    key: ValueKey(task.uuid),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 10,
+                                    ),
+                                    child: SizedBox(
+                                      width: 0.9.sw,
+                                      child: TaskCard(task: task),
+                                    ),
+                                  ))
+                              .toList(),
+                        )
+                      : SingleChildScrollView(
+                          controller: controller.scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          child: ReorderableWrap(
+                            needsLongPressDraggable: true,
+                            scrollAnimationDuration:
+                                const Duration(milliseconds: 300),
+                            reorderAnimationDuration:
+                                const Duration(milliseconds: 200),
+                            spacing: 50,
+                            runSpacing: 30,
+                            padding: const EdgeInsets.all(8),
+                            onReorder: (oldIndex, int newIndex) {
+                              controller
+                                  .reorderTask(oldIndex, newIndex)
+                                  .then((_) {
+                                controller.endDragging();
+                              });
+                            },
+                            onNoReorder: (index) {
+                              controller.endDragging();
+                            },
+                            onReorderStarted: (index) {
+                              controller.startDragging();
+                            },
+                            buildDraggableFeedback:
+                                (context, constraints, child) {
+                              return child.animate().scaleXY(
+                                    begin: 1.0,
+                                    end: 1.1,
+                                    duration: 60.ms,
+                                    curve: Curves.easeOut,
+                                  );
+                            },
+                            enableReorder: true,
+                            alignment: WrapAlignment.start,
+                            children: controller.tasks
+                                .map((task) => TaskCard(
+                                      key: ValueKey(task.uuid),
+                                      task: task,
+                                    ))
+                                .toList(),
+                          ),
                         ),
-                      );
-                    },
-                    enableReorder: true,
-                    footer: 100.verticalSpace,
-                    alignment: context.isPhone
-                        ? WrapAlignment.center
-                        : WrapAlignment.start,
-                    children: [
-                      ...controller.tasks
-                          .map((task) => TaskCard(
-                                key: ValueKey(task.uuid),
-                                task: task,
-                              ))
-                          .toList(),
-                      if (controller.tasks.isNotEmpty)
-                        SizedBox(
-                          width: context.isPhone ? 0.9.sw : 240,
-                          height: 0,
-                        ),
-                    ],
-                  ),
                 ),
               ),
             ),
