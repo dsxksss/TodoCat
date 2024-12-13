@@ -19,6 +19,7 @@ class TextFormFieldItem extends StatelessWidget {
     Widget? suffix,
     TextInputAction? textInputAction,
     TextInputType? inputType = TextInputType.text,
+    required void Function(dynamic _) onFieldSubmitted,
   })  : _fillColor = fillColor,
         _ghostStyle = ghostStyle ?? false,
         _validator = validator,

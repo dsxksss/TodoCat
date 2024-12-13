@@ -72,5 +72,13 @@ const Map<String, String> zhCN = {
   'emailReminderSentSuccessfully': '电子邮件提醒发送成功',
   'emailReminderSendingFailed': '电子邮件提醒发送失败',
   'resetSettings': '重置设置',
-  'enbleDebugMode': '启用调试模式'
+  'enbleDebugMode': '启用调试模式',
+  'taskTitle': '任务标题',
+  'taskDescription': '任务描述',
+  'taskAddedSuccessfully': '任务添加成功',
+  'titleRequired': '请输入标题',
+  'tagEmpty': '标签不能为空',
+  'tagDuplicate': '标签已存在',
+  'confirm': '确认',
+  'noDateTime': '清空',
 };

@@ -1,10 +1,10 @@
 name: todo_cat
 description: A new Flutter project.
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: '>=3.0.6 <4.0.0'
+  sdk: ">=3.0.6 <4.0.0"
 
 dependencies:
   flutter:
@@ -52,9 +52,8 @@ dependencies:
   reorderables: ^0.6.0
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
-  path_provider: ^2.1.2  # 用于获取应用文档目录
+  path_provider: ^2.1.2 # 用于获取应用文档目录
   timezone: ^0.9.2
-
 
 dev_dependencies:
   flutter_test:
@@ -67,15 +66,14 @@ dev_dependencies:
   flutter_launcher_icons: "^0.13.1"
   isar_generator: ^3.1.0+1
   analyzer: ^5.13.0
-  
 
 flutter:
   uses-material-design: true
 
   assets:
-      - assets/
-      - assets/imgs/
-      - assets/fonts/
+    - assets/
+    - assets/imgs/
+    - assets/fonts/
 
 flutter_launcher_icons:
   android: "launcher_icon"

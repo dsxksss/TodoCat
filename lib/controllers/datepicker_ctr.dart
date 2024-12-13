@@ -5,22 +5,23 @@ import 'package:logger/logger.dart';
 
 class DatePickerController extends GetxController {
   static final _logger = Logger();
-  final currentDate = DateTime.now().obs;
+  final currentDate = Rx<DateTime?>(null);
+  final currentTime = Rx<TimeOfDay?>(null);
   final defaultDate = DateTime.now().obs;
   final monthDays = <int>[].obs;
   final selectedDay = 0.obs;
   final firstDayOfWeek = 0.obs;
   final daysInMonth = 0.obs;
   final startPadding = 0.obs;
-  final totalDays = 0.obs;
+  final totalDays = 35.obs;
 
   final TextEditingController hEditingController = TextEditingController();
   final TextEditingController mEditingController = TextEditingController();
 
   // 计算属性
   bool get isCurrentMonth =>
-      currentDate.value.year == DateTime.now().year &&
-      currentDate.value.month == DateTime.now().month;
+      currentDate.value?.year == DateTime.now().year &&
+      currentDate.value?.month == DateTime.now().month;
 
   bool get isSelectedDayValid =>
       selectedDay.value > 0 && selectedDay.value <= daysInMonth.value;
@@ -43,7 +44,7 @@ class DatePickerController extends GetxController {
     // 监听当前日期变化
     ever(currentDate, (_) {
       _logger.d('Current date changed to: ${currentDate.value}');
-      selectedDay.value = currentDate.value.day;
+      selectedDay.value = currentDate.value?.day ?? 0;
       _updateMonthData();
     });
   }
@@ -55,11 +56,13 @@ class DatePickerController extends GetxController {
   }
 
   void _updateMonthData() {
+    if (currentDate.value == null) return;
+
     monthDays.value = getMonthDays(
-      currentDate.value.year,
-      currentDate.value.month,
+      currentDate.value!.year,
+      currentDate.value!.month,
     );
-    firstDayOfWeek.value = firstDayWeek(currentDate.value);
+    firstDayOfWeek.value = firstDayWeek(currentDate.value!);
     daysInMonth.value = monthDays.length;
     startPadding.value = (firstDayOfWeek.value - 1) % 7;
     totalDays.value = daysInMonth.value + startPadding.value;
@@ -99,15 +102,17 @@ class DatePickerController extends GetxController {
     int? hour,
     int? minute,
   }) {
+    if (currentDate.value == null) return;
+
     _logger.d(
         'Changing date with parameters: year=$year, month=$month, day=$day, hour=$hour, minute=$minute');
     try {
       final newDate = DateTime(
-        year ?? currentDate.value.year,
-        month ?? currentDate.value.month,
-        day ?? currentDate.value.day,
-        hour ?? currentDate.value.hour,
-        minute ?? currentDate.value.minute,
+        year ?? currentDate.value!.year,
+        month ?? currentDate.value!.month,
+        day ?? currentDate.value!.day,
+        hour ?? currentDate.value!.hour,
+        minute ?? currentDate.value!.minute,
       );
       currentDate.value = newDate;
     } catch (e) {
@@ -121,5 +126,34 @@ class DatePickerController extends GetxController {
     hEditingController.dispose();
     mEditingController.dispose();
     super.onClose();
+  }
+
+  void setCurrentDate(DateTime? date) {
+    currentDate.value = date;
+    if (date != null) {
+      currentTime.value = TimeOfDay(hour: date.hour, minute: date.minute);
+    } else {
+      currentTime.value = null;
+    }
+  }
+
+  void setCurrentTime(TimeOfDay time) {
+    currentTime.value = time;
+    if (currentDate.value != null) {
+      currentDate.value = DateTime(
+        currentDate.value!.year,
+        currentDate.value!.month,
+        currentDate.value!.day,
+        time.hour,
+        time.minute,
+      );
+    }
+  }
+
+  void reset() {
+    currentDate.value = null;
+    currentTime.value = null;
+    selectedDay.value = 0;
+    _updateMonthData();
   }
 }

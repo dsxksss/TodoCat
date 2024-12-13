@@ -1,18 +1,18 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 import 'package:todo_cat/widgets/todocat_scaffold.dart';
-import 'package:uuid/uuid.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reorderables/reorderables.dart';
+import 'package:todo_cat/widgets/task_dialog.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -157,16 +157,8 @@ class HomePage extends GetView<HomeController> {
   /// 构建浮动按钮
   Widget _buildFloatingActionButton(BuildContext context) {
     return AnimationBtn(
-      onPressed: () async {
-        final task = Task()
-          ..uuid = const Uuid().v4()
-          ..title = Random().nextInt(1000).toString()
-          ..createdAt = DateTime.now().millisecondsSinceEpoch
-          ..tags = []
-          ..todos = [];
-
-        await controller.addTask(task);
-        await controller.scrollMaxDown();
+      onPressed: () {
+        _showTaskDialog(context);
       },
       child: Container(
         width: 60,
@@ -225,5 +217,27 @@ class HomePage extends GetView<HomeController> {
         ),
       ),
     ];
+  }
+
+  /// 添加显示对话框的方法
+  void _showTaskDialog(BuildContext context) {
+    SmartDialog.show(
+      useSystem: false,
+      debounce: true,
+      keepSingle: true,
+      tag: addTaskDialogTag, // 需要在 dialog_keys.dart 中添加
+      backType: SmartBackType.normal,
+      animationTime: const Duration(milliseconds: 150),
+      builder: (_) => const TaskDialog(),
+      clickMaskDismiss: false,
+      animationBuilder: (controller, child, _) => child
+          .animate(controller: controller)
+          .fade(duration: controller.duration)
+          .scaleXY(
+            begin: 0.98,
+            duration: controller.duration,
+            curve: Curves.easeIn,
+          ),
+    );
   }
 }

@@ -4,50 +4,55 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/add_todo_dialog_ctr.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/add_tag_screen.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/date_picker_panel.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
-import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 
 class AddTodoDialog extends GetView<AddTodoDialogController> {
-  AddTodoDialog({super.key});
+  const AddTodoDialog({super.key});
 
-  final HomeController _homeCtrl = Get.find();
+  @override
+  AddTodoDialogController get controller =>
+      Get.find<AddTodoDialogController>(tag: 'add_todo_dialog');
 
   void _handleSubmit() async {
-    if (controller.formKey.currentState!.validate()) {
-      final todo = Todo()
-        ..uuid = const Uuid().v4()
-        ..title = controller.titleFormCtrl.text
-        ..description = controller.descriptionFormCtrl.text
-        ..createdAt = DateTime.now().millisecondsSinceEpoch
-        ..tags = controller.selectedTags.toList()
-        ..priority = controller.selectedPriority.value
-        ..status = TodoStatus.todo
-        ..finishedAt = 0
-        ..reminders = controller.remindersValue.value;
+    final bool isSuccess = await controller.submitForm();
+    if (isSuccess) {
+      SmartDialog.dismiss(tag: addTodoDialogTag);
+      showToast(
+        "${"todo".tr} '${controller.titleFormCtrl.text}' ${"addedSuccessfully".tr}",
+        toastStyleType: TodoCatToastStyleType.success,
+      );
+    } else {
+      showToast(
+        "${"todo".tr} '${controller.titleFormCtrl.text}' ${"additionFailed".tr}",
+        toastStyleType: TodoCatToastStyleType.error,
+      );
+    }
+  }
 
-      final bool isSuccess = await _homeCtrl.addTodo(todo);
-
-      if (isSuccess) {
-        SmartDialog.dismiss(tag: addTodoDialogTag);
-        showToast(
-          "${"todo".tr} '${todo.title}' ${"addedSuccessfully".tr}",
-          toastStyleType: TodoCatToastStyleType.success,
-        );
-        controller.clearForm();
-      } else {
-        showToast(
-          "${"todo".tr} '${todo.title}' ${"additionFailed".tr}",
-          toastStyleType: TodoCatToastStyleType.error,
-        );
-      }
+  void _handleClose() {
+    if (controller.isDataNotEmpty()) {
+      showToast(
+        "${"saveEditing".tr}?",
+        tag: confirmDialogTag,
+        displayTime: 5000.ms,
+        confirmMode: true,
+        onYesCallback: () {
+          controller.saveCache();
+          SmartDialog.dismiss(tag: addTodoDialogTag);
+        },
+        onNoCallback: () {
+          controller.clearForm();
+          SmartDialog.dismiss(tag: addTodoDialogTag);
+        },
+      );
+    } else {
+      SmartDialog.dismiss(tag: addTodoDialogTag);
     }
   }
 
@@ -76,60 +81,48 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
         key: controller.formKey,
         child: Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: 20, vertical: context.isPhone ? 20 : 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    width: 0.3,
+                    color: context.theme.dividerColor,
+                  ),
+                ),
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     "addTodo".tr,
-                    textAlign: context.isPhone ? null : TextAlign.center,
                     style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Row(
                     children: [
-                      LabelBtn(
-                        ghostStyle: true,
-                        label: Text(
-                          "cancel".tr,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: _handleClose,
+                          child: Text(
+                            "cancel".tr,
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 15, vertical: 2),
-                        onPressed: () {
-                          if (controller.isDataNotEmpty()) {
-                            showToast("${"saveEditing".tr}?",
-                                tag: confirmDialogTag,
-                                displayTime: 5000.ms,
-                                confirmMode: true, onYesCallback: () {
-                              SmartDialog.dismiss(tag: addTodoDialogTag);
-                            }, onNoCallback: () {
-                              SmartDialog.dismiss(tag: addTodoDialogTag);
-                              0.5.delay(() => controller.clearForm());
-                            });
-                          } else {
-                            SmartDialog.dismiss(tag: addTodoDialogTag);
-                          }
-                        },
                       ),
-                      const SizedBox(width: 20),
-                      LabelBtn(
-                        label: Text(
-                          "create".tr,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(width: 15),
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: _handleSubmit,
+                          child: Text(
+                            "create".tr,
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 15, vertical: 2),
-                        onPressed: _handleSubmit,
                       ),
                     ],
                   ),
@@ -137,138 +130,166 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
-                physics: const BouncingScrollPhysics(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(15),
+                physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
-                  decelerationRate: ScrollDecelerationRate.fast,
                 ),
-                children: [
-                  SizedBox(
-                    height: 35,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const AlwaysScrollableScrollPhysics(
-                        //当内容不足时也可以启动反弹刷新
-                        parent: BouncingScrollPhysics(),
-                      ),
-                      children: [
-                        TagDialogBtn(
-                          tag: addTodoTagDialogBtnTag,
-                          title: "dueDate".tr,
-                          titleStyle: const TextStyle(fontSize: 15),
-                          icon: const Icon(Icons.event_available_outlined,
-                              size: 20),
-                          openDialog: DatePickerPanel(
-                            dialogTag: addTodoTagDialogBtnTag,
-                          ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 35,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
                         ),
-                        const SizedBox(width: 10),
-                        TagDialogBtn(
-                          tag: addTodoTagDialogBtnTag,
-                          title: "priority".tr,
-                          titleStyle: const TextStyle(fontSize: 15),
-                          icon: const Icon(Icons.flag_outlined, size: 20),
-                        ),
-                        const SizedBox(width: 10),
-                        TagDialogBtn(
-                          tag: addTodoTagDialogBtnTag,
-                          title: "reminderTime".tr,
-                          titleStyle: const TextStyle(fontSize: 15),
-                          icon: const Icon(Icons.alarm, size: 20),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Obx(
-                    () => Column(
-                      children: [
-                        if (controller.selectedTags.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: SizedBox(
-                              height: 35,
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
-                                physics: const AlwaysScrollableScrollPhysics(
-                                  //当内容不足时也可以启动反弹刷新
-                                  parent: BouncingScrollPhysics(),
+                        children: [
+                          Obx(() => TagDialogBtn(
+                                tag: controller.selectedDate.value != null
+                                    ? DateFormat('MM-dd HH:mm')
+                                        .format(controller.selectedDate.value!)
+                                    : "dueDate".tr,
+                                tagColor: Colors.grey[700]!,
+                                dialogTag: 'todo_date',
+                                showDelete: false,
+                                openDialog: DatePickerPanel(
+                                  dialogTag: addTodoTagDialogBtnTag,
+                                  onDateSelected: (date) {
+                                    controller.selectedDate.value = date;
+                                  },
                                 ),
-                                children: [
-                                  ...controller.selectedTags.map(
-                                    (tag) => Padding(
-                                      padding: const EdgeInsets.only(right: 10),
-                                      child: TagDialogBtn(
-                                        tag: addTodoTagDialogBtnTag,
-                                        icon: const Icon(Icons.tag, size: 20),
-                                        titleWidget: Row(
-                                          children: [
-                                            Text(
-                                              tag,
-                                              style:
-                                                  const TextStyle(fontSize: 15),
-                                            ),
-                                            const SizedBox(width: 5),
-                                            MouseRegion(
-                                              cursor: SystemMouseCursors.click,
-                                              child: GestureDetector(
-                                                onTap: () =>
-                                                    controller.removeTag(
-                                                        controller.selectedTags
-                                                            .indexOf(tag)),
-                                                child: const Icon(
-                                                  Icons.close_rounded,
-                                                  size: 18,
-                                                ),
+                                titleWidget: Row(
+                                  children: [
+                                    Text(
+                                      controller.selectedDate.value != null
+                                          ? DateFormat('MM-dd HH:mm').format(
+                                              controller.selectedDate.value!)
+                                          : "dueDate".tr,
+                                      style: const TextStyle(fontSize: 15),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    const Icon(Icons.event_available_outlined,
+                                        size: 20),
+                                  ],
+                                ),
+                              )),
+                          const SizedBox(width: 10),
+                          TagDialogBtn(
+                            tag: "priority".tr,
+                            tagColor: Colors.grey[700]!,
+                            dialogTag: 'todo_priority',
+                            titleWidget: Row(
+                              children: [
+                                Text(
+                                  "priority".tr,
+                                  style: const TextStyle(fontSize: 15),
+                                ),
+                                const SizedBox(width: 5),
+                                const Icon(Icons.flag_outlined, size: 20),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          TagDialogBtn(
+                            tag: "reminderTime".tr,
+                            tagColor: Colors.grey[700]!,
+                            dialogTag: 'todo_reminder',
+                            titleWidget: Row(
+                              children: [
+                                Text(
+                                  "reminderTime".tr,
+                                  style: const TextStyle(fontSize: 15),
+                                ),
+                                const SizedBox(width: 5),
+                                const Icon(Icons.alarm, size: 20),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Obx(
+                      () => Column(
+                        children: [
+                          if (controller.selectedTags.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: SizedBox(
+                                height: 35,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const AlwaysScrollableScrollPhysics(
+                                    parent: BouncingScrollPhysics(),
+                                  ),
+                                  children: [
+                                    ...controller.selectedTags.map(
+                                      (tag) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 10),
+                                        child: TagDialogBtn(
+                                          tag: tag,
+                                          tagColor: Colors.lightBlue,
+                                          dialogTag: 'todo_tag_$tag',
+                                          showDelete: true,
+                                          onDelete: () => controller.removeTag(
+                                              controller.selectedTags
+                                                  .indexOf(tag)),
+                                          openDialog: Container(
+                                              // 这里可以添加标签编辑的对话框内容
                                               ),
-                                            )
-                                          ],
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormFieldItem(
-                    textInputAction: TextInputAction.next,
-                    autofocus: true,
-                    focusNode: FocusNode(),
-                    maxLength: 20,
-                    maxLines: 1,
-                    radius: 6,
-                    fieldTitle: "title".tr,
-                    editingController: controller.titleFormCtrl,
-                  ),
-                  const SizedBox(height: 10),
-                  AddTagScreen(
-                    textInputAction: TextInputAction.next,
-                    maxLength: 6,
-                    maxLines: 1,
-                    radius: 6,
-                    fieldTitle: "tag".tr,
-                    validator: (_) => null,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 5),
-                    editingController: controller.tagController,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormFieldItem(
-                    textInputAction: TextInputAction.done,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                    maxLength: 400,
-                    maxLines: 8,
-                    radius: 6,
-                    fieldTitle: "description".tr,
-                    validator: (_) => null,
-                    editingController: controller.descriptionFormCtrl,
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    TextFormFieldItem(
+                      textInputAction: TextInputAction.next,
+                      autofocus: true,
+                      focusNode: FocusNode(),
+                      maxLength: 20,
+                      maxLines: 1,
+                      radius: 6,
+                      fieldTitle: "title".tr,
+                      editingController: controller.titleFormCtrl,
+                      onFieldSubmitted: (_) {},
+                    ),
+                    const SizedBox(height: 10),
+                    AddTagScreen(
+                      textInputAction: TextInputAction.next,
+                      maxLength: 6,
+                      maxLines: 1,
+                      radius: 6,
+                      fieldTitle: "tag".tr,
+                      validator: (_) => null,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+                      editingController: controller.tagController,
+                      ghostStyle: true,
+                      onSubmitted: (_) => controller.addTag(),
+                      selectedTags: controller.selectedTags,
+                      onDeleteTag: controller.removeTag,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormFieldItem(
+                      textInputAction: TextInputAction.done,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 10),
+                      maxLength: 400,
+                      maxLines: 8,
+                      radius: 6,
+                      fieldTitle: "description".tr,
+                      validator: (_) => null,
+                      editingController: controller.descriptionFormCtrl,
+                      onFieldSubmitted: (_) {},
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

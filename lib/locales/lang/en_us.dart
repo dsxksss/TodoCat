@@ -72,5 +72,13 @@ const Map<String, String> enUS = {
   'emailReminderSentSuccessfully': 'Email reminder sent successfully',
   'emailReminderSendingFailed': 'Email reminder sent failed',
   'resetSettings': 'Reset settings',
-  'enbleDebugMode': 'Enable debug mode'
+  'enbleDebugMode': 'Enable debug mode',
+  'taskTitle': 'Task Title',
+  'taskDescription': 'Task Description',
+  'taskAddedSuccessfully': 'Task added successfully',
+  'titleRequired': 'Title is required',
+  'tagEmpty': 'Tag cannot be empty',
+  'tagDuplicate': 'Tag already exists',
+  'confirm': 'Confirm',
+  'noDateTime': 'Clear',
 };
