@@ -85,7 +85,10 @@ class HomePage extends GetView<HomeController> {
                       );
                     },
                     enableReorder: true,
-                    footer: const SizedBox(height: 100),
+                    footer: 100.verticalSpace,
+                    alignment: context.isPhone
+                        ? WrapAlignment.center
+                        : WrapAlignment.start,
                     children: [
                       ...controller.tasks
                           .map((task) => TaskCard(
