@@ -144,9 +144,9 @@ class TaskCard extends StatelessWidget {
                           alwaysShow: true,
                           confirmMode: true,
                           toastStyleType: TodoCatToastStyleType.error,
-                          onYesCallback: () {
+                          onYesCallback: () async {
                             final bool isDeleted =
-                                _homeCtrl.deleteTask(_task.id);
+                                await _homeCtrl.deleteTask(_task.uuid);
                             0.5.delay(() {
                               if (isDeleted) {
                                 showToast(
@@ -182,9 +182,10 @@ class TaskCard extends StatelessWidget {
             () => Column(
               children: _homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos
                   .map(
-                    (e) => context.isPhone
-                        ? TodoCard(taskId: _task.id, todo: e)
-                        : TodoCard(taskId: _task.id, todo: e),
+                    (e) => TodoCard(
+                      taskId: _task.uuid,
+                      todo: e,
+                    ),
                   )
                   .toList(),
             ),

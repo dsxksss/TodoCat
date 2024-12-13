@@ -12,48 +12,55 @@ import 'package:todo_cat/pages/home/components/todo/add_todo_dialog.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 
 class AddTodoCardBtn extends StatelessWidget {
-  AddTodoCardBtn({super.key, required Task task}) : _task = task;
-  final HomeController _homeCtrl = Get.find();
-  final AddTodoDialogController _addTodoCtrl = Get.find();
-  final Task _task;
+  const AddTodoCardBtn({
+    super.key,
+    required this.task,
+  });
+
+  final Task task;
 
   @override
   Widget build(BuildContext context) {
-    return AnimationBtn(
-      onPressed: () {
-        _homeCtrl.selectTask(_task);
-        _addTodoCtrl.clearForm();
-        context.isPhone
-            ? _showAddTodoBottomSheet(context)
-            : _showAddTodoDialog();
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 15),
-        decoration: BoxDecoration(
-          border: Border.all(color: context.theme.dividerColor),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FaIcon(
-                size: 15,
-                FontAwesomeIcons.plus,
-                color: Colors.grey[600],
-              ),
-              const SizedBox(
-                width: 2,
-              ),
-              Text(
-                "addTodo".tr,
-                style: TextStyle(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 15),
+      child: AnimationBtn(
+        onPressed: () {
+          final homeCtrl = Get.find<HomeController>();
+          homeCtrl.selectTask(task);
+          final addTodoCtrl = Get.find<AddTodoDialogController>();
+          addTodoCtrl.clearForm();
+          context.isPhone
+              ? _showAddTodoBottomSheet(context)
+              : _showAddTodoDialog();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: context.theme.dividerColor),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FaIcon(
+                  size: 15,
+                  FontAwesomeIcons.plus,
+                  color: Colors.grey[600],
+                ),
+                const SizedBox(
+                  width: 2,
+                ),
+                Text(
+                  "addTodo".tr,
+                  style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey[600],
-                    fontWeight: FontWeight.w600),
-              ),
-            ],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -69,7 +76,7 @@ void _showAddTodoDialog() {
     tag: addTodoDialogTag,
     backType: SmartBackType.normal,
     animationTime: const Duration(milliseconds: 150),
-    builder: (_) => const AddTodoDialog(),
+    builder: (_) => AddTodoDialog(),
     clickMaskDismiss: false,
     animationBuilder: (controller, child, _) => child
         .animate(controller: controller)
@@ -90,7 +97,7 @@ void _showAddTodoBottomSheet(BuildContext context) {
     backType: SmartBackType.normal,
     animationTime: const Duration(milliseconds: 110),
     alignment: context.isPhone ? Alignment.bottomCenter : Alignment.centerRight,
-    builder: (_) => const Scaffold(
+    builder: (_) => Scaffold(
       backgroundColor: Colors.transparent,
       body: Align(
         alignment: Alignment.bottomCenter,

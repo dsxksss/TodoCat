@@ -10,15 +10,18 @@ import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
 class TodoCard extends StatelessWidget {
-  TodoCard({super.key, required String taskId, required Todo todo})
-      : _taskId = taskId,
-        _todo = todo;
+  TodoCard({
+    super.key,
+    required this.taskId,
+    required this.todo,
+  });
+
+  final String taskId;
+  final Todo todo;
   final HomeController _homeCtrl = Get.find();
-  final String _taskId;
-  final Todo _todo;
 
   IconData _getStatusIconData() {
-    switch (_todo.status) {
+    switch (todo.status) {
       case TodoStatus.todo:
         return FontAwesomeIcons.hourglassStart;
       case TodoStatus.inProgress:
@@ -29,13 +32,28 @@ class TodoCard extends StatelessWidget {
   }
 
   Color _getPriorityColor() {
-    switch (_todo.priority) {
+    switch (todo.priority) {
       case TodoPriority.lowLevel:
         return const Color.fromRGBO(46, 204, 147, 1);
       case TodoPriority.mediumLevel:
         return const Color.fromARGB(255, 251, 136, 94);
       case TodoPriority.highLevel:
         return const Color.fromARGB(255, 251, 98, 98);
+    }
+  }
+
+  Future<void> _handleDelete() async {
+    final bool isDeleted = await _homeCtrl.deleteTodo(taskId, todo.uuid);
+    if (isDeleted) {
+      showToast(
+        "${"todo".tr} '${todo.title.tr}' ${"deletedSuccessfully".tr}",
+        toastStyleType: TodoCatToastStyleType.success,
+      );
+    } else {
+      showToast(
+        "${"todo".tr} '${todo.title.tr}' ${"deletionFailed".tr}",
+        toastStyleType: TodoCatToastStyleType.error,
+      );
     }
   }
 
@@ -70,7 +88,7 @@ class TodoCard extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 1.0),
                         child: Text(
-                          _todo.title,
+                          todo.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -86,7 +104,7 @@ class TodoCard extends StatelessWidget {
                       iconData: FontAwesomeIcons.penToSquare,
                       callback: () => {
                         showToast(
-                          _todo.title,
+                          todo.title,
                           suffix: "编辑成功",
                           suffixGap: 5,
                           toastStyleType: TodoCatToastStyleType.success,
@@ -103,21 +121,7 @@ class TodoCard extends StatelessWidget {
                           confirmMode: true,
                           toastStyleType: TodoCatToastStyleType.error,
                           onYesCallback: () {
-                            final isDeleted =
-                                _homeCtrl.deleteTodo(_taskId, _todo.id);
-                            0.5.delay(() {
-                              if (isDeleted) {
-                                showToast(
-                                  "${"todo".tr} '${_todo.title.tr}' ${"deletedSuccessfully".tr}",
-                                  toastStyleType: TodoCatToastStyleType.success,
-                                );
-                              } else {
-                                showToast(
-                                  "${"todo".tr} '${_todo.title.tr}' ${"deletionFailed".tr}",
-                                  toastStyleType: TodoCatToastStyleType.error,
-                                );
-                              }
-                            });
+                            _handleDelete();
                           },
                         )
                       },
@@ -126,18 +130,18 @@ class TodoCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (_todo.tags.isNotEmpty)
+            if (todo.tags.isNotEmpty)
               const SizedBox(
                 height: 10,
               ),
-            if (_todo.tags.isNotEmpty)
+            if (todo.tags.isNotEmpty)
               SizedBox(
                 height: 20,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    ..._todo.tags
-                        .sublist(0, _todo.tags.length > 3 ? 3 : null)
+                    ...todo.tags
+                        .sublist(0, todo.tags.length > 3 ? 3 : null)
                         .map(
                           (e) => Padding(
                             padding: const EdgeInsets.only(right: 10),
@@ -165,7 +169,7 @@ class TodoCard extends StatelessWidget {
                       width: 3,
                     ),
                     Text(
-                      timestampToDate(_todo.finishedAt),
+                      timestampToDate(todo.finishedAt),
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11.5,

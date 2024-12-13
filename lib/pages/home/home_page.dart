@@ -12,7 +12,7 @@ import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:todo_cat/widgets/reorderable_wrap.dart';
+import 'package:reorderables/reorderables.dart' as reorderables;
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -60,34 +60,44 @@ class HomePage extends GetView<HomeController> {
                   padding: context.isPhone
                       ? const EdgeInsets.only(bottom: 50)
                       : const EdgeInsets.only(left: 20, bottom: 50),
-                  child: ReorderableWrap(
+                  child: reorderables.ReorderableWrap(
+                    controller: ScrollController(),
                     spacing: context.isPhone ? 0 : 50,
                     runSpacing: context.isPhone ? 50 : 30,
-                    animationInterval: 100.ms,
-                    effects: [
-                      SlideEffect(
-                        begin: context.isPhone
-                            ? const Offset(0, 0.3)
-                            : const Offset(-0.3, 0),
-                        end: const Offset(0, 0),
-                        duration: 400.ms,
-                        curve: Curves.easeOutCubic,
-                      ),
-                      FadeEffect(
-                        begin: 0,
-                        end: 1,
-                        duration: 400.ms,
-                        curve: Curves.easeOutCubic,
-                      ),
-                    ],
-                    onReorder: (oldIndex, newIndex) {
-                      controller.reorderTask(oldIndex, newIndex);
+                    onReorder: (oldIndex, int newIndex) async {
+                      await controller.reorderTask(oldIndex, newIndex);
                     },
+                    onNoReorder: (index) {
+                      debugPrint('重新排序已取消，索引: $index');
+                    },
+                    onReorderStarted: (index) {
+                      controller.startDragging();
+                      debugPrint('开始重新排序，索引: $index');
+                    },
+                    buildDraggableFeedback: (context, constraints, child) {
+                      return Material(
+                        elevation: 6.0,
+                        color: Colors.transparent,
+                        child: SizedBox(
+                          width: context.isPhone ? 0.9.sw : 240,
+                          child: child,
+                        ),
+                      );
+                    },
+                    enableReorder: true,
+                    footer: const SizedBox(height: 100),
                     children: [
-                      ...controller.tasks.map((task) => TaskCard(
-                            key: ValueKey(task.id),
-                            task: task,
-                          ))
+                      ...controller.tasks
+                          .map((task) => TaskCard(
+                                key: ValueKey(task.uuid),
+                                task: task,
+                              ))
+                          .toList(),
+                      if (controller.tasks.isNotEmpty)
+                        SizedBox(
+                          width: context.isPhone ? 0.9.sw : 240,
+                          height: 0,
+                        ),
                     ],
                   ),
                 ),
@@ -102,17 +112,16 @@ class HomePage extends GetView<HomeController> {
   /// 构建浮动按钮
   Widget _buildFloatingActionButton(BuildContext context) {
     return AnimationBtn(
-      onPressed: () {
-        controller.addTask(
-          Task(
-            id: const Uuid().v4(),
-            title: Random().nextInt(1000).toString(),
-            createdAt: DateTime.now().millisecondsSinceEpoch,
-            tags: [],
-            todos: [],
-          ),
-        );
-        controller.scrollMaxDown();
+      onPressed: () async {
+        final task = Task()
+          ..uuid = const Uuid().v4()
+          ..title = Random().nextInt(1000).toString()
+          ..createdAt = DateTime.now().millisecondsSinceEpoch
+          ..tags = []
+          ..todos = [];
+
+        await controller.addTask(task);
+        await controller.scrollMaxDown();
       },
       child: Container(
         width: 60,

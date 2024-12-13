@@ -44,13 +44,14 @@ class FormValidator {
 class AddTodoDialogController extends GetxController {
   static final _logger = Logger();
   final formKey = GlobalKey<FormState>();
-  final selectedTags = RxList<String>();
-  final selectedPriority = Rx<TodoPriority>(TodoPriority.lowLevel);
   final titleFormCtrl = TextEditingController();
   final descriptionFormCtrl = TextEditingController();
   final tagController = TextEditingController();
-  final remindersText = RxString("${"enter".tr}${"time".tr}");
-  final remindersValue = RxInt(0);
+
+  final selectedTags = <String>[].obs;
+  final selectedPriority = TodoPriority.lowLevel.obs;
+  final remindersValue = 0.obs;
+  final remindersText = "".obs;
 
   late final TagService _tagService;
   late final FormValidator _formValidator;

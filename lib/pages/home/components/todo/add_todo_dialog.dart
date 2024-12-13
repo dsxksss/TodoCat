@@ -15,53 +15,39 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 import 'package:uuid/uuid.dart';
 
-class AddTodoDialog extends StatefulWidget {
-  const AddTodoDialog({
-    super.key,
-  });
+class AddTodoDialog extends GetView<AddTodoDialogController> {
+  AddTodoDialog({super.key});
 
-  @override
-  State<AddTodoDialog> createState() => _AddTodoDialogState();
-}
-
-class _AddTodoDialogState extends State<AddTodoDialog> {
   final HomeController _homeCtrl = Get.find();
-  late final AddTodoDialogController _dialogCtrl;
 
-  @override
-  void initState() {
-    _dialogCtrl = Get.find();
-    // 由于和其他组件生命周期不同，需要手动切换本地化
-    _dialogCtrl.remindersText.value = "${"enter".tr}${"time".tr}";
-    super.initState();
-  }
+  void _handleSubmit() async {
+    if (controller.formKey.currentState!.validate()) {
+      final todo = Todo()
+        ..uuid = const Uuid().v4()
+        ..title = controller.titleFormCtrl.text
+        ..description = controller.descriptionFormCtrl.text
+        ..createdAt = DateTime.now().millisecondsSinceEpoch
+        ..tags = controller.selectedTags.toList()
+        ..priority = controller.selectedPriority.value
+        ..status = TodoStatus.todo
+        ..finishedAt = 0
+        ..reminders = controller.remindersValue.value;
 
-  @override
-  void dispose() {
-    _homeCtrl.deselectTask();
-    SmartDialog.dismiss(tag: confirmDialogTag);
-    super.dispose();
-  }
+      final bool isSuccess = await _homeCtrl.addTodo(todo);
 
-  void addTodoHandler() {
-    if (_dialogCtrl.formKey.currentState!.validate()) {
-      final todo = Todo(
-        id: const Uuid().v4(),
-        title: _dialogCtrl.titleFormCtrl.text.trim(),
-        description: _dialogCtrl.descriptionFormCtrl.text.trim(),
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        tags: _dialogCtrl.selectedTags.toList(),
-        priority: _dialogCtrl.selectedPriority.value,
-        // reminders: _dialogCtrl.remindersValue.value,
-        reminders: DateTime.now()
-            .add(const Duration(minutes: 1))
-            .millisecondsSinceEpoch,
-      );
-
-      _homeCtrl.addTodo(todo);
-      _dialogCtrl.clearForm();
-
-      SmartDialog.dismiss(tag: addTodoDialogTag);
+      if (isSuccess) {
+        SmartDialog.dismiss(tag: addTodoDialogTag);
+        showToast(
+          "${"todo".tr} '${todo.title}' ${"addedSuccessfully".tr}",
+          toastStyleType: TodoCatToastStyleType.success,
+        );
+        controller.clearForm();
+      } else {
+        showToast(
+          "${"todo".tr} '${todo.title}' ${"additionFailed".tr}",
+          toastStyleType: TodoCatToastStyleType.error,
+        );
+      }
     }
   }
 
@@ -87,7 +73,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         ],
       ),
       child: Form(
-        key: _dialogCtrl.formKey,
+        key: controller.formKey,
         child: Column(
           children: [
             Padding(
@@ -116,7 +102,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 15, vertical: 2),
                         onPressed: () {
-                          if (_dialogCtrl.isDataNotEmpty()) {
+                          if (controller.isDataNotEmpty()) {
                             showToast("${"saveEditing".tr}?",
                                 tag: confirmDialogTag,
                                 displayTime: 5000.ms,
@@ -124,7 +110,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                               SmartDialog.dismiss(tag: addTodoDialogTag);
                             }, onNoCallback: () {
                               SmartDialog.dismiss(tag: addTodoDialogTag);
-                              0.5.delay(() => _dialogCtrl.clearForm());
+                              0.5.delay(() => controller.clearForm());
                             });
                           } else {
                             SmartDialog.dismiss(tag: addTodoDialogTag);
@@ -143,7 +129,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                         ),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 15, vertical: 2),
-                        onPressed: addTodoHandler,
+                        onPressed: _handleSubmit,
                       ),
                     ],
                   ),
@@ -197,7 +183,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                   Obx(
                     () => Column(
                       children: [
-                        if (_dialogCtrl.selectedTags.isNotEmpty)
+                        if (controller.selectedTags.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 10),
                             child: SizedBox(
@@ -209,7 +195,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                                   parent: BouncingScrollPhysics(),
                                 ),
                                 children: [
-                                  ..._dialogCtrl.selectedTags.map(
+                                  ...controller.selectedTags.map(
                                     (tag) => Padding(
                                       padding: const EdgeInsets.only(right: 10),
                                       child: TagDialogBtn(
@@ -227,8 +213,8 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                                               cursor: SystemMouseCursors.click,
                                               child: GestureDetector(
                                                 onTap: () =>
-                                                    _dialogCtrl.removeTag(
-                                                        _dialogCtrl.selectedTags
+                                                    controller.removeTag(
+                                                        controller.selectedTags
                                                             .indexOf(tag)),
                                                 child: const Icon(
                                                   Icons.close_rounded,
@@ -257,7 +243,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     maxLines: 1,
                     radius: 6,
                     fieldTitle: "title".tr,
-                    editingController: _dialogCtrl.titleFormCtrl,
+                    editingController: controller.titleFormCtrl,
                   ),
                   const SizedBox(height: 10),
                   AddTagScreen(
@@ -268,7 +254,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     fieldTitle: "tag".tr,
                     validator: (_) => null,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 5),
-                    editingController: _dialogCtrl.tagController,
+                    editingController: controller.tagController,
                   ),
                   const SizedBox(height: 10),
                   TextFormFieldItem(
@@ -280,7 +266,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
                     radius: 6,
                     fieldTitle: "description".tr,
                     validator: (_) => null,
-                    editingController: _dialogCtrl.descriptionFormCtrl,
+                    editingController: controller.descriptionFormCtrl,
                   ),
                 ],
               ),

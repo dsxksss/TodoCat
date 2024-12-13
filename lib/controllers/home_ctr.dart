@@ -9,7 +9,6 @@ import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/test/todo.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
-import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:logger/logger.dart';
@@ -76,13 +75,52 @@ class HomeController extends GetxController with ScrollControllerMixin {
   static final _logger = Logger();
   final TaskManager _taskManager = TaskManager();
   final currentTask = Rx<Task?>(null);
-  final listAnimatInterval = 200.ms.obs;
   final AppController appCtrl = Get.find();
   final shouldAnimate = true.obs;
-
   final groupByStatus = false.obs;
-
   final searchQuery = ''.obs;
+  final selectedTaskId = RxString('');
+
+  void selectTask(Task? task) {
+    _logger.d('Selecting task: ${task?.uuid}');
+    currentTask.value = task;
+    selectedTaskId.value = task?.uuid ?? ''; // 更新 selectedTaskId
+  }
+
+  void deselectTask() {
+    _logger.d('Deselecting current task');
+    currentTask.value = null;
+    selectedTaskId.value = ''; // 清除 selectedTaskId
+  }
+
+  Future<bool> addTodo(Todo todo) async {
+    try {
+      if (selectedTaskId.value.isEmpty) {
+        _logger.w('No task selected for adding todo');
+        return false;
+      }
+
+      final task =
+          tasks.firstWhereOrNull((t) => t.uuid == selectedTaskId.value);
+      if (task == null) {
+        _logger.w('Selected task not found: ${selectedTaskId.value}');
+        return false;
+      }
+
+      task.todos.add(todo);
+      await _taskManager.updateTask(task.uuid, task);
+
+      if (todo.reminders > 0) {
+        await _setLocalNotification(todo);
+      }
+
+      tasks.refresh();
+      return true;
+    } catch (e) {
+      _logger.e('Error adding todo: $e');
+      return false;
+    }
+  }
 
   List<Task> get filteredTasks {
     if (searchQuery.value.isEmpty) return tasks;
@@ -122,19 +160,12 @@ class HomeController extends GetxController with ScrollControllerMixin {
     await _taskManager.initialize();
 
     if (_taskManager.tasks.isEmpty) {
-      await _showEmptyTaskToast();
+      if (appCtrl.appConfig.value.isDebugMode) {
+        await _addDebugTasks();
+      } else {
+        await _showEmptyTaskToast();
+      }
     }
-
-    if (appCtrl.appConfig.value.isDebugMode) {
-      _addDebugTasks();
-    }
-
-    sort(reverse: true);
-
-    ever(_taskManager.tasks, (_) {
-      _logger.d('Tasks changed, updating repository');
-      _taskManager.updateMany(_taskManager.tasks, (task) => task.id);
-    });
   }
 
   Future<void> _showEmptyTaskToast() async {
@@ -143,35 +174,39 @@ class HomeController extends GetxController with ScrollControllerMixin {
       "当前任务为空, 是否需要添加任务示例模板?",
       alwaysShow: true,
       confirmMode: true,
-      onYesCallback: () => _taskManager.assignAll(defaultTasks),
+      onYesCallback: () async {
+        await _taskManager.assignAll(defaultTasks);
+      },
     );
   }
 
-  void _addDebugTasks() {
+  Future<void> _addDebugTasks() async {
     _logger.d('Adding debug tasks');
-    final random = Random();
     for (var task in defaultTasks) {
+      await _taskManager.addTask(task);
       selectTask(task);
+
+      final random = Random();
       final todoCount = random.nextInt(5);
       for (var i = 0; i < todoCount; i++) {
         final todoIndex = random.nextInt(3);
         if (!task.todos.contains(todoTestList[todoIndex])) {
-          addTodo(todoTestList[todoIndex]);
+          await addTodo(todoTestList[todoIndex]);
         }
       }
       deselectTask();
     }
   }
 
-  void addTask(Task task) {
-    _taskManager.addTask(task);
+  Future<void> addTask(Task task) async {
+    await _taskManager.addTask(task);
   }
 
-  bool deleteTask(String taskId) {
+  Future<bool> deleteTask(String uuid) async {
     try {
-      final task = _taskManager.tasks.firstWhere((task) => task.id == taskId);
+      final task = _taskManager.tasks.firstWhere((task) => task.uuid == uuid);
       _cleanupTaskNotifications(task);
-      _taskManager.removeTask(taskId);
+      await _taskManager.removeTask(uuid);
       return true;
     } catch (e) {
       _logger.e('Error deleting task: $e');
@@ -182,103 +217,79 @@ class HomeController extends GetxController with ScrollControllerMixin {
   void _cleanupTaskNotifications(Task task) {
     for (var todo in task.todos) {
       appCtrl.localNotificationManager.destroy(
-        timerKey: todo.id,
+        timerKey: todo.uuid,
         sendDeleteReq: true,
       );
     }
   }
 
-  bool updateTask(String taskId, Task task) {
-    if (!_taskManager.has(taskId)) {
-      _logger.w('Task $taskId not found for update');
+  Future<bool> updateTask(String uuid, Task task) async {
+    if (!_taskManager.has(uuid)) {
+      _logger.w('Task $uuid not found for update');
       return false;
     }
 
-    _logger.d('Updating task: $taskId');
-    _taskManager.updateTask(taskId, task);
+    _logger.d('Updating task: $uuid');
+    await _taskManager.updateTask(uuid, task);
     return true;
   }
 
-  void selectTask(Task? task) {
-    _logger.d('Selecting task: ${task?.id}');
-    currentTask.value = task;
-  }
-
-  void deselectTask() {
-    _logger.d('Deselecting current task');
-    currentTask.value = null;
-  }
-
-  bool addTodo(Todo todo) {
-    if (currentTask.value == null || !_taskManager.has(currentTask.value!.id)) {
-      _logger.w('No current task selected or task not found');
-      return false;
-    }
-
-    int taskIndex = _taskManager.tasks.indexOf(currentTask.value);
-    if (taskIndex == -1) {
-      _logger.w('Task index not found');
-      return false;
-    }
-
-    _logger.d('Adding todo to task: ${currentTask.value!.id}');
-    _taskManager.tasks[taskIndex].todos.add(todo);
-    _handleTodoReminder(todo);
-
-    _taskManager.tasks[taskIndex].todos
-        .sort((a, b) => b.priority.index.compareTo(a.priority.index));
-    _taskManager.refresh();
-    return true;
-  }
-
-  void _handleTodoReminder(Todo todo) {
-    if (todo.reminders != 0) {
-      _logger.d('Setting up reminder for todo: ${todo.id}');
-      final LocalNotice notice = LocalNotice(
-        id: todo.id,
-        title: "${"todoCat".tr} ${"taskReminder".tr}",
-        description:
-            "${todo.title} ${"createTime".tr}:${timestampToDate(todo.createdAt)} ${getTimeString(DateTime.fromMillisecondsSinceEpoch(todo.createdAt))}",
+  Future<void> _setLocalNotification(Todo todo) async {
+    try {
+      final notice = LocalNotice(
+        noticeId: todo.uuid,
+        title: todo.title,
+        description: todo.description,
         createdAt: todo.createdAt,
         remindersAt: todo.reminders,
-        email: "2546650292@qq.com",
+        email: appCtrl.appConfig.value.emailReminderEnabled
+            ? "user@example.com"
+            : "",
       );
-      appCtrl.localNotificationManager.saveNotification(
-        key: notice.id,
+
+      await appCtrl.localNotificationManager.saveNotification(
+        key: todo.uuid,
         notice: notice,
         emailReminderEnabled: appCtrl.appConfig.value.emailReminderEnabled,
       );
+    } catch (e) {
+      _logger.e('Error setting local notification: $e');
     }
   }
 
-  bool deleteTodo(String taskId, String todoId) {
-    if (!_taskManager.has(taskId)) {
-      _logger.w('Task $taskId not found for todo deletion');
+  Future<bool> deleteTodo(String taskUuid, String todoUuid) async {
+    if (!_taskManager.has(taskUuid)) {
+      _logger.w('Task $taskUuid not found for todo deletion');
       return false;
     }
 
-    Task task = _taskManager.tasks.singleWhere((task) => task.id == taskId);
-    int taskIndex = _taskManager.tasks.indexOf(task);
-    if (taskIndex == -1) {
-      _logger.w('Task index not found');
+    try {
+      Task task =
+          _taskManager.tasks.firstWhere((task) => task.uuid == taskUuid);
+      int taskIndex = _taskManager.tasks.indexOf(task);
+      if (taskIndex == -1) {
+        _logger.w('Task index not found');
+        return false;
+      }
+
+      _logger.d('Deleting todo $todoUuid from task $taskUuid');
+      Todo todo = task.todos.firstWhere((todo) => todo.uuid == todoUuid);
+      await appCtrl.localNotificationManager.destroy(
+        timerKey: todoUuid,
+        sendDeleteReq: true,
+      );
+      task.todos.remove(todo);
+      await _taskManager.refresh();
+      return true;
+    } catch (e) {
+      _logger.e('Error deleting todo: $e');
       return false;
     }
-
-    _logger.d('Deleting todo $todoId from task $taskId');
-    Todo todo = task.todos.singleWhere((todo) => todo.id == todoId);
-    appCtrl.localNotificationManager.destroy(
-      timerKey: todoId,
-      sendDeleteReq: true,
-    );
-    task.todos.remove(todo);
-    _taskManager.refresh();
-    return true;
   }
 
-  void sort({bool reverse = false}) {
+  Future<void> sort({bool reverse = false}) async {
     _logger.d('Sorting tasks by creation date (reverse: $reverse)');
-    _taskManager.sort(reverse: reverse);
-    _taskManager.refresh();
+    await _taskManager.sort(reverse: reverse);
   }
 
   @override
@@ -292,16 +303,16 @@ class HomeController extends GetxController with ScrollControllerMixin {
   RxList<Task> get tasks => _taskManager.tasks;
 
   /// 重新排序任务
-  void reorderTask(int oldIndex, int newIndex) {
-    if (oldIndex < 0 || oldIndex >= tasks.length) return;
-    if (newIndex < 0 || newIndex > tasks.length) return;
-
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
+  Future<void> reorderTask(int oldIndex, int newIndex) async {
+    try {
+      if (newIndex == tasks.length + 1) {
+        newIndex = tasks.length;
+      }
+      await _taskManager.reorderTasks(oldIndex, newIndex);
+      _logger.d('Task reordered from $oldIndex to $newIndex');
+    } catch (e) {
+      _logger.e('Error reordering task: $e');
     }
-
-    final task = tasks.removeAt(oldIndex);
-    tasks.insert(newIndex, task);
   }
 
   void startDragging() {

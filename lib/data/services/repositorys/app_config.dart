@@ -1,9 +1,10 @@
+import 'package:isar/isar.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
+import 'package:todo_cat/data/services/database.dart';
 
-import '../strorage.dart';
-
-class AppConfigRepository extends Storage<AppConfig> {
+class AppConfigRepository {
   static AppConfigRepository? _instance;
+  late final Isar _isar;
 
   AppConfigRepository._();
 
@@ -14,6 +15,31 @@ class AppConfigRepository extends Storage<AppConfig> {
   }
 
   Future<void> _init() async {
-    await init('appConfigx');
+    final db = await Database.getInstance();
+    _isar = db.isar;
+  }
+
+  Future<AppConfig?> read(String configName) async {
+    return await _isar.appConfigs
+        .filter()
+        .configNameEqualTo(configName)
+        .findFirst();
+  }
+
+  Future<void> write(String configName, AppConfig config) async {
+    await _isar.writeTxn(() async {
+      final existingConfig = await _isar.appConfigs
+          .filter()
+          .configNameEqualTo(configName)
+          .findFirst();
+      if (existingConfig != null) {
+        config.id = existingConfig.id;
+      }
+      await _isar.appConfigs.put(config);
+    });
+  }
+
+  Future<void> update(String configName, AppConfig config) async {
+    await write(configName, config);
   }
 }
