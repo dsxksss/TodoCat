@@ -64,6 +64,13 @@ class AddTodoDialogController extends GetxController {
 
   bool get hasUnsavedChanges => isDataNotEmpty();
 
+  String? validateTitle(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'titleRequired'.tr;
+    }
+    return null;
+  }
+
   AddTodoDialogController() {
     _tagService = TagService();
     _formValidator = FormValidator();
@@ -142,9 +149,7 @@ class AddTodoDialogController extends GetxController {
   }
 
   Future<bool> submitForm() async {
-    if (!validateForm()) {
-      return false;
-    }
+    if (!formKey.currentState!.validate()) return false;
 
     final todo = Todo()
       ..uuid = const Uuid().v4()

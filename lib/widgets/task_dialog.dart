@@ -129,15 +129,14 @@ class TaskDialog extends GetView<TaskDialogController> {
                       selectedTags: controller.selectedTags,
                       onDeleteTag: controller.removeTag,
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 10),
                     TextFormFieldItem(
                       textInputAction: TextInputAction.done,
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
+                        horizontal: 5,
                         vertical: 10,
                       ),
                       maxLength: 400,
-                      maxLines: 8,
                       radius: 6,
                       fieldTitle: "taskDescription".tr,
                       validator: (_) => null,

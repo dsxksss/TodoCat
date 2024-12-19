@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -35,7 +34,7 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
       showToast(
         "${"saveEditing".tr}?",
         tag: confirmDialogTag,
-        displayTime: 5000.ms,
+        alwaysShow: true,
         confirmMode: true,
         onYesCallback: () {
           controller.saveCache();
@@ -223,6 +222,7 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
                       maxLines: 1,
                       radius: 6,
                       fieldTitle: "title".tr,
+                      validator: controller.validateTitle,
                       editingController: controller.titleFormCtrl,
                       onFieldSubmitted: (_) {},
                     ),
@@ -241,7 +241,7 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
                       selectedTags: controller.selectedTags,
                       onDeleteTag: controller.removeTag,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 5),
                     TextFormFieldItem(
                       textInputAction: TextInputAction.done,
                       contentPadding: const EdgeInsets.symmetric(

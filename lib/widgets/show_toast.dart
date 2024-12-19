@@ -189,7 +189,6 @@ void showToast(
                         children: [
                           LabelBtn(
                             label: Text("yes".tr),
-                            ghostStyle: true,
                             onPressed: () {
                               if (onYesCallback != null) {
                                 SmartDialog.dismiss(tag: tag);
