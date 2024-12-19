@@ -26,6 +26,7 @@ class Database {
 
     _logger.d('Initializing new Isar instance');
     final dir = await getApplicationDocumentsDirectory();
+    _logger.d('Database path: ${dir.path}');
     _isar = await Isar.open(
       [TaskSchema, AppConfigSchema, LocalNoticeSchema],
       directory: dir.path,

@@ -30,7 +30,6 @@ void main() async {
   }
 
   runApp(DevicePreview(
-    enabled: true,
     builder: (_) => const App(),
   ));
 }

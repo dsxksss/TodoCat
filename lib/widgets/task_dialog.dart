@@ -137,6 +137,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                         vertical: 10,
                       ),
                       maxLength: 400,
+                      maxLines: 8,
                       radius: 6,
                       fieldTitle: "taskDescription".tr,
                       validator: (_) => null,

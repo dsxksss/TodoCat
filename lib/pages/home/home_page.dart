@@ -225,19 +225,43 @@ class HomePage extends GetView<HomeController> {
       useSystem: false,
       debounce: true,
       keepSingle: true,
-      tag: addTaskDialogTag, // 需要在 dialog_keys.dart 中添加
+      tag: addTaskDialogTag,
       backType: SmartBackType.normal,
       animationTime: const Duration(milliseconds: 150),
-      builder: (_) => const TaskDialog(),
+      alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
+      builder: (_) => context.isPhone
+          ? const Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: TaskDialog(),
+              ),
+            )
+          : const TaskDialog(),
       clickMaskDismiss: false,
-      animationBuilder: (controller, child, _) => child
-          .animate(controller: controller)
-          .fade(duration: controller.duration)
-          .scaleXY(
-            begin: 0.98,
-            duration: controller.duration,
-            curve: Curves.easeIn,
-          ),
+      animationBuilder: (controller, child, _) {
+        final animation = child
+            .animate(controller: controller)
+            .fade(duration: controller.duration);
+
+        return context.isPhone
+            ? animation
+                .scaleXY(
+                  begin: 0.97,
+                  duration: controller.duration,
+                  curve: Curves.easeIn,
+                )
+                .moveY(
+                  begin: 0.6.sh,
+                  duration: controller.duration,
+                  curve: Curves.easeOutCirc,
+                )
+            : animation.scaleXY(
+                begin: 0.98,
+                duration: controller.duration,
+                curve: Curves.easeIn,
+              );
+      },
     );
   }
 }
