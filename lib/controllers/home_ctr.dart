@@ -107,7 +107,13 @@ class HomeController extends GetxController with ScrollControllerMixin {
         return false;
       }
 
-      task.todos.add(todo);
+      if (task.todos == null) {
+        task.todos = <Todo>[];
+      } else {
+        task.todos = List<Todo>.from(task.todos!);
+      }
+
+      task.todos!.add(todo);
       await _taskManager.updateTask(task.uuid, task);
 
       if (todo.reminders > 0) {
@@ -190,7 +196,8 @@ class HomeController extends GetxController with ScrollControllerMixin {
       final todoCount = random.nextInt(5);
       for (var i = 0; i < todoCount; i++) {
         final todoIndex = random.nextInt(3);
-        if (!task.todos.contains(todoTestList[todoIndex])) {
+        if (task.todos == null ||
+            !task.todos!.contains(todoTestList[todoIndex])) {
           await addTodo(todoTestList[todoIndex]);
         }
       }
@@ -215,11 +222,13 @@ class HomeController extends GetxController with ScrollControllerMixin {
   }
 
   void _cleanupTaskNotifications(Task task) {
-    for (var todo in task.todos) {
-      appCtrl.localNotificationManager.destroy(
-        timerKey: todo.uuid,
-        sendDeleteReq: true,
-      );
+    if (task.todos != null) {
+      for (var todo in task.todos!) {
+        appCtrl.localNotificationManager.destroy(
+          timerKey: todo.uuid,
+          sendDeleteReq: true,
+        );
+      }
     }
   }
 
@@ -272,13 +281,18 @@ class HomeController extends GetxController with ScrollControllerMixin {
         return false;
       }
 
+      if (task.todos == null) {
+        _logger.w('Task todos is null');
+        return false;
+      }
+
       _logger.d('Deleting todo $todoUuid from task $taskUuid');
-      Todo todo = task.todos.firstWhere((todo) => todo.uuid == todoUuid);
+      Todo todo = task.todos!.firstWhere((todo) => todo.uuid == todoUuid);
       await appCtrl.localNotificationManager.destroy(
         timerKey: todoUuid,
         sendDeleteReq: true,
       );
-      task.todos.remove(todo);
+      task.todos!.remove(todo);
       await _taskManager.refresh();
       return true;
     } catch (e) {

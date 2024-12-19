@@ -6,8 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:todo_cat/pages/app.dart';
 import 'package:todo_cat/window/init_window.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:get/get.dart';
-import 'package:todo_cat/controllers/timepicker_ctr.dart';
 
 void main() async {
   // 确保flutterBinding初始化成功
@@ -30,8 +28,6 @@ void main() async {
     );
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   }
-
-  Get.put(TimePickerController());
 
   runApp(DevicePreview(
     enabled: true,

@@ -1,4 +1,5 @@
 const Map<String, String> enUS = {
+  'now': 'Now',
   'hello': 'Hello',
   'todoCat': 'TodoCat',
   'myTasks': 'My tasks',

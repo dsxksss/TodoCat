@@ -43,18 +43,7 @@ class TodoCard extends StatelessWidget {
   }
 
   Future<void> _handleDelete() async {
-    final bool isDeleted = await _homeCtrl.deleteTodo(taskId, todo.uuid);
-    if (isDeleted) {
-      showToast(
-        "${"todo".tr} '${todo.title.tr}' ${"deletedSuccessfully".tr}",
-        toastStyleType: TodoCatToastStyleType.success,
-      );
-    } else {
-      showToast(
-        "${"todo".tr} '${todo.title.tr}' ${"deletionFailed".tr}",
-        toastStyleType: TodoCatToastStyleType.error,
-      );
-    }
+    await _homeCtrl.deleteTodo(taskId, todo.uuid);
   }
 
   @override

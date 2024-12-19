@@ -1,4 +1,5 @@
 const Map<String, String> zhCN = {
+  'now': '现在',
   'hello': '你好',
   'todoCat': '事项猫',
   'myTasks': '我的事项',

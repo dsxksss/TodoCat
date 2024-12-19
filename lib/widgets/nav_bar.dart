@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
@@ -27,6 +26,7 @@ class NavBar extends StatefulWidget {
 class _NavBarState extends State<NavBar> with WindowListener {
   final AppController _appController = Get.find();
   final Rx<String> currentRoute = Get.currentRoute.obs;
+  final double _iconSize = 25;
 
   @override
   void initState() {
@@ -126,37 +126,32 @@ class _NavBarState extends State<NavBar> with WindowListener {
                       if (Platform.isWindows && !context.isPhone)
                         Row(
                           children: [
-                            const SizedBox(
-                              width: 20,
-                            ),
                             NavBarBtn(
                               onPressed: _appController.minimizeWindow,
-                              child: const Icon(FontAwesomeIcons.minus),
+                              child: Icon(
+                                Icons.remove_rounded,
+                                size: _iconSize,
+                              ),
                             ),
-                            const SizedBox(
-                              width: 20,
-                            ),
+                            2.horizontalSpace,
                             NavBarBtn(
                               onPressed: _appController.targetMaximizeWindow,
-                              child: Transform.scale(
-                                scale: 0.8,
-                                child: Obx(
-                                  () => Icon(
-                                    _appController.isMaximize.value
-                                        ? FontAwesomeIcons.windowRestore
-                                        : FontAwesomeIcons.square,
-                                  ),
+                              child: Obx(
+                                () => Icon(
+                                  _appController.isMaximize.value
+                                      ? Icons.close_fullscreen_rounded
+                                      : Icons.crop_square_rounded,
+                                  size: _iconSize,
                                 ),
                               ),
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            2.horizontalSpace,
                             NavBarBtn(
                               onPressed: _appController.closeWindow,
                               hoverColor: Colors.redAccent,
-                              child: const Icon(
-                                FontAwesomeIcons.xmark,
+                              child: Icon(
+                                Icons.close_rounded,
+                                size: _iconSize,
                               ),
                             ),
                           ],

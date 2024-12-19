@@ -34,7 +34,7 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todosLength = _task.todos.length;
+    final todosLength = _task.todos?.length ?? 0;
     final colorAndIcon = _getColorAndIcon();
 
     return Container(
@@ -181,13 +181,14 @@ class TaskCard extends StatelessWidget {
           Obx(
             () => Column(
               children: _homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos
-                  .map(
-                    (e) => TodoCard(
-                      taskId: _task.uuid,
-                      todo: e,
-                    ),
-                  )
-                  .toList(),
+                      ?.map(
+                        (e) => TodoCard(
+                          taskId: _task.uuid,
+                          todo: e,
+                        ),
+                      )
+                      .toList() ??
+                  [],
             ),
           ),
         ],

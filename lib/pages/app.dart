@@ -5,6 +5,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:todo_cat/controllers/timepicker_ctr.dart';
 import 'package:todo_cat/locales/locales.dart';
 import 'package:todo_cat/pages/binding.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
@@ -26,6 +27,7 @@ class _AppState extends State<App> {
   @override
   void initState() {
     Get.put(AppController());
+    Get.put(TimePickerController());
     _appController = Get.find();
 
     super.initState();

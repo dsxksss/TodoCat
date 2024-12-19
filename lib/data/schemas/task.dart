@@ -28,7 +28,13 @@ class Task {
   int reminders = 0;
 
   List<String> tags = [];
-  List<Todo> todos = [];
+  @ignore
+  List<Todo>? _todos;
+
+  List<Todo>? get todos => _todos;
+  set todos(List<Todo>? value) {
+    _todos = value != null ? List<Todo>.from(value) : null;
+  }
 }
 
 enum TaskStatus {

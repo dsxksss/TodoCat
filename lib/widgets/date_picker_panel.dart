@@ -59,7 +59,7 @@ class DatePickerPanel extends StatelessWidget {
                         _onDateSelected(now);
                       },
                       child: Text(
-                        'today'.tr,
+                        'now'.tr,
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),

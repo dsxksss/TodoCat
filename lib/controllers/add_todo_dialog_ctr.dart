@@ -133,7 +133,8 @@ class AddTodoDialogController extends GetxController {
     final titleError = _formValidator.validateTitle(titleFormCtrl.text);
     if (titleError != null) {
       _logger.w('Title validation failed: $titleError');
-      showToast(titleError, toastStyleType: TodoCatToastStyleType.error);
+      showToast('Title validation failed: $titleError',
+          toastStyleType: TodoCatToastStyleType.error);
       return false;
     }
 

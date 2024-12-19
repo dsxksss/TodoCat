@@ -79,6 +79,8 @@ class AddTodoCardBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Get.lazyPut(() => AddTodoDialogController(), fenix: true);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 15),
       child: AnimationBtn(

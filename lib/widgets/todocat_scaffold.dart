@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 
 /// 自定义 Scaffold 组件，包含导航栏和主体内容
@@ -26,15 +27,13 @@ class TodoCatScaffold extends StatelessWidget {
     return SafeArea(
       child: Column(
         children: [
-          SizedBox(
-            height: Platform.isMacOS ? 30 : 0, // MacOS 系统上增加顶部间距
-          ),
+          if (Platform.isMacOS) 15.verticalSpace,
           NavBar(
             title: _title, // 导航栏的标题
             leftWidgets: _leftWidgets, // 导航栏左侧的组件列表
             rightWidgets: _rightWidgets, // 导航栏右侧的组件列表
           ),
-          const SizedBox(height: 10), // 导航栏与主体内容之间的间距
+          5.verticalSpace, // 导航栏与主体内容之间的间距
           Expanded(child: _body), // 主体内容组件，填充剩余空间
         ],
       ),

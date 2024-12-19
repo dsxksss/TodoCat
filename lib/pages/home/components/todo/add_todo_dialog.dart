@@ -8,6 +8,7 @@ import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/add_tag_screen.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/date_picker_panel.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 import 'package:intl/intl.dart';
@@ -20,17 +21,11 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
       Get.find<AddTodoDialogController>(tag: 'add_todo_dialog');
 
   void _handleSubmit() async {
-    final bool isSuccess = await controller.submitForm();
-    if (isSuccess) {
+    if (await controller.submitForm()) {
       SmartDialog.dismiss(tag: addTodoDialogTag);
       showToast(
         "${"todo".tr} '${controller.titleFormCtrl.text}' ${"addedSuccessfully".tr}",
         toastStyleType: TodoCatToastStyleType.success,
-      );
-    } else {
-      showToast(
-        "${"todo".tr} '${controller.titleFormCtrl.text}' ${"additionFailed".tr}",
-        toastStyleType: TodoCatToastStyleType.error,
       );
     }
   }
@@ -82,7 +77,7 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
@@ -97,32 +92,42 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
                   Text(
                     "addTodo".tr,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Row(
                     children: [
-                      MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: _handleClose,
-                          child: Text(
-                            "cancel".tr,
-                            style: const TextStyle(fontSize: 14),
+                      LabelBtn(
+                        ghostStyle: true,
+                        label: Text(
+                          "cancel".tr,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 2,
+                        ),
+                        onPressed: _handleClose,
                       ),
-                      const SizedBox(width: 15),
-                      MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: _handleSubmit,
-                          child: Text(
-                            "create".tr,
-                            style: const TextStyle(fontSize: 14),
+                      const SizedBox(width: 8),
+                      LabelBtn(
+                        label: Text(
+                          "confirm".tr,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 2,
+                        ),
+                        onPressed: _handleSubmit,
                       ),
                     ],
                   ),
@@ -209,46 +214,7 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
                         ],
                       ),
                     ),
-                    Obx(
-                      () => Column(
-                        children: [
-                          if (controller.selectedTags.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: SizedBox(
-                                height: 35,
-                                child: ListView(
-                                  scrollDirection: Axis.horizontal,
-                                  physics: const AlwaysScrollableScrollPhysics(
-                                    parent: BouncingScrollPhysics(),
-                                  ),
-                                  children: [
-                                    ...controller.selectedTags.map(
-                                      (tag) => Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: TagDialogBtn(
-                                          tag: tag,
-                                          tagColor: Colors.lightBlue,
-                                          dialogTag: 'todo_tag_$tag',
-                                          showDelete: true,
-                                          onDelete: () => controller.removeTag(
-                                              controller.selectedTags
-                                                  .indexOf(tag)),
-                                          openDialog: Container(
-                                              // 这里可以添加标签编辑的对话框内容
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
+                    10.verticalSpace,
                     TextFormFieldItem(
                       textInputAction: TextInputAction.next,
                       autofocus: true,

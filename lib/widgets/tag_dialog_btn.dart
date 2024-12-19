@@ -72,8 +72,6 @@ class TagDialogBtn extends StatelessWidget {
         LabelBtn(
           interval: 5,
           reverse: true,
-          onClickScale: callback != null ? 0.97 : 1.0,
-          onHoverAnimationEnabled: callback != null,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           ghostStyle: true,
           label: _titleWidget ??
@@ -93,17 +91,9 @@ class TagDialogBtn extends StatelessWidget {
                 onTap: _onDelete,
                 behavior: HitTestBehavior.translucent,
                 child: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
                   ),
                   child: const Icon(
                     Icons.close_rounded,

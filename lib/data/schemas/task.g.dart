@@ -144,12 +144,17 @@ int _taskEstimateSize(
     }
   }
   bytesCount += 3 + object.title.length * 3;
-  bytesCount += 3 + object.todos.length * 3;
   {
-    final offsets = allOffsets[Todo]!;
-    for (var i = 0; i < object.todos.length; i++) {
-      final value = object.todos[i];
-      bytesCount += TodoSchema.estimateSize(value, offsets, allOffsets);
+    final list = object.todos;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[Todo]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += TodoSchema.estimateSize(value, offsets, allOffsets);
+        }
+      }
     }
   }
   bytesCount += 3 + object.uuid.length * 3;
@@ -199,12 +204,11 @@ Task _taskDeserialize(
   object.tags = reader.readStringList(offsets[7]) ?? [];
   object.title = reader.readString(offsets[8]);
   object.todos = reader.readObjectList<Todo>(
-        offsets[9],
-        TodoSchema.deserialize,
-        allOffsets,
-        Todo(),
-      ) ??
-      [];
+    offsets[9],
+    TodoSchema.deserialize,
+    allOffsets,
+    Todo(),
+  );
   object.uuid = reader.readString(offsets[10]);
   return object;
 }
@@ -237,12 +241,11 @@ P _taskDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 9:
       return (reader.readObjectList<Todo>(
-            offset,
-            TodoSchema.deserialize,
-            allOffsets,
-            Todo(),
-          ) ??
-          []) as P;
+        offset,
+        TodoSchema.deserialize,
+        allOffsets,
+        Todo(),
+      )) as P;
     case 10:
       return (reader.readString(offset)) as P;
     default:
@@ -1476,6 +1479,22 @@ extension TaskQueryFilter on QueryBuilder<Task, Task, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Task, Task, QAfterFilterCondition> todosIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'todos',
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition> todosIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'todos',
+      ));
+    });
+  }
+
   QueryBuilder<Task, Task, QAfterFilterCondition> todosLengthEqualTo(
       int length) {
     return QueryBuilder.apply(this, (query) {
@@ -2058,7 +2077,7 @@ extension TaskQueryProperty on QueryBuilder<Task, Task, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Task, List<Todo>, QQueryOperations> todosProperty() {
+  QueryBuilder<Task, List<Todo>?, QQueryOperations> todosProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'todos');
     });

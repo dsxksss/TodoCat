@@ -94,8 +94,7 @@ class AddTagScreen extends StatelessWidget {
                 showDelete: true,
                 onDelete: () => _onDeleteTag(index),
                 openDialog: Container(
-                    // 这里可以添加你的对话框内容
-                    // 比如编辑标签的表单等
+                    // TODO 这里可以添加你的对话框内容
                     ),
                 onDialogClose: () {
                   // 处理对话框关闭事件
