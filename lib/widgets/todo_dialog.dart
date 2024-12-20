@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/controllers/add_todo_dialog_ctr.dart';
+import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/add_tag_screen.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';

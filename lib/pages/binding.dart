@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/controllers/datepicker_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/controllers/add_todo_dialog_ctr.dart';
+import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
 import 'package:todo_cat/controllers/task_dialog_ctr.dart';
 import 'package:todo_cat/controllers/timepicker_ctr.dart';

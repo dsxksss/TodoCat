@@ -5,7 +5,7 @@ import 'package:todo_cat/controllers/datepicker_ctr.dart';
 import 'package:todo_cat/widgets/date_panel.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/time_panel.dart';
-import 'package:todo_cat/controllers/add_todo_dialog_ctr.dart';
+import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 
 class DatePickerPanel extends StatelessWidget {
   DatePickerPanel({
