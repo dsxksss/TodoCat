@@ -7,6 +7,7 @@ import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
 
 class AddTodoCardBtn extends StatelessWidget {
   const AddTodoCardBtn({
@@ -17,6 +18,9 @@ class AddTodoCardBtn extends StatelessWidget {
   final Task task;
 
   void _handlePress(BuildContext context) {
+    final homeCtrl = Get.find<HomeController>();
+    homeCtrl.selectTask(task);
+
     final todoDialogController = Get.put(
       AddTodoDialogController(),
       tag: 'add_todo_dialog',

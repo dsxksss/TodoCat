@@ -7,6 +7,7 @@ import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/add_tag_screen.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 
 class TaskDialog extends GetView<TaskDialogController> {
   const TaskDialog({super.key});
@@ -71,8 +72,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                           horizontal: 12,
                           vertical: 2,
                         ),
-                        onPressed: () =>
-                            SmartDialog.dismiss(tag: addTaskDialogTag),
+                        onPressed: _handleClose,
                       ),
                       const SizedBox(width: 8),
                       LabelBtn(
@@ -151,5 +151,26 @@ class TaskDialog extends GetView<TaskDialogController> {
         ),
       ),
     );
+  }
+
+  void _handleClose() {
+    if (controller.hasChanges()) {
+      showToast(
+        "${"saveEditing".tr}?",
+        tag: confirmDialogTag,
+        alwaysShow: true,
+        confirmMode: true,
+        onYesCallback: () {
+          controller.submitTask();
+          SmartDialog.dismiss(tag: addTaskDialogTag);
+        },
+        onNoCallback: () {
+          controller.restoreOriginalState();
+          SmartDialog.dismiss(tag: addTaskDialogTag);
+        },
+      );
+    } else {
+      SmartDialog.dismiss(tag: addTaskDialogTag);
+    }
   }
 }

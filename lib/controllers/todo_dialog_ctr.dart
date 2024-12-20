@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:uuid/uuid.dart';
 import 'package:todo_cat/controllers/base_dialog_ctr.dart';
 
@@ -15,7 +16,6 @@ class AddTodoDialogController extends BaseDialogController {
   final remindersValue = 0.obs;
   final remindersText = "".obs;
 
-  // 改为可空类型，移除 late
   Map<String, dynamic>? _originalState;
 
   @override
@@ -79,6 +79,37 @@ class AddTodoDialogController extends BaseDialogController {
         BaseDialogController.logger.e('Error updating todo: $e');
       }
     } else {
+      if (taskId == null || taskId!.isEmpty) {
+        BaseDialogController.logger.e('No task ID provided for new todo');
+        showToast(
+          'selectTaskFirst'.tr,
+          toastStyleType: TodoCatToastStyleType.error,
+        );
+        return false;
+      }
+
+      try {
+        final task = Get.find<HomeController>()
+            .tasks
+            .firstWhereOrNull((task) => task.uuid == taskId);
+
+        if (task == null) {
+          BaseDialogController.logger.e('Task not found: $taskId');
+          showToast(
+            'taskNotFound'.tr,
+            toastStyleType: TodoCatToastStyleType.error,
+          );
+          return false;
+        }
+      } catch (e) {
+        BaseDialogController.logger.e('Error finding task: $e');
+        showToast(
+          'taskNotFound'.tr,
+          toastStyleType: TodoCatToastStyleType.error,
+        );
+        return false;
+      }
+
       final todo = Todo()
         ..uuid = const Uuid().v4()
         ..title = titleController.text
@@ -91,13 +122,18 @@ class AddTodoDialogController extends BaseDialogController {
         ..reminders = remindersValue.value;
 
       try {
-        final bool isSuccess = await Get.find<HomeController>().addTodo(todo);
+        final bool isSuccess =
+            await Get.find<HomeController>().addTodo(todo, taskId!);
         if (isSuccess) {
           clearForm();
           return true;
         }
       } catch (e) {
         BaseDialogController.logger.e('Error submitting todo: $e');
+        showToast(
+          'addTodoFailed'.tr,
+          toastStyleType: TodoCatToastStyleType.error,
+        );
       }
     }
     return false;
@@ -126,6 +162,7 @@ class AddTodoDialogController extends BaseDialogController {
 
   @override
   void clearForm() {
+    BaseDialogController.logger.d('Clearing todo form');
     super.clearForm();
     todoToEdit = null;
     taskId = null;
@@ -133,8 +170,9 @@ class AddTodoDialogController extends BaseDialogController {
     selectedPriority.value = TodoPriority.lowLevel;
     remindersText.value = "${"enter".tr}${"time".tr}";
     remindersValue.value = 0;
+    selectedDate.value = null;
     _dialogCache.remove(dialogId);
-    _originalState = null; // 清空原始状态
+    _originalState = null;
   }
 
   void initForEditing(String taskId, Todo todo) {
@@ -151,6 +189,8 @@ class AddTodoDialogController extends BaseDialogController {
 
     if (todo.finishedAt > 0) {
       selectedDate.value = DateTime.fromMillisecondsSinceEpoch(todo.finishedAt);
+    } else {
+      selectedDate.value = null;
     }
 
     // 记录原始状态用于比较
@@ -162,18 +202,65 @@ class AddTodoDialogController extends BaseDialogController {
       'reminders': todo.reminders,
       'finishedAt': todo.finishedAt,
     };
+
+    BaseDialogController.logger.d('Original state saved: $_originalState');
   }
 
   bool hasChanges() {
     if (!isEditing.value || _originalState == null) return false;
 
-    return titleController.text != _originalState!['title'] ||
-        descriptionController.text != _originalState!['description'] ||
-        !listEquals(selectedTags, _originalState!['tags'] as List<String>) ||
-        selectedPriority.value != _originalState!['priority'] ||
-        remindersValue.value != _originalState!['reminders'] ||
-        selectedDate.value?.millisecondsSinceEpoch !=
-            _originalState!['finishedAt'];
+    // 只有当实际有改变时才返回 true
+    bool titleChanged = titleController.text != _originalState!['title'];
+    bool descriptionChanged =
+        descriptionController.text != _originalState!['description'];
+    bool tagsChanged =
+        !listEquals(selectedTags, _originalState!['tags'] as List<String>);
+    bool priorityChanged =
+        selectedPriority.value != _originalState!['priority'];
+    bool remindersChanged =
+        remindersValue.value != _originalState!['reminders'];
+    bool dateChanged = false;
+
+    // 特殊处理日期比较
+    if (selectedDate.value == null) {
+      dateChanged = _originalState!['finishedAt'] != 0;
+    } else {
+      dateChanged = selectedDate.value!.millisecondsSinceEpoch !=
+          _originalState!['finishedAt'];
+    }
+
+    // 调试日志
+    if (titleChanged) {
+      BaseDialogController.logger.d(
+          'Title changed: ${titleController.text} != ${_originalState!['title']}');
+    }
+    if (descriptionChanged) {
+      BaseDialogController.logger.d(
+          'Description changed: ${descriptionController.text} != ${_originalState!['description']}');
+    }
+    if (tagsChanged) {
+      BaseDialogController.logger
+          .d('Tags changed: $selectedTags != ${_originalState!['tags']}');
+    }
+    if (priorityChanged) {
+      BaseDialogController.logger.d(
+          'Priority changed: ${selectedPriority.value} != ${_originalState!['priority']}');
+    }
+    if (remindersChanged) {
+      BaseDialogController.logger.d(
+          'Reminders changed: ${remindersValue.value} != ${_originalState!['reminders']}');
+    }
+    if (dateChanged) {
+      BaseDialogController.logger.d(
+          'Date changed: ${selectedDate.value?.millisecondsSinceEpoch} != ${_originalState!['finishedAt']}');
+    }
+
+    return titleChanged ||
+        descriptionChanged ||
+        tagsChanged ||
+        priorityChanged ||
+        remindersChanged ||
+        dateChanged;
   }
 
   void restoreOriginalState() {
@@ -194,5 +281,5 @@ class AddTodoDialogController extends BaseDialogController {
     }
   }
 
-  // ... 其他特定于待办事项的方法
+  // ... 其他特定于办事项的方法
 }

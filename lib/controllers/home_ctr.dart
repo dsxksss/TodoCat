@@ -4,7 +4,6 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_cat/config/default_data.dart';
-import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/test/todo.dart';
@@ -93,34 +92,23 @@ class HomeController extends GetxController with ScrollControllerMixin {
     selectedTaskId.value = ''; // 清除 selectedTaskId
   }
 
-  Future<bool> addTodo(Todo todo) async {
+  Future<bool> addTodo(Todo todo, String taskId) async {
     try {
-      if (selectedTaskId.value.isEmpty) {
-        _logger.w('No task selected for adding todo');
-        return false;
-      }
+      _logger.d('Adding todo to task: $taskId');
 
-      final task =
-          tasks.firstWhereOrNull((t) => t.uuid == selectedTaskId.value);
-      if (task == null) {
-        _logger.w('Selected task not found: ${selectedTaskId.value}');
-        return false;
-      }
+      // 检查任务是否存在
+      final task = tasks.firstWhere(
+        (task) => task.uuid == taskId,
+      );
 
-      if (task.todos == null) {
-        task.todos = <Todo>[];
-      } else {
-        task.todos = List<Todo>.from(task.todos!);
-      }
+      // 初始化 todos 列表
+      task.todos ??= [];
 
+      // 添加新的 todo
       task.todos!.add(todo);
-      await _taskManager.updateTask(task.uuid, task);
+      await updateTask(taskId, task);
 
-      if (todo.reminders > 0) {
-        await _setLocalNotification(todo);
-      }
-
-      tasks.refresh();
+      _logger.d('Todo added successfully');
       return true;
     } catch (e) {
       _logger.e('Error adding todo: $e');
@@ -198,7 +186,7 @@ class HomeController extends GetxController with ScrollControllerMixin {
         final todoIndex = random.nextInt(3);
         if (task.todos == null ||
             !task.todos!.contains(todoTestList[todoIndex])) {
-          await addTodo(todoTestList[todoIndex]);
+          await addTodo(todoTestList[todoIndex], task.uuid);
         }
       }
       deselectTask();
@@ -241,29 +229,6 @@ class HomeController extends GetxController with ScrollControllerMixin {
     _logger.d('Updating task: $uuid');
     await _taskManager.updateTask(uuid, task);
     return true;
-  }
-
-  Future<void> _setLocalNotification(Todo todo) async {
-    try {
-      final notice = LocalNotice(
-        noticeId: todo.uuid,
-        title: todo.title,
-        description: todo.description,
-        createdAt: todo.createdAt,
-        remindersAt: todo.reminders,
-        email: appCtrl.appConfig.value.emailReminderEnabled
-            ? "user@example.com"
-            : "",
-      );
-
-      await appCtrl.localNotificationManager.saveNotification(
-        key: todo.uuid,
-        notice: notice,
-        emailReminderEnabled: appCtrl.appConfig.value.emailReminderEnabled,
-      );
-    } catch (e) {
-      _logger.e('Error setting local notification: $e');
-    }
   }
 
   Future<bool> deleteTodo(String taskUuid, String todoUuid) async {

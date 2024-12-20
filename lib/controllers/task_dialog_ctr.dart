@@ -11,13 +11,25 @@ import 'package:todo_cat/controllers/base_dialog_ctr.dart';
 class TaskDialogController extends BaseDialogController {
   Task? taskToEdit;
   final homeController = Get.find<HomeController>();
-
   Map<String, dynamic>? _originalState;
 
   @override
   void onInit() {
     super.onInit();
     _originalState = null;
+    ever(isEditing, (_) {
+      // 当编辑状态改变时，确保数据正确更新
+      if (isEditing.value && taskToEdit != null) {
+        _updateFormData();
+      }
+    });
+  }
+
+  void _updateFormData() {
+    titleController.text = taskToEdit!.title;
+    descriptionController.text =
+        taskToEdit!.description.isEmpty ? '' : taskToEdit!.description;
+    selectedTags.value = List<String>.from(taskToEdit!.tags);
   }
 
   void initForEditing(Task task) {
@@ -26,27 +38,47 @@ class TaskDialogController extends BaseDialogController {
 
     // 保存原有状态
     titleController.text = task.title;
-    descriptionController.text = task.description;
-    selectedTags.value = List<String>.from(task.tags); // 创建新列表以避免引用
+    descriptionController.text =
+        task.description.isEmpty ? '' : task.description;
+    selectedTags.value = List<String>.from(task.tags);
 
     // 记录原始状态用于比较
     _originalState = {
       'title': task.title,
-      'description': task.description,
+      'description': task.description.isEmpty ? '' : task.description,
       'tags': List<String>.from(task.tags),
     };
+
+    BaseDialogController.logger.d('Original task state saved: $_originalState');
   }
 
-  // 添加一个方法检查是否有更改
   bool hasChanges() {
     if (!isEditing.value || _originalState == null) return false;
 
-    return titleController.text != _originalState!['title'] ||
-        descriptionController.text != _originalState!['description'] ||
+    // 只有当实际有改变时才返回 true
+    bool titleChanged = titleController.text != _originalState!['title'];
+    bool descriptionChanged =
+        descriptionController.text != _originalState!['description'];
+    bool tagsChanged =
         !listEquals(selectedTags, _originalState!['tags'] as List<String>);
+
+    // 调试日志
+    if (titleChanged) {
+      BaseDialogController.logger.d(
+          'Task title changed: ${titleController.text} != ${_originalState!['title']}');
+    }
+    if (descriptionChanged) {
+      BaseDialogController.logger.d(
+          'Task description changed: ${descriptionController.text} != ${_originalState!['description']}');
+    }
+    if (tagsChanged) {
+      BaseDialogController.logger
+          .d('Task tags changed: $selectedTags != ${_originalState!['tags']}');
+    }
+
+    return titleChanged || descriptionChanged || tagsChanged;
   }
 
-  // 添加一个方法恢复原始状态
   void restoreOriginalState() {
     if (!isEditing.value || _originalState == null) return;
 
@@ -58,13 +90,14 @@ class TaskDialogController extends BaseDialogController {
 
   @override
   void clearForm() {
+    BaseDialogController.logger.d('Clearing task form');
     super.clearForm();
     taskToEdit = null;
     isEditing.value = false;
     _originalState = null;
   }
 
-  void submitTask() async {
+  Future<void> submitTask() async {
     if (!formKey.currentState!.validate()) return;
 
     if (isEditing.value && taskToEdit != null) {
@@ -73,7 +106,8 @@ class TaskDialogController extends BaseDialogController {
         ..title = titleController.text
         ..description = descriptionController.text
         ..tags = selectedTags.toList()
-        ..createdAt = taskToEdit!.createdAt;
+        ..createdAt = taskToEdit!.createdAt
+        ..todos = taskToEdit!.todos;
 
       final success =
           await homeController.updateTask(taskToEdit!.uuid, updatedTask);
@@ -97,7 +131,8 @@ class TaskDialogController extends BaseDialogController {
         ..title = titleController.text
         ..description = descriptionController.text
         ..tags = selectedTags.toList()
-        ..createdAt = DateTime.now().millisecondsSinceEpoch;
+        ..createdAt = DateTime.now().millisecondsSinceEpoch
+        ..todos = [];
 
       await homeController.addTask(task);
 
