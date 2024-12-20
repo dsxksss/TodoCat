@@ -309,6 +309,99 @@ class HomeController extends GetxController with ScrollControllerMixin {
             tasks.where((t) => t.status == TaskStatus.inProgress).length,
         done: tasks.where((t) => t.status == TaskStatus.done).length,
       );
+
+  Future<void> reorderTodo(String taskId, int oldIndex, int newIndex) async {
+    try {
+      final taskIndex = tasks.indexWhere((task) => task.uuid == taskId);
+      if (taskIndex == -1) return;
+
+      final task = tasks[taskIndex];
+      if (task.todos == null || task.todos!.isEmpty) return;
+
+      // 如果新位置在列表末尾，调整索引
+      if (newIndex == task.todos!.length + 1) {
+        newIndex = task.todos!.length;
+      }
+
+      // 创建新的todos列表
+      final List<Todo> newTodos = List.from(task.todos!);
+      final todo = newTodos.removeAt(oldIndex);
+      newTodos.insert(newIndex, todo);
+
+      // 更新task的todos
+      task.todos = newTodos;
+
+      // 保存更改到存储
+      await _taskManager.updateTask(taskId, task);
+      // 刷新UI
+      await _taskManager.refresh();
+
+      _logger.d('Todo reordered from $oldIndex to $newIndex in task $taskId');
+    } catch (e) {
+      _logger.e('Error reordering todo: $e');
+    }
+  }
+
+  /// 将todo从一个task移动到另一个task
+  Future<void> moveTodoToTask(
+      String fromTaskId, String toTaskId, String todoId) async {
+    try {
+      final fromTask = tasks.firstWhere((task) => task.uuid == fromTaskId);
+      final toTask = tasks.firstWhere((task) => task.uuid == toTaskId);
+
+      if (fromTask.todos == null || toTask.todos == null) return;
+
+      // 找到要移动的todo
+      final todoToMove =
+          fromTask.todos!.firstWhere((todo) => todo.uuid == todoId);
+
+      // 从原task中移除
+      fromTask.todos!.removeWhere((todo) => todo.uuid == todoId);
+
+      // 添加到新task中
+      toTask.todos ??= [];
+      toTask.todos!.add(todoToMove);
+
+      // 保存更改
+      await _taskManager.updateTask(fromTaskId, fromTask);
+      await _taskManager.updateTask(toTaskId, toTask);
+      await _taskManager.refresh();
+
+      _logger.d('Todo $todoId moved from task $fromTaskId to task $toTaskId');
+    } catch (e) {
+      _logger.e('Error moving todo between tasks: $e');
+    }
+  }
+
+  /// 检查是否可以将todo移动到目标task
+  bool canMoveTodoToTask(String fromTaskId, String toTaskId) {
+    // 这里可以添加一些验证逻辑，比如检查目标task是否允许添加todo等
+    return fromTaskId != toTaskId;
+  }
+
+  /// 在同一个task内重新排序todo
+  Future<void> reorderTodoInSameTask(
+      String taskId, Todo todo, int newIndex) async {
+    try {
+      final task = tasks.firstWhere((task) => task.uuid == taskId);
+      if (task.todos == null || task.todos!.isEmpty) return;
+
+      // 移除原来的todo
+      task.todos!.removeWhere((t) => t.uuid == todo.uuid);
+
+      // 在新位置插入
+      newIndex = newIndex.clamp(0, task.todos!.length);
+      task.todos!.insert(newIndex, todo);
+
+      // 保存更改
+      await _taskManager.updateTask(taskId, task);
+      await _taskManager.refresh();
+
+      _logger.d('Todo reordered in same task at index $newIndex');
+    } catch (e) {
+      _logger.e('Error reordering todo in same task: $e');
+    }
+  }
 }
 
 class TaskStats {

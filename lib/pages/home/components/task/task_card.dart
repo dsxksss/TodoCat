@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:reorderables/reorderables.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
@@ -53,152 +54,201 @@ class TaskCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Flex(
-        direction: Axis.vertical,
-        children: [
-          const SizedBox(
-            height: 10,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Container(
-                    width: 5,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: colorAndIcon[0],
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Icon(
-                    colorAndIcon[1],
-                    size: colorAndIcon[1] == FontAwesomeIcons.pencil ? 18 : 20,
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    _task.title.tr,
-                    style: GoogleFonts.getFont(
-                      'Ubuntu',
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  if (todosLength > 0)
+      child: DragTarget<Map<String, dynamic>>(
+        onWillAcceptWithDetails: (details) {
+          return details.data['fromTaskId'] != _task.uuid;
+        },
+        onAcceptWithDetails: (details) {
+          final data = details.data;
+          _homeCtrl.moveTodoToTask(
+            data['fromTaskId']!,
+            _task.uuid,
+            data['todoId']!,
+          );
+        },
+        builder: (context, candidateData, rejectedData) {
+          final isTargeted = candidateData.isNotEmpty;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              color: isTargeted
+                  ? context.theme.highlightColor.withOpacity(0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Flex(
+              direction: Axis.vertical,
+              children: [
+                const SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Row(
                       children: [
                         const SizedBox(
-                          width: 10,
+                          width: 18,
                         ),
                         Container(
-                          width: 24,
+                          width: 5,
                           height: 20,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: const Color.fromRGBO(225, 224, 240, 1),
+                            color: colorAndIcon[0],
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Center(
-                            child: Text(
-                              todosLength.toString(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromRGBO(17, 10, 76, 1),
-                              ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Icon(
+                          colorAndIcon[1],
+                          size: colorAndIcon[1] == FontAwesomeIcons.pencil
+                              ? 18
+                              : 20,
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          _task.title.tr,
+                          style: GoogleFonts.getFont(
+                            'Ubuntu',
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
+                        if (todosLength > 0)
+                          Row(
+                            children: [
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Container(
+                                width: 24,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  color: const Color.fromRGBO(225, 224, 240, 1),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    todosLength.toString(),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromRGBO(17, 10, 76, 1),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 15),
-                child: DPDMenuBtn(
-                  tag: dropDownMenuBtnTag,
-                  menuItems: [
-                    MenuItem(
-                      title: 'edit',
-                      iconData: FontAwesomeIcons.penToSquare,
-                      callback: () async {
-                        final taskDialogController =
-                            Get.put(TaskDialogController());
-                        taskDialogController.initForEditing(_task);
+                    Padding(
+                      padding: const EdgeInsets.only(right: 15),
+                      child: DPDMenuBtn(
+                        tag: dropDownMenuBtnTag,
+                        menuItems: [
+                          MenuItem(
+                            title: 'edit',
+                            iconData: FontAwesomeIcons.penToSquare,
+                            callback: () async {
+                              final taskDialogController =
+                                  Get.put(TaskDialogController());
+                              taskDialogController.initForEditing(_task);
 
-                        DialogService.showFormDialog(
-                          tag: addTaskDialogTag,
-                          dialog: const TaskDialog(),
-                        );
-                      },
-                    ),
-                    MenuItem(
-                      title: 'delete',
-                      iconData: FontAwesomeIcons.trashCan,
-                      callback: () => {
-                        showToast(
-                          "sureDeleteTask".tr,
-                          alwaysShow: true,
-                          confirmMode: true,
-                          toastStyleType: TodoCatToastStyleType.error,
-                          onYesCallback: () async {
-                            final bool isDeleted =
-                                await _homeCtrl.deleteTask(_task.uuid);
-                            0.5.delay(() {
-                              if (isDeleted) {
-                                showToast(
-                                  "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",
-                                  toastStyleType: TodoCatToastStyleType.success,
-                                );
-                              } else {
-                                showToast(
-                                  "${"task".tr} '${_task.title.tr}' ${"deletionFailed".tr}",
-                                  toastStyleType: TodoCatToastStyleType.error,
-                                );
-                              }
-                            });
-                          },
-                        )
-                      },
-                    ),
+                              DialogService.showFormDialog(
+                                tag: addTaskDialogTag,
+                                dialog: const TaskDialog(),
+                              );
+                            },
+                          ),
+                          MenuItem(
+                            title: 'delete',
+                            iconData: FontAwesomeIcons.trashCan,
+                            callback: () => {
+                              showToast(
+                                "sureDeleteTask".tr,
+                                alwaysShow: true,
+                                confirmMode: true,
+                                toastStyleType: TodoCatToastStyleType.error,
+                                onYesCallback: () async {
+                                  final bool isDeleted =
+                                      await _homeCtrl.deleteTask(_task.uuid);
+                                  0.5.delay(() {
+                                    if (isDeleted) {
+                                      showToast(
+                                        "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",
+                                        toastStyleType:
+                                            TodoCatToastStyleType.success,
+                                      );
+                                    } else {
+                                      showToast(
+                                        "${"task".tr} '${_task.title.tr}' ${"deletionFailed".tr}",
+                                        toastStyleType:
+                                            TodoCatToastStyleType.error,
+                                      );
+                                    }
+                                  });
+                                },
+                              )
+                            },
+                          ),
+                        ],
+                      ),
+                    )
                   ],
                 ),
-              )
-            ],
-          ),
-          const SizedBox(
-            height: 15,
-          ),
-          AddTodoCardBtn(
-            task: _task,
-          ),
-          const SizedBox(
-            height: 15,
-          ),
-          Obx(
-            () => Column(
-              children: _homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos
-                      ?.map(
-                        (e) => TodoCard(
-                          taskId: _task.uuid,
-                          todo: e,
-                        ),
-                      )
-                      .toList() ??
-                  [],
+                const SizedBox(
+                  height: 15,
+                ),
+                AddTodoCardBtn(
+                  task: _task,
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Obx(
+                  () {
+                    final todos =
+                        _homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos ??
+                            [];
+                    return ReorderableColumn(
+                      needsLongPressDraggable: true,
+                      scrollController: ScrollController(),
+                      onReorder: (oldIndex, newIndex) {
+                        _homeCtrl.reorderTodo(_task.uuid, oldIndex, newIndex);
+                      },
+                      onNoReorder: (index) {
+                        _homeCtrl.endDragging();
+                      },
+                      onReorderStarted: (index) {
+                        _homeCtrl.startDragging();
+                      },
+                      buildDraggableFeedback: (context, constraints, child) {
+                        return Material(
+                          color: Colors.transparent.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(10),
+                        );
+                      },
+                      children: todos
+                          .map((todo) => TodoCard(
+                                key: ValueKey(todo.uuid),
+                                taskId: _task.uuid,
+                                todo: todo,
+                              ))
+                          .toList(),
+                    );
+                  },
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
