@@ -8,6 +8,9 @@ import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
+import 'package:todo_cat/widgets/todo_dialog.dart';
+import 'package:todo_cat/services/dialog_service.dart';
 
 class TodoCard extends StatelessWidget {
   TodoCard({
@@ -91,13 +94,19 @@ class TodoCard extends StatelessWidget {
                     MenuItem(
                       title: 'edit',
                       iconData: FontAwesomeIcons.penToSquare,
-                      callback: () => {
-                        showToast(
-                          todo.title,
-                          suffix: "编辑成功",
-                          suffixGap: 5,
-                          toastStyleType: TodoCatToastStyleType.success,
-                        )
+                      callback: () async {
+                        final todoDialogController = Get.put(
+                          AddTodoDialogController(),
+                          tag: 'edit_todo_dialog',
+                          permanent: true,
+                        );
+                        todoDialogController.initForEditing(taskId, todo);
+
+                        DialogService.showFormDialog(
+                          tag: addTodoDialogTag,
+                          dialog:
+                              const TodoDialog(dialogTag: 'edit_todo_dialog'),
+                        );
                       },
                     ),
                     MenuItem(

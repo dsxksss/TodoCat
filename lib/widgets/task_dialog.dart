@@ -124,7 +124,6 @@ class TaskDialog extends GetView<TaskDialogController> {
                       validator: (_) => null,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                       editingController: controller.tagController,
-                      ghostStyle: true,
                       onSubmitted: (_) => controller.addTag(),
                       selectedTags: controller.selectedTags,
                       onDeleteTag: controller.removeTag,

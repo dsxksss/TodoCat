@@ -6,48 +6,32 @@ import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 class AddTagScreen extends StatelessWidget {
   const AddTagScreen({
     super.key,
-    int? maxLines,
-    double radius = 10,
-    bool obscureText = false,
-    required int maxLength,
-    required String fieldTitle,
-    String? Function(String?)? validator,
-    required TextEditingController editingController,
-    EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
-    bool? ghostStyle,
-    Color? fillColor,
-    Widget? suffix,
-    TextInputAction? textInputAction,
-    Function(String)? onSubmitted,
-    required RxList<String> selectedTags,
-    required Function(int) onDeleteTag,
-  })  : _fillColor = fillColor,
-        _validator = validator,
-        _editingController = editingController,
-        _contentPadding = contentPadding,
-        _maxLines = maxLines,
-        _maxLength = maxLength,
-        _fieldTitle = fieldTitle,
-        _obscureText = obscureText,
-        _radius = radius,
-        _textInputAction = textInputAction,
-        _onSubmitted = onSubmitted,
-        _selectedTags = selectedTags,
-        _onDeleteTag = onDeleteTag;
+    this.textInputAction,
+    required this.maxLength,
+    this.maxLines = 1,
+    this.radius = 0,
+    required this.fieldTitle,
+    this.validator,
+    required this.contentPadding,
+    required this.editingController,
+    this.ghostStyle = false,
+    required this.onSubmitted,
+    required this.selectedTags,
+    required this.onDeleteTag,
+  });
 
-  final String _fieldTitle;
-  final Color? _fillColor;
-  final int _maxLength;
-  final int? _maxLines;
-  final double _radius;
-  final EdgeInsets _contentPadding;
-  final bool _obscureText;
-  final TextEditingController _editingController;
-  final String? Function(String?)? _validator;
-  final TextInputAction? _textInputAction;
-  final Function(String)? _onSubmitted;
-  final RxList<String> _selectedTags;
-  final Function(int) _onDeleteTag;
+  final TextInputAction? textInputAction;
+  final int maxLength;
+  final int maxLines;
+  final double radius;
+  final String fieldTitle;
+  final String? Function(String?)? validator;
+  final EdgeInsets contentPadding;
+  final TextEditingController editingController;
+  final bool ghostStyle;
+  final void Function(String) onSubmitted;
+  final RxList<String> selectedTags;
+  final Function(int) onDeleteTag;
 
   @override
   Widget build(BuildContext context) {
@@ -55,21 +39,20 @@ class AddTagScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormFieldItem(
-          textInputAction: _textInputAction,
-          maxLength: _maxLength,
-          maxLines: _maxLines,
-          fillColor: _fillColor,
-          contentPadding: _contentPadding,
-          obscureText: _obscureText,
-          fieldTitle: _fieldTitle,
-          editingController: _editingController,
-          ghostStyle: false,
-          radius: _radius,
-          validator: _validator,
+          textInputAction: textInputAction,
+          maxLength: maxLength,
+          maxLines: maxLines,
+          radius: radius,
+          fieldTitle: fieldTitle,
+          validator: validator,
+          contentPadding: contentPadding,
+          editingController: editingController,
+          ghostStyle: ghostStyle,
+          onFieldSubmitted: (value) => onSubmitted(value),
           suffix: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              onTap: () => _onSubmitted?.call(_editingController.text),
+              onTap: () => onSubmitted(editingController.text),
               child: Text(
                 "addTag".tr,
                 style: const TextStyle(
@@ -78,31 +61,26 @@ class AddTagScreen extends StatelessWidget {
               ),
             ),
           ),
-          onFieldSubmitted: (_) {},
         ),
-        const SizedBox(height: 8),
-        Obx(
-          () => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: List.generate(
-              _selectedTags.length,
-              (index) => TagDialogBtn(
-                tag: _selectedTags[index],
-                tagColor: Colors.lightBlue,
-                dialogTag: 'tag_${_selectedTags[index]}',
-                showDelete: true,
-                onDelete: () => _onDeleteTag(index),
-                openDialog: Container(
-                    // TODO 这里可以添加你的对话框内容
-                    ),
-                onDialogClose: () {
-                  // 处理对话框关闭事件
-                },
+        const SizedBox(height: 10),
+        Obx(() => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(
+                selectedTags.length,
+                (index) => TagDialogBtn(
+                  tag: selectedTags[index],
+                  tagColor: Colors.blueAccent,
+                  dialogTag: 'tag_${selectedTags[index]}',
+                  showDelete: true,
+                  onDelete: () => onDeleteTag(index),
+                  openDialog: const SizedBox.shrink(),
+                  onDialogClose: () {
+                    // 处理对话框关闭事件
+                  },
+                ),
               ),
-            ),
-          ),
-        ),
+            )),
       ],
     );
   }

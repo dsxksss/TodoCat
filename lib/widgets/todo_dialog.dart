@@ -12,36 +12,44 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 import 'package:intl/intl.dart';
 
-class AddTodoDialog extends GetView<AddTodoDialogController> {
-  const AddTodoDialog({super.key});
+class TodoDialog extends GetView<AddTodoDialogController> {
+  const TodoDialog({
+    super.key,
+    required this.dialogTag,
+  });
+
+  final String dialogTag;
+
+  @override
+  String? get tag => dialogTag;
 
   @override
   AddTodoDialogController get controller =>
-      Get.find<AddTodoDialogController>(tag: 'add_todo_dialog');
+      Get.find<AddTodoDialogController>(tag: dialogTag);
 
   void _handleSubmit() async {
     if (await controller.submitForm()) {
       SmartDialog.dismiss(tag: addTodoDialogTag);
       showToast(
-        "${"todo".tr} '${controller.titleFormCtrl.text}' ${"addedSuccessfully".tr}",
+        "${"todo".tr} '${controller.titleController.text}' ${"addedSuccessfully".tr}",
         toastStyleType: TodoCatToastStyleType.success,
       );
     }
   }
 
   void _handleClose() {
-    if (controller.isDataNotEmpty()) {
+    if (controller.hasChanges()) {
       showToast(
         "${"saveEditing".tr}?",
         tag: confirmDialogTag,
         alwaysShow: true,
         confirmMode: true,
         onYesCallback: () {
-          controller.saveCache();
+          controller.submitForm();
           SmartDialog.dismiss(tag: addTodoDialogTag);
         },
         onNoCallback: () {
-          controller.clearForm();
+          controller.restoreOriginalState();
           SmartDialog.dismiss(tag: addTodoDialogTag);
         },
       );
@@ -223,7 +231,7 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
                       radius: 6,
                       fieldTitle: "title".tr,
                       validator: controller.validateTitle,
-                      editingController: controller.titleFormCtrl,
+                      editingController: controller.titleController,
                       onFieldSubmitted: (_) {},
                     ),
                     const SizedBox(height: 10),
@@ -236,8 +244,7 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
                       validator: (_) => null,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                       editingController: controller.tagController,
-                      ghostStyle: true,
-                      onSubmitted: (_) => controller.addTag(),
+                      onSubmitted: (value) => controller.addTag(),
                       selectedTags: controller.selectedTags,
                       onDeleteTag: controller.removeTag,
                     ),
@@ -245,13 +252,15 @@ class AddTodoDialog extends GetView<AddTodoDialogController> {
                     TextFormFieldItem(
                       textInputAction: TextInputAction.done,
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 10),
+                        horizontal: 5,
+                        vertical: 10,
+                      ),
                       maxLength: 400,
                       maxLines: 8,
                       radius: 6,
                       fieldTitle: "description".tr,
                       validator: (_) => null,
-                      editingController: controller.descriptionFormCtrl,
+                      editingController: controller.descriptionController,
                       onFieldSubmitted: (_) {},
                     ),
                   ],

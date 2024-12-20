@@ -10,6 +10,9 @@ import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/pages/home/components/todo/add_todo_card_btn.dart';
 import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:todo_cat/controllers/task_dialog_ctr.dart';
+import 'package:todo_cat/widgets/task_dialog.dart';
+import 'package:todo_cat/services/dialog_service.dart';
 
 class TaskCard extends StatelessWidget {
   TaskCard({super.key, required Task task}) : _task = task;
@@ -128,11 +131,15 @@ class TaskCard extends StatelessWidget {
                     MenuItem(
                       title: 'edit',
                       iconData: FontAwesomeIcons.penToSquare,
-                      callback: () => {
-                        showToast(
-                          "${_task.title} 编辑成功",
-                          toastStyleType: TodoCatToastStyleType.success,
-                        )
+                      callback: () async {
+                        final taskDialogController =
+                            Get.put(TaskDialogController());
+                        taskDialogController.initForEditing(_task);
+
+                        DialogService.showFormDialog(
+                          tag: addTaskDialogTag,
+                          dialog: const TaskDialog(),
+                        );
                       },
                     ),
                     MenuItem(
