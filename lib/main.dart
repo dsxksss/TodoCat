@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_cat/data/services/database.dart';
 import 'package:flutter/services.dart';
@@ -29,7 +28,7 @@ void main() async {
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   }
 
-  runApp(DevicePreview(
-    builder: (_) => const App(),
-  ));
+  runApp(
+    const App(),
+  );
 }
