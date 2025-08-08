@@ -20,7 +20,7 @@ class SettingsContent extends GetView<SettingsController> {
             color: Theme.of(context).scaffoldBackgroundColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               ),
@@ -100,6 +100,11 @@ class SettingsContent extends GetView<SettingsController> {
         leading: const Icon(Icons.restart_alt_rounded),
         title: Text('resetSettings'.tr),
       ),
+      SettingsTile(
+        onPressed: (_) => _showResetTasksTemplateToast(),
+        leading: const Icon(Icons.restart_alt_rounded),
+        title: Text('resetTasksTemplate'.tr),
+      ),
       SettingsTile.switchTile(
         onToggle: (_) => controller.targetEmailReminder(),
         onPressed: (_) => controller.targetEmailReminder(),
@@ -126,6 +131,20 @@ class SettingsContent extends GetView<SettingsController> {
       onYesCallback: () {
         controller.resetConfig();
         showToast("设置已重置", toastStyleType: TodoCatToastStyleType.success);
+      },
+    );
+  }
+
+  void _showResetTasksTemplateToast() {
+    showToast(
+      "areYouSureResetTasksTemplate".tr,
+      confirmMode: true,
+      alwaysShow: true,
+      toastStyleType: TodoCatToastStyleType.warning,
+      onYesCallback: () {
+        controller.resetTasksTemplate();
+        showToast("tasksTemplateResetSuccess".tr,
+            toastStyleType: TodoCatToastStyleType.success);
       },
     );
   }

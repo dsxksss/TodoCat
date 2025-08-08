@@ -162,14 +162,20 @@ class HomeController extends GetxController with ScrollControllerMixin {
     }
   }
 
+  Future<void> resetTasksTemplate() async {
+    await _taskManager.resetTasksTemplate();
+  }
+
   Future<void> _showEmptyTaskToast() async {
     await 2.delay();
     showToast(
-      "当前任务为空, 是否需要添加任务示例模板?",
+      "isResetTasksTemplate".tr,
       alwaysShow: true,
       confirmMode: true,
       onYesCallback: () async {
-        await _taskManager.assignAll(defaultTasks);
+        await resetTasksTemplate();
+        showToast("tasksTemplateResetSuccess".tr,
+            toastStyleType: TodoCatToastStyleType.success);
       },
     );
   }

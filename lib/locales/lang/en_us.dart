@@ -82,4 +82,8 @@ const Map<String, String> enUS = {
   'tagDuplicate': 'Tag already exists',
   'confirm': 'Confirm',
   'noDateTime': 'Clear',
+  'isResetTasksTemplate': 'The task is empty, do you want to add a task example template?',
+  'areYouSureResetTasksTemplate': 'Are you sure you want to reset the tasks template?',
+  'tasksTemplateResetSuccess': 'Tasks template reset successfully',
+  'resetTasksTemplate': 'Reset tasks template',
 };

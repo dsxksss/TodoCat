@@ -82,4 +82,8 @@ const Map<String, String> zhCN = {
   'tagDuplicate': '标签已存在',
   'confirm': '确认',
   'noDateTime': '清空',
+  'isResetTasksTemplate': '当前任务为空, 是否需要添加任务示例模板?',
+  'areYouSureResetTasksTemplate': '你确定要重置任务示例模板吗?',
+  'tasksTemplateResetSuccess': '任务示例模板重置成功',
+  'resetTasksTemplate': '重置任务示例模板',
 };

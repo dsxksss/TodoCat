@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
+import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
 
@@ -38,6 +39,10 @@ class TaskManager {
     } catch (e) {
       _logger.e('Error refreshing tasks: $e');
     }
+  }
+
+  Future<void> resetTasksTemplate() async {
+    await assignAll(defaultTasks);
   }
 
   /// 重新排序任务
