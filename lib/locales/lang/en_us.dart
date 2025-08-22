@@ -86,4 +86,7 @@ const Map<String, String> enUS = {
   'areYouSureResetTasksTemplate': 'Are you sure you want to reset the tasks template?',
   'tasksTemplateResetSuccess': 'Tasks template reset successfully',
   'resetTasksTemplate': 'Reset tasks template',
+  'todoDetail': 'Todo Detail',
+  'timeInfo': 'Time Information',
+  'createdAt': 'Created At',
 };

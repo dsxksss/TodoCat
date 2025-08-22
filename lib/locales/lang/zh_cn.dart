@@ -86,4 +86,7 @@ const Map<String, String> zhCN = {
   'areYouSureResetTasksTemplate': '你确定要重置任务示例模板吗?',
   'tasksTemplateResetSuccess': '任务示例模板重置成功',
   'resetTasksTemplate': '重置任务示例模板',
+  'todoDetail': '待办详情',
+  'timeInfo': '时间信息',
+  'createdAt': '创建时间',
 };
