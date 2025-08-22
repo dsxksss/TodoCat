@@ -24,18 +24,21 @@ class TodoCatScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          if (Platform.isMacOS) 15.verticalSpace,
-          NavBar(
-            title: _title, // 导航栏的标题
-            leftWidgets: _leftWidgets, // 导航栏左侧的组件列表
-            rightWidgets: _rightWidgets, // 导航栏右侧的组件列表
-          ),
-          5.verticalSpace, // 导航栏与主体内容之间的间距
-          Expanded(child: _body), // 主体内容组件，填充剩余空间
-        ],
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            if (Platform.isMacOS) 15.verticalSpace,
+            NavBar(
+              title: _title, // 导航栏的标题
+              leftWidgets: _leftWidgets, // 导航栏左侧的组件列表
+              rightWidgets: _rightWidgets, // 导航栏右侧的组件列表
+            ),
+            5.verticalSpace, // 导航栏与主体内容之间的间距
+            Expanded(child: _body), // 主体内容组件，填充剩余空间
+          ],
+        ),
       ),
     );
   }

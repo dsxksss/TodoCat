@@ -8,6 +8,7 @@ import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/pages/home/components/tag.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:todo_cat/widgets/todocat_scaffold.dart';
 
 class TodoDetailPage extends StatelessWidget {
   final String todoId;
@@ -26,95 +27,9 @@ class TodoDetailPage extends StatelessWidget {
       taskId: taskId,
     ));
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: AnimationBtn(
-          onPressed: () => Get.back(),
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Theme.of(context).dividerColor,
-                width: 0.5,
-              ),
-            ),
-            child: const Icon(
-              FontAwesomeIcons.arrowLeft,
-              size: 16,
-            ),
-          ),
-        ),
-        title: Text(
-          'todoDetail'.tr,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          Obx(() {
-            if (controller.todo.value == null) return const SizedBox.shrink();
-            
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimationBtn(
-                  onPressed: () => controller.editTodo(),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(context).dividerColor,
-                        width: 0.5,
-                      ),
-                    ),
-                    child: const Icon(
-                      FontAwesomeIcons.penToSquare,
-                      size: 16,
-                    ),
-                  ),
-                ),
-                AnimationBtn(
-                  onPressed: () {
-                    showToast(
-                      "sureDeleteTodo".tr,
-                      alwaysShow: true,
-                      confirmMode: true,
-                      toastStyleType: TodoCatToastStyleType.error,
-                      onYesCallback: () => controller.deleteTodo(),
-                    );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 16, left: 4),
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.red.shade300,
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Icon(
-                      FontAwesomeIcons.trashCan,
-                      size: 16,
-                      color: Colors.red.shade400,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
+    return TodoCatScaffold(
+      title: 'todoDetail'.tr,
+      rightWidgets: _buildRightWidgets(controller),
       body: Obx(() {
         final todo = controller.todo.value;
         if (todo == null) {
@@ -205,7 +120,7 @@ class TodoDetailPage extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms).slideX(begin: -0.2);
+    ).animate().fadeIn(duration: 200.ms);
   }
 
   Widget _buildDescriptionSection(BuildContext context, Todo todo) {
@@ -250,7 +165,7 @@ class TodoDetailPage extends StatelessWidget {
           ),
         ],
       ),
-    ).animate(delay: 100.ms).fadeIn(duration: 300.ms).slideX(begin: -0.2);
+    ).animate(delay: 50.ms).fadeIn(duration: 200.ms);
   }
 
   Widget _buildStatusSection(BuildContext context, Todo todo, TodoDetailController controller) {
@@ -359,7 +274,7 @@ class TodoDetailPage extends StatelessWidget {
           ),
         ],
       ),
-    ).animate(delay: 200.ms).fadeIn(duration: 300.ms).slideX(begin: -0.2);
+    ).animate(delay: 100.ms).fadeIn(duration: 200.ms);
   }
 
   Widget _buildTagsSection(BuildContext context, Todo todo) {
@@ -396,16 +311,28 @@ class TodoDetailPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: todo.tags.map((tagText) => Tag(
-              tag: tagText,
-              color: Colors.blueAccent,
-            )).toList(),
+            spacing: 10,
+            runSpacing: 10,
+            children: todo.tags.map((tagText) {
+              // 为不同的标签使用不同的颜色
+              final colors = [
+                Colors.blueAccent,
+                Colors.greenAccent,
+                Colors.orangeAccent,
+                Colors.purpleAccent,
+                Colors.tealAccent,
+                Colors.pinkAccent,
+              ];
+              final colorIndex = tagText.hashCode % colors.length;
+              return Tag(
+                tag: tagText,
+                color: colors[colorIndex.abs()],
+              );
+            }).toList(),
           ),
         ],
       ),
-    ).animate(delay: 300.ms).fadeIn(duration: 300.ms).slideX(begin: -0.2);
+    ).animate(delay: 150.ms).fadeIn(duration: 200.ms);
   }
 
   Widget _buildTimeSection(BuildContext context, Todo todo) {
@@ -494,7 +421,7 @@ class TodoDetailPage extends StatelessWidget {
           ),
         ],
       ),
-    ).animate(delay: 400.ms).fadeIn(duration: 300.ms).slideX(begin: -0.2);
+    ).animate(delay: 200.ms).fadeIn(duration: 200.ms);
   }
 
   Widget _buildReminderSection(BuildContext context, Todo todo) {
@@ -539,7 +466,75 @@ class TodoDetailPage extends StatelessWidget {
           ),
         ],
       ),
-    ).animate(delay: 500.ms).fadeIn(duration: 300.ms).slideX(begin: -0.2);
+    ).animate(delay: 250.ms).fadeIn(duration: 200.ms);
+  }
+
+  List<Widget> _buildRightWidgets(TodoDetailController controller) {
+    return [
+      Obx(() {
+        if (controller.todo.value == null) return const SizedBox.shrink();
+        
+        return SizedBox(
+          width: 40,
+          height: 40,
+          child: AnimationBtn(
+            onPressed: () => controller.editTodo(),
+            child: Container(
+              margin: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Get.theme.cardColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Get.theme.dividerColor,
+                  width: 0.5,
+                ),
+              ),
+              child: const Icon(
+                FontAwesomeIcons.penToSquare,
+                size: 16,
+              ),
+            ),
+          ),
+        );
+      }),
+      Obx(() {
+        if (controller.todo.value == null) return const SizedBox.shrink();
+        
+        return SizedBox(
+          width: 40,
+          height: 40,
+          child: AnimationBtn(
+            onPressed: () {
+              showToast(
+                "sureDeleteTodo".tr,
+                alwaysShow: true,
+                confirmMode: true,
+                toastStyleType: TodoCatToastStyleType.error,
+                onYesCallback: () => controller.deleteTodo(),
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Get.theme.cardColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.red.shade300,
+                  width: 0.5,
+                ),
+              ),
+              child: Icon(
+                FontAwesomeIcons.trashCan,
+                size: 16,
+                color: Colors.red.shade400,
+              ),
+            ),
+          ),
+        );
+      }),
+    ];
   }
 
   Color _getStatusColor(TodoStatus status) {

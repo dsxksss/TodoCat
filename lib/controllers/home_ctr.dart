@@ -23,6 +23,9 @@ class HomeController extends GetxController with ScrollControllerMixin, TaskStat
 
   // 使用TaskManager的简化属性访问
   List<Task> get tasks => _taskManager.tasks;
+  
+  // 暴露TaskManager的响应式tasks列表供其他组件监听
+  RxList<Task> get reactiveTasks => _taskManager.tasks;
 
   // 重写TaskStateMixin的回调方法
   @override

@@ -24,6 +24,11 @@ class TodoDetailController extends BaseFormController {
   void onInit() {
     super.onInit();
     _loadTodoDetail();
+    
+    // 监听HomeController的响应式任务列表变化，自动刷新详情
+    ever(_homeController.reactiveTasks, (_) {
+      _loadTodoDetail();
+    });
   }
 
   void _loadTodoDetail() {
@@ -53,6 +58,11 @@ class TodoDetailController extends BaseFormController {
     }
   }
 
+  /// 手动刷新待办详情数据
+  void refreshTodoDetail() {
+    _loadTodoDetail();
+  }
+
   void editTodo() {
     if (todo.value == null) return;
     
@@ -68,6 +78,8 @@ class TodoDetailController extends BaseFormController {
       tag: addTodoDialogTag,
       dialog: const TodoDialog(dialogTag: 'edit_todo_detail_dialog'),
     );
+    
+    // 由于已经有自动监听机制，不需要手动刷新
   }
 
   void deleteTodo() async {

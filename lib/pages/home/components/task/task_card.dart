@@ -59,12 +59,18 @@ class TaskCard extends StatelessWidget {
           return details.data['fromTaskId'] != _task.uuid;
         },
         onAcceptWithDetails: (details) {
-          final data = details.data;
-          _homeCtrl.moveTodoToTask(
-            data['fromTaskId']!,
-            _task.uuid,
-            data['todoId']!,
-          );
+          try {
+            final data = details.data;
+            _homeCtrl.moveTodoToTask(
+              data['fromTaskId']!,
+              _task.uuid,
+              data['todoId']!,
+            );
+          } catch (e) {
+            print('DragTarget accept error: $e');
+            // 发生错误时结束拖动状态
+            _homeCtrl.endDragging();
+          }
         },
         builder: (context, candidateData, rejectedData) {
           final isTargeted = candidateData.isNotEmpty;
@@ -224,13 +230,26 @@ class TaskCard extends StatelessWidget {
                       needsLongPressDraggable: true,
                       scrollController: ScrollController(),
                       onReorder: (oldIndex, newIndex) {
-                        _homeCtrl.reorderTodo(_task.uuid, oldIndex, newIndex);
+                        try {
+                          _homeCtrl.reorderTodo(_task.uuid, oldIndex, newIndex);
+                        } catch (e) {
+                          print('Reorder error: $e');
+                          _homeCtrl.endDragging();
+                        }
                       },
                       onNoReorder: (index) {
-                        _homeCtrl.endDragging();
+                        try {
+                          _homeCtrl.endDragging();
+                        } catch (e) {
+                          print('NoReorder error: $e');
+                        }
                       },
                       onReorderStarted: (index) {
-                        _homeCtrl.startDragging();
+                        try {
+                          _homeCtrl.startDragging();
+                        } catch (e) {
+                          print('ReorderStarted error: $e');
+                        }
                       },
                       buildDraggableFeedback: (context, constraints, child) {
                         return Material(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
@@ -61,13 +62,7 @@ class TodoCard extends StatelessWidget {
       },
       maxSimultaneousDrags: 1,
       onDragStarted: () {
-        if (context.findRenderObject() != null) {
-          final box = context.findRenderObject() as RenderBox;
-          final position = box.localToGlobal(Offset.zero);
-          if (position.dx.abs() > position.dy.abs()) {
-            _homeCtrl.startDragging();
-          }
-        }
+        _homeCtrl.startDragging();
       },
       onDragEnd: (details) {
         _homeCtrl.endDragging();
@@ -186,20 +181,29 @@ class TodoCard extends StatelessWidget {
                     height: 10,
                   ),
                 if (todo.tags.isNotEmpty)
-                  SizedBox(
-                    height: 20,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        ...todo.tags
-                            .sublist(0, todo.tags.length > 3 ? 3 : null)
-                            .map(
-                              (e) => Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: Tag(tag: e, color: Colors.blueAccent),
-                              ),
-                            ),
-                      ],
+                  Container(
+                    height: 30,
+                    child: Row(
+                      children: todo.tags
+                          .take(3)
+                          .map((tagText) {
+                        final colors = [
+                          Colors.blueAccent,
+                          Colors.greenAccent,
+                          Colors.orangeAccent,
+                          Colors.purpleAccent,
+                          Colors.tealAccent,
+                          Colors.pinkAccent,
+                        ];
+                        final colorIndex = tagText.hashCode % colors.length;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Tag(
+                            tag: tagText,
+                            color: colors[colorIndex.abs()],
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
                 const Padding(
