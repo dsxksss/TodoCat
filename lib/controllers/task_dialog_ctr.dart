@@ -1,129 +1,114 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:uuid/uuid.dart';
-import 'package:todo_cat/controllers/base_dialog_ctr.dart';
+import 'package:todo_cat/controllers/base/base_form_controller.dart';
+import 'package:todo_cat/controllers/mixins/edit_state_mixin.dart';
 
-class TaskDialogController extends BaseDialogController {
-  Task? taskToEdit;
+class TaskDialogController extends BaseFormController with EditStateMixin {
   final homeController = Get.find<HomeController>();
-  Map<String, dynamic>? _originalState;
 
   @override
   void onInit() {
     super.onInit();
-    _originalState = null;
     ever(isEditing, (_) {
       // 当编辑状态改变时，确保数据正确更新
-      if (isEditing.value && taskToEdit != null) {
+      if (isEditing.value && getEditingItem<Task>() != null) {
         _updateFormData();
       }
     });
   }
 
   void _updateFormData() {
-    titleController.text = taskToEdit!.title;
-    descriptionController.text =
-        taskToEdit!.description.isEmpty ? '' : taskToEdit!.description;
-    selectedTags.value = List<String>.from(taskToEdit!.tags);
+    final task = getEditingItem<Task>()!;
+    titleController.text = task.title;
+    descriptionController.text = task.description.isEmpty ? '' : task.description;
+    selectedTags.value = List<String>.from(task.tags);
   }
 
   void initForEditing(Task task) {
-    taskToEdit = task;
-    isEditing.value = true;
-
-    // 保存原有状态
+    // 设置表单数据
     titleController.text = task.title;
-    descriptionController.text =
-        task.description.isEmpty ? '' : task.description;
+    descriptionController.text = task.description.isEmpty ? '' : task.description;
     selectedTags.value = List<String>.from(task.tags);
 
-    // 记录原始状态用于比较
-    _originalState = {
+    // 使用编辑状态管理
+    final state = {
       'title': task.title,
       'description': task.description.isEmpty ? '' : task.description,
       'tags': List<String>.from(task.tags),
     };
-
-    BaseDialogController.logger.d('Original task state saved: $_originalState');
+    
+    initEditing(task, state);
   }
 
-  bool hasChanges() {
-    if (!isEditing.value || _originalState == null) return false;
-
-    // 只有当实际有改变时才返回 true
-    bool titleChanged = titleController.text != _originalState!['title'];
-    bool descriptionChanged =
-        descriptionController.text != _originalState!['description'];
-    bool tagsChanged =
-        !listEquals(selectedTags, _originalState!['tags'] as List<String>);
+  @override
+  bool checkForChanges(Map<String, dynamic> originalState) {
+    bool titleChanged = !compareStrings(titleController.text, originalState['title']);
+    bool descriptionChanged = !compareStrings(descriptionController.text, originalState['description']);
+    bool tagsChanged = !compareListEquality(selectedTags, originalState['tags'] as List<String>);
 
     // 调试日志
     if (titleChanged) {
-      BaseDialogController.logger.d(
-          'Task title changed: ${titleController.text} != ${_originalState!['title']}');
+      BaseFormController.logger.d('Task title changed: ${titleController.text} != ${originalState['title']}');
     }
     if (descriptionChanged) {
-      BaseDialogController.logger.d(
-          'Task description changed: ${descriptionController.text} != ${_originalState!['description']}');
+      BaseFormController.logger.d('Task description changed: ${descriptionController.text} != ${originalState['description']}');
     }
     if (tagsChanged) {
-      BaseDialogController.logger
-          .d('Task tags changed: $selectedTags != ${_originalState!['tags']}');
+      BaseFormController.logger.d('Task tags changed: $selectedTags != ${originalState['tags']}');
     }
 
     return titleChanged || descriptionChanged || tagsChanged;
   }
 
-  void restoreOriginalState() {
-    if (!isEditing.value || _originalState == null) return;
+  @override
+  void restoreToOriginalState(Map<String, dynamic> originalState) {
+    titleController.text = originalState['title'] as String;
+    descriptionController.text = originalState['description'] as String;
+    selectedTags.value = List<String>.from(originalState['tags'] as List<String>);
+  }
 
-    titleController.text = _originalState!['title'] as String;
-    descriptionController.text = _originalState!['description'] as String;
-    selectedTags.value =
-        List<String>.from(_originalState!['tags'] as List<String>);
+  @override
+  bool checkFieldChanges() {
+    return hasUnsavedChanges();
+  }
+
+  @override
+  void restoreFields() {
+    revertChanges();
   }
 
   @override
   void clearForm() {
-    BaseDialogController.logger.d('Clearing task form');
+    BaseFormController.logger.d('Clearing task form');
     super.clearForm();
-    taskToEdit = null;
-    isEditing.value = false;
-    _originalState = null;
+    exitEditing();
   }
 
   Future<void> submitTask() async {
-    if (!formKey.currentState!.validate()) return;
+    if (!validateForm()) return;
 
-    if (isEditing.value && taskToEdit != null) {
+    if (isEditing.value && getEditingItem<Task>() != null) {
+      final currentTask = getEditingItem<Task>()!;
       final updatedTask = Task()
-        ..uuid = taskToEdit!.uuid
+        ..uuid = currentTask.uuid
         ..title = titleController.text
         ..description = descriptionController.text
         ..tags = selectedTags.toList()
-        ..createdAt = taskToEdit!.createdAt
-        ..todos = taskToEdit!.todos;
+        ..createdAt = currentTask.createdAt
+        ..todos = currentTask.todos;
 
-      final success =
-          await homeController.updateTask(taskToEdit!.uuid, updatedTask);
+      final success = await homeController.updateTask(currentTask.uuid, updatedTask);
 
       SmartDialog.dismiss(tag: addTaskDialogTag);
 
       if (success) {
-        showToast(
-          'taskUpdatedSuccessfully'.tr,
-          toastStyleType: TodoCatToastStyleType.success,
-        );
+        showSuccessToast('taskUpdatedSuccessfully'.tr);
       } else {
-        showToast(
-          'taskUpdateFailed'.tr,
-          toastStyleType: TodoCatToastStyleType.error,
-        );
+        showErrorToast('taskUpdateFailed'.tr);
       }
     } else {
       final task = Task()
@@ -135,13 +120,8 @@ class TaskDialogController extends BaseDialogController {
         ..todos = [];
 
       await homeController.addTask(task);
-
       SmartDialog.dismiss(tag: addTaskDialogTag);
-
-      showToast(
-        'taskAddedSuccessfully'.tr,
-        toastStyleType: TodoCatToastStyleType.success,
-      );
+      showSuccessToast('taskAddedSuccessfully'.tr);
     }
   }
 }

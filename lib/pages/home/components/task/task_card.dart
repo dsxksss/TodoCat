@@ -214,9 +214,12 @@ class TaskCard extends StatelessWidget {
                 ),
                 Obx(
                   () {
-                    final todos =
-                        _homeCtrl.tasks[_homeCtrl.tasks.indexOf(_task)].todos ??
-                            [];
+                    // 安全地获取最新的任务状态
+                    final currentTask = _homeCtrl.allTasks.firstWhere(
+                      (task) => task.uuid == _task.uuid,
+                      orElse: () => _task,
+                    );
+                    final todos = currentTask.todos ?? [];
                     return ReorderableColumn(
                       needsLongPressDraggable: true,
                       scrollController: ScrollController(),

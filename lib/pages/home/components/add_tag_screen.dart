@@ -53,12 +53,7 @@ class AddTagScreen extends StatelessWidget {
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
               onTap: () => onSubmitted(editingController.text),
-              child: Text(
-                "addTag".tr,
-                style: const TextStyle(
-                  fontSize: 13,
-                ),
-              ),
+              child: const Icon(Icons.add_box_rounded, size: 24),
             ),
           ),
         ),

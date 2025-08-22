@@ -1,144 +1,38 @@
 import 'dart:math';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/test/todo.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
-import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/controllers/task_manager.dart';
+import 'package:todo_cat/controllers/mixins/scroll_controller_mixin.dart';
+import 'package:todo_cat/controllers/mixins/task_state_mixin.dart';
 
-mixin ScrollControllerMixin {
-  final ScrollController scrollController = ScrollController();
-  double currentScrollOffset = 0.0;
-
-  void initScrollController() {
-    scrollController.addListener(_scrollListener);
-  }
-
-  void disposeScrollController() {
-    scrollController.removeListener(_scrollListener);
-    scrollController.dispose();
-  }
-
-  void _scrollListener() {
-    if (_isScrolledToTop() || _isScrolledToBottom()) {
-      return;
-    }
-
-    if (scrollController.offset != currentScrollOffset &&
-        !scrollController.position.outOfRange) {
-      SmartDialog.dismiss(tag: dropDownMenuBtnTag);
-    }
-
-    currentScrollOffset = scrollController.offset;
-  }
-
-  bool _isScrolledToTop() {
-    return scrollController.offset <=
-            scrollController.position.minScrollExtent &&
-        !scrollController.position.outOfRange;
-  }
-
-  bool _isScrolledToBottom() {
-    return scrollController.offset >=
-            scrollController.position.maxScrollExtent &&
-        !scrollController.position.outOfRange;
-  }
-
-  Future<void> scrollMaxDown() async {
-    await 0.1.delay(() => scrollController.animateTo(
-          scrollController.position.maxScrollExtent,
-          duration: 1000.ms,
-          curve: Curves.easeOutCubic,
-        ));
-  }
-
-  Future<void> scrollMaxTop() async {
-    await 0.1.delay(
-      () => scrollController.animateTo(
-        scrollController.position.minScrollExtent,
-        duration: 1000.ms,
-        curve: Curves.easeOutCubic,
-      ),
-    );
-  }
-}
-
-class HomeController extends GetxController with ScrollControllerMixin {
+class HomeController extends GetxController with ScrollControllerMixin, TaskStateMixin {
   static final _logger = Logger();
   final TaskManager _taskManager = TaskManager();
-  final currentTask = Rx<Task?>(null);
   final AppController appCtrl = Get.find();
   final shouldAnimate = true.obs;
-  final groupByStatus = false.obs;
-  final searchQuery = ''.obs;
-  final selectedTaskId = RxString('');
 
-  void selectTask(Task? task) {
-    _logger.d('Selecting task: ${task?.uuid}');
-    currentTask.value = task;
-    selectedTaskId.value = task?.uuid ?? ''; // 更新 selectedTaskId
+  // 实现TaskStateMixin需要的allTasks getter
+  @override
+  List<Task> get allTasks => _taskManager.tasks;
+
+  // 使用TaskManager的简化属性访问
+  List<Task> get tasks => _taskManager.tasks;
+
+  // 重写TaskStateMixin的回调方法
+  @override
+  void onTaskSelected(Task? task) {
+    _logger.d('Task selected: ${task?.uuid}');
   }
 
-  void deselectTask() {
-    _logger.d('Deselecting current task');
-    currentTask.value = null;
-    selectedTaskId.value = ''; // 清除 selectedTaskId
-  }
-
-  Future<bool> addTodo(Todo todo, String taskId) async {
-    try {
-      _logger.d('Adding todo to task: $taskId');
-
-      // 检查任务是否存在
-      final task = tasks.firstWhere(
-        (task) => task.uuid == taskId,
-      );
-
-      // 初始化 todos 列表
-      task.todos ??= [];
-
-      // 添加新的 todo
-      task.todos!.add(todo);
-      await updateTask(taskId, task);
-
-      _logger.d('Todo added successfully');
-      return true;
-    } catch (e) {
-      _logger.e('Error adding todo: $e');
-      return false;
-    }
-  }
-
-  List<Task> get filteredTasks {
-    if (searchQuery.value.isEmpty) return tasks;
-    return tasks
-        .where((task) =>
-            task.title
-                .toLowerCase()
-                .contains(searchQuery.value.toLowerCase()) ||
-            task.tags.any((tag) =>
-                tag.toLowerCase().contains(searchQuery.value.toLowerCase())))
-        .toList();
-  }
-
-  Map<TaskStatus, List<Task>> get groupedTasks {
-    if (!groupByStatus.value) {
-      return {TaskStatus.todo: tasks};
-    }
-
-    return {
-      TaskStatus.todo: tasks.where((t) => t.status == TaskStatus.todo).toList(),
-      TaskStatus.inProgress:
-          tasks.where((t) => t.status == TaskStatus.inProgress).toList(),
-      TaskStatus.done: tasks.where((t) => t.status == TaskStatus.done).toList(),
-    };
+  @override
+  void onTaskDeselected() {
+    _logger.d('Task deselected');
   }
 
   @override
@@ -191,11 +85,36 @@ class HomeController extends GetxController with ScrollControllerMixin {
       for (var i = 0; i < todoCount; i++) {
         final todoIndex = random.nextInt(3);
         if (task.todos == null ||
-            !task.todos!.contains(todoTestList[todoIndex])) {
+            !task.todos!.any((todo) => todo.uuid == todoTestList[todoIndex].uuid)) {
           await addTodo(todoTestList[todoIndex], task.uuid);
         }
       }
       deselectTask();
+    }
+  }
+
+  // 添加Todo到指定任务
+  Future<bool> addTodo(Todo todo, String taskId) async {
+    try {
+      _logger.d('Adding todo to task: $taskId');
+
+      // 检查任务是否存在
+      final task = allTasks.firstWhere(
+        (task) => task.uuid == taskId,
+      );
+
+      // 初始化 todos 列表
+      task.todos ??= [];
+
+      // 添加新的 todo
+      task.todos!.add(todo);
+      await updateTask(taskId, task);
+
+      _logger.d('Todo added successfully');
+      return true;
+    } catch (e) {
+      _logger.e('Error adding todo: $e');
+      return false;
     }
   }
 
@@ -244,27 +163,41 @@ class HomeController extends GetxController with ScrollControllerMixin {
     }
 
     try {
-      Task task =
-          _taskManager.tasks.firstWhere((task) => task.uuid == taskUuid);
-      int taskIndex = _taskManager.tasks.indexOf(task);
-      if (taskIndex == -1) {
-        _logger.w('Task index not found');
-        return false;
-      }
-
-      if (task.todos == null) {
-        _logger.w('Task todos is null');
-        return false;
-      }
-
       _logger.d('Deleting todo $todoUuid from task $taskUuid');
-      Todo todo = task.todos!.firstWhere((todo) => todo.uuid == todoUuid);
+      
+      final task = _taskManager.tasks.firstWhere((task) => task.uuid == taskUuid);
+      
+      if (task.todos == null || task.todos!.isEmpty) {
+        _logger.w('Task todos is null or empty');
+        return false;
+      }
+
+      // 找到要删除的todo
+      final todoIndex = task.todos!.indexWhere((todo) => todo.uuid == todoUuid);
+      if (todoIndex == -1) {
+        _logger.w('Todo $todoUuid not found in task');
+        return false;
+      }
+
+      final todo = task.todos![todoIndex];
+      
+      // 清理通知
       await appCtrl.localNotificationManager.destroy(
         timerKey: todoUuid,
         sendDeleteReq: true,
       );
-      task.todos!.remove(todo);
-      await _taskManager.refresh();
+      
+      // 从任务中移除todo
+      final removed = task.todos!.remove(todo);
+      if (!removed) {
+        _logger.w('Todo ${todo.uuid} was not found in task for removal');
+        return false;
+      }
+      
+      // 只刷新UI，不重新从数据库加载
+      _taskManager.tasks.refresh();
+      
+      _logger.d('Todo deleted successfully');
       return true;
     } catch (e) {
       _logger.e('Error deleting todo: $e');
@@ -284,14 +217,11 @@ class HomeController extends GetxController with ScrollControllerMixin {
     super.onClose();
   }
 
-  /// 获取任务列表
-  RxList<Task> get tasks => _taskManager.tasks;
-
   /// 重新排序任务
   Future<void> reorderTask(int oldIndex, int newIndex) async {
     try {
-      if (newIndex == tasks.length + 1) {
-        newIndex = tasks.length;
+      if (newIndex == allTasks.length + 1) {
+        newIndex = allTasks.length;
       }
       await _taskManager.reorderTasks(oldIndex, newIndex);
       _logger.d('Task reordered from $oldIndex to $newIndex');
@@ -309,24 +239,46 @@ class HomeController extends GetxController with ScrollControllerMixin {
   }
 
   TaskStats get taskStats => TaskStats(
-        total: tasks.length,
-        todo: tasks.where((t) => t.status == TaskStatus.todo).length,
+        total: allTasks.length,
+        todo: allTasks.where((t) => t.status == TaskStatus.todo).length,
         inProgress:
-            tasks.where((t) => t.status == TaskStatus.inProgress).length,
-        done: tasks.where((t) => t.status == TaskStatus.done).length,
+            allTasks.where((t) => t.status == TaskStatus.inProgress).length,
+        done: allTasks.where((t) => t.status == TaskStatus.done).length,
       );
 
   Future<void> reorderTodo(String taskId, int oldIndex, int newIndex) async {
     try {
-      final taskIndex = tasks.indexWhere((task) => task.uuid == taskId);
-      if (taskIndex == -1) return;
+      _logger.d('Reordering todo in task $taskId from $oldIndex to $newIndex');
+      
+      final taskIndex = allTasks.indexWhere((task) => task.uuid == taskId);
+      if (taskIndex == -1) {
+        _logger.w('Task $taskId not found for reorder');
+        return;
+      }
 
-      final task = tasks[taskIndex];
-      if (task.todos == null || task.todos!.isEmpty) return;
+      final task = allTasks[taskIndex];
+      if (task.todos == null || task.todos!.isEmpty) {
+        _logger.w('Task todos is null or empty');
+        return;
+      }
+
+      if (oldIndex < 0 || oldIndex >= task.todos!.length) {
+        _logger.w('Invalid oldIndex $oldIndex for reorder');
+        return;
+      }
 
       // 如果新位置在列表末尾，调整索引
-      if (newIndex == task.todos!.length + 1) {
-        newIndex = task.todos!.length;
+      if (newIndex >= task.todos!.length) {
+        newIndex = task.todos!.length - 1;
+      }
+      if (newIndex < 0) {
+        newIndex = 0;
+      }
+
+      // 如果索引相同，不需要操作
+      if (oldIndex == newIndex) {
+        _logger.d('Same index, no reorder needed');
+        return;
       }
 
       // 创建新的todos列表
@@ -339,12 +291,15 @@ class HomeController extends GetxController with ScrollControllerMixin {
 
       // 保存更改到存储
       await _taskManager.updateTask(taskId, task);
-      // 刷新UI
-      await _taskManager.refresh();
+      
+      // 只刷新UI，不重新从数据库加载
+      _taskManager.tasks.refresh();
 
-      _logger.d('Todo reordered from $oldIndex to $newIndex in task $taskId');
+      _logger.d('Todo reordered successfully');
     } catch (e) {
       _logger.e('Error reordering todo: $e');
+      // 发生错误时，重新加载数据以确保一致性
+      await _taskManager.refresh();
     }
   }
 
@@ -352,14 +307,24 @@ class HomeController extends GetxController with ScrollControllerMixin {
   Future<void> moveTodoToTask(
       String fromTaskId, String toTaskId, String todoId) async {
     try {
-      final fromTask = tasks.firstWhere((task) => task.uuid == fromTaskId);
-      final toTask = tasks.firstWhere((task) => task.uuid == toTaskId);
+      _logger.d('Moving todo $todoId from task $fromTaskId to task $toTaskId');
+      
+      final fromTask = allTasks.firstWhere((task) => task.uuid == fromTaskId);
+      final toTask = allTasks.firstWhere((task) => task.uuid == toTaskId);
 
-      if (fromTask.todos == null || toTask.todos == null) return;
+      if (fromTask.todos == null) {
+        _logger.w('Source task todos is null');
+        return;
+      }
 
       // 找到要移动的todo
-      final todoToMove =
-          fromTask.todos!.firstWhere((todo) => todo.uuid == todoId);
+      final todoToMove = fromTask.todos!.firstWhere(
+        (todo) => todo.uuid == todoId,
+        orElse: () {
+          _logger.w('Todo $todoId not found in source task');
+          throw Exception('Todo not found');
+        },
+      );
 
       // 从原task中移除
       fromTask.todos!.removeWhere((todo) => todo.uuid == todoId);
@@ -368,14 +333,20 @@ class HomeController extends GetxController with ScrollControllerMixin {
       toTask.todos ??= [];
       toTask.todos!.add(todoToMove);
 
-      // 保存更改
-      await _taskManager.updateTask(fromTaskId, fromTask);
-      await _taskManager.updateTask(toTaskId, toTask);
-      await _taskManager.refresh();
+      // 批量更新，避免多次数据库操作
+      await Future.wait([
+        _taskManager.updateTask(fromTaskId, fromTask),
+        _taskManager.updateTask(toTaskId, toTask),
+      ]);
 
-      _logger.d('Todo $todoId moved from task $fromTaskId to task $toTaskId');
+      // 只刷新一次UI，不重新从数据库加载
+      _taskManager.tasks.refresh();
+
+      _logger.d('Todo $todoId moved successfully');
     } catch (e) {
       _logger.e('Error moving todo between tasks: $e');
+      // 发生错误时，重新加载数据以确保一致性
+      await _taskManager.refresh();
     }
   }
 
@@ -389,11 +360,22 @@ class HomeController extends GetxController with ScrollControllerMixin {
   Future<void> reorderTodoInSameTask(
       String taskId, Todo todo, int newIndex) async {
     try {
-      final task = tasks.firstWhere((task) => task.uuid == taskId);
-      if (task.todos == null || task.todos!.isEmpty) return;
+      _logger.d('Reordering todo in same task $taskId at index $newIndex');
+      
+      final task = allTasks.firstWhere((task) => task.uuid == taskId);
+      if (task.todos == null || task.todos!.isEmpty) {
+        _logger.w('Task todos is null or empty');
+        return;
+      }
 
       // 移除原来的todo
-      task.todos!.removeWhere((t) => t.uuid == todo.uuid);
+      final todoIndex = task.todos!.indexWhere((t) => t.uuid == todo.uuid);
+      if (todoIndex == -1) {
+        _logger.w('Todo ${todo.uuid} not found in task');
+        return;
+      }
+      
+      task.todos!.removeAt(todoIndex);
 
       // 在新位置插入
       newIndex = newIndex.clamp(0, task.todos!.length);
@@ -401,11 +383,15 @@ class HomeController extends GetxController with ScrollControllerMixin {
 
       // 保存更改
       await _taskManager.updateTask(taskId, task);
-      await _taskManager.refresh();
+      
+      // 只刷新UI，不重新从数据库加载
+      _taskManager.tasks.refresh();
 
-      _logger.d('Todo reordered in same task at index $newIndex');
+      _logger.d('Todo reordered in same task successfully');
     } catch (e) {
       _logger.e('Error reordering todo in same task: $e');
+      // 发生错误时，重新加载数据以确保一致性
+      await _taskManager.refresh();
     }
   }
 }

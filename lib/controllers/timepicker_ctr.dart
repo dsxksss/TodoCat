@@ -1,53 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:logger/logger.dart';
+import 'package:todo_cat/controllers/unified/datetime_picker_controller.dart';
 
+/// @deprecated 使用 DateTimePickerController 替代
+/// 这个控制器保留是为了向后兼容，建议使用新的统一控制器
 class TimePickerController extends GetxController {
-  final isAM = true.obs;
-  final selectedHour = 11.obs;
-  final selectedMinute = 0.obs;
+  static final _logger = Logger();
+  
+  // 委托给新的统一控制器
+  late final DateTimePickerController _unifiedController;
+  
+  // 为了向后兼容而保留的属性
+  RxBool get isAM => _unifiedController.isAM;
+  RxInt get selectedHour => _unifiedController.selectedHour;
+  RxInt get selectedMinute => _unifiedController.selectedMinute;
   final isInitialized = false.obs;
 
-  final amPmController = FixedExtentScrollController(initialItem: 0);
-  final hourController = FixedExtentScrollController(initialItem: 11);
-  final minuteController = FixedExtentScrollController(initialItem: 0);
+  FixedExtentScrollController get amPmController => _unifiedController.amPmController;
+  FixedExtentScrollController get hourController => _unifiedController.hourController;
+  FixedExtentScrollController get minuteController => _unifiedController.minuteController;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _logger.w('TimePickerController is deprecated. Use DateTimePickerController instead.');
+    _unifiedController = DateTimePickerController();
+    _unifiedController.onInit();
+    isInitialized.value = true;
+  }
 
   @override
   void onClose() {
-    amPmController.dispose();
-    hourController.dispose();
-    minuteController.dispose();
+    _logger.d('Cleaning up TimePickerController resources');
+    _unifiedController.onClose();
     super.onClose();
   }
 
-  void updateToTime(TimeOfDay time) {
-    final hour = time.hour;
-    isAM.value = hour < 12;
-    if (isAM.value) {
-      selectedHour.value = hour == 0 ? 11 : hour - 1;
-    } else {
-      selectedHour.value = hour == 12 ? 11 : hour - 13;
-    }
-    selectedMinute.value = time.minute;
-    _updateControllers();
-  }
-
-  void _updateControllers() {
-    amPmController.jumpToItem(isAM.value ? 0 : 1);
-    hourController.jumpToItem(selectedHour.value);
-    minuteController.jumpToItem(selectedMinute.value);
-  }
-
-  void resetTime() {
-    isAM.value = true;
-    selectedHour.value = 11;
-    selectedMinute.value = 0;
-    _updateControllers();
-  }
-
-  TimeOfDay getCurrentTime() {
-    final hour = isAM.value
-        ? (selectedHour.value == 11 ? 0 : selectedHour.value + 1)
-        : (selectedHour.value == 11 ? 12 : selectedHour.value + 13);
-    return TimeOfDay(hour: hour, minute: selectedMinute.value);
-  }
+  // 委托方法实现
+  void updateToTime(TimeOfDay time) => _unifiedController.setTime(time);
+  void resetTime() => _unifiedController.resetTime();
+  TimeOfDay getCurrentTime() => _unifiedController.currentTime;
 }

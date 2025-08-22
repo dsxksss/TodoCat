@@ -1,60 +1,57 @@
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:uuid/uuid.dart';
-import 'package:todo_cat/controllers/base_dialog_ctr.dart';
+import 'package:todo_cat/controllers/base/base_form_controller.dart';
+import 'package:todo_cat/controllers/mixins/edit_state_mixin.dart';
 
-class AddTodoDialogController extends BaseDialogController {
+class AddTodoDialogController extends BaseFormController with EditStateMixin {
   static final Map<String, Map<String, dynamic>> _dialogCache = {};
   final String dialogId = DateTime.now().millisecondsSinceEpoch.toString();
 
-  Todo? todoToEdit;
   String? taskId;
   final selectedPriority = TodoPriority.lowLevel.obs;
   final remindersValue = 0.obs;
   final remindersText = "".obs;
-
-  Map<String, dynamic>? _originalState;
+  final selectedDate = Rx<DateTime?>(null);
 
   @override
   void onInit() {
     super.onInit();
-    _originalState = null;
     ever(isEditing, (_) {
       // 当编辑状态改变时，确保数据正确更新
-      if (isEditing.value && todoToEdit != null) {
+      if (isEditing.value && getEditingItem<Todo>() != null) {
         _updateFormData();
       }
     });
   }
 
   void _updateFormData() {
-    titleController.text = todoToEdit!.title;
-    descriptionController.text = todoToEdit!.description;
-    selectedTags.value = List<String>.from(todoToEdit!.tags);
-    selectedPriority.value = todoToEdit!.priority;
-    remindersValue.value = todoToEdit!.reminders;
+    final todo = getEditingItem<Todo>()!;
+    titleController.text = todo.title;
+    descriptionController.text = todo.description;
+    selectedTags.value = List<String>.from(todo.tags);
+    selectedPriority.value = todo.priority;
+    remindersValue.value = todo.reminders;
 
-    if (todoToEdit!.finishedAt > 0) {
-      selectedDate.value =
-          DateTime.fromMillisecondsSinceEpoch(todoToEdit!.finishedAt);
+    if (todo.finishedAt > 0) {
+      selectedDate.value = DateTime.fromMillisecondsSinceEpoch(todo.finishedAt);
     }
   }
 
   Future<bool> submitForm() async {
-    if (!formKey.currentState!.validate()) return false;
+    if (!validateForm()) return false;
 
-    if (isEditing.value && todoToEdit != null && taskId != null) {
+    if (isEditing.value && getEditingItem<Todo>() != null && taskId != null) {
+      final currentTodo = getEditingItem<Todo>()!;
       final updatedTodo = Todo()
-        ..uuid = todoToEdit!.uuid
+        ..uuid = currentTodo.uuid
         ..title = titleController.text
         ..description = descriptionController.text
-        ..createdAt = todoToEdit!.createdAt
+        ..createdAt = currentTodo.createdAt
         ..tags = selectedTags.toList()
         ..priority = selectedPriority.value
-        ..status = todoToEdit!.status
+        ..status = currentTodo.status
         ..finishedAt = selectedDate.value?.millisecondsSinceEpoch ?? 0
         ..reminders = remindersValue.value;
 
@@ -66,7 +63,7 @@ class AddTodoDialogController extends BaseDialogController {
         task.todos ??= [];
 
         final todoIndex = task.todos!.indexWhere(
-          (todo) => todo.uuid == todoToEdit!.uuid,
+          (todo) => todo.uuid == currentTodo.uuid,
         );
 
         if (todoIndex != -1) {
@@ -76,15 +73,12 @@ class AddTodoDialogController extends BaseDialogController {
           return true;
         }
       } catch (e) {
-        BaseDialogController.logger.e('Error updating todo: $e');
+        BaseFormController.logger.e('Error updating todo: $e');
       }
     } else {
       if (taskId == null || taskId!.isEmpty) {
-        BaseDialogController.logger.e('No task ID provided for new todo');
-        showToast(
-          'selectTaskFirst'.tr,
-          toastStyleType: TodoCatToastStyleType.error,
-        );
+        BaseFormController.logger.e('No task ID provided for new todo');
+        showErrorToast('selectTaskFirst'.tr);
         return false;
       }
 
@@ -94,19 +88,13 @@ class AddTodoDialogController extends BaseDialogController {
             .firstWhereOrNull((task) => task.uuid == taskId);
 
         if (task == null) {
-          BaseDialogController.logger.e('Task not found: $taskId');
-          showToast(
-            'taskNotFound'.tr,
-            toastStyleType: TodoCatToastStyleType.error,
-          );
+          BaseFormController.logger.e('Task not found: $taskId');
+          showErrorToast('taskNotFound'.tr);
           return false;
         }
       } catch (e) {
-        BaseDialogController.logger.e('Error finding task: $e');
-        showToast(
-          'taskNotFound'.tr,
-          toastStyleType: TodoCatToastStyleType.error,
-        );
+        BaseFormController.logger.e('Error finding task: $e');
+        showErrorToast('taskNotFound'.tr);
         return false;
       }
 
@@ -122,34 +110,29 @@ class AddTodoDialogController extends BaseDialogController {
         ..reminders = remindersValue.value;
 
       try {
-        final bool isSuccess =
-            await Get.find<HomeController>().addTodo(todo, taskId!);
+        final bool isSuccess = await Get.find<HomeController>().addTodo(todo, taskId!);
         if (isSuccess) {
           clearForm();
           return true;
         }
       } catch (e) {
-        BaseDialogController.logger.e('Error submitting todo: $e');
-        showToast(
-          'addTodoFailed'.tr,
-          toastStyleType: TodoCatToastStyleType.error,
-        );
+        BaseFormController.logger.e('Error submitting todo: $e');
+        showErrorToast('addTodoFailed'.tr);
       }
     }
     return false;
   }
 
-  bool isDataNotEmpty() {
-    return titleController.text.isNotEmpty ||
-        descriptionController.text.isNotEmpty ||
-        selectedTags.isNotEmpty ||
-        selectedDate.value != null ||
-        selectedPriority.value != TodoPriority.lowLevel ||
-        remindersValue.value != 0;
+  @override
+  bool isDataEmpty() {
+    return super.isDataEmpty() &&
+           selectedDate.value == null &&
+           selectedPriority.value == TodoPriority.lowLevel &&
+           remindersValue.value == 0;
   }
 
   void saveCache() {
-    BaseDialogController.logger.d('Saving form cache');
+    BaseFormController.logger.d('Saving form cache');
     _dialogCache[dialogId] = {
       'title': titleController.text,
       'description': descriptionController.text,
@@ -162,25 +145,21 @@ class AddTodoDialogController extends BaseDialogController {
 
   @override
   void clearForm() {
-    BaseDialogController.logger.d('Clearing todo form');
+    BaseFormController.logger.d('Clearing todo form');
     super.clearForm();
-    todoToEdit = null;
     taskId = null;
-    isEditing.value = false;
     selectedPriority.value = TodoPriority.lowLevel;
-    remindersText.value = "${"enter".tr}${"time".tr}";
+    remindersText.value = "${'enter'.tr}${'time'.tr}";
     remindersValue.value = 0;
     selectedDate.value = null;
     _dialogCache.remove(dialogId);
-    _originalState = null;
+    exitEditing();
   }
 
   void initForEditing(String taskId, Todo todo) {
     this.taskId = taskId;
-    todoToEdit = todo;
-    isEditing.value = true;
 
-    // 保存原有状态
+    // 设置表单数据
     titleController.text = todo.title;
     descriptionController.text = todo.description;
     selectedTags.value = List<String>.from(todo.tags);
@@ -193,8 +172,8 @@ class AddTodoDialogController extends BaseDialogController {
       selectedDate.value = null;
     }
 
-    // 记录原始状态用于比较
-    _originalState = {
+    // 使用编辑状态管理
+    final state = {
       'title': todo.title,
       'description': todo.description,
       'tags': List<String>.from(todo.tags),
@@ -202,78 +181,58 @@ class AddTodoDialogController extends BaseDialogController {
       'reminders': todo.reminders,
       'finishedAt': todo.finishedAt,
     };
-
-    BaseDialogController.logger.d('Original state saved: $_originalState');
+    
+    initEditing(todo, state);
   }
 
-  bool hasChanges() {
-    if (!isEditing.value || _originalState == null) return false;
-
-    // 只有当实际有改变时才返回 true
-    bool titleChanged = titleController.text != _originalState!['title'];
-    bool descriptionChanged =
-        descriptionController.text != _originalState!['description'];
-    bool tagsChanged =
-        !listEquals(selectedTags, _originalState!['tags'] as List<String>);
-    bool priorityChanged =
-        selectedPriority.value != _originalState!['priority'];
-    bool remindersChanged =
-        remindersValue.value != _originalState!['reminders'];
+  @override
+  bool checkForChanges(Map<String, dynamic> originalState) {
+    bool titleChanged = !compareStrings(titleController.text, originalState['title']);
+    bool descriptionChanged = !compareStrings(descriptionController.text, originalState['description']);
+    bool tagsChanged = !compareListEquality(selectedTags, originalState['tags'] as List<String>);
+    bool priorityChanged = selectedPriority.value != originalState['priority'];
+    bool remindersChanged = remindersValue.value != originalState['reminders'];
     bool dateChanged = false;
 
     // 特殊处理日期比较
     if (selectedDate.value == null) {
-      dateChanged = _originalState!['finishedAt'] != 0;
+      dateChanged = originalState['finishedAt'] != 0;
     } else {
-      dateChanged = selectedDate.value!.millisecondsSinceEpoch !=
-          _originalState!['finishedAt'];
+      dateChanged = selectedDate.value!.millisecondsSinceEpoch != originalState['finishedAt'];
     }
 
     // 调试日志
     if (titleChanged) {
-      BaseDialogController.logger.d(
-          'Title changed: ${titleController.text} != ${_originalState!['title']}');
+      BaseFormController.logger.d('Title changed: ${titleController.text} != ${originalState['title']}');
     }
     if (descriptionChanged) {
-      BaseDialogController.logger.d(
-          'Description changed: ${descriptionController.text} != ${_originalState!['description']}');
+      BaseFormController.logger.d('Description changed: ${descriptionController.text} != ${originalState['description']}');
     }
     if (tagsChanged) {
-      BaseDialogController.logger
-          .d('Tags changed: $selectedTags != ${_originalState!['tags']}');
+      BaseFormController.logger.d('Tags changed: $selectedTags != ${originalState['tags']}');
     }
     if (priorityChanged) {
-      BaseDialogController.logger.d(
-          'Priority changed: ${selectedPriority.value} != ${_originalState!['priority']}');
+      BaseFormController.logger.d('Priority changed: ${selectedPriority.value} != ${originalState['priority']}');
     }
     if (remindersChanged) {
-      BaseDialogController.logger.d(
-          'Reminders changed: ${remindersValue.value} != ${_originalState!['reminders']}');
+      BaseFormController.logger.d('Reminders changed: ${remindersValue.value} != ${originalState['reminders']}');
     }
     if (dateChanged) {
-      BaseDialogController.logger.d(
-          'Date changed: ${selectedDate.value?.millisecondsSinceEpoch} != ${_originalState!['finishedAt']}');
+      BaseFormController.logger.d('Date changed: ${selectedDate.value?.millisecondsSinceEpoch} != ${originalState['finishedAt']}');
     }
 
-    return titleChanged ||
-        descriptionChanged ||
-        tagsChanged ||
-        priorityChanged ||
-        remindersChanged ||
-        dateChanged;
+    return titleChanged || descriptionChanged || tagsChanged || priorityChanged || remindersChanged || dateChanged;
   }
 
-  void restoreOriginalState() {
-    if (!isEditing.value || _originalState == null) return;
+  @override
+  void restoreToOriginalState(Map<String, dynamic> originalState) {
+    titleController.text = originalState['title'] as String;
+    descriptionController.text = originalState['description'] as String;
+    selectedTags.value = List<String>.from(originalState['tags'] as List<String>);
+    selectedPriority.value = originalState['priority'] as TodoPriority;
+    remindersValue.value = originalState['reminders'] as int;
 
-    titleController.text = _originalState!['title'] as String;
-    descriptionController.text = _originalState!['description'] as String;
-    selectedTags.value =
-        List<String>.from(_originalState!['tags'] as List<String>);
-    selectedPriority.value = _originalState!['priority'] as TodoPriority;
-    remindersValue.value = _originalState!['reminders'] as int;
-
-    final finishedAt = _originalState!['finishedAt'] as int;
+    final finishedAt = originalState['finishedAt'] as int;
     if (finishedAt > 0) {
       selectedDate.value = DateTime.fromMillisecondsSinceEpoch(finishedAt);
     } else {
@@ -281,5 +240,13 @@ class AddTodoDialogController extends BaseDialogController {
     }
   }
 
-  // ... 其他特定于办事项的方法
+  @override
+  bool checkFieldChanges() {
+    return hasUnsavedChanges();
+  }
+
+  @override
+  void restoreFields() {
+    revertChanges();
+  }
 }
