@@ -10,7 +10,7 @@ class Tag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: _color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
@@ -26,6 +26,8 @@ class Tag extends StatelessWidget {
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
     );
   }

@@ -102,7 +102,7 @@ class SettingsContent extends GetView<SettingsController> {
       ),
       SettingsTile(
         onPressed: (_) => _showResetTasksTemplateToast(),
-        leading: const Icon(Icons.restart_alt_rounded),
+        leading: const Icon(Icons.featured_play_list_outlined),
         title: Text('resetTasksTemplate'.tr),
       ),
       SettingsTile.switchTile(

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -181,29 +182,62 @@ class TodoCard extends StatelessWidget {
                     height: 10,
                   ),
                 if (todo.tags.isNotEmpty)
-                  Container(
-                    height: 30,
+                  SizedBox(
+                    height: 32,
                     child: Row(
-                      children: todo.tags
-                          .take(3)
-                          .map((tagText) {
-                        final colors = [
-                          Colors.blueAccent,
-                          Colors.greenAccent,
-                          Colors.orangeAccent,
-                          Colors.purpleAccent,
-                          Colors.tealAccent,
-                          Colors.pinkAccent,
-                        ];
-                        final colorIndex = tagText.hashCode % colors.length;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Tag(
-                            tag: tagText,
-                            color: colors[colorIndex.abs()],
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: todo.tags.take(3).map((tagText) {
+                                final colors = [
+                                  Colors.blueAccent,
+                                  Colors.greenAccent,
+                                  Colors.orangeAccent,
+                                  Colors.purpleAccent,
+                                  Colors.tealAccent,
+                                  Colors.pinkAccent,
+                                ];
+                                final colorIndex = tagText.hashCode % colors.length;
+                                
+                                // 限制标签文本长度
+                                String displayText = tagText;
+                                if (tagText.length > 8) {
+                                  displayText = '${tagText.substring(0, 6)}...';
+                                }
+                                
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Tag(
+                                    tag: displayText,
+                                    color: colors[colorIndex.abs()],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ),
-                        );
-                      }).toList(),
+                        ),
+                        if (todo.tags.length > 3)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '+${todo.tags.length - 3}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 const Padding(

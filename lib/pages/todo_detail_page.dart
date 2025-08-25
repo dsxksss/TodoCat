@@ -310,25 +310,41 @@ class TodoDetailPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: todo.tags.map((tagText) {
-              // 为不同的标签使用不同的颜色
-              final colors = [
-                Colors.blueAccent,
-                Colors.greenAccent,
-                Colors.orangeAccent,
-                Colors.purpleAccent,
-                Colors.tealAccent,
-                Colors.pinkAccent,
-              ];
-              final colorIndex = tagText.hashCode % colors.length;
-              return Tag(
-                tag: tagText,
-                color: colors[colorIndex.abs()],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: todo.tags.map((tagText) {
+                  // 为不同的标签使用不同的颜色
+                  final colors = [
+                    Colors.blueAccent,
+                    Colors.greenAccent,
+                    Colors.orangeAccent,
+                    Colors.purpleAccent,
+                    Colors.tealAccent,
+                    Colors.pinkAccent,
+                  ];
+                  final colorIndex = tagText.hashCode % colors.length;
+                  
+                  // 限制标签文本长度，防止溢出
+                  String displayText = tagText;
+                  if (tagText.length > 15) {
+                    displayText = '${tagText.substring(0, 12)}...';
+                  }
+                  
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth * 0.45, // 限制单个标签最大宽度为容器的45%
+                    ),
+                    child: Tag(
+                      tag: displayText,
+                      color: colors[colorIndex.abs()],
+                    ),
+                  );
+                }).toList(),
               );
-            }).toList(),
+            },
           ),
         ],
       ),
