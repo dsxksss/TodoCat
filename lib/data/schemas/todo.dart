@@ -11,7 +11,8 @@ class Todo {
   String description = '';
   @enumerated
   TodoPriority priority = TodoPriority.lowLevel;
-  int finishedAt = 0;
+  int finishedAt = 0; // 实际完成时间
+  int dueDate = 0; // 截止日期
   @enumerated
   TodoStatus status = TodoStatus.todo;
   int reminders = 0;

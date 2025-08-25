@@ -47,6 +47,43 @@ class TodoCard extends StatelessWidget {
     }
   }
 
+  bool _isOverdue() {
+    if (todo.dueDate <= 0 || todo.status == TodoStatus.done) {
+      return false;
+    }
+    final now = DateTime.now();
+    final dueDate = DateTime.fromMillisecondsSinceEpoch(todo.dueDate);
+    return now.isAfter(dueDate);
+  }
+
+  Color _getStatusColor() {
+    if (_isOverdue()) {
+      return Colors.red;
+    }
+    switch (todo.status) {
+      case TodoStatus.todo:
+        return Colors.orange;
+      case TodoStatus.inProgress:
+        return Colors.blue;
+      case TodoStatus.done:
+        return Colors.green;
+    }
+  }
+
+  String _getStatusText() {
+    if (_isOverdue()) {
+      return "已过期";
+    }
+    switch (todo.status) {
+      case TodoStatus.todo:
+        return 'todo'.tr;
+      case TodoStatus.inProgress:
+        return 'inProgress'.tr;
+      case TodoStatus.done:
+        return 'done'.tr;
+    }
+  }
+
   Future<void> _handleDelete() async {
     await _homeCtrl.deleteTodo(taskId, todo.uuid);
   }
@@ -249,44 +286,51 @@ class TodoCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           size: 15,
-                          FontAwesomeIcons.calendarCheck,
-                          color: Colors.grey,
+                          todo.dueDate > 0 
+                              ? (_isOverdue() ? FontAwesomeIcons.triangleExclamation : FontAwesomeIcons.calendarCheck)
+                              : FontAwesomeIcons.calendar,
+                          color: todo.dueDate > 0 
+                              ? (_isOverdue() ? Colors.red : Colors.grey)
+                              : Colors.grey,
                         ),
                         const SizedBox(
                           width: 3,
                         ),
                         Text(
-                          timestampToDate(todo.finishedAt),
+                          todo.dueDate > 0 
+                              ? timestampToDate(todo.dueDate)
+                              : "未设置",
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11.5,
-                            color: Colors.grey.shade600,
+                            color: todo.dueDate > 0 
+                                ? (_isOverdue() ? Colors.red : Colors.grey.shade600)
+                                : Colors.grey.shade600,
                             fontWeight: FontWeight.bold,
                           ),
                         )
                       ],
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          'status'.tr,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor().withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _getStatusColor(),
+                          width: 0.8,
                         ),
-                        const SizedBox(
-                          width: 5,
+                      ),
+                      child: Text(
+                        _getStatusText(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: _getStatusColor(),
+                          fontWeight: FontWeight.w600,
                         ),
-                        Icon(
-                          _getStatusIconData(),
-                          size: 15,
-                          color: Colors.grey,
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),

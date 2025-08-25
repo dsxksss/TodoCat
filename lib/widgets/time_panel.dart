@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'dart:async';
 
 class TimePanel extends StatefulWidget {
   const TimePanel({
@@ -23,6 +24,7 @@ class TimePanelState extends State<TimePanel> {
   double _dragStartY = 0;
   int _dragStartValue = 0;
   bool _isInitialized = false;
+  Timer? _debounceTimer; // 防抖计时器
 
   late final FixedExtentScrollController _amPmController;
   late final FixedExtentScrollController _hourController;
@@ -47,6 +49,7 @@ class TimePanelState extends State<TimePanel> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _amPmController.dispose();
     _hourController.dispose();
     _minuteController.dispose();
@@ -118,11 +121,14 @@ class TimePanelState extends State<TimePanel> {
   }
 
   void _updateTime() {
-    final hour = isAM
-        ? (selectedHour == 11 ? 0 : selectedHour + 1)
-        : (selectedHour == 11 ? 12 : selectedHour + 13);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onTimeSelected(TimeOfDay(hour: hour, minute: selectedMinute));
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      final hour = isAM
+          ? (selectedHour == 11 ? 0 : selectedHour + 1)
+          : (selectedHour == 11 ? 12 : selectedHour + 13);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onTimeSelected(TimeOfDay(hour: hour, minute: selectedMinute));
+      });
     });
   }
 

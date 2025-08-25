@@ -17,6 +17,7 @@ class TextFormFieldItem extends StatelessWidget {
     FocusNode? focusNode,
     Color? fillColor,
     Widget? suffix,
+    Widget? suffixIcon,
     TextInputAction? textInputAction,
     TextInputType? inputType = TextInputType.text,
     required void Function(dynamic _) onFieldSubmitted,
@@ -32,12 +33,14 @@ class TextFormFieldItem extends StatelessWidget {
         _obscureText = obscureText,
         _radius = radius,
         _suffix = suffix,
+        _suffixIcon = suffixIcon,
         _focusNode = focusNode,
         _textInputAction = textInputAction,
         _inputType = inputType;
 
   final String _fieldTitle;
   final Widget? _suffix;
+  final Widget? _suffixIcon;
   final Color? _fillColor;
   final FocusNode? _focusNode;
   final int _maxLength;
@@ -80,6 +83,7 @@ class TextFormFieldItem extends StatelessWidget {
       ),
       decoration: InputDecoration(
         suffix: _suffix,
+        suffixIcon: _suffixIcon,
         isCollapsed: false,
         counterText: "",
         filled: true,

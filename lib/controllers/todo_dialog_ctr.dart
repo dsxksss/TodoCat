@@ -34,8 +34,8 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     selectedPriority.value = todo.priority;
     remindersValue.value = todo.reminders;
 
-    if (todo.finishedAt > 0) {
-      selectedDate.value = DateTime.fromMillisecondsSinceEpoch(todo.finishedAt);
+    if (todo.dueDate > 0) {
+      selectedDate.value = DateTime.fromMillisecondsSinceEpoch(todo.dueDate);
     }
   }
 
@@ -52,7 +52,8 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
         ..tags = selectedTags.toList()
         ..priority = selectedPriority.value
         ..status = currentTodo.status
-        ..finishedAt = selectedDate.value?.millisecondsSinceEpoch ?? 0
+        ..finishedAt = currentTodo.finishedAt
+        ..dueDate = selectedDate.value?.millisecondsSinceEpoch ?? 0
         ..reminders = remindersValue.value;
 
       try {
@@ -106,7 +107,8 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
         ..tags = selectedTags.toList()
         ..priority = selectedPriority.value
         ..status = TodoStatus.todo
-        ..finishedAt = selectedDate.value?.millisecondsSinceEpoch ?? 0
+        ..finishedAt = 0
+        ..dueDate = selectedDate.value?.millisecondsSinceEpoch ?? 0
         ..reminders = remindersValue.value;
 
       try {
@@ -166,8 +168,8 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     selectedPriority.value = todo.priority;
     remindersValue.value = todo.reminders;
 
-    if (todo.finishedAt > 0) {
-      selectedDate.value = DateTime.fromMillisecondsSinceEpoch(todo.finishedAt);
+    if (todo.dueDate > 0) {
+      selectedDate.value = DateTime.fromMillisecondsSinceEpoch(todo.dueDate);
     } else {
       selectedDate.value = null;
     }
@@ -179,7 +181,7 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
       'tags': List<String>.from(todo.tags),
       'priority': todo.priority,
       'reminders': todo.reminders,
-      'finishedAt': todo.finishedAt,
+      'dueDate': todo.dueDate,
     };
     
     initEditing(todo, state);
@@ -196,9 +198,9 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
 
     // 特殊处理日期比较
     if (selectedDate.value == null) {
-      dateChanged = originalState['finishedAt'] != 0;
+      dateChanged = originalState['dueDate'] != 0;
     } else {
-      dateChanged = selectedDate.value!.millisecondsSinceEpoch != originalState['finishedAt'];
+      dateChanged = selectedDate.value!.millisecondsSinceEpoch != originalState['dueDate'];
     }
 
     // 调试日志
@@ -218,7 +220,7 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
       BaseFormController.logger.d('Reminders changed: ${remindersValue.value} != ${originalState['reminders']}');
     }
     if (dateChanged) {
-      BaseFormController.logger.d('Date changed: ${selectedDate.value?.millisecondsSinceEpoch} != ${originalState['finishedAt']}');
+      BaseFormController.logger.d('Date changed: ${selectedDate.value?.millisecondsSinceEpoch} != ${originalState['dueDate']}');
     }
 
     return titleChanged || descriptionChanged || tagsChanged || priorityChanged || remindersChanged || dateChanged;
@@ -232,9 +234,9 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     selectedPriority.value = originalState['priority'] as TodoPriority;
     remindersValue.value = originalState['reminders'] as int;
 
-    final finishedAt = originalState['finishedAt'] as int;
-    if (finishedAt > 0) {
-      selectedDate.value = DateTime.fromMillisecondsSinceEpoch(finishedAt);
+    final dueDate = originalState['dueDate'] as int;
+    if (dueDate > 0) {
+      selectedDate.value = DateTime.fromMillisecondsSinceEpoch(dueDate);
     } else {
       selectedDate.value = null;
     }

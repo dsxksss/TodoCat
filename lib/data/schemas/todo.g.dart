@@ -23,45 +23,50 @@ const TodoSchema = Schema(
       name: r'description',
       type: IsarType.string,
     ),
-    r'finishedAt': PropertySchema(
+    r'dueDate': PropertySchema(
       id: 2,
+      name: r'dueDate',
+      type: IsarType.long,
+    ),
+    r'finishedAt': PropertySchema(
+      id: 3,
       name: r'finishedAt',
       type: IsarType.long,
     ),
     r'priority': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'priority',
       type: IsarType.byte,
       enumMap: _TodopriorityEnumValueMap,
     ),
     r'progress': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'progress',
       type: IsarType.long,
     ),
     r'reminders': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'reminders',
       type: IsarType.long,
     ),
     r'status': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TodostatusEnumValueMap,
     ),
     r'tags': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'title': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'title',
       type: IsarType.string,
     ),
     r'uuid': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -99,14 +104,15 @@ void _todoSerialize(
 ) {
   writer.writeLong(offsets[0], object.createdAt);
   writer.writeString(offsets[1], object.description);
-  writer.writeLong(offsets[2], object.finishedAt);
-  writer.writeByte(offsets[3], object.priority.index);
-  writer.writeLong(offsets[4], object.progress);
-  writer.writeLong(offsets[5], object.reminders);
-  writer.writeByte(offsets[6], object.status.index);
-  writer.writeStringList(offsets[7], object.tags);
-  writer.writeString(offsets[8], object.title);
-  writer.writeString(offsets[9], object.uuid);
+  writer.writeLong(offsets[2], object.dueDate);
+  writer.writeLong(offsets[3], object.finishedAt);
+  writer.writeByte(offsets[4], object.priority.index);
+  writer.writeLong(offsets[5], object.progress);
+  writer.writeLong(offsets[6], object.reminders);
+  writer.writeByte(offsets[7], object.status.index);
+  writer.writeStringList(offsets[8], object.tags);
+  writer.writeString(offsets[9], object.title);
+  writer.writeString(offsets[10], object.uuid);
 }
 
 Todo _todoDeserialize(
@@ -118,17 +124,18 @@ Todo _todoDeserialize(
   final object = Todo();
   object.createdAt = reader.readLong(offsets[0]);
   object.description = reader.readString(offsets[1]);
-  object.finishedAt = reader.readLong(offsets[2]);
+  object.dueDate = reader.readLong(offsets[2]);
+  object.finishedAt = reader.readLong(offsets[3]);
   object.priority =
-      _TodopriorityValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+      _TodopriorityValueEnumMap[reader.readByteOrNull(offsets[4])] ??
           TodoPriority.lowLevel;
-  object.progress = reader.readLong(offsets[4]);
-  object.reminders = reader.readLong(offsets[5]);
-  object.status = _TodostatusValueEnumMap[reader.readByteOrNull(offsets[6])] ??
+  object.progress = reader.readLong(offsets[5]);
+  object.reminders = reader.readLong(offsets[6]);
+  object.status = _TodostatusValueEnumMap[reader.readByteOrNull(offsets[7])] ??
       TodoStatus.todo;
-  object.tags = reader.readStringList(offsets[7]) ?? [];
-  object.title = reader.readString(offsets[8]);
-  object.uuid = reader.readString(offsets[9]);
+  object.tags = reader.readStringList(offsets[8]) ?? [];
+  object.title = reader.readString(offsets[9]);
+  object.uuid = reader.readString(offsets[10]);
   return object;
 }
 
@@ -146,20 +153,22 @@ P _todoDeserializeProp<P>(
     case 2:
       return (reader.readLong(offset)) as P;
     case 3:
+      return (reader.readLong(offset)) as P;
+    case 4:
       return (_TodopriorityValueEnumMap[reader.readByteOrNull(offset)] ??
           TodoPriority.lowLevel) as P;
-    case 4:
-      return (reader.readLong(offset)) as P;
     case 5:
       return (reader.readLong(offset)) as P;
     case 6:
+      return (reader.readLong(offset)) as P;
+    case 7:
       return (_TodostatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TodoStatus.todo) as P;
-    case 7:
-      return (reader.readStringList(offset) ?? []) as P;
     case 8:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -366,6 +375,58 @@ extension TodoQueryFilter on QueryBuilder<Todo, Todo, QFilterCondition> {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'description',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> dueDateEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> dueDateGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> dueDateLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> dueDateBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dueDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }

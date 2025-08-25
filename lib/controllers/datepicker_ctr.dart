@@ -11,9 +11,12 @@ class DatePickerController extends GetxController {
   // 委托给新的统一控制器
   late final DateTimePickerController _unifiedController;
   
+  // 为了向后兼容而保留的响应式属性
+  late final Rx<TimeOfDay?> _currentTime;
+  
   // 为了向后兼容而保留的属性
   Rx<DateTime?> get currentDate => _unifiedController.selectedDateTime;
-  Rx<TimeOfDay?> get currentTime => Rx<TimeOfDay?>(null); // 简化实现
+  Rx<TimeOfDay?> get currentTime => _currentTime;
   DateTime get defaultDate => _unifiedController.defaultDateTime.value;
   RxList<int> get monthDays => _unifiedController.monthDays;
   RxInt get selectedDay => _unifiedController.selectedDay;
@@ -39,6 +42,18 @@ class DatePickerController extends GetxController {
     _logger.w('DatePickerController is deprecated. Use DateTimePickerController instead.');
     _unifiedController = DateTimePickerController();
     _unifiedController.onInit();
+    
+    // 初始化currentTime响应式属性
+    _currentTime = Rx<TimeOfDay?>(null);
+    
+    // 设置监听，当统一控制器的日期时间变化时更新currentTime
+    ever(_unifiedController.selectedDateTime, (DateTime? dateTime) {
+      if (dateTime != null) {
+        _currentTime.value = TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+      } else {
+        _currentTime.value = null;
+      }
+    });
   }
 
   // 委托方法实现
@@ -48,7 +63,10 @@ class DatePickerController extends GetxController {
     _logger.d('changeDate called with parameters: year=$year, month=$month, day=$day, hour=$hour, minute=$minute');
   }
   void setCurrentDate(DateTime? date) => _unifiedController.setDateTime(date);
-  void setCurrentTime(TimeOfDay time) => _unifiedController.setTime(time);
+  void setCurrentTime(TimeOfDay time) {
+    _unifiedController.setTime(time);
+    _currentTime.value = time;
+  }
   void reset() => _unifiedController.clear();
 
   @override

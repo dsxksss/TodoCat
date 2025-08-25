@@ -64,7 +64,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                         label: Text(
                           "cancel".tr,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -79,7 +79,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                         label: Text(
                           "confirm".tr,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 13,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),

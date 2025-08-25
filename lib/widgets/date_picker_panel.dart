@@ -11,13 +11,49 @@ class DatePickerPanel extends StatelessWidget {
     super.key,
     required String dialogTag,
     required Function(DateTime?) onDateSelected,
+    this.initialSelectedDate, // 新增初始选中日期参数
   }) : _onDateSelected = onDateSelected {
     _datePickerController = Get.find<DatePickerController>();
+    // 如果有初始日期，设置到控制器中
+    if (initialSelectedDate != null) {
+      _datePickerController.setCurrentDate(initialSelectedDate);
+    }
   }
 
   final Function(DateTime?) _onDateSelected;
+  final DateTime? initialSelectedDate; // 新增属性
   late final DatePickerController _datePickerController;
   final GlobalKey<TimePanelState> _timeKey = GlobalKey<TimePanelState>();
+
+  Widget _buildQuickDateButton(String label, int days) {
+    return LabelBtn(
+      ghostStyle: true,
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 2,
+      ),
+      onPressed: () {
+        final now = DateTime.now();
+        final targetDate = days == 0 
+            ? DateTime(now.year, now.month, now.day, now.hour, now.minute)
+            : DateTime(now.year, now.month, now.day + days, 23, 59);
+        _datePickerController.setCurrentDate(targetDate);
+        if (_timeKey.currentState != null) {
+          _timeKey.currentState!.updateToTime(
+            TimeOfDay(hour: targetDate.hour, minute: targetDate.minute),
+          );
+        }
+        _onDateSelected(targetDate);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +94,12 @@ class DatePickerPanel extends StatelessWidget {
                         label: Text(
                           'now'.tr,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
+                          horizontal: 8,
                           vertical: 2,
                         ),
                         onPressed: () {
@@ -77,29 +113,40 @@ class DatePickerPanel extends StatelessWidget {
                           _onDateSelected(now);
                         },
                       ),
-                      8.horizontalSpace,
-                      LabelBtn(
-                        label: Text(
-                          'noDateTime'.tr,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 2,
-                        ),
-                        onPressed: () {
-                          _datePickerController.reset();
-                          if (_timeKey.currentState != null) {
-                            _timeKey.currentState!.resetTime();
-                          }
-                          _onDateSelected(null);
-                        },
-                      ),
                     ],
+                  ),
+                ],
+              ),
+            ),
+            // 快捷日期按钮区域
+            Container(
+              padding: const EdgeInsets.all(15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "quickSelect".tr,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft, // start对齐
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.start, // 确保Wrap内部也start对齐
+                      children: [
+                        _buildQuickDateButton("today".tr, 0),
+                        _buildQuickDateButton("tomorrow".tr, 1),
+                        _buildQuickDateButton("threeDays".tr, 3),
+                        _buildQuickDateButton("oneWeek".tr, 7),
+                        _buildQuickDateButton("oneMonth".tr, 30),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -138,7 +185,17 @@ class DatePickerPanel extends StatelessWidget {
                 initialTime: _datePickerController.currentTime.value,
                 onTimeSelected: (time) {
                   _datePickerController.setCurrentTime(time);
-                  _onDateSelected(_datePickerController.currentDate.value);
+                  // 确保日期不为null
+                  final currentDate = _datePickerController.currentDate.value ?? DateTime.now();
+                  final newDateTime = DateTime(
+                    currentDate.year,
+                    currentDate.month,
+                    currentDate.day,
+                    time.hour,
+                    time.minute,
+                  );
+                  _datePickerController.setCurrentDate(newDateTime);
+                  _onDateSelected(newDateTime);
                 },
               ),
             ),

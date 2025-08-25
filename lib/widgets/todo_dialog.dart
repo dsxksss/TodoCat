@@ -10,7 +10,10 @@ import 'package:todo_cat/widgets/date_picker_panel.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
+import 'package:todo_cat/widgets/priority_picker_panel.dart';
+import 'package:todo_cat/widgets/reminder_picker_panel.dart';
 import 'package:intl/intl.dart';
+import 'package:todo_cat/data/schemas/todo.dart';
 
 class TodoDialog extends GetView<AddTodoDialogController> {
   const TodoDialog({
@@ -55,6 +58,51 @@ class TodoDialog extends GetView<AddTodoDialogController> {
       );
     } else {
       SmartDialog.dismiss(tag: addTodoDialogTag);
+    }
+  }
+
+  String _getPriorityLabel(TodoPriority priority) {
+    switch (priority) {
+      case TodoPriority.lowLevel:
+        return "lowPriority".tr;
+      case TodoPriority.mediumLevel:
+        return "mediumPriority".tr;
+      case TodoPriority.highLevel:
+        return "highPriority".tr;
+    }
+  }
+
+  Color _getPriorityColor(TodoPriority priority) {
+    switch (priority) {
+      case TodoPriority.lowLevel:
+        return Colors.green;
+      case TodoPriority.mediumLevel:
+        return Colors.orange;
+      case TodoPriority.highLevel:
+        return Colors.red;
+    }
+  }
+
+  IconData _getPriorityIcon(TodoPriority priority) {
+    switch (priority) {
+      case TodoPriority.lowLevel:
+        return Icons.flag_outlined;
+      case TodoPriority.mediumLevel:
+        return Icons.flag_outlined;
+      case TodoPriority.highLevel:
+        return Icons.flag;
+    }
+  }
+
+  String _getReminderLabel(int reminderMinutes) {
+    if (reminderMinutes == 0) {
+      return "noReminder".tr;
+    } else if (reminderMinutes < 60) {
+      return "${reminderMinutes}${'minutesAgo'.tr}";
+    } else if (reminderMinutes < 1440) {
+      return "${(reminderMinutes / 60).round()}${'hoursAgo'.tr}";
+    } else {
+      return "${(reminderMinutes / 1440).round()}${'daysAgo'.tr}";
     }
   }
 
@@ -110,7 +158,7 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                         label: Text(
                           "cancel".tr,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -125,7 +173,7 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                         label: Text(
                           "confirm".tr,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 13,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
@@ -157,16 +205,20 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                           parent: BouncingScrollPhysics(),
                         ),
                         children: [
+                          // 日期选择器按钮
                           Obx(() => TagDialogBtn(
                                 tag: controller.selectedDate.value != null
                                     ? DateFormat('MM-dd HH:mm')
                                         .format(controller.selectedDate.value!)
-                                    : "dueDate".tr,
-                                tagColor: Colors.grey[700]!,
+                                    : "setDueDate".tr,
+                                tagColor: controller.selectedDate.value != null
+                                    ? const Color(0xFF3B82F6)
+                                    : Colors.grey[700]!,
                                 dialogTag: 'todo_date',
                                 showDelete: false,
                                 openDialog: DatePickerPanel(
                                   dialogTag: addTodoTagDialogBtnTag,
+                                  initialSelectedDate: controller.selectedDate.value, // 传递当前选中的日期
                                   onDateSelected: (date) {
                                     controller.selectedDate.value = date;
                                   },
@@ -177,8 +229,8 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                                       controller.selectedDate.value != null
                                           ? DateFormat('MM-dd HH:mm').format(
                                               controller.selectedDate.value!)
-                                          : "dueDate".tr,
-                                      style: const TextStyle(fontSize: 15),
+                                          : "setDueDate".tr,
+                                      style: const TextStyle(fontSize: 12),
                                     ),
                                     const SizedBox(width: 5),
                                     const Icon(Icons.event_available_outlined,
@@ -187,37 +239,62 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                                 ),
                               )),
                           const SizedBox(width: 10),
-                          TagDialogBtn(
-                            tag: "priority".tr,
-                            tagColor: Colors.grey[700]!,
-                            dialogTag: 'todo_priority',
-                            titleWidget: Row(
-                              children: [
-                                Text(
-                                  "priority".tr,
-                                  style: const TextStyle(fontSize: 15),
+                          Obx(() => TagDialogBtn(
+                                tag: _getPriorityLabel(controller.selectedPriority.value),
+                                tagColor: _getPriorityColor(controller.selectedPriority.value),
+                                dialogTag: 'todo_priority',
+                                showDelete: false,
+                                openDialog: PriorityPickerPanel(
+                                  initialPriority: controller.selectedPriority.value,
+                                  onPrioritySelected: (priority) {
+                                    controller.selectedPriority.value = priority;
+                                  },
                                 ),
-                                const SizedBox(width: 5),
-                                const Icon(Icons.flag_outlined, size: 20),
-                              ],
-                            ),
-                          ),
+                                titleWidget: Row(
+                                  children: [
+                                    Text(
+                                      _getPriorityLabel(controller.selectedPriority.value),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Icon(
+                                      _getPriorityIcon(controller.selectedPriority.value),
+                                      size: 20,
+                                      color: _getPriorityColor(controller.selectedPriority.value),
+                                    ),
+                                  ],
+                                ),
+                              )),
                           const SizedBox(width: 10),
-                          TagDialogBtn(
-                            tag: "reminderTime".tr,
-                            tagColor: Colors.grey[700]!,
-                            dialogTag: 'todo_reminder',
-                            titleWidget: Row(
-                              children: [
-                                Text(
-                                  "reminderTime".tr,
-                                  style: const TextStyle(fontSize: 15),
+                          Obx(() => TagDialogBtn(
+                                tag: _getReminderLabel(controller.remindersValue.value),
+                                tagColor: controller.remindersValue.value > 0 
+                                    ? const Color(0xFF3B82F6) 
+                                    : Colors.grey[700]!,
+                                dialogTag: 'todo_reminder',
+                                showDelete: false,
+                                openDialog: ReminderPickerPanel(
+                                  initialReminder: controller.remindersValue.value,
+                                  onReminderSelected: (reminder) {
+                                    controller.remindersValue.value = reminder;
+                                  },
                                 ),
-                                const SizedBox(width: 5),
-                                const Icon(Icons.alarm, size: 20),
-                              ],
-                            ),
-                          ),
+                                titleWidget: Row(
+                                  children: [
+                                    Text(
+                                      _getReminderLabel(controller.remindersValue.value),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Icon(
+                                      controller.remindersValue.value > 0 
+                                          ? Icons.alarm 
+                                          : Icons.alarm_off,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              )),
                         ],
                       ),
                     ),

@@ -49,11 +49,11 @@ class AddTagScreen extends StatelessWidget {
           editingController: editingController,
           ghostStyle: ghostStyle,
           onFieldSubmitted: (value) => onSubmitted(value),
-          suffix: MouseRegion(
+          suffixIcon: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
               onTap: () => onSubmitted(editingController.text),
-              child: const Icon(Icons.add_box_rounded, size: 24),
+              child: const Icon(Icons.add_box_rounded, size: 20),
             ),
           ),
         ),
