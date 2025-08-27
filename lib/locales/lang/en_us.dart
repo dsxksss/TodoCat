@@ -9,6 +9,7 @@ const Map<String, String> enUS = {
   'another': 'Another',
   'addTask': 'Add Task',
   'addTodo': 'Add Todo',
+  'editTodo': 'Edit Todo',
   'title': 'Title',
   'description': 'Description',
   'addTag': 'Add tag',
@@ -111,5 +112,11 @@ const Map<String, String> enUS = {
   'oneMonth': '1 Month',
   'minutesAgo': 'Minutes Ago',
   'hoursAgo': 'Hours Ago',
-  'daysAgo': 'Days Ago'
+  'daysAgo': 'Days Ago',
+  'selectStatus': 'Select Status',
+  'statusTodo': 'To Do',
+  'statusInProgress': 'In Progress',
+  'statusDone': 'Done',
+  'addedSuccessfully': 'added successfully',
+  'updatedSuccessfully': 'updated successfully'
 };

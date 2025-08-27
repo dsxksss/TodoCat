@@ -6,10 +6,14 @@ import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
 import 'package:todo_cat/controllers/task_dialog_ctr.dart';
 import 'package:todo_cat/controllers/timepicker_ctr.dart';
+import 'package:todo_cat/core/notification_stack_manager.dart';
 
 class AppBinding implements Bindings {
   @override
   void dependencies() {
+    // 核心服务
+    Get.put(NotificationStackManager(), permanent: true);
+
     // 主控制器
     Get.put(AppController(), permanent: true);
     Get.put(HomeController(), permanent: true);

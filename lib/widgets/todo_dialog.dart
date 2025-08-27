@@ -12,6 +12,7 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 import 'package:todo_cat/widgets/priority_picker_panel.dart';
 import 'package:todo_cat/widgets/reminder_picker_panel.dart';
+import 'package:todo_cat/widgets/status_picker_panel.dart';
 import 'package:intl/intl.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 
@@ -31,17 +32,28 @@ class TodoDialog extends GetView<AddTodoDialogController> {
       Get.find<AddTodoDialogController>(tag: dialogTag);
 
   void _handleSubmit() async {
+    // 先获取编辑状态和标题，再提交表单
+    final isEditing = controller.isEditing.value;
+    final todoTitle = controller.titleController.text;
+    
     if (await controller.submitForm()) {
       SmartDialog.dismiss(tag: addTodoDialogTag);
-      showToast(
-        "${"todo".tr} '${controller.titleController.text}' ${"addedSuccessfully".tr}",
-        toastStyleType: TodoCatToastStyleType.success,
+      
+      // 根据之前获取的编辑状态显示不同的提示
+      final actionText = isEditing ? "updatedSuccessfully".tr : "addedSuccessfully".tr;
+      
+      // 使用左下角通知显示成功信息
+      showSuccessNotification(
+        "${"todo".tr} '$todoTitle' $actionText",
       );
+      
+      // 清理表单状态（在显示提示后）
+      controller.clearForm();
     }
   }
 
   void _handleClose() {
-    if (controller.hasChanges()) {
+    if (controller.hasUnsavedChanges()) {
       showToast(
         "${"saveEditing".tr}?",
         tag: confirmDialogTag,
@@ -52,7 +64,7 @@ class TodoDialog extends GetView<AddTodoDialogController> {
           SmartDialog.dismiss(tag: addTodoDialogTag);
         },
         onNoCallback: () {
-          controller.restoreOriginalState();
+          controller.revertChanges();
           SmartDialog.dismiss(tag: addTodoDialogTag);
         },
       );
@@ -106,6 +118,39 @@ class TodoDialog extends GetView<AddTodoDialogController> {
     }
   }
 
+  String _getStatusLabel(TodoStatus status) {
+    switch (status) {
+      case TodoStatus.todo:
+        return "statusTodo".tr;
+      case TodoStatus.inProgress:
+        return "statusInProgress".tr;
+      case TodoStatus.done:
+        return "statusDone".tr;
+    }
+  }
+
+  Color _getStatusColor(TodoStatus status) {
+    switch (status) {
+      case TodoStatus.todo:
+        return Colors.grey[600]!;
+      case TodoStatus.inProgress:
+        return Colors.orange;
+      case TodoStatus.done:
+        return Colors.green;
+    }
+  }
+
+  IconData _getStatusIcon(TodoStatus status) {
+    switch (status) {
+      case TodoStatus.todo:
+        return Icons.radio_button_unchecked;
+      case TodoStatus.inProgress:
+        return Icons.access_time;
+      case TodoStatus.done:
+        return Icons.check_circle;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -144,13 +189,13 @@ class TodoDialog extends GetView<AddTodoDialogController> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "addTodo".tr,
+                  Obx(() => Text(
+                    controller.isEditing.value ? "editTodo".tr : "addTodo".tr,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
+                  )),
                   Row(
                     children: [
                       LabelBtn(
@@ -291,6 +336,33 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                                           ? Icons.alarm 
                                           : Icons.alarm_off,
                                       size: 20,
+                                    ),
+                                  ],
+                                ),
+                              )),
+                          const SizedBox(width: 10),
+                          Obx(() => TagDialogBtn(
+                                tag: _getStatusLabel(controller.selectedStatus.value),
+                                tagColor: _getStatusColor(controller.selectedStatus.value),
+                                dialogTag: 'todo_status',
+                                showDelete: false,
+                                openDialog: StatusPickerPanel(
+                                  initialStatus: controller.selectedStatus.value,
+                                  onStatusSelected: (status) {
+                                    controller.selectedStatus.value = status;
+                                  },
+                                ),
+                                titleWidget: Row(
+                                  children: [
+                                    Text(
+                                      _getStatusLabel(controller.selectedStatus.value),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Icon(
+                                      _getStatusIcon(controller.selectedStatus.value),
+                                      size: 20,
+                                      color: _getStatusColor(controller.selectedStatus.value),
                                     ),
                                   ],
                                 ),

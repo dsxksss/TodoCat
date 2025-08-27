@@ -187,16 +187,12 @@ class TaskCard extends StatelessWidget {
                                       await _homeCtrl.deleteTask(_task.uuid);
                                   0.5.delay(() {
                                     if (isDeleted) {
-                                      showToast(
+                                      showSuccessNotification(
                                         "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",
-                                        toastStyleType:
-                                            TodoCatToastStyleType.success,
                                       );
                                     } else {
-                                      showToast(
+                                      showErrorNotification(
                                         "${"task".tr} '${_task.title.tr}' ${"deletionFailed".tr}",
-                                        toastStyleType:
-                                            TodoCatToastStyleType.error,
                                       );
                                     }
                                   });

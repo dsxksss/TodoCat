@@ -24,14 +24,16 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
   void _updateFormData() {
     final task = getEditingItem<Task>()!;
     titleController.text = task.title;
-    descriptionController.text = task.description.isEmpty ? '' : task.description;
+    descriptionController.text =
+        task.description.isEmpty ? '' : task.description;
     selectedTags.value = List<String>.from(task.tags);
   }
 
   void initForEditing(Task task) {
     // 设置表单数据
     titleController.text = task.title;
-    descriptionController.text = task.description.isEmpty ? '' : task.description;
+    descriptionController.text =
+        task.description.isEmpty ? '' : task.description;
     selectedTags.value = List<String>.from(task.tags);
 
     // 使用编辑状态管理
@@ -40,25 +42,31 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
       'description': task.description.isEmpty ? '' : task.description,
       'tags': List<String>.from(task.tags),
     };
-    
+
     initEditing(task, state);
   }
 
   @override
   bool checkForChanges(Map<String, dynamic> originalState) {
-    bool titleChanged = !compareStrings(titleController.text, originalState['title']);
-    bool descriptionChanged = !compareStrings(descriptionController.text, originalState['description']);
-    bool tagsChanged = !compareListEquality(selectedTags, originalState['tags'] as List<String>);
+    bool titleChanged =
+        !compareStrings(titleController.text, originalState['title']);
+    bool descriptionChanged = !compareStrings(
+        descriptionController.text, originalState['description']);
+    bool tagsChanged = !compareListEquality(
+        selectedTags, originalState['tags'] as List<String>);
 
     // 调试日志
     if (titleChanged) {
-      BaseFormController.logger.d('Task title changed: ${titleController.text} != ${originalState['title']}');
+      BaseFormController.logger.d(
+          'Task title changed: ${titleController.text} != ${originalState['title']}');
     }
     if (descriptionChanged) {
-      BaseFormController.logger.d('Task description changed: ${descriptionController.text} != ${originalState['description']}');
+      BaseFormController.logger.d(
+          'Task description changed: ${descriptionController.text} != ${originalState['description']}');
     }
     if (tagsChanged) {
-      BaseFormController.logger.d('Task tags changed: $selectedTags != ${originalState['tags']}');
+      BaseFormController.logger
+          .d('Task tags changed: $selectedTags != ${originalState['tags']}');
     }
 
     return titleChanged || descriptionChanged || tagsChanged;
@@ -68,17 +76,8 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
   void restoreToOriginalState(Map<String, dynamic> originalState) {
     titleController.text = originalState['title'] as String;
     descriptionController.text = originalState['description'] as String;
-    selectedTags.value = List<String>.from(originalState['tags'] as List<String>);
-  }
-
-  @override
-  bool checkFieldChanges() {
-    return hasUnsavedChanges();
-  }
-
-  @override
-  void restoreFields() {
-    revertChanges();
+    selectedTags.value =
+        List<String>.from(originalState['tags'] as List<String>);
   }
 
   @override
@@ -101,7 +100,8 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
         ..createdAt = currentTask.createdAt
         ..todos = currentTask.todos;
 
-      final success = await homeController.updateTask(currentTask.uuid, updatedTask);
+      final success =
+          await homeController.updateTask(currentTask.uuid, updatedTask);
 
       SmartDialog.dismiss(tag: addTaskDialogTag);
 

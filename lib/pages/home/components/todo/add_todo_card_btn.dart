@@ -39,6 +39,7 @@ class AddTodoCardBtn extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 15),
       child: AnimationBtn(
+        onHoverAnimationEnabled: false,
         onPressed: () => _handlePress(context),
         child: Container(
           decoration: BoxDecoration(

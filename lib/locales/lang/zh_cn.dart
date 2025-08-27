@@ -9,6 +9,7 @@ const Map<String, String> zhCN = {
   'another': '其他',
   'addTask': '添加事项',
   'addTodo': '添加待办',
+  'editTodo': '编辑待办',
   'title': '标题',
   'description': '描述',
   'addTag': '添加标签',
@@ -112,4 +113,10 @@ const Map<String, String> zhCN = {
   'minutesAgo': '分钟前',
   'hoursAgo': '小时前',
   'daysAgo': '天前',
+  'selectStatus': '选择状态',
+  'statusTodo': '待办',
+  'statusInProgress': '进行中',
+  'statusDone': '已完成',
+  'addedSuccessfully': '添加成功',
+  'updatedSuccessfully': '更新成功',
 };

@@ -154,7 +154,7 @@ class TaskDialog extends GetView<TaskDialogController> {
   }
 
   void _handleClose() {
-    if (controller.hasChanges()) {
+    if (controller.hasUnsavedChanges()) {
       showToast(
         "${"saveEditing".tr}?",
         tag: confirmDialogTag,
@@ -165,7 +165,7 @@ class TaskDialog extends GetView<TaskDialogController> {
           SmartDialog.dismiss(tag: addTaskDialogTag);
         },
         onNoCallback: () {
-          controller.restoreOriginalState();
+          controller.revertChanges();
           SmartDialog.dismiss(tag: addTaskDialogTag);
         },
       );

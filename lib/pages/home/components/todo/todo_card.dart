@@ -1,6 +1,4 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
@@ -24,17 +22,6 @@ class TodoCard extends StatelessWidget {
   final String taskId;
   final Todo todo;
   final HomeController _homeCtrl = Get.find();
-
-  IconData _getStatusIconData() {
-    switch (todo.status) {
-      case TodoStatus.todo:
-        return FontAwesomeIcons.hourglassStart;
-      case TodoStatus.inProgress:
-        return FontAwesomeIcons.hourglassEnd;
-      case TodoStatus.done:
-        return FontAwesomeIcons.checkDouble;
-    }
-  }
 
   Color _getPriorityColor() {
     switch (todo.priority) {
@@ -190,8 +177,8 @@ class TodoCard extends StatelessWidget {
 
                             DialogService.showFormDialog(
                               tag: addTodoDialogTag,
-                              dialog:
-                                  const TodoDialog(dialogTag: 'edit_todo_dialog'),
+                              dialog: const TodoDialog(
+                                  dialogTag: 'edit_todo_dialog'),
                             );
                           },
                         ),
@@ -239,14 +226,15 @@ class TodoCard extends StatelessWidget {
                                   Colors.tealAccent,
                                   Colors.pinkAccent,
                                 ];
-                                final colorIndex = tagText.hashCode % colors.length;
-                                
+                                final colorIndex =
+                                    tagText.hashCode % colors.length;
+
                                 // 限制标签文本长度
                                 String displayText = tagText;
                                 if (tagText.length > 8) {
                                   displayText = '${tagText.substring(0, 6)}...';
                                 }
-                                
+
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 8),
                                   child: Tag(
@@ -260,7 +248,8 @@ class TodoCard extends StatelessWidget {
                         ),
                         if (todo.tags.length > 3)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.grey.withOpacity(0.3),
                               borderRadius: BorderRadius.circular(10),
@@ -288,10 +277,12 @@ class TodoCard extends StatelessWidget {
                       children: [
                         Icon(
                           size: 15,
-                          todo.dueDate > 0 
-                              ? (_isOverdue() ? FontAwesomeIcons.triangleExclamation : FontAwesomeIcons.calendarCheck)
+                          todo.dueDate > 0
+                              ? (_isOverdue()
+                                  ? FontAwesomeIcons.triangleExclamation
+                                  : FontAwesomeIcons.calendarCheck)
                               : FontAwesomeIcons.calendar,
-                          color: todo.dueDate > 0 
+                          color: todo.dueDate > 0
                               ? (_isOverdue() ? Colors.red : Colors.grey)
                               : Colors.grey,
                         ),
@@ -299,14 +290,16 @@ class TodoCard extends StatelessWidget {
                           width: 3,
                         ),
                         Text(
-                          todo.dueDate > 0 
+                          todo.dueDate > 0
                               ? timestampToDate(todo.dueDate)
                               : "未设置",
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11.5,
-                            color: todo.dueDate > 0 
-                                ? (_isOverdue() ? Colors.red : Colors.grey.shade600)
+                            color: todo.dueDate > 0
+                                ? (_isOverdue()
+                                    ? Colors.red
+                                    : Colors.grey.shade600)
                                 : Colors.grey.shade600,
                             fontWeight: FontWeight.bold,
                           ),
@@ -314,7 +307,8 @@ class TodoCard extends StatelessWidget {
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: _getStatusColor().withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),

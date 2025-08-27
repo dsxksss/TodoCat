@@ -33,10 +33,10 @@ class TaskManager {
     try {
       _logger.d('Refreshing tasks');
       final localTasks = await _repository.readAll();
-      
+
       // 去重复处理，确保任务唯一性
       final uniqueTasks = _removeDuplicateTasks(localTasks);
-      
+
       tasks.assignAll(uniqueTasks);
       tasks.refresh();
       _logger.d('Tasks refreshed successfully, count: ${tasks.length}');
@@ -49,7 +49,7 @@ class TaskManager {
   List<Task> _removeDuplicateTasks(List<Task> tasks) {
     final seen = <String>{};
     final uniqueTasks = <Task>[];
-    
+
     for (final task in tasks) {
       if (!seen.contains(task.uuid)) {
         seen.add(task.uuid);
@@ -58,7 +58,7 @@ class TaskManager {
         _logger.w('Duplicate task found: ${task.uuid}, removing duplicate');
       }
     }
-    
+
     return uniqueTasks;
   }
 
@@ -66,50 +66,50 @@ class TaskManager {
   Future<void> resetTasksTemplate() async {
     try {
       _logger.d('Starting tasks template reset');
-      
+
       // 1. 清空内存中的任务列表
       tasks.clear();
-      
+
       // 2. 清空数据库中的所有任务
       await _clearAllTasks();
-      
+
       // 3. 创建新的默认任务（确保每次都是全新的UUID）
       final freshDefaultTasks = _createFreshDefaultTasks();
-      
+
       // 4. 添加到内存和数据库
       await assignAll(freshDefaultTasks);
-      
+
       _logger.d('Tasks template reset completed successfully');
     } catch (e) {
       _logger.e('Error resetting tasks template: $e');
       throw Exception('Failed to reset tasks template: $e');
     }
   }
-  
+
   /// 清空数据库中的所有任务
   Future<void> _clearAllTasks() async {
     try {
       _logger.d('Clearing all tasks from database');
-      
+
       // 获取所有任务的UUID
       final allTasks = await _repository.readAll();
-      
+
       // 逐个删除所有任务
       for (final task in allTasks) {
         await _repository.delete(task.uuid);
       }
-      
+
       _logger.d('All tasks cleared from database');
     } catch (e) {
       _logger.e('Error clearing all tasks: $e');
       throw Exception('Failed to clear all tasks: $e');
     }
   }
-  
+
   /// 创建全新的默认任务（确保 todos 为空）
   List<Task> _createFreshDefaultTasks() {
     final currentTime = DateTime.now().millisecondsSinceEpoch;
-    
+
     return [
       Task()
         ..uuid = const Uuid().v4()
@@ -117,21 +117,21 @@ class TaskManager {
         ..createdAt = currentTime
         ..tags = ["\u9ed8\u8ba4", "\u81ea\u5e26"]
         ..todos = [], // 确保为空
-        
+
       Task()
         ..uuid = const Uuid().v4()
         ..title = "inProgress"
         ..createdAt = currentTime + 1
         ..tags = ["\u9ed8\u8ba4", "\u81ea\u5e26"]
         ..todos = [], // 确保为空
-        
+
       Task()
         ..uuid = const Uuid().v4()
         ..title = "done"
         ..createdAt = currentTime + 2
         ..tags = ["\u9ed8\u8ba4", "\u81ea\u5e26"]
         ..todos = [], // 确保为空
-        
+
       Task()
         ..uuid = const Uuid().v4()
         ..title = "another"
@@ -198,13 +198,16 @@ class TaskManager {
       final index = tasks.indexWhere((t) => t.uuid == uuid);
       if (index != -1) {
         _logger.d('Updating task $uuid at index $index');
-        
+
         // 更新内存中的任务
         tasks[index] = task;
-        
+
+        // 刷新UI，确保变化立即显示
+        tasks.refresh();
+
         // 更新数据库
         await _repository.update(uuid, task);
-        
+
         _logger.d('Task $uuid updated successfully');
       } else {
         _logger.w('Task $uuid not found for update');
@@ -219,11 +222,11 @@ class TaskManager {
   Future<void> assignAll(List<Task> newTasks) async {
     try {
       _logger.d('Assigning ${newTasks.length} tasks');
-      
+
       // 更新内存中的任务列表
       tasks.assignAll(newTasks);
       tasks.refresh();
-      
+
       // 批量写入数据库
       await Future.wait(
         newTasks.map((task) {
@@ -231,7 +234,7 @@ class TaskManager {
           return _repository.write(task.uuid, task);
         }),
       );
-      
+
       _logger.d('All ${newTasks.length} tasks assigned successfully');
     } catch (e) {
       _logger.e('Error assigning tasks: $e');

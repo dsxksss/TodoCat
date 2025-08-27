@@ -62,22 +62,10 @@ class DateTimePickerController extends GetxController {
   }
 
   void _setupListeners() {
-    // 监听选中日期变化
+    // 监听选中日期变化，但避免循环调用
     ever(selectedDay, (_) {
       _logger.d('Selected day changed to: $selectedDay');
-      if (isSelectedDayValid) {
-        _updateDateTime(day: selectedDay.value);
-      }
-    });
-
-    // 监听当前日期时间变化
-    ever(selectedDateTime, (_) {
-      _logger.d('Selected datetime changed to: ${selectedDateTime.value}');
-      if (selectedDateTime.value != null) {
-        selectedDay.value = selectedDateTime.value!.day;
-        _updateMonthData();
-        _updateTimeFromDateTime();
-      }
+      // 不再自动触发 _updateDateTime，由外部显式调用
     });
 
     // 监听时间变化
@@ -151,6 +139,13 @@ class DateTimePickerController extends GetxController {
   void setDateTime(DateTime? dateTime) {
     _logger.d('Setting datetime to: $dateTime');
     selectedDateTime.value = dateTime;
+    
+    if (dateTime != null) {
+      // 更新相关状态
+      selectedDay.value = dateTime.day;
+      _updateMonthData();
+      _updateTimeFromDateTime();
+    }
   }
 
   /// 设置时间

@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/controllers/base/base_form_controller.dart';
-import 'package:todo_cat/controllers/mixins/edit_state_mixin.dart';
 import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/todo_dialog.dart';
@@ -11,7 +10,7 @@ import 'package:todo_cat/services/dialog_service.dart';
 class TodoDetailController extends BaseFormController {
   final String todoId;
   final String taskId;
-  
+
   final todo = Rx<Todo?>(null);
   final HomeController _homeController = Get.find();
 
@@ -24,7 +23,7 @@ class TodoDetailController extends BaseFormController {
   void onInit() {
     super.onInit();
     _loadTodoDetail();
-    
+
     // 监听HomeController的响应式任务列表变化，自动刷新详情
     ever(_homeController.reactiveTasks, (_) {
       _loadTodoDetail();
@@ -36,12 +35,12 @@ class TodoDetailController extends BaseFormController {
       final task = _homeController.tasks.firstWhere(
         (task) => task.uuid == taskId,
       );
-      
+
       if (task.todos != null) {
         final foundTodo = task.todos!.firstWhereOrNull(
           (todo) => todo.uuid == todoId,
         );
-        
+
         if (foundTodo != null) {
           todo.value = foundTodo;
         } else {
@@ -65,26 +64,26 @@ class TodoDetailController extends BaseFormController {
 
   void editTodo() {
     if (todo.value == null) return;
-    
+
     final todoDialogController = Get.put(
       AddTodoDialogController(),
       tag: 'edit_todo_detail_dialog',
       permanent: true,
     );
-    
+
     todoDialogController.initForEditing(taskId, todo.value!);
 
     DialogService.showFormDialog(
       tag: addTodoDialogTag,
       dialog: const TodoDialog(dialogTag: 'edit_todo_detail_dialog'),
     );
-    
+
     // 由于已经有自动监听机制，不需要手动刷新
   }
 
   void deleteTodo() async {
     if (todo.value == null) return;
-    
+
     await _homeController.deleteTodo(taskId, todoId);
     Get.back();
   }
@@ -110,14 +109,12 @@ class TodoDetailController extends BaseFormController {
         return 'done'.tr;
     }
   }
-  
-  @override
+
   bool checkFieldChanges() {
     // 详细信息页面不需要检查表单更改
     return false;
   }
-  
-  @override
+
   void restoreFields() {
     // 详细信息页面不需要恢复表单字段
   }

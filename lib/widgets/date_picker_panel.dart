@@ -1,29 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/datepicker_ctr.dart';
 import 'package:todo_cat/widgets/date_panel.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/time_panel.dart';
 
-class DatePickerPanel extends StatelessWidget {
-  DatePickerPanel({
+class DatePickerPanel extends StatefulWidget {
+  const DatePickerPanel({
     super.key,
-    required String dialogTag,
-    required Function(DateTime?) onDateSelected,
+    required this.dialogTag,
+    required this.onDateSelected,
     this.initialSelectedDate, // 新增初始选中日期参数
-  }) : _onDateSelected = onDateSelected {
+  });
+
+  final String dialogTag;
+  final Function(DateTime?) onDateSelected;
+  final DateTime? initialSelectedDate; // 新增属性
+
+  @override
+  State<DatePickerPanel> createState() => _DatePickerPanelState();
+}
+
+class _DatePickerPanelState extends State<DatePickerPanel> {
+  late DatePickerController _datePickerController;
+  final GlobalKey<TimePanelState> _timeKey = GlobalKey<TimePanelState>();
+
+  @override
+  void initState() {
+    super.initState();
     _datePickerController = Get.find<DatePickerController>();
-    // 如果有初始日期，设置到控制器中
-    if (initialSelectedDate != null) {
-      _datePickerController.setCurrentDate(initialSelectedDate);
-    }
+    // 在initState中设置初始日期，避免构建阶段状态更新
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialSelectedDate != null) {
+        _datePickerController.setCurrentDate(widget.initialSelectedDate);
+      }
+    });
   }
 
-  final Function(DateTime?) _onDateSelected;
-  final DateTime? initialSelectedDate; // 新增属性
-  late final DatePickerController _datePickerController;
-  final GlobalKey<TimePanelState> _timeKey = GlobalKey<TimePanelState>();
+
 
   Widget _buildQuickDateButton(String label, int days) {
     return LabelBtn(
@@ -50,7 +64,7 @@ class DatePickerPanel extends StatelessWidget {
             TimeOfDay(hour: targetDate.hour, minute: targetDate.minute),
           );
         }
-        _onDateSelected(targetDate);
+        widget.onDateSelected(targetDate);
       },
     );
   }
@@ -110,7 +124,7 @@ class DatePickerPanel extends StatelessWidget {
                             );
                           }
                           _datePickerController.setCurrentDate(now);
-                          _onDateSelected(now);
+                          widget.onDateSelected(now);
                         },
                       ),
                     ],
@@ -164,7 +178,7 @@ class DatePickerPanel extends StatelessWidget {
                     currentTime.minute,
                   );
                   _datePickerController.setCurrentDate(newDate);
-                  _onDateSelected(newDate);
+                  widget.onDateSelected(newDate);
                 } else {
                   final newDate = DateTime(
                     date.year,
@@ -174,7 +188,7 @@ class DatePickerPanel extends StatelessWidget {
                     0,
                   );
                   _datePickerController.setCurrentDate(newDate);
-                  _onDateSelected(newDate);
+                  widget.onDateSelected(newDate);
                 }
               },
             ),
@@ -195,7 +209,7 @@ class DatePickerPanel extends StatelessWidget {
                     time.minute,
                   );
                   _datePickerController.setCurrentDate(newDateTime);
-                  _onDateSelected(newDateTime);
+                  widget.onDateSelected(newDateTime);
                 },
               ),
             ),

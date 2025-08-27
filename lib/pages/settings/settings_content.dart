@@ -130,7 +130,7 @@ class SettingsContent extends GetView<SettingsController> {
       toastStyleType: TodoCatToastStyleType.warning,
       onYesCallback: () {
         controller.resetConfig();
-        showToast("设置已重置", toastStyleType: TodoCatToastStyleType.success);
+        showSuccessNotification("设置已重置");
       },
     );
   }
@@ -143,8 +143,7 @@ class SettingsContent extends GetView<SettingsController> {
       toastStyleType: TodoCatToastStyleType.warning,
       onYesCallback: () {
         controller.resetTasksTemplate();
-        showToast("tasksTemplateResetSuccess".tr,
-            toastStyleType: TodoCatToastStyleType.success);
+        showSuccessNotification("tasksTemplateResetSuccess".tr);
       },
     );
   }
