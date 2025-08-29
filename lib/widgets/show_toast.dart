@@ -132,7 +132,7 @@ Widget _buildBottomLeftNotification(
         //   ),
         // ],
         border: Border.all(
-          color: iconData[1].withOpacity(0.2), // 保持固定透明度
+          color: iconData[1].withOpacity(0.8), // 保持固定透明度
           width: 1, // 保持固定宽度
         ),
       ),

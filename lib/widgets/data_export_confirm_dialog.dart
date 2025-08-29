@@ -135,7 +135,7 @@ class DataExportConfirmDialog extends StatelessWidget {
                       Icon(
                         Icons.info_outline,
                         size: 16,
-                        color: context.theme.primaryColor,
+                        color: context.theme.iconTheme.color,
                       ),
                       const SizedBox(width: 8),
                       Expanded(

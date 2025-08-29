@@ -105,8 +105,20 @@ class DataExportImportService {
       final file = File(result.files.first.path!);
       final jsonString = await file.readAsString(encoding: utf8);
 
-      // 解析JSON数据
-      final data = json.decode(jsonString) as Map<String, dynamic>;
+      // 检查文件是否为空
+      if (jsonString.trim().isEmpty) {
+        _logger.w('JSON文件为空');
+        return ImportResult(success: false, message: 'invalidFileFormat'.tr);
+      }
+
+      // 解析JSON数据，添加异常处理
+      Map<String, dynamic> data;
+      try {
+        data = json.decode(jsonString) as Map<String, dynamic>;
+      } catch (e) {
+        _logger.e('JSON解析失败: $e');
+        return ImportResult(success: false, message: 'invalidFileFormat'.tr);
+      }
 
       // 验证数据格式
       if (!_validateImportData(data)) {
