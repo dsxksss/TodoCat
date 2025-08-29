@@ -132,7 +132,7 @@ const Map<String, String> zhCN = {
   'noNotifications': '暂无通知',
   'noNotificationsDesc': '您的通知会在这里显示',
   'close': '关闭',
-  'unreadMessages': '{count}条未读消息',
+  'unreadMessages': '条未读消息',
   'allMessagesRead': '所有消息已读',
   'confirmClearAllNotifications': '确认清空所有通知',
   'confirmClearAllNotificationsDesc': '确定要清空所有通知吗？此操作不可撤销。',

@@ -88,7 +88,7 @@ class NotificationCenterDialog extends StatelessWidget {
                         final unreadCount = manager.unreadCount;
                         return Text(
                           unreadCount > 0 
-                              ? 'unreadMessages'.trParams({'count': '$unreadCount'})
+                              ? '$unreadCount ${'unreadMessages'.tr}'
                               : 'allMessagesRead'.tr,
                           style: TextStyle(
                             fontSize: 12,
@@ -152,8 +152,8 @@ class NotificationCenterDialog extends StatelessWidget {
                     toastStyleType: TodoCatToastStyleType.warning,
                     onYesCallback: () {
                       manager.clearAll();
-                      // 显示操作成功通知
-                      showSuccessNotification('notificationsCleared'.tr);
+                      // 使用 Toast 显示操作成功信息，而不是添加新通知
+                      showToast('notificationsCleared'.tr);
                     },
                   );
                 },

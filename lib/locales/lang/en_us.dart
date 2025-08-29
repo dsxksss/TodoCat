@@ -132,7 +132,7 @@ const Map<String, String> enUS = {
   'noNotifications': 'No Notifications',
   'noNotificationsDesc': 'Your notifications will appear here',
   'close': 'Close',
-  'unreadMessages': '{count} unread messages',
+  'unreadMessages': 'unread messages',
   'allMessagesRead': 'All messages read',
   'confirmClearAllNotifications': 'Confirm Clear All Notifications',
   'confirmClearAllNotificationsDesc': 'Are you sure you want to clear all notifications? This action cannot be undone.',
