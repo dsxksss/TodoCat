@@ -62,4 +62,27 @@ class AppConfig {
       ..emailReminderEnabled = emailReminderEnabled ?? this.emailReminderEnabled
       ..isDebugMode = isDebugMode ?? this.isDebugMode;
   }
+
+  // JSON序列化
+  Map<String, dynamic> toJson() {
+    return {
+      'configName': configName,
+      'isDarkMode': isDarkMode,
+      'languageCode': languageCode,
+      'countryCode': countryCode,
+      'emailReminderEnabled': emailReminderEnabled,
+      'isDebugMode': isDebugMode,
+    };
+  }
+
+  // JSON反序列化
+  factory AppConfig.fromJson(Map<String, dynamic> json) {
+    return AppConfig()
+      ..configName = json['configName'] as String
+      ..isDarkMode = json['isDarkMode'] as bool
+      ..languageCode = json['languageCode'] as String
+      ..countryCode = json['countryCode'] as String
+      ..emailReminderEnabled = json['emailReminderEnabled'] as bool
+      ..isDebugMode = json['isDebugMode'] as bool;
+  }
 }

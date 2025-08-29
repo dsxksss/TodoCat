@@ -6,6 +6,8 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/core/notification_stack_manager.dart';
+import 'package:todo_cat/core/notification_center_manager.dart';
+import 'package:todo_cat/data/schemas/notification_history.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 
 /// Toast 样式类型枚举
@@ -439,8 +441,27 @@ void showNotification(
   String message, {
   TodoCatToastStyleType type = TodoCatToastStyleType.success,
   Duration? displayTime,
+  String? title,
 }) {
   final stackManager = NotificationStackManager.instance;
+  
+  try {
+    // 尝试获取通知中心管理器
+    final notificationCenter = Get.find<NotificationCenterManager>();
+    
+    // 添加到通知中心
+    notificationCenter.addNotification(
+      title: title ?? _getNotificationTitle(type),
+      message: message,
+      level: _mapToNotificationLevel(type),
+    ).then((_) {}).catchError((e) {
+      print('通知中心保存失败: $e');
+    });
+  } catch (e) {
+    // 如果通知中心未初始化，忽略错误
+    print('通知中心未初始化: $e');
+  }
+  
   final duration = displayTime ?? const Duration(milliseconds: 2500);
   
   // 将通知添加到栈中
@@ -470,6 +491,34 @@ NotificationType _mapToNotificationType(TodoCatToastStyleType type) {
       return NotificationType.warning;
     case TodoCatToastStyleType.info:
       return NotificationType.info;
+  }
+}
+
+/// 将TodoCatToastStyleType转换为NotificationLevel
+NotificationLevel _mapToNotificationLevel(TodoCatToastStyleType type) {
+  switch (type) {
+    case TodoCatToastStyleType.success:
+      return NotificationLevel.success;
+    case TodoCatToastStyleType.error:
+      return NotificationLevel.error;
+    case TodoCatToastStyleType.warning:
+      return NotificationLevel.warning;
+    case TodoCatToastStyleType.info:
+      return NotificationLevel.info;
+  }
+}
+
+/// 获取通知类型对应的默认标题
+String _getNotificationTitle(TodoCatToastStyleType type) {
+  switch (type) {
+    case TodoCatToastStyleType.success:
+      return '成功';
+    case TodoCatToastStyleType.error:
+      return '错误';
+    case TodoCatToastStyleType.warning:
+      return '警告';
+    case TodoCatToastStyleType.info:
+      return '信息';
   }
 }
 

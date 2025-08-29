@@ -4,38 +4,50 @@ import 'package:todo_cat/data/services/database.dart';
 
 class AppConfigRepository {
   static AppConfigRepository? _instance;
-  late final Isar _isar;
+  Isar? _isar;
+  bool _isInitialized = false;
 
   AppConfigRepository._();
 
   static Future<AppConfigRepository> getInstance() async {
     _instance ??= AppConfigRepository._();
-    await _instance!._init();
+    if (!_instance!._isInitialized) {
+      await _instance!._init();
+    }
     return _instance!;
   }
 
   Future<void> _init() async {
+    if (_isInitialized) return;
     final db = await Database.getInstance();
     _isar = db.isar;
+    _isInitialized = true;
+  }
+
+  Isar get isar {
+    if (_isar == null) {
+      throw StateError('AppConfigRepository not initialized');
+    }
+    return _isar!;
   }
 
   Future<AppConfig?> read(String configName) async {
-    return await _isar.appConfigs
+    return await isar.appConfigs
         .filter()
         .configNameEqualTo(configName)
         .findFirst();
   }
 
   Future<void> write(String configName, AppConfig config) async {
-    await _isar.writeTxn(() async {
-      final existingConfig = await _isar.appConfigs
+    await isar.writeTxn(() async {
+      final existingConfig = await isar.appConfigs
           .filter()
           .configNameEqualTo(configName)
           .findFirst();
       if (existingConfig != null) {
         config.id = existingConfig.id;
       }
-      await _isar.appConfigs.put(config);
+      await isar.appConfigs.put(config);
     });
   }
 

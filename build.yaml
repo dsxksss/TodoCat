@@ -1,0 +1,5 @@
+targets:
+  $default:
+    builders:
+      hive_generator|hive_generator:
+        enabled: true

@@ -64,6 +64,18 @@ class HomeController extends GetxController
     await _taskManager.resetTasksTemplate();
   }
 
+  /// 刷新数据（用于数据导入后更新UI）
+  Future<void> refreshData() async {
+    _logger.i('刷新主页数据...');
+    try {
+      // 重新初始化TaskManager，从数据库加载最新数据
+      await _taskManager.initialize();
+      _logger.i('主页数据刷新成功');
+    } catch (e) {
+      _logger.e('主页数据刷新失败: $e');
+    }
+  }
+
   Future<void> _showEmptyTaskToast() async {
     await 2.delay();
     showToast(

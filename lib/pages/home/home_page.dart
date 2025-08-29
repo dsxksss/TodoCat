@@ -8,12 +8,14 @@ import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/todocat_scaffold.dart';
+import 'package:todo_cat/widgets/notification_center_dialog.dart';
+import 'package:todo_cat/core/notification_center_manager.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reorderables/reorderables.dart';
 import 'package:todo_cat/widgets/task_dialog.dart';
+import 'package:badges/badges.dart' as badges;
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -206,18 +208,85 @@ class HomePage extends GetView<HomeController> {
   /// 构建右侧控件列表
   List<Widget> _buildRightWidgets(BuildContext context) {
     return [
+      // 通知中心按钮
+      _buildNotificationCenterButton(),
+      const SizedBox(width: 8),
+      // 设置按钮
       NavBarBtn(
         onPressed: () {
           // 获取已初始化的控制器
           final settingsController = Get.find<SettingsController>();
           settingsController.showSettings();
         },
-        child: const Icon(
-          Icons.settings,
-          size: 24,
+        child: Builder(
+          builder: (context) => Icon(
+            Icons.settings,
+            size: 24,
+            color: context.theme.iconTheme.color,
+          ),
         ),
       ),
     ];
+  }
+
+  /// 构建通知中心按钮
+  Widget _buildNotificationCenterButton() {
+    final notificationCenter = Get.find<NotificationCenterManager>();
+    return Obx(() {
+      final unreadCount = notificationCenter.unreadCount;
+      return NavBarBtn(
+        onPressed: _showNotificationCenter,
+        child: badges.Badge(
+          showBadge: unreadCount > 0,
+          badgeContent: Text(
+            unreadCount > 99 ? '99+' : unreadCount.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          badgeStyle: const badges.BadgeStyle(
+            badgeColor: Colors.red,
+            padding: EdgeInsets.all(4),
+            elevation: 0,
+          ),
+          position: badges.BadgePosition.topEnd(top: -4, end: -4),
+          child: Builder(
+            builder: (context) => Icon(
+              Icons.mail_outline,
+              size: 24,
+              color: context.theme.iconTheme.color,
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  /// 显示通知中心对话框
+  void _showNotificationCenter() {
+    SmartDialog.show(
+      useSystem: false,
+      debounce: true,
+      keepSingle: true,
+      tag: 'notification_center_dialog',
+      backType: SmartBackType.normal,
+      animationTime: const Duration(milliseconds: 200),
+      alignment: Alignment.center,
+      builder: (_) => const NotificationCenterDialog(),
+      clickMaskDismiss: true,
+      animationBuilder: (controller, child, _) {
+        return child
+            .animate(controller: controller)
+            .fade(duration: controller.duration)
+            .scaleXY(
+              begin: 0.95,
+              duration: controller.duration,
+              curve: Curves.easeOut,
+            );
+      },
+    );
   }
 
   /// 添加显示对话框的方法

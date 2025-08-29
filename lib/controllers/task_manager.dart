@@ -7,12 +7,29 @@ import 'package:uuid/uuid.dart';
 /// 管理任务数据的类，处理任务的CRUD操作和持久化
 class TaskManager {
   static final _logger = Logger();
-  late final TaskRepository _repository;
+  TaskRepository? _repository;
+  bool _isInitialized = false;
   final tasks = RxList<Task>();
+
+  /// 获取repository实例
+  TaskRepository get repository {
+    if (_repository == null || !_isInitialized) {
+      throw Exception('TaskManager not initialized. Call initialize() first.');
+    }
+    return _repository!;
+  }
 
   /// 初始化任务管理器，从本地存储加载任务数据
   Future<void> initialize() async {
+    if (_isInitialized && _repository != null) {
+      _logger.d('TaskManager already initialized, refreshing data');
+      await refresh();
+      return;
+    }
+    
+    _logger.d('Initializing TaskManager');
     _repository = await TaskRepository.getInstance();
+    _isInitialized = true;
     await refresh();
   }
 
@@ -20,7 +37,7 @@ class TaskManager {
   Future<void> _saveToStorage() async {
     try {
       _logger.d('Saving tasks to storage, count: ${tasks.length}');
-      await _repository.updateMany(tasks.toList(), (task) => task.uuid);
+      await repository.updateMany(tasks.toList(), (task) => task.uuid);
       _logger.d('Tasks saved successfully');
     } catch (e) {
       _logger.e('Error saving tasks: $e');
@@ -32,7 +49,7 @@ class TaskManager {
   Future<void> refresh() async {
     try {
       _logger.d('Refreshing tasks');
-      final localTasks = await _repository.readAll();
+      final localTasks = await repository.readAll();
 
       // 去重复处理，确保任务唯一性
       final uniqueTasks = _removeDuplicateTasks(localTasks);
@@ -92,11 +109,11 @@ class TaskManager {
       _logger.d('Clearing all tasks from database');
 
       // 获取所有任务的UUID
-      final allTasks = await _repository.readAll();
+      final allTasks = await repository.readAll();
 
       // 逐个删除所有任务
       for (final task in allTasks) {
-        await _repository.delete(task.uuid);
+        await repository.delete(task.uuid);
       }
 
       _logger.d('All tasks cleared from database');
@@ -181,7 +198,7 @@ class TaskManager {
     if (!has(task.uuid)) {
       tasks.add(task);
       tasks.refresh();
-      await _repository.write(task.uuid, task);
+      await repository.write(task.uuid, task);
     }
   }
 
@@ -189,7 +206,7 @@ class TaskManager {
   Future<void> removeTask(String uuid) async {
     tasks.removeWhere((task) => task.uuid == uuid);
     tasks.refresh();
-    await _repository.delete(uuid);
+    await repository.delete(uuid);
   }
 
   /// 更新指定ID的任务
@@ -206,7 +223,7 @@ class TaskManager {
         tasks.refresh();
 
         // 更新数据库
-        await _repository.update(uuid, task);
+        await repository.update(uuid, task);
 
         _logger.d('Task $uuid updated successfully');
       } else {
@@ -231,7 +248,7 @@ class TaskManager {
       await Future.wait(
         newTasks.map((task) {
           _logger.d('Writing task: ${task.uuid} - ${task.title}');
-          return _repository.write(task.uuid, task);
+          return repository.write(task.uuid, task);
         }),
       );
 
@@ -248,11 +265,11 @@ class TaskManager {
         ? a.createdAt.compareTo(b.createdAt)
         : b.createdAt.compareTo(a.createdAt));
     tasks.refresh();
-    await _repository.updateMany(tasks.toList(), (task) => task.uuid);
+    await repository.updateMany(tasks.toList(), (task) => task.uuid);
   }
 
   /// 检查指定ID的任务是否存在
   bool has(String uuid) {
-    return _repository.has(uuid);
+    return repository.has(uuid);
   }
 }

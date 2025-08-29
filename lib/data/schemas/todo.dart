@@ -17,6 +17,48 @@ class Todo {
   TodoStatus status = TodoStatus.todo;
   int reminders = 0;
   int progress = 0;
+
+  // 默认构造函数
+  Todo();
+
+  // JSON序列化
+  Map<String, dynamic> toJson() {
+    return {
+      'uuid': uuid,
+      'title': title,
+      'tags': tags,
+      'createdAt': createdAt,
+      'description': description,
+      'priority': priority.name,
+      'finishedAt': finishedAt,
+      'dueDate': dueDate,
+      'status': status.name,
+      'reminders': reminders,
+      'progress': progress,
+    };
+  }
+
+  // JSON反序列化
+  factory Todo.fromJson(Map<String, dynamic> json) {
+    return Todo()
+      ..uuid = json['uuid'] as String
+      ..title = json['title'] as String
+      ..tags = List<String>.from(json['tags'] ?? [])
+      ..createdAt = json['createdAt'] as int
+      ..description = json['description'] as String? ?? ''
+      ..priority = TodoPriority.values.firstWhere(
+        (e) => e.name == json['priority'],
+        orElse: () => TodoPriority.lowLevel,
+      )
+      ..finishedAt = json['finishedAt'] as int? ?? 0
+      ..dueDate = json['dueDate'] as int? ?? 0
+      ..status = TodoStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => TodoStatus.todo,
+      )
+      ..reminders = json['reminders'] as int? ?? 0
+      ..progress = json['progress'] as int? ?? 0;
+  }
 }
 
 enum TodoStatus {

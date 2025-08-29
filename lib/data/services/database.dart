@@ -3,6 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
+import 'package:todo_cat/data/schemas/notification_history.dart';
 import 'package:logger/logger.dart';
 
 class Database {
@@ -28,7 +29,7 @@ class Database {
     final dir = await getApplicationDocumentsDirectory();
     _logger.d('Database path: ${dir.path}');
     _isar = await Isar.open(
-      [TaskSchema, AppConfigSchema, LocalNoticeSchema],
+      [TaskSchema, AppConfigSchema, LocalNoticeSchema, NotificationHistorySchema],
       directory: dir.path,
       inspector: true,
     );
