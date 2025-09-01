@@ -27,5 +27,5 @@ final darkTheme = ThemeData(
       color: Colors.white,
       fontSize: fontSize,
     ),
-  ),
+  ), dialogTheme: const DialogThemeData(backgroundColor: Color.fromRGBO(29, 35, 42, 1)),
 );

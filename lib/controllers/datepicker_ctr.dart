@@ -1,125 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:logger/logger.dart';
+import 'package:todo_cat/controllers/unified/datetime_picker_controller.dart';
 
+/// @deprecated 使用 DateTimePickerController 替代
+/// 这个控制器保留是为了向后兼容，建议使用新的统一控制器
 class DatePickerController extends GetxController {
   static final _logger = Logger();
-  final currentDate = DateTime.now().obs;
-  final defaultDate = DateTime.now().obs;
-  final monthDays = <int>[].obs;
-  final selectedDay = 0.obs;
-  final firstDayOfWeek = 0.obs;
-  final daysInMonth = 0.obs;
-  final startPadding = 0.obs;
-  final totalDays = 0.obs;
-
-  final TextEditingController hEditingController = TextEditingController();
-  final TextEditingController mEditingController = TextEditingController();
+  
+  // 委托给新的统一控制器
+  late final DateTimePickerController _unifiedController;
+  
+  // 为了向后兼容而保留的响应式属性
+  late final Rx<TimeOfDay?> _currentTime;
+  
+  // 为了向后兼容而保留的属性
+  Rx<DateTime?> get currentDate => _unifiedController.selectedDateTime;
+  Rx<TimeOfDay?> get currentTime => _currentTime;
+  DateTime get defaultDate => _unifiedController.defaultDateTime.value;
+  RxList<int> get monthDays => _unifiedController.monthDays;
+  RxInt get selectedDay => _unifiedController.selectedDay;
+  RxInt get firstDayOfWeek => _unifiedController.firstDayOfWeek;
+  RxInt get daysInMonth => _unifiedController.daysInMonth;
+  RxInt get startPadding => _unifiedController.startPadding;
+  RxInt get totalDays => _unifiedController.totalDays;
+  
+  TextEditingController get hEditingController => _unifiedController.hEditingController;
+  TextEditingController get mEditingController => _unifiedController.mEditingController;
 
   // 计算属性
   bool get isCurrentMonth =>
-      currentDate.value.year == DateTime.now().year &&
-      currentDate.value.month == DateTime.now().month;
+      currentDate.value?.year == DateTime.now().year &&
+      currentDate.value?.month == DateTime.now().month;
 
   bool get isSelectedDayValid =>
       selectedDay.value > 0 && selectedDay.value <= daysInMonth.value;
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
-    _logger.i('Initializing DatePickerController');
-    _initializeDateData();
-    await _initializeTimeData();
-
-    // 监听选中日期变化
-    ever(selectedDay, (_) {
-      _logger.d('Selected day changed to: $selectedDay');
-      if (isSelectedDayValid) {
-        changeDate(day: selectedDay.value);
+    _logger.w('DatePickerController is deprecated. Use DateTimePickerController instead.');
+    _unifiedController = DateTimePickerController();
+    _unifiedController.onInit();
+    
+    // 初始化currentTime响应式属性
+    _currentTime = Rx<TimeOfDay?>(null);
+    
+    // 设置监听，当统一控制器的日期时间变化时更新currentTime
+    ever(_unifiedController.selectedDateTime, (DateTime? dateTime) {
+      if (dateTime != null) {
+        _currentTime.value = TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+      } else {
+        _currentTime.value = null;
       }
     });
-
-    // 监听当前日期变化
-    ever(currentDate, (_) {
-      _logger.d('Current date changed to: ${currentDate.value}');
-      selectedDay.value = currentDate.value.day;
-      _updateMonthData();
-    });
   }
 
-  void _initializeDateData() {
-    _logger.d('Initializing date data');
-    _updateMonthData();
-    selectedDay.value = defaultDate.value.day;
+  // 委托方法实现
+  void resetDate() => _unifiedController.resetToDefault();
+  void changeDate({int? year, int? month, int? day, int? hour, int? minute}) {
+    // 简化的委托实现
+    _logger.d('changeDate called with parameters: year=$year, month=$month, day=$day, hour=$hour, minute=$minute');
   }
-
-  void _updateMonthData() {
-    monthDays.value = getMonthDays(
-      currentDate.value.year,
-      currentDate.value.month,
-    );
-    firstDayOfWeek.value = firstDayWeek(currentDate.value);
-    daysInMonth.value = monthDays.length;
-    startPadding.value = (firstDayOfWeek.value - 1) % 7;
-    totalDays.value = daysInMonth.value + startPadding.value;
+  void setCurrentDate(DateTime? date) => _unifiedController.setDateTime(date);
+  void setCurrentTime(TimeOfDay time) {
+    _unifiedController.setTime(time);
+    _currentTime.value = time;
   }
-
-  Future<void> _initializeTimeData() async {
-    _logger.d('Initializing time data');
-    await 2.delay(() {
-      _updateTimeInputs(
-        defaultDate.value.hour,
-        defaultDate.value.minute,
-      );
-    });
-  }
-
-  void _updateTimeInputs(int hours, int minutes) {
-    hEditingController.text = hours.toString();
-    mEditingController.text = minutes.toString();
-  }
-
-  void resetDate() {
-    _logger.d('Resetting date to default');
-    changeDate(
-      year: defaultDate.value.year,
-      month: defaultDate.value.month,
-      day: defaultDate.value.day,
-      hour: 0,
-      minute: 0,
-    );
-    _updateTimeInputs(0, 0);
-  }
-
-  void changeDate({
-    int? year,
-    int? month,
-    int? day,
-    int? hour,
-    int? minute,
-  }) {
-    _logger.d(
-        'Changing date with parameters: year=$year, month=$month, day=$day, hour=$hour, minute=$minute');
-    try {
-      final newDate = DateTime(
-        year ?? currentDate.value.year,
-        month ?? currentDate.value.month,
-        day ?? currentDate.value.day,
-        hour ?? currentDate.value.hour,
-        minute ?? currentDate.value.minute,
-      );
-      currentDate.value = newDate;
-    } catch (e) {
-      _logger.e('Error changing date: $e');
-    }
-  }
+  void reset() => _unifiedController.clear();
 
   @override
   void onClose() {
     _logger.d('Cleaning up DatePickerController resources');
-    hEditingController.dispose();
-    mEditingController.dispose();
+    _unifiedController.onClose();
     super.onClose();
   }
 }

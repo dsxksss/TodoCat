@@ -1,17 +1,21 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/nav_bar.dart';
 import 'package:todo_cat/widgets/todocat_scaffold.dart';
-import 'package:uuid/uuid.dart';
+import 'package:todo_cat/widgets/notification_center_dialog.dart';
+import 'package:todo_cat/core/notification_center_manager.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:reorderables/reorderables.dart';
+import 'package:todo_cat/widgets/task_dialog.dart';
+import 'package:badges/badges.dart' as badges;
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -28,7 +32,127 @@ class HomePage extends GetView<HomeController> {
         title: _buildTitle(context),
         leftWidgets: _buildLeftWidgets(),
         rightWidgets: _buildRightWidgets(context),
-        body: _buildBody(context),
+        body: ListView(
+          controller: controller.scrollController,
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          children: [
+            Obx(
+              () => Animate(
+                target: controller.tasks.isEmpty ? 1 : 0,
+                effects: [
+                  SwapEffect(
+                    builder: (_, __) => SizedBox(
+                      height: 0.7.sh,
+                      child: Center(
+                        child: Text(
+                          "Do It Now !",
+                          style: GoogleFonts.getFont(
+                            'Ubuntu',
+                            textStyle: const TextStyle(
+                              fontSize: 60,
+                            ),
+                          ),
+                        ),
+                      ).animate().fade(),
+                    ),
+                  ),
+                ],
+                child: Padding(
+                  padding: context.isPhone
+                      ? const EdgeInsets.only(bottom: 50)
+                      : const EdgeInsets.only(left: 20, bottom: 50),
+                  child: context.isPhone
+                      ? ReorderableColumn(
+                          needsLongPressDraggable: true,
+                          onReorder: (oldIndex, int newIndex) {
+                            controller
+                                .reorderTask(oldIndex, newIndex)
+                                .then((_) {
+                              controller.endDragging();
+                            });
+                          },
+                          onNoReorder: (index) {
+                            controller.endDragging();
+                          },
+                          onReorderStarted: (index) {
+                            controller.startDragging();
+                          },
+                          buildDraggableFeedback:
+                              (context, constraints, child) {
+                            return child.animate().scaleXY(
+                                  begin: 1.0,
+                                  end: 1.1,
+                                  duration: 60.ms,
+                                  curve: Curves.easeOut,
+                                );
+                          },
+                          children: controller.tasks
+                              .map((task) => Padding(
+                                    key: ValueKey(task.uuid),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 10,
+                                    ),
+                                    child: SizedBox(
+                                      width: 0.9.sw,
+                                      child: TaskCard(task: task),
+                                    ),
+                                  ))
+                              .toList(),
+                        )
+                      : SingleChildScrollView(
+                          controller: controller.scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          child: ReorderableWrap(
+                            needsLongPressDraggable: true,
+                            scrollAnimationDuration:
+                                const Duration(milliseconds: 300),
+                            reorderAnimationDuration:
+                                const Duration(milliseconds: 200),
+                            spacing: 50,
+                            runSpacing: 30,
+                            padding: const EdgeInsets.all(8),
+                            onReorder: (oldIndex, int newIndex) {
+                              controller
+                                  .reorderTask(oldIndex, newIndex)
+                                  .then((_) {
+                                controller.endDragging();
+                              });
+                            },
+                            onNoReorder: (index) {
+                              controller.endDragging();
+                            },
+                            onReorderStarted: (index) {
+                              controller.startDragging();
+                            },
+                            buildDraggableFeedback:
+                                (context, constraints, child) {
+                              return child.animate().scaleXY(
+                                    begin: 1.0,
+                                    end: 1.1,
+                                    duration: 60.ms,
+                                    curve: Curves.easeOut,
+                                  );
+                            },
+                            enableReorder: true,
+                            alignment: WrapAlignment.start,
+                            children: controller.tasks
+                                .map((task) => TaskCard(
+                                      key: ValueKey(task.uuid),
+                                      task: task,
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -37,17 +161,7 @@ class HomePage extends GetView<HomeController> {
   Widget _buildFloatingActionButton(BuildContext context) {
     return AnimationBtn(
       onPressed: () {
-        if (controller.addTask(
-          Task(
-            id: const Uuid().v4(),
-            title: Random().nextInt(1000).toString(),
-            createdAt: DateTime.now().millisecondsSinceEpoch,
-            tags: [],
-            todos: [],
-          ),
-        )) {
-          controller.scrollMaxDown();
-        }
+        _showTaskDialog(context);
       },
       child: Container(
         width: 60,
@@ -94,81 +208,130 @@ class HomePage extends GetView<HomeController> {
   /// 构建右侧控件列表
   List<Widget> _buildRightWidgets(BuildContext context) {
     return [
+      // 通知中心按钮
+      _buildNotificationCenterButton(),
+      const SizedBox(width: 8),
+      // 设置按钮
       NavBarBtn(
         onPressed: () {
-          // 直接获取已初始化的控制器
+          // 获取已初始化的控制器
           final settingsController = Get.find<SettingsController>();
           settingsController.showSettings();
         },
-        child: const Icon(
-          Icons.settings,
-          size: 24,
+        child: Builder(
+          builder: (context) => Icon(
+            Icons.settings,
+            size: 24,
+            color: context.theme.iconTheme.color,
+          ),
         ),
       ),
     ];
   }
 
-  /// 构建页面主体
-  Widget _buildBody(BuildContext context) {
-    return ListView(
-      controller: controller.scrollController,
-      physics: const AlwaysScrollableScrollPhysics(
-        // 当内容不足时也可以启动反弹刷新
-        parent: BouncingScrollPhysics(),
-      ),
-      children: [
-        Obx(
-          () => Animate(
-            target: controller.tasks.isNotEmpty ? 0 : 1,
-            effects: [
-              SwapEffect(
-                builder: (_, __) => SizedBox(
-                  height: 0.7.sh,
-                  child: Center(
-                    child: Text(
-                      "Do It Now !",
-                      style: GoogleFonts.getFont(
-                        'Ubuntu',
-                        textStyle: const TextStyle(
-                          fontSize: 60,
-                        ),
-                      ),
-                    ),
-                  ).animate().fade(),
-                ),
-              ),
-            ],
-            child: Padding(
-              padding: context.isPhone
-                  ? const EdgeInsets.only(bottom: 50)
-                  : const EdgeInsets.only(left: 20, bottom: 50),
-              child: Wrap(
-                alignment: context.isPhone
-                    ? WrapAlignment.center
-                    : WrapAlignment.start,
-                direction: Axis.horizontal,
-                spacing: context.isPhone ? 0 : 50,
-                runSpacing: context.isPhone ? 50 : 30,
-                children: AnimateList(
-                  onComplete: (_) =>
-                      controller.listAnimatInterval.value = Duration.zero,
-                  effects: [
-                    context.isPhone
-                        ? const MoveEffect(begin: Offset(0, 10))
-                        : const MoveEffect(begin: Offset(-10, 0)),
-                    const FadeEffect(),
-                  ],
-                  interval: controller.listAnimatInterval.value,
-                  children: [
-                    ...controller.tasks
-                        .map((element) => TaskCard(task: element))
-                  ],
-                ),
-              ),
+  /// 构建通知中心按钮
+  Widget _buildNotificationCenterButton() {
+    final notificationCenter = Get.find<NotificationCenterManager>();
+    return Obx(() {
+      final unreadCount = notificationCenter.unreadCount;
+      return NavBarBtn(
+        onPressed: _showNotificationCenter,
+        child: badges.Badge(
+          showBadge: unreadCount > 0,
+          badgeContent: Text(
+            unreadCount > 99 ? '99+' : unreadCount.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          badgeStyle: const badges.BadgeStyle(
+            badgeColor: Colors.red,
+            padding: EdgeInsets.all(4),
+            elevation: 0,
+          ),
+          position: badges.BadgePosition.topEnd(top: -4, end: -4),
+          child: Builder(
+            builder: (context) => Icon(
+              Icons.mail_outline,
+              size: 24,
+              color: context.theme.iconTheme.color,
             ),
           ),
         ),
-      ],
+      );
+    });
+  }
+
+  /// 显示通知中心对话框
+  void _showNotificationCenter() {
+    SmartDialog.show(
+      useSystem: false,
+      debounce: true,
+      keepSingle: true,
+      tag: 'notification_center_dialog',
+      backType: SmartBackType.normal,
+      animationTime: const Duration(milliseconds: 200),
+      alignment: Alignment.center,
+      builder: (_) => const NotificationCenterDialog(),
+      clickMaskDismiss: true,
+      animationBuilder: (controller, child, _) {
+        return child
+            .animate(controller: controller)
+            .fade(duration: controller.duration)
+            .scaleXY(
+              begin: 0.95,
+              duration: controller.duration,
+              curve: Curves.easeOut,
+            );
+      },
+    );
+  }
+
+  /// 添加显示对话框的方法
+  void _showTaskDialog(BuildContext context) {
+    SmartDialog.show(
+      useSystem: false,
+      debounce: true,
+      keepSingle: true,
+      tag: addTaskDialogTag,
+      backType: SmartBackType.normal,
+      animationTime: const Duration(milliseconds: 150),
+      alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
+      builder: (_) => context.isPhone
+          ? const Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: TaskDialog(),
+              ),
+            )
+          : const TaskDialog(),
+      clickMaskDismiss: false,
+      animationBuilder: (controller, child, _) {
+        final animation = child
+            .animate(controller: controller)
+            .fade(duration: controller.duration);
+
+        return context.isPhone
+            ? animation
+                .scaleXY(
+                  begin: 0.97,
+                  duration: controller.duration,
+                  curve: Curves.easeIn,
+                )
+                .moveY(
+                  begin: 0.6.sh,
+                  duration: controller.duration,
+                  curve: Curves.easeOutCirc,
+                )
+            : animation.scaleXY(
+                begin: 0.98,
+                duration: controller.duration,
+                curve: Curves.easeIn,
+              );
+      },
     );
   }
 }

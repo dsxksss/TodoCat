@@ -1,75 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
-import 'package:todo_cat/controllers/add_todo_dialog_ctr.dart';
+import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 
 class AddTagScreen extends StatelessWidget {
-  AddTagScreen({
+  const AddTagScreen({
     super.key,
-    int? maxLines,
-    double radius = 10,
-    bool obscureText = false,
-    required int maxLength,
-    required String fieldTitle,
-    String? Function(String?)? validator,
-    required TextEditingController editingController,
-    EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 5),
-    bool? ghostStyle,
-    Color? fillColor,
-    Widget? suffix,
-    TextInputAction? textInputAction,
-  })  : _fillColor = fillColor,
-        _ghostStyle = ghostStyle ?? false,
-        _validator = validator,
-        _editingController = editingController,
-        _contentPadding = contentPadding,
-        _maxLines = maxLines,
-        _maxLength = maxLength,
-        _fieldTitle = fieldTitle,
-        _obscureText = obscureText,
-        _radius = radius,
-        _textInputAction = textInputAction;
+    this.textInputAction,
+    required this.maxLength,
+    this.maxLines = 1,
+    this.radius = 0,
+    required this.fieldTitle,
+    this.validator,
+    required this.contentPadding,
+    required this.editingController,
+    this.ghostStyle = false,
+    required this.onSubmitted,
+    required this.selectedTags,
+    required this.onDeleteTag,
+  });
 
-  final AddTodoDialogController _ctrl = Get.find();
-
-  final String _fieldTitle;
-  final Color? _fillColor;
-  final int _maxLength;
-  final int? _maxLines;
-  final double _radius;
-  final bool _ghostStyle;
-  final EdgeInsets _contentPadding;
-  final bool _obscureText;
-  final TextEditingController _editingController;
-  final String? Function(String?)? _validator;
-  final TextInputAction? _textInputAction;
+  final TextInputAction? textInputAction;
+  final int maxLength;
+  final int maxLines;
+  final double radius;
+  final String fieldTitle;
+  final String? Function(String?)? validator;
+  final EdgeInsets contentPadding;
+  final TextEditingController editingController;
+  final bool ghostStyle;
+  final void Function(String) onSubmitted;
+  final RxList<String> selectedTags;
+  final Function(int) onDeleteTag;
 
   @override
   Widget build(BuildContext context) {
-    return TextFormFieldItem(
-      textInputAction: _textInputAction,
-      maxLength: _maxLength,
-      maxLines: _maxLines,
-      fillColor: _fillColor,
-      contentPadding: _contentPadding,
-      obscureText: _obscureText,
-      fieldTitle: _fieldTitle,
-      editingController: _editingController,
-      ghostStyle: _ghostStyle,
-      radius: _radius,
-      validator: _validator,
-      suffix: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: () => {_ctrl.addTag()},
-          child: Text(
-            "addTag".tr,
-            style: const TextStyle(
-              fontSize: 13,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormFieldItem(
+          textInputAction: textInputAction,
+          maxLength: maxLength,
+          maxLines: maxLines,
+          radius: radius,
+          fieldTitle: fieldTitle,
+          validator: validator,
+          contentPadding: contentPadding,
+          editingController: editingController,
+          ghostStyle: ghostStyle,
+          onFieldSubmitted: (value) => onSubmitted(value),
+          suffixIcon: Builder(
+            builder: (context) => MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => onSubmitted(editingController.text),
+                child: Icon(
+                  Icons.add_box_rounded, 
+                  size: 20,
+                  color: context.theme.iconTheme.color,
+                ),
+              ),
             ),
           ),
         ),
-      ),
+        const SizedBox(height: 10),
+        Obx(() => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(
+                selectedTags.length,
+                (index) => TagDialogBtn(
+                  tag: selectedTags[index],
+                  tagColor: Colors.blueAccent,
+                  dialogTag: 'tag_${selectedTags[index]}',
+                  showDelete: true,
+                  onDelete: () => onDeleteTag(index),
+                  openDialog: const SizedBox.shrink(),
+                  onDialogClose: () {
+                    // 处理对话框关闭事件
+                  },
+                ),
+              ),
+            )),
+      ],
     );
   }
 }

@@ -39,7 +39,7 @@ class AppController extends GetxController {
   Future<void> initConfig() async {
     _logger.d('Initializing app configuration');
     appConfigRepository = await AppConfigRepository.getInstance();
-    final AppConfig? currentAppConfig = appConfigRepository.read(
+    final AppConfig? currentAppConfig = await appConfigRepository.read(
       appConfig.value.configName,
     );
 
@@ -47,14 +47,15 @@ class AppController extends GetxController {
       appConfig.value = currentAppConfig;
       await changeLanguage(appConfig.value.locale);
     } else {
-      appConfigRepository.write(appConfig.value.configName, appConfig.value);
+      await appConfigRepository.write(
+          appConfig.value.configName, appConfig.value);
     }
 
     ever(
       appConfig,
-      (value) {
+      (value) async {
         _logger.d('AppConfig changed, updating local storage');
-        appConfigRepository.update(value.configName, value);
+        await appConfigRepository.update(value.configName, value);
       },
     );
   }
@@ -94,7 +95,7 @@ class AppController extends GetxController {
   Future<void> changeLanguage(Locale language) async {
     _logger.d('Changing language to: ${language.languageCode}');
     await Get.updateLocale(language);
-    appConfig.value.locale = Get.locale!;
+    appConfig.value.updateLocale(Get.locale!);
     appConfig.refresh();
   }
 

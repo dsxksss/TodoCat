@@ -1,132 +1,274 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/datepicker_ctr.dart';
-import 'package:todo_cat/core/utils/date_time.dart';
-import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/date_panel.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/time_panel.dart';
 
-class DatePickerPanel extends StatelessWidget {
-  DatePickerPanel({super.key, required this.dialogTag}) {
-    _datePickerController = Get.find<DatePickerController>();
-  }
+class DatePickerPanel extends StatefulWidget {
+  const DatePickerPanel({
+    super.key,
+    required this.dialogTag,
+    required this.onDateSelected,
+    this.initialSelectedDate, // 新增初始选中日期参数
+  });
 
   final String dialogTag;
-  final RxBool isTimePanelOpen = false.obs;
-  late final DatePickerController _datePickerController;
+  final Function(DateTime?) onDateSelected;
+  final DateTime? initialSelectedDate; // 新增属性
 
-  static const _animationDuration = Duration(milliseconds: 200);
-  static const _animationCurve = Curves.easeInOutCubic;
+  @override
+  State<DatePickerPanel> createState() => _DatePickerPanelState();
+}
 
-  static const _normalPanelHeight = 360.0;
-  static const _extendedPanelHeight = 400.0;
-  static const _normalPanelHeightWithTime = 430.0;
-  static const _extendedPanelHeightWithTime = 470.0;
-  static const _panelWidth = 340.0;
+class _DatePickerPanelState extends State<DatePickerPanel> {
+  late DatePickerController _datePickerController;
+  final GlobalKey<TimePanelState> _timeKey = GlobalKey<TimePanelState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _datePickerController = Get.find<DatePickerController>();
+    // 在initState中设置初始日期，避免构建阶段状态更新
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialSelectedDate != null) {
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final initialDate = widget.initialSelectedDate!;
+        final initialDateOnly = DateTime(initialDate.year, initialDate.month, initialDate.day);
+        
+        // 如果初始日期是过去的，则使用今天
+        if (initialDateOnly.isBefore(today)) {
+          _datePickerController.setCurrentDate(now);
+        } else {
+          _datePickerController.setCurrentDate(widget.initialSelectedDate);
+        }
+      }
+    });
+  }
+
+
+
+  Widget _buildQuickDateButton(String label, int days) {
+    return LabelBtn(
+      ghostStyle: true,
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 2,
+      ),
+      onPressed: () {
+        final now = DateTime.now();
+        final targetDate = days == 0 
+            ? DateTime(now.year, now.month, now.day, now.hour, now.minute)
+            : DateTime(now.year, now.month, now.day + days, 23, 59);
+        _datePickerController.setCurrentDate(targetDate);
+        if (_timeKey.currentState != null) {
+          _timeKey.currentState!.updateToTime(
+            TimeOfDay(hour: targetDate.hour, minute: targetDate.minute),
+          );
+        }
+        widget.onDateSelected(targetDate);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final isTimeOpen = isTimePanelOpen.value;
-      final totalDays = _datePickerController.totalDays.value;
       final currentDate = _datePickerController.currentDate.value;
-      final baseHeight =
-          totalDays <= 35 ? _normalPanelHeight : _extendedPanelHeight;
-      final timeHeight = totalDays <= 35
-          ? _normalPanelHeightWithTime
-          : _extendedPanelHeightWithTime;
 
-      return AnimatedContainer(
-        duration: _animationDuration,
-        curve: _animationCurve,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Stack(
-            children: [
-              GestureDetector(
-                onTap: () => SmartDialog.dismiss(tag: dialogTag),
-                child: Container(color: Colors.transparent),
-              ),
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  height: isTimeOpen ? timeHeight : baseHeight,
-                  width: _panelWidth,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                  decoration: BoxDecoration(
-                    color: context.theme.dialogBackgroundColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: ScrollConfiguration(
-                    behavior: ScrollConfiguration.of(context).copyWith(
-                      scrollbars: false,
-                      dragDevices: {
-                        PointerDeviceKind.touch,
-                        PointerDeviceKind.mouse,
-                      },
-                    ),
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      children: [
-                        _buildHeader(currentDate),
-                        const SizedBox(height: 10),
-                        DatePanel(),
-                        if (isTimeOpen) _buildTimePanel(),
-                      ],
-                    ),
+      return Container(
+        width: 340,
+        decoration: BoxDecoration(
+          color: context.theme.dialogBackgroundColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    width: 0.3,
+                    color: context.theme.dividerColor,
                   ),
                 ),
               ),
-            ],
-          ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    currentDate != null
+                        ? currentDate.toString().split(".")[0]
+                        : "unknownDate".tr,
+                  ),
+                  Row(
+                    children: [
+                      LabelBtn(
+                        ghostStyle: true,
+                        label: Text(
+                          'now'.tr,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        onPressed: () {
+                          final now = DateTime.now();
+                          if (_timeKey.currentState != null) {
+                            _timeKey.currentState!.updateToTime(
+                              TimeOfDay(hour: now.hour, minute: now.minute),
+                            );
+                          }
+                          _datePickerController.setCurrentDate(now);
+                          widget.onDateSelected(now);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // 快捷日期按钮区域
+            Container(
+              padding: const EdgeInsets.all(15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "quickSelect".tr,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft, // start对齐
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.start, // 确保Wrap内部也start对齐
+                      children: [
+                        _buildQuickDateButton("today".tr, 0),
+                        _buildQuickDateButton("tomorrow".tr, 1),
+                        _buildQuickDateButton("threeDays".tr, 3),
+                        _buildQuickDateButton("oneWeek".tr, 7),
+                        _buildQuickDateButton("oneMonth".tr, 30),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            DatePanel(
+              selectedDate: currentDate,
+              onDateSelected: (date) {
+                final currentTime = _datePickerController.currentTime.value;
+                final now = DateTime.now();
+                final today = DateTime(now.year, now.month, now.day);
+                final selectedDay = DateTime(date.year, date.month, date.day);
+                
+                DateTime newDate;
+                if (currentTime != null) {
+                  newDate = DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                    currentTime.hour,
+                    currentTime.minute,
+                  );
+                } else {
+                  newDate = DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                    now.hour,
+                    now.minute,
+                  );
+                }
+                
+                // 如果选择的是今天，但时间比当前时间要早，则设置为当前时间
+                if (selectedDay.isAtSameMomentAs(today) && newDate.isBefore(now)) {
+                  newDate = DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                    now.hour,
+                    now.minute,
+                  );
+                  // 同时更新TimePanel的显示
+                  if (_timeKey.currentState != null) {
+                    _timeKey.currentState!.updateToTime(
+                      TimeOfDay(hour: now.hour, minute: now.minute),
+                    );
+                  }
+                }
+                
+                _datePickerController.setCurrentDate(newDate);
+                widget.onDateSelected(newDate);
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 12),
+              child: TimePanel(
+                key: _timeKey,
+                initialTime: _datePickerController.currentTime.value,
+                onTimeSelected: (time) {
+                  _datePickerController.setCurrentTime(time);
+                  // 确保日期不为null
+                  final currentDate = _datePickerController.currentDate.value ?? DateTime.now();
+                  final now = DateTime.now();
+                  final today = DateTime(now.year, now.month, now.day);
+                  final selectedDay = DateTime(currentDate.year, currentDate.month, currentDate.day);
+                  
+                  DateTime newDateTime = DateTime(
+                    currentDate.year,
+                    currentDate.month,
+                    currentDate.day,
+                    time.hour,
+                    time.minute,
+                  );
+                  
+                  // 如果选择的是今天，但时间比当前时间要早，则设置为当前时间
+                  if (selectedDay.isAtSameMomentAs(today) && newDateTime.isBefore(now)) {
+                    newDateTime = DateTime(
+                      currentDate.year,
+                      currentDate.month,
+                      currentDate.day,
+                      now.hour,
+                      now.minute,
+                    );
+                    // 同时更新TimePanel的显示
+                    if (_timeKey.currentState != null) {
+                      _timeKey.currentState!.updateToTime(
+                        TimeOfDay(hour: now.hour, minute: now.minute),
+                      );
+                    }
+                  }
+                  
+                  _datePickerController.setCurrentDate(newDateTime);
+                  widget.onDateSelected(newDateTime);
+                },
+              ),
+            ),
+          ],
         ),
       );
     });
-  }
-
-  Widget _buildHeader(DateTime currentDate) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          "${timestampToDate(currentDate.millisecondsSinceEpoch)} - ${getTimeString(currentDate)}",
-        ),
-        AnimationBtn(
-          onHoverAnimationEnabled: false,
-          onPressed: () => isTimePanelOpen.toggle(),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: Obx(() => Icon(
-                    Icons.access_time,
-                    color: isTimePanelOpen.value ? Colors.grey : null,
-                  )),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTimePanel() {
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 10),
-          child: Divider(height: 2),
-        ),
-        TimePanel(),
-      ],
-    ).animate().fadeIn(
-          duration: _animationDuration,
-          curve: _animationCurve,
-        );
   }
 }

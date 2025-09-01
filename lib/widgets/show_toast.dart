@@ -5,6 +5,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/core/notification_stack_manager.dart';
+import 'package:todo_cat/core/notification_center_manager.dart';
+import 'package:todo_cat/data/schemas/notification_history.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 
 /// Toast 样式类型枚举
@@ -13,6 +16,12 @@ enum TodoCatToastStyleType {
   success,
   error,
   warning,
+}
+
+/// Toast 显示位置类型枚举
+enum TodoCatToastPosition {
+  center, // 原有的中心弹出方式（重要信息）
+  bottomLeft, // 左下角向上弹出（一般操作反馈）
 }
 
 /// 根据 Toast 样式类型获取图标和颜色
@@ -47,6 +56,149 @@ List<Effect<dynamic>> _getToastAnimationEffect(
   ];
 }
 
+/// 获取左下角弹出动画效果（轻柔的上缓渐显）
+List<Effect<dynamic>> _getBottomLeftAnimationEffect(
+    AnimationController controller) {
+  return [
+    // 轻柔的向上移动效果
+    MoveEffect(
+      begin: const Offset(0, 30), // 从下方30像素开始
+      end: Offset.zero,
+      duration: controller.duration! * 0.8, // 动画持续时间80%
+      curve: Curves.easeOutCubic, // 使用缓出三次贝塞尔曲线，更轻柔
+    ),
+    // 渐显效果
+    FadeEffect(
+      begin: 0.0,
+      end: 1.0,
+      duration: controller.duration! * 0.6, // 淡入效果持续时间60%
+      curve: Curves.easeOut, // 轻柔的淡入
+    ),
+    // 轻微的缩放效果
+    ScaleEffect(
+      begin: const Offset(0.95, 0.95), // 从95%开始，更自然
+      end: const Offset(1.0, 1.0),
+      duration: controller.duration! * 0.7,
+      curve: Curves.easeOutCubic, // 轻柔的缩放
+    ),
+  ];
+}
+
+/// 构建左下角通知组件
+Widget _buildBottomLeftNotification(
+  BuildContext context,
+  String message,
+  TodoCatToastStyleType toastStyleType,
+  String notificationId,
+) {
+  final iconData = _getIconData(toastStyleType);
+  final stackManager = NotificationStackManager.instance;
+  final notification = stackManager.getNotification(notificationId);
+  
+  if (notification == null) {
+    return const SizedBox.shrink();
+  }
+  
+  return MouseRegion(
+    onEnter: (_) {
+      stackManager.handleNotificationHover(notificationId, true);
+    },
+    onExit: (_) {
+      stackManager.handleNotificationHover(notificationId, false);
+    },
+    child: Container(
+      constraints: const BoxConstraints(
+        maxWidth: 340,
+        minWidth: 260,
+        minHeight: 60,
+      ),
+      margin: const EdgeInsets.only(left: 20, bottom: 10),
+      decoration: BoxDecoration(
+        color: context.theme.dialogBackgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        // 移除阴影效果
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.08),
+        //     blurRadius: 12,
+        //     offset: const Offset(0, 4),
+        //     spreadRadius: 0,
+        //   ),
+        //   BoxShadow(
+        //     color: iconData[1].withOpacity(0.15),
+        //     blurRadius: 4,
+        //     offset: const Offset(0, 2),
+        //     spreadRadius: 0,
+        //   ),
+        // ],
+        border: Border.all(
+          color: iconData[1].withOpacity(0.8), // 保持固定透明度
+          width: 1, // 保持固定宽度
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // 图标
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconData[1].withOpacity(0.12),
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Icon(
+                iconData[0],
+                color: iconData[1],
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 14),
+            // 消息内容
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: context.theme.textTheme.bodyLarge?.color,
+                  height: 1.3,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // 关闭按钮
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  stackManager.removeNotification(notificationId, 
+                      withAnimation: true, isManualClose: true);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1), // 保持固定样式
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: Colors.grey.shade600, // 保持固定颜色
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 /// 显示 Toast
 void showToast(
   String message, {
@@ -65,6 +217,7 @@ void showToast(
   Widget Function(BuildContext)? builder,
   EdgeInsetsGeometry? margin,
   TodoCatToastStyleType? toastStyleType,
+  TodoCatToastPosition position = TodoCatToastPosition.center, // 新增位置参数
   Widget Function(AnimationController, Widget, AnimationParam)?
       animationBuilder,
   String? tag,
@@ -78,28 +231,50 @@ void showToast(
     return height;
   }
 
+  // 根据位置类型设置不同的参数
+  final isBottomLeft = position == TodoCatToastPosition.bottomLeft;
+  
   SmartDialog.show(
-    displayTime:
-        alwaysShow ? const Duration(days: 365) : displayTime ?? 3000.ms,
-    animationTime: animationTime ?? 600.ms,
+    displayTime: isBottomLeft 
+        ? (displayTime ?? 2500.ms) // 左下角通知显示时间稍短
+        : (alwaysShow ? const Duration(days: 365) : displayTime ?? 3000.ms),
+    animationTime: isBottomLeft 
+        ? (animationTime ?? 400.ms) // 左下角动画更快
+        : (animationTime ?? 600.ms),
     tag: tag,
-    keepSingle: keepSingle ?? true,
-    alignment: alignment ??
-        (Platform.isAndroid || Platform.isIOS
-            ? Alignment.topCenter
-            : Alignment.bottomCenter),
+    keepSingle: keepSingle ?? !isBottomLeft, // 左下角允许多个通知并存
+    alignment: isBottomLeft 
+        ? Alignment.bottomLeft 
+        : (alignment ??
+            (Platform.isAndroid || Platform.isIOS
+                ? Alignment.topCenter
+                : Alignment.bottomCenter)),
     maskColor: Colors.transparent,
     maskWidget: Container(),
     clickMaskDismiss: false,
-    backType: (backDismiss == null
-        ? SmartBackType.normal
-        : (backDismiss ? SmartBackType.normal : SmartBackType.block)),
-    animationBuilder: animationBuilder ??
-        (controller, child, _) => child.animate(
+    backType: isBottomLeft 
+        ? SmartBackType.normal // 左下角通知不阻塞返回
+        : (backDismiss == null
+            ? SmartBackType.normal
+            : (backDismiss ? SmartBackType.normal : SmartBackType.block)),
+    animationBuilder: isBottomLeft 
+        ? (controller, child, _) => child.animate(
               controller: controller,
-              effects: _getToastAnimationEffect(controller, toastStyleType),
-            ),
-    builder: builder ??
+              effects: _getBottomLeftAnimationEffect(controller),
+            )
+        : (animationBuilder ??
+            (controller, child, _) => child.animate(
+                  controller: controller,
+                  effects: _getToastAnimationEffect(controller, toastStyleType),
+                )),
+    builder: isBottomLeft 
+        ? (context) => _buildBottomLeftNotification(
+              context,
+              message,
+              toastStyleType ?? TodoCatToastStyleType.success,
+              'legacy_notification', // 传统通知模式的临时ID
+            )
+        : (builder ??
         (context) {
           final iconData =
               _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
@@ -189,7 +364,6 @@ void showToast(
                         children: [
                           LabelBtn(
                             label: Text("yes".tr),
-                            ghostStyle: true,
                             onPressed: () {
                               if (onYesCallback != null) {
                                 SmartDialog.dismiss(tag: tag);
@@ -219,6 +393,146 @@ void showToast(
               ),
             ),
           );
-        },
+        }),
   );
+}
+
+/// 显示带有栈管理的左下角通知
+void _showStackedNotification(
+  String message,
+  TodoCatToastStyleType toastStyleType,
+  Duration displayTime,
+  String notificationId,
+) {
+  final stackManager = NotificationStackManager.instance;
+  final notification = stackManager.getNotification(notificationId);
+  
+  if (notification == null) return;
+  
+  SmartDialog.show(
+    displayTime: null, // 移除自动显示时间，通知不会自动消失
+    animationTime: 400.ms,
+    tag: 'notification_$notificationId',
+    keepSingle: false, // 允许多个通知并存
+    alignment: Alignment.bottomLeft,
+    maskColor: Colors.transparent,
+    maskWidget: Container(),
+    clickMaskDismiss: false,
+    backType: SmartBackType.normal,
+    animationBuilder: (controller, child, _) => child.animate(
+      controller: controller,
+      effects: _getBottomLeftAnimationEffect(controller),
+    ),
+    builder: (context) => Obx(() => Container(
+      margin: EdgeInsets.only(bottom: notification.currentBottomOffset.value),
+      child: _buildBottomLeftNotification(
+        context,
+        message,
+        toastStyleType,
+        notificationId,
+      ),
+    )),
+  );
+}
+
+/// 显示左下角通知（便捷方法）
+/// 用于一般操作反馈，不会阻塞用户操作
+void showNotification(
+  String message, {
+  TodoCatToastStyleType type = TodoCatToastStyleType.success,
+  Duration? displayTime,
+  String? title,
+}) {
+  final stackManager = NotificationStackManager.instance;
+  
+  try {
+    // 尝试获取通知中心管理器
+    final notificationCenter = Get.find<NotificationCenterManager>();
+    
+    // 添加到通知中心
+    notificationCenter.addNotification(
+      title: title ?? _getNotificationTitle(type),
+      message: message,
+      level: _mapToNotificationLevel(type),
+    ).then((_) {}).catchError((e) {
+      print('通知中心保存失败: $e');
+    });
+  } catch (e) {
+    // 如果通知中心未初始化，忽略错误
+    print('通知中心未初始化: $e');
+  }
+  
+  final duration = displayTime ?? const Duration(milliseconds: 2500);
+  
+  // 将通知添加到栈中
+  final notificationId = stackManager.addNotification(
+    message: message,
+    type: _mapToNotificationType(type),
+    displayDuration: duration,
+  );
+  
+  // 显示通知（位置由NotificationStackManager管理）
+  _showStackedNotification(
+    message,
+    type,
+    duration,
+    notificationId,
+  );
+}
+
+/// 将TodoCatToastStyleType转换为NotificationType
+NotificationType _mapToNotificationType(TodoCatToastStyleType type) {
+  switch (type) {
+    case TodoCatToastStyleType.success:
+      return NotificationType.success;
+    case TodoCatToastStyleType.error:
+      return NotificationType.error;
+    case TodoCatToastStyleType.warning:
+      return NotificationType.warning;
+    case TodoCatToastStyleType.info:
+      return NotificationType.info;
+  }
+}
+
+/// 将TodoCatToastStyleType转换为NotificationLevel
+NotificationLevel _mapToNotificationLevel(TodoCatToastStyleType type) {
+  switch (type) {
+    case TodoCatToastStyleType.success:
+      return NotificationLevel.success;
+    case TodoCatToastStyleType.error:
+      return NotificationLevel.error;
+    case TodoCatToastStyleType.warning:
+      return NotificationLevel.warning;
+    case TodoCatToastStyleType.info:
+      return NotificationLevel.info;
+  }
+}
+
+/// 获取通知类型对应的默认标题
+String _getNotificationTitle(TodoCatToastStyleType type) {
+  switch (type) {
+    case TodoCatToastStyleType.success:
+      return '成功';
+    case TodoCatToastStyleType.error:
+      return '错误';
+    case TodoCatToastStyleType.warning:
+      return '警告';
+    case TodoCatToastStyleType.info:
+      return '信息';
+  }
+}
+
+/// 显示成功通知（左下角）
+void showSuccessNotification(String message) {
+  showNotification(message, type: TodoCatToastStyleType.success);
+}
+
+/// 显示错误通知（左下角）
+void showErrorNotification(String message) {
+  showNotification(message, type: TodoCatToastStyleType.error);
+}
+
+/// 显示信息通知（左下角）
+void showInfoNotification(String message) {
+  showNotification(message, type: TodoCatToastStyleType.info);
 }

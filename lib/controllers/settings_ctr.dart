@@ -3,12 +3,14 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/settings/settings_page.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 
 class SettingsController extends GetxController {
   final AppController appCtrl = Get.find();
+  final HomeController homeCtrl = Get.find();
   late final Rx<String> currentLanguage;
   var isAnimating = false.obs;
 
@@ -150,5 +152,9 @@ class SettingsController extends GetxController {
   void resetConfig() {
     appCtrl.appConfig.value = defaultAppConfig.copyWith();
     changeLanguage(defaultAppConfig.locale);
+  }
+
+  void resetTasksTemplate() {
+    homeCtrl.resetTasksTemplate();
   }
 }
