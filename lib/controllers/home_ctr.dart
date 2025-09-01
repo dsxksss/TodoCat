@@ -19,6 +19,9 @@ class HomeController extends GetxController
   final AppController appCtrl = Get.find();
   final shouldAnimate = true.obs;
 
+  // 暴露TaskManager供其他类使用
+  TaskManager get taskManager => _taskManager;
+
   // 实现TaskStateMixin需要的allTasks getter
   @override
   List<Task> get allTasks => _taskManager.tasks;

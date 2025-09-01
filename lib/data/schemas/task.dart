@@ -1,34 +1,41 @@
-import 'package:isar/isar.dart';
+import 'package:hive/hive.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 
 part 'task.g.dart';
 
-@collection
-class Task {
-  Id id = Isar.autoIncrement;
-
-  @Index(unique: true)
+@HiveType(typeId: 0)
+class Task extends HiveObject {
+  @HiveField(0)
   late String uuid;
 
-  @Index()
+  @HiveField(1)
   int order = 0;
 
+  @HiveField(2)
   late String title;
 
-  @Index()
+  @HiveField(3)
   late int createdAt;
 
+  @HiveField(4)
   String description = "";
+  
+  @HiveField(5)
   int finishedAt = 0;
 
-  @enumerated
+  @HiveField(6)
   TaskStatus status = TaskStatus.todo;
 
+  @HiveField(7)
   int progress = 0;
+  
+  @HiveField(8)
   int reminders = 0;
 
+  @HiveField(9)
   List<String> tags = [];
-  @ignore
+  
+  @HiveField(10)
   List<Todo>? _todos;
 
   // 默认构造函数
@@ -83,8 +90,12 @@ class Task {
   }
 }
 
+@HiveType(typeId: 1)
 enum TaskStatus {
+  @HiveField(0)
   todo,
+  @HiveField(1)
   inProgress,
+  @HiveField(2)
   done,
 }

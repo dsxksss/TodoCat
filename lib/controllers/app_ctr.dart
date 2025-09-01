@@ -1,10 +1,11 @@
 import 'dart:io';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/pages/app_lifecycle_observer.dart';
 import 'package:todo_cat/config/smart_dialog.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/services/repositorys/app_config.dart';
 import 'package:todo_cat/core/local_notification_manager.dart';
@@ -78,8 +79,14 @@ class AppController extends GetxController {
   Future<void> changeSystemOverlayUI() async {
     if (_isMobilePlatform) {
       _logger.d('Updating system overlay UI for mobile platform');
-      await FlutterStatusbarcolor.setStatusBarWhiteForeground(
-          appConfig.value.isDarkMode);
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarBrightness: appConfig.value.isDarkMode ? Brightness.dark : Brightness.light,
+          statusBarIconBrightness: appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
+          systemNavigationBarColor: appConfig.value.isDarkMode ? Colors.black : Colors.white,
+          systemNavigationBarIconBrightness: appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
+        ),
+      );
     }
   }
 
@@ -95,15 +102,36 @@ class AppController extends GetxController {
   Future<void> changeLanguage(Locale language) async {
     _logger.d('Changing language to: ${language.languageCode}');
     await Get.updateLocale(language);
-    appConfig.value.updateLocale(Get.locale!);
+    appConfig.value.updateLocale(language);
     appConfig.refresh();
   }
 
   @override
   void onClose() {
     _logger.d('Cleaning up AppController resources');
+    
+    // 保存数据并关闭数据库
+    _saveDataBeforeClose();
+    
     localNotificationManager.destroyLocalNotification();
     super.onClose();
+  }
+
+  /// 在关闭控制器前保存数据
+  Future<void> _saveDataBeforeClose() async {
+    try {
+      _logger.d('Saving data before AppController close...');
+      
+      // 获取HomeController并保存任务数据
+      if (Get.isRegistered<HomeController>()) {
+        final homeController = Get.find<HomeController>();
+        await homeController.taskManager.forceSave();
+      }
+      
+      _logger.d('Data saved successfully before close');
+    } catch (e) {
+      _logger.e('Error saving data before close: $e');
+    }
   }
 
   // Window management methods

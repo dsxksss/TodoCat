@@ -1,22 +1,25 @@
-import 'package:isar/isar.dart';
+import 'package:hive/hive.dart';
 
 part 'notification_history.g.dart';
 
-@collection
-class NotificationHistory {
-  Id id = Isar.autoIncrement; // 自动递增ID
-  
-  @Index(unique: true)
+@HiveType(typeId: 7)
+class NotificationHistory extends HiveObject {
+  @HiveField(0)
   late String notificationId; // 通知的唯一ID
   
+  @HiveField(1)
   late String title;
   
+  @HiveField(2)
   late String message;
   
+  @HiveField(3)
   late int level; // 0: success, 1: info, 2: warning, 3: error
   
+  @HiveField(4)
   late DateTime timestamp;
   
+  @HiveField(5)
   late bool isRead;
 
   // 从NotificationHistoryItem创建

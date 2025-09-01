@@ -20,7 +20,7 @@ class TextFormFieldItem extends StatelessWidget {
     Widget? suffixIcon,
     TextInputAction? textInputAction,
     TextInputType? inputType = TextInputType.text,
-    required void Function(dynamic _) onFieldSubmitted,
+    required void Function(String) onFieldSubmitted,
   })  : _fillColor = fillColor,
         _ghostStyle = ghostStyle ?? false,
         _validator = validator,
@@ -36,7 +36,8 @@ class TextFormFieldItem extends StatelessWidget {
         _suffixIcon = suffixIcon,
         _focusNode = focusNode,
         _textInputAction = textInputAction,
-        _inputType = inputType;
+        _inputType = inputType,
+        _onFieldSubmitted = onFieldSubmitted;
 
   final String _fieldTitle;
   final Widget? _suffix;
@@ -54,6 +55,7 @@ class TextFormFieldItem extends StatelessWidget {
   final TextEditingController _editingController;
   final String? Function(String?)? _validator;
   final TextInputType? _inputType;
+  final void Function(String) _onFieldSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -75,12 +77,7 @@ class TextFormFieldItem extends StatelessWidget {
       focusNode: _focusNode,
       keyboardType: _inputType,
       cursorColor: Colors.blueGrey.shade400,
-      buildCounter: (context,
-              {required currentLength, required isFocused, maxLength}) =>
-          const Text(
-        "这个地方有点问题喔.",
-        style: TextStyle(color: Colors.red),
-      ),
+      onFieldSubmitted: _onFieldSubmitted,
       decoration: InputDecoration(
         suffix: _suffix,
         suffixIcon: _suffixIcon,
@@ -107,7 +104,7 @@ class TextFormFieldItem extends StatelessWidget {
       validator: _validator ??
           (value) {
             if (value == null || value.trim().isEmpty) {
-              return "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}";
+              return "${'pleaseCompleteItProperly'.tr}${_fieldTitle.tr}";
             }
             return null;
           },

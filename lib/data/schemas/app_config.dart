@@ -1,19 +1,26 @@
 import 'package:flutter/widgets.dart';
-import 'package:isar/isar.dart';
+import 'package:hive/hive.dart';
 
 part 'app_config.g.dart';
 
-@collection
-class AppConfig {
-  Id id = Isar.autoIncrement;
-
-  @Index(unique: true)
+@HiveType(typeId: 5)
+class AppConfig extends HiveObject {
+  @HiveField(0)
   late String configName;
 
+  @HiveField(1)
   late bool isDarkMode;
+  
+  @HiveField(2)
   late String languageCode;
+  
+  @HiveField(3)
   late String countryCode;
+  
+  @HiveField(4)
   late bool emailReminderEnabled;
+  
+  @HiveField(5)
   late bool isDebugMode;
 
   // 默认构造函数
@@ -36,8 +43,7 @@ class AppConfig {
       ..isDebugMode = isDebugMode;
   }
 
-  // 将 locale 标记为忽略，因为它是计算属性
-  @ignore
+  // 将 locale 作为计算属性
   Locale get locale => Locale(languageCode, countryCode);
 
   // 更新 Locale 的方法

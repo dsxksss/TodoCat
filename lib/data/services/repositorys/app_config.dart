@@ -1,10 +1,10 @@
-import 'package:isar/isar.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/services/database.dart';
 
 class AppConfigRepository {
   static AppConfigRepository? _instance;
-  Isar? _isar;
+  Box<AppConfig>? _box;
   bool _isInitialized = false;
 
   AppConfigRepository._();
@@ -20,35 +20,23 @@ class AppConfigRepository {
   Future<void> _init() async {
     if (_isInitialized) return;
     final db = await Database.getInstance();
-    _isar = db.isar;
+    _box = await db.getBox<AppConfig>('appConfigs');
     _isInitialized = true;
   }
 
-  Isar get isar {
-    if (_isar == null) {
+  Box<AppConfig> get box {
+    if (_box == null) {
       throw StateError('AppConfigRepository not initialized');
     }
-    return _isar!;
+    return _box!;
   }
 
   Future<AppConfig?> read(String configName) async {
-    return await isar.appConfigs
-        .filter()
-        .configNameEqualTo(configName)
-        .findFirst();
+    return box.get(configName);
   }
 
   Future<void> write(String configName, AppConfig config) async {
-    await isar.writeTxn(() async {
-      final existingConfig = await isar.appConfigs
-          .filter()
-          .configNameEqualTo(configName)
-          .findFirst();
-      if (existingConfig != null) {
-        config.id = existingConfig.id;
-      }
-      await isar.appConfigs.put(config);
-    });
+    await box.put(configName, config);
   }
 
   Future<void> update(String configName, AppConfig config) async {

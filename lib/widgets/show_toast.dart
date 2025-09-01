@@ -44,8 +44,8 @@ List<Effect<dynamic>> _getToastAnimationEffect(
   return [
     MoveEffect(
       begin: Platform.isAndroid || Platform.isIOS
-          ? const Offset(0, -150)
-          : const Offset(0, 150),
+          ? const Offset(0, -150) // 移动端从上方向下滑入
+          : const Offset(0, 150),  // 桌面端从下方向上滑入
       duration: controller.duration,
       curve: Curves.easeInOutBack,
     ),

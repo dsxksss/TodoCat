@@ -62,6 +62,18 @@ class TaskManager {
     }
   }
 
+  /// 强制保存当前任务列表到数据库
+  Future<void> forceSave() async {
+    try {
+      _logger.d('Force saving all tasks to storage...');
+      await _saveToStorage();
+      _logger.d('All tasks force saved successfully');
+    } catch (e) {
+      _logger.e('Error force saving tasks: $e');
+      throw Exception('Failed to force save tasks: $e');
+    }
+  }
+
   /// 移除重复的任务，确保任务唯一性
   List<Task> _removeDuplicateTasks(List<Task> tasks) {
     final seen = <String>{};

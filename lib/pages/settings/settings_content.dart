@@ -167,7 +167,10 @@ class SettingsContent extends GetView<SettingsController> {
         description: Obx(() {
           final preview = dataController.exportPreview.value;
           if (preview != null) {
-            return Text('任务: ${preview['tasksCount']}, Todo: ${preview['todosCount']}');
+            return Text('dataPreview'.trParams({
+              'tasksCount': preview['tasksCount'].toString(),
+              'todosCount': preview['todosCount'].toString(),
+            }));
           }
           return Text('exportDataDescription'.tr);
         }),

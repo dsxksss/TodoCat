@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/data/schemas/notification_history.dart';
 import 'package:todo_cat/data/services/database.dart';
@@ -8,6 +8,7 @@ class NotificationHistoryRepository {
   static NotificationHistoryRepository? _instance;
   
   final Database _database;
+  Box<NotificationHistory>? _box;
   
   NotificationHistoryRepository._(this._database);
   
@@ -15,15 +16,28 @@ class NotificationHistoryRepository {
     if (_instance == null) {
       final database = await Database.getInstance();
       _instance = NotificationHistoryRepository._(database);
+      await _instance!._init();
       _logger.i('NotificationHistoryRepository initialized');
     }
     return _instance!;
+  }
+  
+  Future<void> _init() async {
+    _box = await _database.getBox<NotificationHistory>('notificationHistory');
+  }
+  
+  Box<NotificationHistory> get box {
+    if (_box == null) {
+      throw StateError('NotificationHistoryRepository not initialized');
+    }
+    return _box!;
   }
 
   /// 读取所有通知历史
   Future<List<NotificationHistoryItem>> readAll() async {
     try {
-      final notifications = await _database.isar.notificationHistorys.where().sortByTimestampDesc().findAll();
+      final notifications = box.values.toList();
+      notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return notifications.map((model) => model.toItem()).toList();
     } catch (e) {
       _logger.e('Error reading all notification history: $e');
@@ -34,10 +48,7 @@ class NotificationHistoryRepository {
   /// 读取单个通知历史
   Future<NotificationHistoryItem?> read(String id) async {
     try {
-      final notification = await _database.isar.notificationHistorys
-          .filter()
-          .notificationIdEqualTo(id)
-          .findFirst();
+      final notification = box.get(id);
       return notification?.toItem();
     } catch (e) {
       _logger.e('Error reading notification history: $e');
@@ -49,9 +60,7 @@ class NotificationHistoryRepository {
   Future<void> write(String id, NotificationHistoryItem item) async {
     try {
       final model = NotificationHistory.fromItem(item);
-      await _database.isar.writeTxn(() async {
-        await _database.isar.notificationHistorys.put(model);
-      });
+      await box.put(id, model);
       _logger.d('Saved notification history: $id');
     } catch (e) {
       _logger.e('Error writing notification history: $e');
@@ -62,15 +71,7 @@ class NotificationHistoryRepository {
   /// 删除通知历史
   Future<void> delete(String id) async {
     try {
-      await _database.isar.writeTxn(() async {
-        final notification = await _database.isar.notificationHistorys
-            .filter()
-            .notificationIdEqualTo(id)
-            .findFirst();
-        if (notification != null) {
-          await _database.isar.notificationHistorys.delete(notification.id);
-        }
-      });
+      await box.delete(id);
       _logger.d('Deleted notification history: $id');
     } catch (e) {
       _logger.e('Error deleting notification history: $e');
@@ -81,16 +82,11 @@ class NotificationHistoryRepository {
   /// 标记单个通知为已读
   Future<void> markAsRead(String id) async {
     try {
-      await _database.isar.writeTxn(() async {
-        final notification = await _database.isar.notificationHistorys
-            .filter()
-            .notificationIdEqualTo(id)
-            .findFirst();
-        if (notification != null) {
-          notification.isRead = true;
-          await _database.isar.notificationHistorys.put(notification);
-        }
-      });
+      final notification = box.get(id);
+      if (notification != null) {
+        notification.isRead = true;
+        await box.put(id, notification);
+      }
       _logger.d('Marked notification as read: $id');
     } catch (e) {
       _logger.e('Error marking notification as read: $e');
@@ -101,13 +97,11 @@ class NotificationHistoryRepository {
   /// 标记所有通知为已读
   Future<void> markAllAsRead() async {
     try {
-      await _database.isar.writeTxn(() async {
-        final notifications = await _database.isar.notificationHistorys.where().findAll();
-        for (var notification in notifications) {
-          notification.isRead = true;
-          await _database.isar.notificationHistorys.put(notification);
-        }
-      });
+      final notifications = box.toMap();
+      for (var entry in notifications.entries) {
+        entry.value.isRead = true;
+        await box.put(entry.key, entry.value);
+      }
       _logger.d('Marked all notifications as read');
     } catch (e) {
       _logger.e('Error marking all notifications as read: $e');
@@ -118,9 +112,7 @@ class NotificationHistoryRepository {
   /// 清空所有通知
   Future<void> clearAll() async {
     try {
-      await _database.isar.writeTxn(() async {
-        await _database.isar.notificationHistorys.clear();
-      });
+      await box.clear();
       _logger.d('Cleared all notification history');
     } catch (e) {
       _logger.e('Error clearing notification history: $e');
@@ -131,20 +123,17 @@ class NotificationHistoryRepository {
   /// 保留最近的N条通知，删除更早的通知
   Future<void> keepRecentNotifications(int limit) async {
     try {
-      await _database.isar.writeTxn(() async {
-        final notifications = await _database.isar.notificationHistorys
-            .where()
-            .sortByTimestampDesc()
-            .findAll();
-        
-        if (notifications.length > limit) {
-          final toDelete = notifications.sublist(limit);
-          for (var notification in toDelete) {
-            await _database.isar.notificationHistorys.delete(notification.id);
-          }
-          _logger.d('Removed ${toDelete.length} old notifications, keeping $limit recent ones');
+      final notifications = box.values.toList();
+      notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      if (notifications.length > limit) {
+        await box.clear();
+        final recentNotifications = notifications.take(limit).toList();
+        for (int i = 0; i < recentNotifications.length; i++) {
+          await box.put(recentNotifications[i].notificationId, recentNotifications[i]);
         }
-      });
+        _logger.d('Removed ${notifications.length - limit} old notifications, keeping $limit recent ones');
+      }
     } catch (e) {
       _logger.e('Error pruning notification history: $e');
       rethrow;
