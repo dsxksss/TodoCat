@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class DatePanel extends StatefulWidget {
   const DatePanel({
@@ -15,125 +16,253 @@ class DatePanel extends StatefulWidget {
 }
 
 class _DatePanelState extends State<DatePanel> {
-  late Key _calendarKey;
-  DateTime? _lastSelectedDate;
-
+  late DateTime _currentMonth;
+  DateTime? _selectedDate;
+  
   @override
   void initState() {
     super.initState();
-    _calendarKey = UniqueKey();
-    _lastSelectedDate = widget.selectedDate;
+    final now = DateTime.now();
+    _currentMonth = DateTime(now.year, now.month, 1);
+    _updateSelectedDate();
   }
 
   @override
   void didUpdateWidget(DatePanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 当selectedDate变化时，强制重新构建
-    if (widget.selectedDate != _lastSelectedDate) {
-      _calendarKey = UniqueKey();
-      _lastSelectedDate = widget.selectedDate;
+    if (widget.selectedDate != oldWidget.selectedDate) {
+      _updateSelectedDate();
     }
   }
-  @override
-  Widget build(BuildContext context) {
+  
+  void _updateSelectedDate() {
     final now = DateTime.now();
-    final selectedDate = widget.selectedDate;
+    final today = DateTime(now.year, now.month, now.day);
+    
+    if (widget.selectedDate != null) {
+      final dateOnly = DateTime(
+        widget.selectedDate!.year,
+        widget.selectedDate!.month,
+        widget.selectedDate!.day,
+      );
+      
+      // 如果选中的日期是过去的，则使用今天
+      if (dateOnly.isBefore(today)) {
+        _selectedDate = today;
+        // 保持当前月份显示
+        _currentMonth = DateTime(now.year, now.month, 1);
+      } else {
+        _selectedDate = dateOnly;
+        // 只有当选中日期不是过去日期时，才跳转到对应月份
+        _currentMonth = DateTime(dateOnly.year, dateOnly.month, 1);
+      }
+    } else {
+      _selectedDate = null;
+      // 默认显示当前月份
+      _currentMonth = DateTime(now.year, now.month, 1);
+    }
+  }
 
-    return Theme(
-      data: Theme.of(context).copyWith(
-        colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: const Color(0xFF3B82F6), // 与add task button一致的蓝色
-              onPrimary: Colors.white, // 选中文字为白色
-              surface: Colors.transparent,
-            ),
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
-            ),
-            backgroundColor: Colors.transparent,
-            foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
-          ),
+  void _onDateTap(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // 不允许选择过去的日期
+    if (date.isBefore(today)) {
+      return;
+    }
+    
+    setState(() {
+      _selectedDate = date;
+    });
+    
+    // 结合时间信息
+    final time = widget.selectedDate != null 
+        ? TimeOfDay(hour: widget.selectedDate!.hour, minute: widget.selectedDate!.minute)
+        : TimeOfDay.now();
+    
+    DateTime selectedDateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+    
+    // 如果选择的是今天，但时间比当前时间要早，则设置为当前时间
+    if (date.isAtSameMomentAs(today) && selectedDateTime.isBefore(now)) {
+      selectedDateTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        now.hour,
+        now.minute,
+      );
+    }
+    
+    widget.onDateSelected(selectedDateTime);
+  }
+
+  void _goToPreviousMonth() {
+    setState(() {
+      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
+    });
+  }
+
+  void _goToNextMonth() {
+    setState(() {
+      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
+    });
+  }
+
+  List<DateTime> _getDaysInMonth() {
+    final firstDay = _currentMonth;
+    final lastDay = DateTime(firstDay.year, firstDay.month + 1, 0);
+    final daysInMonth = lastDay.day;
+    
+    // 获取这个月第一天是星期几（0=周一，6=周日）
+    int firstWeekday = firstDay.weekday - 1;
+    
+    List<DateTime> days = [];
+    
+    // 添加上个月的日期来填充第一周
+    final prevMonth = DateTime(firstDay.year, firstDay.month - 1, 0);
+    for (int i = firstWeekday - 1; i >= 0; i--) {
+      days.add(DateTime(prevMonth.year, prevMonth.month, prevMonth.day - i));
+    }
+    
+    // 添加当前月的日期
+    for (int day = 1; day <= daysInMonth; day++) {
+      days.add(DateTime(firstDay.year, firstDay.month, day));
+    }
+    
+    // 添加下个月的日期来填充最后一周
+    final remainingDays = 42 - days.length; // 6周 × 7天
+    for (int day = 1; day <= remainingDays; day++) {
+      days.add(DateTime(firstDay.year, firstDay.month + 1, day));
+    }
+    
+    return days;
+  }
+
+  Widget _buildDayCell(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final isSelected = _selectedDate?.isAtSameMomentAs(date) ?? false;
+    final isToday = date.isAtSameMomentAs(today);
+    final isCurrentMonth = date.month == _currentMonth.month;
+    final isPastDate = date.isBefore(today);
+    
+    return GestureDetector(
+      onTap: () => _onDateTap(date),
+      child: Container(
+        width: 40,
+        height: 40,
+        margin: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isSelected 
+              ? const Color(0xFF3B82F6)
+              : Colors.transparent,
+          border: isToday && !isSelected
+              ? Border.all(color: const Color(0xFF3B82F6), width: 2)
+              : null,
         ),
-        // 自定义日期选择样式
-        datePickerTheme: DatePickerThemeData(
-          backgroundColor: Colors.transparent,
-          headerBackgroundColor: Colors.transparent,
-          headerForegroundColor: Theme.of(context).textTheme.bodyLarge?.color,
-          weekdayStyle: TextStyle(
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-            fontWeight: FontWeight.w600,
-          ),
-          dayStyle: TextStyle(
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-            fontWeight: FontWeight.w500,
-          ),
-          // 今天的样式
-          todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return const Color(0xFF3B82F6); // 今天被选中时的背景色
-            }
-            return const Color(0xFF3B82F6).withOpacity(0.2); // 今天未被选中时的背景色
-          }),
-          todayForegroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return Colors.white; // 今天被选中时的文字色
-            }
-            return const Color(0xFF3B82F6); // 今天未被选中时的文字色
-          }),
-          // 非今天日期的样式（这是关键！）
-          dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return const Color(0xFF3B82F6); // 选中背景色
-            }
-            return Colors.transparent;
-          }),
-          dayForegroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return Colors.white; // 选中文字颜色
-            }
-            return Theme.of(context).textTheme.bodyLarge?.color;
-          }),
-          dayOverlayColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.pressed)) {
-              return const Color(0xFF3B82F6).withOpacity(0.2);
-            }
-            if (states.contains(WidgetState.hovered)) {
-              return const Color(0xFF3B82F6).withOpacity(0.1);
-            }
-            return Colors.transparent;
-          }),
-          // 确保日期按钮是圆形
-          dayShape: WidgetStateProperty.all(
-            const CircleBorder(), // 使用CircleBorder确保是正圆形
-          ),
-          todayBorder: const BorderSide(
-            color: Color(0xFF3B82F6),
-            width: 1,
+        child: Center(
+          child: Text(
+            date.day.toString(),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: isSelected
+                  ? Colors.white
+                  : isPastDate
+                      ? Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.3)
+                      : isCurrentMonth
+                          ? Theme.of(context).textTheme.bodyLarge?.color
+                          : Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.5),
+            ),
           ),
         ),
       ),
-      child: CalendarDatePicker(
-        key: _calendarKey, // 使用独特的key强制重建
-        initialDate: selectedDate ?? now,
-        currentDate: now, // currentDate用于标记今天
-        firstDate: now,
-        lastDate: now.add(const Duration(days: 365)),
-        onDateChanged: (date) {
-          final currentTime = selectedDate != null 
-              ? TimeOfDay(hour: selectedDate.hour, minute: selectedDate.minute)
-              : TimeOfDay.now();
-          final selectedDateTime = DateTime(
-            date.year,
-            date.month,
-            date.day,
-            currentTime.hour,
-            currentTime.minute,
-          );
-          widget.onDateSelected(selectedDateTime);
-        },
-        selectableDayPredicate: (date) => true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final days = _getDaysInMonth();
+    final monthNames = [
+      'january'.tr, 'february'.tr, 'march'.tr, 'april'.tr,
+      'may'.tr, 'june'.tr, 'july'.tr, 'august'.tr,
+      'september'.tr, 'october'.tr, 'november'.tr, 'december'.tr
+    ];
+    
+    final weekDays = [
+      'monday'.tr, 'tuesday'.tr, 'wednesday'.tr, 'thursday'.tr,
+      'friday'.tr, 'saturday'.tr, 'sunday'.tr
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // 月份导航
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${_currentMonth.year} ${monthNames[_currentMonth.month - 1]}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: _goToPreviousMonth,
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  IconButton(
+                    onPressed: _goToNextMonth,
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // 星期标题
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: weekDays.map((day) => SizedBox(
+              width: 44,
+              child: Center(
+                child: Text(
+                  day, // 直接显示翻译后的字符串
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+              ),
+            )).toList(),
+          ),
+          const SizedBox(height: 8),
+          // 日期网格
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+            ),
+            itemCount: days.length,
+            itemBuilder: (context, index) => _buildDayCell(days[index]),
+          ),
+        ],
       ),
     );
   }

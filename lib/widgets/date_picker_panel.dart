@@ -32,7 +32,17 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
     // 在initState中设置初始日期，避免构建阶段状态更新
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialSelectedDate != null) {
-        _datePickerController.setCurrentDate(widget.initialSelectedDate);
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final initialDate = widget.initialSelectedDate!;
+        final initialDateOnly = DateTime(initialDate.year, initialDate.month, initialDate.day);
+        
+        // 如果初始日期是过去的，则使用今天
+        if (initialDateOnly.isBefore(today)) {
+          _datePickerController.setCurrentDate(now);
+        } else {
+          _datePickerController.setCurrentDate(widget.initialSelectedDate);
+        }
       }
     });
   }
@@ -169,27 +179,48 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
               selectedDate: currentDate,
               onDateSelected: (date) {
                 final currentTime = _datePickerController.currentTime.value;
+                final now = DateTime.now();
+                final today = DateTime(now.year, now.month, now.day);
+                final selectedDay = DateTime(date.year, date.month, date.day);
+                
+                DateTime newDate;
                 if (currentTime != null) {
-                  final newDate = DateTime(
+                  newDate = DateTime(
                     date.year,
                     date.month,
                     date.day,
                     currentTime.hour,
                     currentTime.minute,
                   );
-                  _datePickerController.setCurrentDate(newDate);
-                  widget.onDateSelected(newDate);
                 } else {
-                  final newDate = DateTime(
+                  newDate = DateTime(
                     date.year,
                     date.month,
                     date.day,
-                    0,
-                    0,
+                    now.hour,
+                    now.minute,
                   );
-                  _datePickerController.setCurrentDate(newDate);
-                  widget.onDateSelected(newDate);
                 }
+                
+                // 如果选择的是今天，但时间比当前时间要早，则设置为当前时间
+                if (selectedDay.isAtSameMomentAs(today) && newDate.isBefore(now)) {
+                  newDate = DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                    now.hour,
+                    now.minute,
+                  );
+                  // 同时更新TimePanel的显示
+                  if (_timeKey.currentState != null) {
+                    _timeKey.currentState!.updateToTime(
+                      TimeOfDay(hour: now.hour, minute: now.minute),
+                    );
+                  }
+                }
+                
+                _datePickerController.setCurrentDate(newDate);
+                widget.onDateSelected(newDate);
               },
             ),
             Padding(
@@ -201,13 +232,35 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
                   _datePickerController.setCurrentTime(time);
                   // 确保日期不为null
                   final currentDate = _datePickerController.currentDate.value ?? DateTime.now();
-                  final newDateTime = DateTime(
+                  final now = DateTime.now();
+                  final today = DateTime(now.year, now.month, now.day);
+                  final selectedDay = DateTime(currentDate.year, currentDate.month, currentDate.day);
+                  
+                  DateTime newDateTime = DateTime(
                     currentDate.year,
                     currentDate.month,
                     currentDate.day,
                     time.hour,
                     time.minute,
                   );
+                  
+                  // 如果选择的是今天，但时间比当前时间要早，则设置为当前时间
+                  if (selectedDay.isAtSameMomentAs(today) && newDateTime.isBefore(now)) {
+                    newDateTime = DateTime(
+                      currentDate.year,
+                      currentDate.month,
+                      currentDate.day,
+                      now.hour,
+                      now.minute,
+                    );
+                    // 同时更新TimePanel的显示
+                    if (_timeKey.currentState != null) {
+                      _timeKey.currentState!.updateToTime(
+                        TimeOfDay(hour: now.hour, minute: now.minute),
+                      );
+                    }
+                  }
+                  
                   _datePickerController.setCurrentDate(newDateTime);
                   widget.onDateSelected(newDateTime);
                 },

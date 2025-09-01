@@ -5,6 +5,7 @@ import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/data/test/todo.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/controllers/data_export_import_ctr.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/controllers/task_manager.dart';
@@ -62,6 +63,8 @@ class HomeController extends GetxController
 
   Future<void> resetTasksTemplate() async {
     await _taskManager.resetTasksTemplate();
+    // 刷新导出预览数据
+    _refreshExportPreview();
   }
 
   /// 刷新数据（用于数据导入后更新UI）
@@ -73,6 +76,17 @@ class HomeController extends GetxController
       _logger.i('主页数据刷新成功');
     } catch (e) {
       _logger.e('主页数据刷新失败: $e');
+    }
+  }
+
+  /// 刷新导出预览数据
+  void _refreshExportPreview() {
+    try {
+      final dataController = Get.find<DataExportImportController>();
+      dataController.refreshPreview();
+    } catch (e) {
+      // 如果找不到DataExportImportController，忽略错误
+      _logger.d('未找到DataExportImportController，跳过刷新导出预览: $e');
     }
   }
 
@@ -128,6 +142,9 @@ class HomeController extends GetxController
       // 重要：保存修改后的任务到数据库
       await _taskManager.updateTask(taskId, task);
 
+      // 刷新导出预览数据
+      _refreshExportPreview();
+
       _logger.d('Todo added successfully and saved to database');
       return true;
     } catch (e) {
@@ -138,6 +155,8 @@ class HomeController extends GetxController
 
   Future<void> addTask(Task task) async {
     await _taskManager.addTask(task);
+    // 刷新导出预览数据
+    _refreshExportPreview();
   }
 
   Future<bool> deleteTask(String uuid) async {
@@ -145,6 +164,8 @@ class HomeController extends GetxController
       final task = _taskManager.tasks.firstWhere((task) => task.uuid == uuid);
       _cleanupTaskNotifications(task);
       await _taskManager.removeTask(uuid);
+      // 刷新导出预览数据
+      _refreshExportPreview();
       return true;
     } catch (e) {
       _logger.e('Error deleting task: $e');
@@ -171,6 +192,8 @@ class HomeController extends GetxController
 
     _logger.d('Updating task: $uuid');
     await _taskManager.updateTask(uuid, task);
+    // 刷新导出预览数据
+    _refreshExportPreview();
     return true;
   }
 
@@ -215,6 +238,9 @@ class HomeController extends GetxController
 
       // 重要：保存修改后的任务到数据库
       await _taskManager.updateTask(taskUuid, task);
+
+      // 刷新导出预览数据
+      _refreshExportPreview();
 
       _logger.d('Todo deleted successfully and saved to database');
       return true;
@@ -376,6 +402,9 @@ class HomeController extends GetxController
 
       // 只刷新一次UI，不重新从数据库加载
       _taskManager.tasks.refresh();
+
+      // 刷新导出预览数据
+      _refreshExportPreview();
 
       _logger.d(
           'Todo $todoId moved successfully with status updated to ${todoToMove.status}');
