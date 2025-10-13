@@ -27,5 +27,5 @@ final lightTheme = ThemeData(
       color: Colors.black,
       fontSize: fontSize,
     ),
-  ), dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
+  ), dialogTheme: const DialogTheme(backgroundColor: Colors.white),
 );

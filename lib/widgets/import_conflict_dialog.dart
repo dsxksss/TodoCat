@@ -204,7 +204,7 @@ class ImportConflictDialog extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: context.theme.iconTheme.color?.withValues(alpha: 0.2),
+                color: context.theme.iconTheme.color?.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
