@@ -68,6 +68,8 @@ const Map<String, String> zhCN = {
   'settings': '设置',
   'enable': '启用',
   'disable': '禁用',
+  'launchAtStartup': '开机自启动',
+  'launchAtStartupDescription': '在系统启动/登录后自动运行 TodoCat（仅桌面端）',
   'emailReminder': '邮箱提醒',
   'language': '语言',
   'common': '通用',

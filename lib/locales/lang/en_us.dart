@@ -68,6 +68,8 @@ const Map<String, String> enUS = {
   'settings': 'Settings',
   'enable': 'Enable',
   'disable': 'Disable',
+  'launchAtStartup': 'Launch at startup',
+  'launchAtStartupDescription': 'Automatically run TodoCat after system startup/login (desktop only)',
   'emailReminder': 'Email reminder',
   'language': 'Language',
   'common': 'Common',

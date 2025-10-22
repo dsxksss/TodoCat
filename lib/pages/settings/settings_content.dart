@@ -128,6 +128,15 @@ class SettingsContent extends GetView<SettingsController> {
         leading: const Icon(Icons.bug_report_outlined),
         title: Text('enbleDebugMode'.tr),
       ),
+      // 开机自启动开关（仅桌面端）
+      SettingsTile.switchTile(
+        onToggle: (_) => controller.toggleLaunchAtStartup(),
+        onPressed: (_) => controller.toggleLaunchAtStartup(),
+        initialValue: controller.launchAtStartupEnabled.value,
+        leading: const Icon(Icons.power_settings_new),
+        title: Text('launchAtStartup'.tr),
+        description: Text('launchAtStartupDescription'.tr),
+      ),
     ];
   }
 

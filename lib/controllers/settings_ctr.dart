@@ -7,12 +7,15 @@ import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/settings/settings_page.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
+import 'package:launch_at_startup/launch_at_startup.dart';
 
 class SettingsController extends GetxController {
   final AppController appCtrl = Get.find();
   final HomeController homeCtrl = Get.find();
   late final Rx<String> currentLanguage;
   var isAnimating = false.obs;
+  // 开机自启动状态（仅桌面端）
+  final RxBool launchAtStartupEnabled = false.obs;
 
   @override
   void onInit() {
@@ -27,6 +30,11 @@ class SettingsController extends GetxController {
     currentLanguage = _getLanguageTitle(
       appCtrl.appConfig.value.locale.languageCode,
     ).obs;
+
+    // 初始化自启动状态（桌面端）
+    if (GetPlatform.isDesktop) {
+      _refreshLaunchAtStartupState();
+    }
   }
 
   String _getLanguageTitle(String locale) {
@@ -147,6 +155,30 @@ class SettingsController extends GetxController {
     );
     appCtrl.appConfig.value = newConfig;
     appCtrl.appConfig.refresh();
+  }
+
+  // 以下为开机自启动相关逻辑（桌面端）
+  Future<void> _refreshLaunchAtStartupState() async {
+    try {
+      launchAtStartupEnabled.value = await launchAtStartup.isEnabled();
+    } catch (_) {
+      launchAtStartupEnabled.value = false;
+    }
+  }
+
+  Future<void> toggleLaunchAtStartup() async {
+    if (!GetPlatform.isDesktop) return;
+    try {
+      final enabled = await launchAtStartup.isEnabled();
+      if (enabled) {
+        await launchAtStartup.disable();
+      } else {
+        await launchAtStartup.enable();
+      }
+      await _refreshLaunchAtStartupState();
+    } catch (e) {
+      // ignore errors silently or log if needed
+    }
   }
 
   void resetConfig() {
