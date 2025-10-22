@@ -153,6 +153,27 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     };
   }
 
+  void restoreCacheIfAny() {
+    BaseFormController.logger.d('Restoring form cache if available');
+    final cache = _dialogCache[dialogId];
+    if (cache == null) return;
+
+    titleController.text = cache['title'] as String? ?? '';
+    descriptionController.text = cache['description'] as String? ?? '';
+    selectedTags.value = List<String>.from((cache['tags'] as List?) ?? const []);
+
+    final priorityIndex = cache['priority'] as int? ?? TodoPriority.lowLevel.index;
+    selectedPriority.value = TodoPriority.values[priorityIndex];
+
+    remindersValue.value = cache['reminders'] as int? ?? 0;
+
+    final DateTime? date = cache['date'] as DateTime?;
+    selectedDate.value = date;
+
+    // 状态未参与缓存，默认保持为待办状态
+    selectedStatus.value = TodoStatus.todo;
+  }
+
   @override
   void clearForm() {
     BaseFormController.logger.d('Clearing todo form');
@@ -276,7 +297,11 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     }
   }
 
-  bool checkFieldChanges() {
-    return hasUnsavedChanges();
+  bool get hasChanges {
+    if (isEditing.value) {
+      return hasUnsavedChanges();
+    } else {
+      return !isDataEmpty();
+    }
   }
 }

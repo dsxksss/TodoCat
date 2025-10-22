@@ -53,18 +53,28 @@ class TodoDialog extends GetView<AddTodoDialogController> {
   }
 
   void _handleClose() {
-    if (controller.hasUnsavedChanges()) {
+    if (controller.hasChanges) {
       showToast(
-        "${"saveEditing".tr}?",
+        controller.isEditing.value ? "${"saveEditing".tr}?" : "是否保留输入?",
         tag: confirmDialogTag,
         alwaysShow: true,
         confirmMode: true,
         onYesCallback: () {
-          controller.submitForm();
+          if (controller.isEditing.value) {
+            controller.submitForm();
+          } else {
+            // 只保留输入但不直接创建
+            controller.saveCache();
+          }
           SmartDialog.dismiss(tag: addTodoDialogTag);
         },
         onNoCallback: () {
-          controller.revertChanges();
+          if (controller.isEditing.value) {
+            controller.revertChanges();
+          } else {
+            // 取消保留并清除缓存，避免下次打开有残留
+            controller.clearForm();
+          }
           SmartDialog.dismiss(tag: addTodoDialogTag);
         },
       );

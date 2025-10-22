@@ -28,6 +28,9 @@ class AddTodoCardBtn extends StatelessWidget {
     );
     todoDialogController.taskId = task.uuid;
 
+    // 先尝试恢复缓存（只保留输入，不直接创建）
+    todoDialogController.restoreCacheIfAny();
+
     DialogService.showFormDialog(
       tag: addTodoDialogTag,
       dialog: const TodoDialog(dialogTag: 'add_todo_dialog'),
