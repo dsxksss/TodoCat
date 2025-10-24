@@ -59,7 +59,7 @@ mixin ValidationMixin {
 
   /// 验证文本长度
   String? validateTextLength(String? value, {int? minLength, int? maxLength}) {
-    if (value == null) value = '';
+    value ??= '';
     
     if (minLength != null && value.length < minLength) {
       return 'textTooShort'.trParams({'min': minLength.toString()});
@@ -83,7 +83,7 @@ mixin ValidationMixin {
 mixin CacheMixin<T> on GetxController {
   static final Map<String, Map<String, dynamic>> _globalCache = {};
   
-  String get cacheKey => '${runtimeType}_${hashCode}';
+  String get cacheKey => '${runtimeType}_$hashCode';
   
   /// 保存数据到缓存
   void saveToCache(Map<String, dynamic> data) {

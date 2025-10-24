@@ -120,7 +120,7 @@ class TodoDialog extends GetView<AddTodoDialogController> {
     if (reminderMinutes == 0) {
       return "noReminder".tr;
     } else if (reminderMinutes < 60) {
-      return "${reminderMinutes}${'minutesAgo'.tr}";
+      return "$reminderMinutes${'minutesAgo'.tr}";
     } else if (reminderMinutes < 1440) {
       return "${(reminderMinutes / 60).round()}${'hoursAgo'.tr}";
     } else {

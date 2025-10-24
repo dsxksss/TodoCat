@@ -109,7 +109,7 @@ class NotificationItem {
     // 使用补间动画平滑移动到目标位置
     final startOffset = currentBottomOffset.value;
     final endOffset = targetBottomOffset.value;
-    final duration = const Duration(milliseconds: 300);
+    const duration = Duration(milliseconds: 300);
     
     final startTime = DateTime.now();
     Timer.periodic(const Duration(milliseconds: 16), (timer) {

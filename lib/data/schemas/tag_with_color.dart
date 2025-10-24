@@ -6,10 +6,9 @@ class TagWithColor {
   late int colorValue;
 
   TagWithColor({
-    required String name,
+    required this.name,
     required Color color,
-  }) : name = name,
-       colorValue = color.value;
+  }) : colorValue = color.value;
 
   /// 获取颜色
   Color get color => Color(colorValue);

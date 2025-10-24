@@ -121,7 +121,7 @@ abstract class BaseFormController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    logger.i('Initializing ${runtimeType}');
+    logger.i('Initializing $runtimeType');
     
     // 监听表单变化
     titleController.addListener(_markDirty);
@@ -133,7 +133,7 @@ abstract class BaseFormController extends GetxController {
 
   @override
   void onClose() {
-    logger.d('Cleaning up ${runtimeType} resources');
+    logger.d('Cleaning up $runtimeType resources');
     titleController.dispose();
     descriptionController.dispose();
     tagController.dispose();
