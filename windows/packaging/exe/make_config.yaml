@@ -1,0 +1,7 @@
+app_id: 5B599538-42B1-4826-A479-AF079F21A65D
+publisher: TodoCat Team
+publisher_url: https://github.com/yourusername/todocat
+display_name: TodoCat
+create_desktop_icon: true
+locales:
+  - en
