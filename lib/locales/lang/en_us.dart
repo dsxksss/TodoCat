@@ -209,4 +209,6 @@ const Map<String, String> enUS = {
   'studentScheduleTemplateDescription': 'Contains specific todo items for study, programming, music, and life tasks',
   'confirmApplyTemplate': 'Are you sure you want to apply the "{title}" template? This will clear all existing tasks.',
   'taskTemplateApplied': 'Task template has been applied',
+  // Color picker
+  'selectTagColor': 'Select Tag Color',
 };

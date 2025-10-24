@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:todo_cat/data/schemas/tag_with_color.dart';
 import 'package:logger/logger.dart';
 
 /// 通用表单控制器基类
@@ -16,7 +17,7 @@ abstract class BaseFormController extends GetxController {
   
   // 标签管理
   final tagController = TextEditingController();
-  final selectedTags = <String>[].obs;
+  final selectedTags = <TagWithColor>[].obs;
   
   // 数据变更追踪
   final isDirty = false.obs;
@@ -35,8 +36,8 @@ abstract class BaseFormController extends GetxController {
     return null;
   }
 
-  /// 添加标签
-  void addTag() {
+  /// 添加标签（带颜色）
+  void addTagWithColor(Color color) {
     logger.d('Attempting to add tag: ${tagController.text}');
     final tag = tagController.text.trim();
 
@@ -52,16 +53,21 @@ abstract class BaseFormController extends GetxController {
       return;
     }
 
-    if (selectedTags.contains(tag)) {
+    if (selectedTags.any((t) => t.name == tag)) {
       logger.w('Duplicate tag found');
       showToast('tagDuplicate'.tr, toastStyleType: TodoCatToastStyleType.warning);
       return;
     }
 
-    logger.d('Adding new tag: $tag');
-    selectedTags.add(tag);
+    logger.d('Adding new tag: $tag with color: $color');
+    selectedTags.add(TagWithColor(name: tag, color: color));
     tagController.clear();
     _markDirty();
+  }
+
+  /// 添加标签（兼容旧版本，使用默认颜色）
+  void addTag() {
+    addTagWithColor(Colors.blueAccent);
   }
 
   /// 移除标签

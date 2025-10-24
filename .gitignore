@@ -48,3 +48,6 @@ TodoCat-HomeCtrlLog.txt
 
 # FVM Version Cache
 .fvm/
+
+# Build output
+dist/

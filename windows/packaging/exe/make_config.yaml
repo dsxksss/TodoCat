@@ -3,5 +3,7 @@ publisher: TodoCat Team
 publisher_url: https://github.com/yourusername/todocat
 display_name: TodoCat
 create_desktop_icon: true
+setup_icon_file: windows\runner\resources\app_icon.ico
 locales:
   - en
+  - zh

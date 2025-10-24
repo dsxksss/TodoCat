@@ -4,7 +4,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
-import 'package:todo_cat/pages/home/components/add_tag_screen.dart';
+import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/date_picker_panel.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
@@ -394,7 +394,7 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                       onFieldSubmitted: (_) {},
                     ),
                     const SizedBox(height: 10),
-                    AddTagScreen(
+                    AddTagWithColorPicker(
                       textInputAction: TextInputAction.next,
                       maxLength: 6,
                       maxLines: 1,
@@ -403,9 +403,9 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                       validator: (_) => null,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                       editingController: controller.tagController,
-                      onSubmitted: (value) => controller.addTag(),
                       selectedTags: controller.selectedTags,
                       onDeleteTag: controller.removeTag,
+                      onAddTagWithColor: controller.addTagWithColor,
                     ),
                     const SizedBox(height: 5),
                     TextFormFieldItem(

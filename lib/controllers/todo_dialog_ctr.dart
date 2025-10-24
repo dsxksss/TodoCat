@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/data/schemas/tag_with_color.dart';
 import 'package:uuid/uuid.dart';
 import 'package:todo_cat/controllers/base/base_form_controller.dart';
 import 'package:todo_cat/controllers/mixins/edit_state_mixin.dart';
@@ -31,7 +32,16 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     final todo = getEditingItem<Todo>()!;
     titleController.text = todo.title;
     descriptionController.text = todo.description;
-    selectedTags.value = List<String>.from(todo.tags);
+    
+    // 优先使用带颜色的标签，如果没有则转换旧格式的标签
+    if (todo.tagsWithColor.isNotEmpty) {
+      selectedTags.value = todo.tagsWithColor;
+    } else {
+      // 兼容旧格式：转换字符串标签为带颜色的标签
+      selectedTags.value = todo.tags.map((tag) => 
+          TagWithColor.fromString(tag)).toList();
+    }
+    
     selectedPriority.value = todo.priority;
     remindersValue.value = todo.reminders;
     selectedStatus.value = todo.status;
@@ -51,7 +61,7 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
         ..title = titleController.text
         ..description = descriptionController.text
         ..createdAt = currentTodo.createdAt
-        ..tags = selectedTags.toList()
+        ..tagsWithColor = selectedTags.toList()
         ..priority = selectedPriority.value
         ..status = selectedStatus.value
         ..finishedAt = selectedStatus.value == TodoStatus.done
@@ -110,7 +120,7 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
         ..title = titleController.text
         ..description = descriptionController.text
         ..createdAt = DateTime.now().millisecondsSinceEpoch
-        ..tags = selectedTags.toList()
+        ..tagsWithColor = selectedTags.toList()
         ..priority = selectedPriority.value
         ..status = TodoStatus.todo
         ..finishedAt = 0
@@ -146,7 +156,7 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     _dialogCache[dialogId] = {
       'title': titleController.text,
       'description': descriptionController.text,
-      'tags': selectedTags.toList(),
+      'tagsWithColor': selectedTags.map((tag) => tag.toJson()).toList(),
       'date': selectedDate.value,
       'priority': selectedPriority.value.index,
       'reminders': remindersValue.value,
@@ -160,7 +170,18 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
 
     titleController.text = cache['title'] as String? ?? '';
     descriptionController.text = cache['description'] as String? ?? '';
-    selectedTags.value = List<String>.from((cache['tags'] as List?) ?? const []);
+    
+    // 处理标签缓存 - 兼容旧格式
+    if (cache['tagsWithColor'] != null) {
+      final tagsWithColorJson = cache['tagsWithColor'] as List<dynamic>;
+      selectedTags.value = tagsWithColorJson
+          .map((tagJson) => TagWithColor.fromJson(tagJson as Map<String, dynamic>))
+          .toList();
+    } else {
+      // 兼容旧格式的字符串标签
+      final stringTags = List<String>.from((cache['tags'] as List?) ?? const []);
+      selectedTags.value = stringTags.map((tag) => TagWithColor.fromString(tag)).toList();
+    }
 
     final priorityIndex = cache['priority'] as int? ?? TodoPriority.lowLevel.index;
     selectedPriority.value = TodoPriority.values[priorityIndex];
@@ -194,7 +215,13 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     // 设置表单数据
     titleController.text = todo.title;
     descriptionController.text = todo.description;
-    selectedTags.value = List<String>.from(todo.tags);
+    // 优先使用带颜色的标签，如果没有则转换旧格式的标签
+    if (todo.tagsWithColor.isNotEmpty) {
+      selectedTags.value = todo.tagsWithColor;
+    } else {
+      // 兼容旧格式：转换字符串标签为带颜色的标签
+      selectedTags.value = todo.tags.map((tag) => TagWithColor.fromString(tag)).toList();
+    }
     selectedPriority.value = todo.priority;
     remindersValue.value = todo.reminders;
     selectedStatus.value = todo.status;
@@ -210,6 +237,7 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
       'title': todo.title,
       'description': todo.description,
       'tags': List<String>.from(todo.tags),
+      'tagsWithColor': todo.tagsWithColor.map((tag) => tag.toJson()).toList(),
       'priority': todo.priority,
       'reminders': todo.reminders,
       'dueDate': todo.dueDate,
@@ -283,8 +311,18 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
   void restoreToOriginalState(Map<String, dynamic> originalState) {
     titleController.text = originalState['title'] as String;
     descriptionController.text = originalState['description'] as String;
-    selectedTags.value =
-        List<String>.from(originalState['tags'] as List<String>);
+    // 优先使用带颜色的标签，如果没有则转换旧格式的标签
+    if (originalState['tagsWithColor'] != null) {
+      final tagsWithColorJson = originalState['tagsWithColor'] as List<dynamic>;
+      selectedTags.value = tagsWithColorJson
+          .map((tagJson) => TagWithColor.fromJson(tagJson as Map<String, dynamic>))
+          .toList();
+    } else {
+      // 兼容旧格式：转换字符串标签为带颜色的标签
+      selectedTags.value = (originalState['tags'] as List<String>)
+          .map((tag) => TagWithColor.fromString(tag))
+          .toList();
+    }
     selectedPriority.value = originalState['priority'] as TodoPriority;
     remindersValue.value = originalState['reminders'] as int;
     selectedStatus.value = originalState['status'] as TodoStatus;

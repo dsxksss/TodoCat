@@ -35,3 +35,12 @@ flutter run -d linux
 [home-screenshot]: readme_assets/imgs/home.png
 [home-dark-screenshot]: readme_assets/imgs/home-dark.png
 [screenshot-phone]: readme_assets/imgs/home-phone.png
+
+## Build app
+
+```bash
+# Windows desktop:
+fastforge package --platform windows --targets exe
+
+...more platforms will be supported later...
+```

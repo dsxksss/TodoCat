@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/data/schemas/tag_with_color.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/utils/font_utils.dart';
@@ -209,7 +210,7 @@ List<Task> createTaskTemplate(TaskTemplateType type) {
           ..title = task.title
           ..description = task.description
           ..createdAt = currentTime + emptyTemplateTasks.indexOf(task)
-          ..tags = List<String>.from(task.tags)
+          ..tagsWithColor = List<TagWithColor>.from(task.tagsWithColor)
           ..status = task.status
           ..progress = task.progress
           ..reminders = task.reminders
@@ -225,7 +226,7 @@ List<Task> createTaskTemplate(TaskTemplateType type) {
           ..title = task.title
           ..description = task.description
           ..createdAt = currentTime + contentTemplateTasks.indexOf(task)
-          ..tags = List<String>.from(task.tags)
+          ..tagsWithColor = List<TagWithColor>.from(task.tagsWithColor)
           ..status = task.status
           ..progress = task.progress
           ..reminders = task.reminders;
@@ -238,7 +239,7 @@ List<Task> createTaskTemplate(TaskTemplateType type) {
               ..title = todo.title
               ..description = todo.description
               ..createdAt = currentTime + contentTemplateTasks.indexOf(task) + task.todos!.indexOf(todo)
-              ..tags = List<String>.from(todo.tags)
+              ..tagsWithColor = List<TagWithColor>.from(todo.tagsWithColor)
               ..priority = todo.priority
               ..status = todo.status
               ..progress = todo.progress

@@ -1,5 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/data/schemas/tag_with_color.dart';
+import 'dart:convert';
 
 part 'task.g.dart';
 
@@ -28,6 +30,7 @@ class Task {
   int reminders = 0;
 
   List<String> tags = [];
+  String tagsWithColorJsonString = '[]';
   @ignore
   List<Todo>? _todos;
 
@@ -52,6 +55,7 @@ class Task {
       'progress': progress,
       'reminders': reminders,
       'tags': tags,
+      'tagsWithColor': tagsWithColorJsonString,
       'todos': todos?.map((todo) => todo.toJson()).toList(),
     };
   }
@@ -71,7 +75,8 @@ class Task {
       )
       ..progress = json['progress'] as int? ?? 0
       ..reminders = json['reminders'] as int? ?? 0
-      ..tags = List<String>.from(json['tags'] ?? []);
+      ..tags = List<String>.from(json['tags'] ?? [])
+      ..tagsWithColorJsonString = json['tagsWithColor'] as String? ?? '[]';
     
     if (json['todos'] != null) {
       task.todos = (json['todos'] as List)
@@ -80,6 +85,35 @@ class Task {
     }
     
     return task;
+  }
+
+  /// 获取带颜色的标签列表
+  List<TagWithColor> get tagsWithColor {
+    try {
+      if (tagsWithColorJsonString.isEmpty || tagsWithColorJsonString == '[]') {
+        // 如果没有颜色数据，但有字符串标签，则转换为带默认颜色的标签
+        if (tags.isNotEmpty) {
+          return tags.map((tag) => TagWithColor.fromString(tag)).toList();
+        }
+        return [];
+      }
+      
+      final List<dynamic> jsonList = jsonDecode(tagsWithColorJsonString);
+      return jsonList.map((json) => TagWithColor.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      // JSON解析失败时，如果有字符串标签，则转换为带默认颜色的标签
+      if (tags.isNotEmpty) {
+        return tags.map((tag) => TagWithColor.fromString(tag)).toList();
+      }
+      return [];
+    }
+  }
+
+  /// 设置带颜色的标签列表
+  set tagsWithColor(List<TagWithColor> tags) {
+    tagsWithColorJsonString = jsonEncode(tags.map((tag) => tag.toJson()).toList());
+    // 同时更新字符串标签列表以保持兼容性
+    this.tags = tags.map((tag) => tag.name).toList();
   }
 }
 

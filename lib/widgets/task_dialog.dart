@@ -4,7 +4,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/task_dialog_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
-import 'package:todo_cat/pages/home/components/add_tag_screen.dart';
+import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
@@ -115,7 +115,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                       onFieldSubmitted: (_) {},
                     ),
                     const SizedBox(height: 15),
-                    AddTagScreen(
+                    AddTagWithColorPicker(
                       textInputAction: TextInputAction.next,
                       maxLength: 6,
                       maxLines: 1,
@@ -124,9 +124,9 @@ class TaskDialog extends GetView<TaskDialogController> {
                       validator: (_) => null,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                       editingController: controller.tagController,
-                      onSubmitted: (_) => controller.addTag(),
                       selectedTags: controller.selectedTags,
                       onDeleteTag: controller.removeTag,
+                      onAddTagWithColor: controller.addTagWithColor,
                     ),
                     const SizedBox(height: 10),
                     TextFormFieldItem(

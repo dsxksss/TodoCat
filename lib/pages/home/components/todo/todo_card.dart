@@ -201,11 +201,11 @@ class TodoCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (todo.tags.isNotEmpty)
+                if (todo.tagsWithColor.isNotEmpty)
                   const SizedBox(
                     height: 10,
                   ),
-                if (todo.tags.isNotEmpty)
+                if (todo.tagsWithColor.isNotEmpty)
                   SizedBox(
                     height: 32,
                     child: Row(
@@ -217,36 +217,25 @@ class TodoCard extends StatelessWidget {
                             physics: const BouncingScrollPhysics(),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: todo.tags.take(3).map((tagText) {
-                                final colors = [
-                                  Colors.blueAccent,
-                                  Colors.greenAccent,
-                                  Colors.orangeAccent,
-                                  Colors.purpleAccent,
-                                  Colors.tealAccent,
-                                  Colors.pinkAccent,
-                                ];
-                                final colorIndex =
-                                    tagText.hashCode % colors.length;
-
+                              children: todo.tagsWithColor.take(3).map((tagWithColor) {
                                 // 限制标签文本长度
-                                String displayText = tagText;
-                                if (tagText.length > 8) {
-                                  displayText = '${tagText.substring(0, 6)}...';
+                                String displayText = tagWithColor.name;
+                                if (tagWithColor.name.length > 8) {
+                                  displayText = '${tagWithColor.name.substring(0, 6)}...';
                                 }
 
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 8),
                                   child: Tag(
                                     tag: displayText,
-                                    color: colors[colorIndex.abs()],
+                                    color: tagWithColor.color, // 使用存储的颜色
                                   ),
                                 );
                               }).toList(),
                             ),
                           ),
                         ),
-                        if (todo.tags.length > 3)
+                        if (todo.tagsWithColor.length > 3)
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
@@ -255,7 +244,7 @@ class TodoCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              '+${todo.tags.length - 3}',
+                              '+${todo.tagsWithColor.length - 3}',
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.grey.shade700,

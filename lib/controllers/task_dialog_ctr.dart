@@ -2,6 +2,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/schemas/tag_with_color.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:uuid/uuid.dart';
 import 'package:todo_cat/controllers/base/base_form_controller.dart';
@@ -26,7 +27,13 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
     titleController.text = task.title;
     descriptionController.text =
         task.description.isEmpty ? '' : task.description;
-    selectedTags.value = List<String>.from(task.tags);
+    // 优先使用带颜色的标签，如果没有则转换旧格式的标签
+    if (task.tagsWithColor.isNotEmpty) {
+      selectedTags.value = task.tagsWithColor;
+    } else {
+      // 兼容旧格式：转换字符串标签为带颜色的标签
+      selectedTags.value = task.tags.map((tag) => TagWithColor.fromString(tag)).toList();
+    }
   }
 
   void initForEditing(Task task) {
@@ -34,7 +41,13 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
     titleController.text = task.title;
     descriptionController.text =
         task.description.isEmpty ? '' : task.description;
-    selectedTags.value = List<String>.from(task.tags);
+    // 优先使用带颜色的标签，如果没有则转换旧格式的标签
+    if (task.tagsWithColor.isNotEmpty) {
+      selectedTags.value = task.tagsWithColor;
+    } else {
+      // 兼容旧格式：转换字符串标签为带颜色的标签
+      selectedTags.value = task.tags.map((tag) => TagWithColor.fromString(tag)).toList();
+    }
 
     // 使用编辑状态管理
     final state = {
@@ -76,8 +89,18 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
   void restoreToOriginalState(Map<String, dynamic> originalState) {
     titleController.text = originalState['title'] as String;
     descriptionController.text = originalState['description'] as String;
-    selectedTags.value =
-        List<String>.from(originalState['tags'] as List<String>);
+    // 优先使用带颜色的标签，如果没有则转换旧格式的标签
+    if (originalState['tagsWithColor'] != null) {
+      final tagsWithColorJson = originalState['tagsWithColor'] as List<dynamic>;
+      selectedTags.value = tagsWithColorJson
+          .map((tagJson) => TagWithColor.fromJson(tagJson as Map<String, dynamic>))
+          .toList();
+    } else {
+      // 兼容旧格式：转换字符串标签为带颜色的标签
+      selectedTags.value = (originalState['tags'] as List<String>)
+          .map((tag) => TagWithColor.fromString(tag))
+          .toList();
+    }
   }
 
   @override
@@ -96,7 +119,7 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
         ..uuid = currentTask.uuid
         ..title = titleController.text
         ..description = descriptionController.text
-        ..tags = selectedTags.toList()
+        ..tagsWithColor = selectedTags.toList()
         ..createdAt = currentTask.createdAt
         ..todos = currentTask.todos;
 
@@ -115,7 +138,7 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
         ..uuid = const Uuid().v4()
         ..title = titleController.text
         ..description = descriptionController.text
-        ..tags = selectedTags.toList()
+        ..tagsWithColor = selectedTags.toList()
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..todos = [];
 

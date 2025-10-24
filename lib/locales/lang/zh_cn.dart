@@ -209,4 +209,6 @@ const Map<String, String> zhCN = {
   'studentScheduleTemplateDescription': '包含具体todo项目的学习、编程、音乐、生活任务',
   'confirmApplyTemplate': '确定要应用「{title}」模板吗？这将清除所有现有任务。',
   'taskTemplateApplied': '任务模板已应用',
+  // 颜色选择器
+  'selectTagColor': '选择标签颜色',
 };
