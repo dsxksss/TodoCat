@@ -103,7 +103,6 @@ class HomePage extends GetView<HomeController> {
                               .toList(),
                         )
                       : SingleChildScrollView(
-                          controller: controller.scrollController,
                           physics: const AlwaysScrollableScrollPhysics(
                             parent: BouncingScrollPhysics(),
                           ),

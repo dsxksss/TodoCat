@@ -54,7 +54,7 @@ final Task englishLearningTask = Task()
 // 编程项目任务
 final Task programmingTask = Task()
   ..uuid = const Uuid().v4()
-  ..title = "doing"
+  ..title = "inProgress"
   ..description = "完成个人编程项目"
   ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
   ..tags = ["编程", "项目", "技术"]
@@ -140,7 +140,7 @@ final Task musicTask = Task()
 // 日常生活任务
 final Task dailyLifeTask = Task()
   ..uuid = const Uuid().v4()
-  ..title = "日常生活管理"
+  ..title = "dailyLifeManagement"
   ..description = "管理日常学习和生活事务"
   ..createdAt = DateTime.now().millisecondsSinceEpoch + 30
   ..tags = ["生活", "管理", "日常"]

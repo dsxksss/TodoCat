@@ -61,12 +61,12 @@ class TemplateSelectorDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '选择任务模板',
+                  'selectTaskTemplate'.tr,
                   style: FontUtils.getBoldStyle(fontSize: 20),
                 ),
                 LabelBtn(
                   ghostStyle: true,
-                  label: Text('取消'),
+                  label: Text('cancel'.tr),
                   onPressed: () => SmartDialog.dismiss(tag: 'template_selector'),
                 ),
               ],
@@ -79,7 +79,7 @@ class TemplateSelectorDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '请选择要使用的任务模板类型：',
+                  'selectTemplateType'.tr,
                   style: FontUtils.getTextStyle(
                     fontSize: 14,
                     color: context.theme.textTheme.bodyMedium?.color,
@@ -89,8 +89,8 @@ class TemplateSelectorDialog extends StatelessWidget {
                 _buildTemplateOption(
                   context,
                   TaskTemplateType.empty,
-                  '空模板',
-                  '创建空的todo、inProgress、done、another任务',
+                  'emptyTemplate'.tr,
+                  'emptyTemplateDescription'.tr,
                   Icons.checklist_outlined,
                   Colors.blue,
                 ),
@@ -98,8 +98,8 @@ class TemplateSelectorDialog extends StatelessWidget {
                 _buildTemplateOption(
                   context,
                   TaskTemplateType.content,
-                  '学生日程模板',
-                  '包含具体todo项目的学习、编程、音乐、生活任务',
+                  'studentScheduleTemplate'.tr,
+                  'studentScheduleTemplateDescription'.tr,
                   Icons.school_outlined,
                   Colors.green,
                 ),
@@ -184,14 +184,14 @@ class TemplateSelectorDialog extends StatelessWidget {
 
   void _showConfirmDialog(BuildContext context, TaskTemplateType type, String title) {
     showToast(
-      "确定要应用「$title」模板吗？这将清除所有现有任务。",
+      "confirmApplyTemplate".tr.replaceAll('{title}', title),
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
       onYesCallback: () {
         onTemplateSelected(type);
         SmartDialog.dismiss(tag: 'template_selector');
-        showSuccessNotification("任务模板已应用");
+        showSuccessNotification("taskTemplateApplied".tr);
       },
     );
   }

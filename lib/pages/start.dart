@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class StartPage extends StatefulWidget {
   const StartPage({super.key});
@@ -55,15 +54,8 @@ class _StartPageState extends State<StartPage> {
   }
 
   Future<void> _loadFonts() async {
-    // 预加载字体
-    await GoogleFonts.pendingFonts([
-      GoogleFonts.ubuntu(
-        textStyle: const TextStyle(
-          fontSize: 60,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ]);
+    // 预加载思源黑体字体
+    // 思源黑体已经通过pubspec.yaml配置，无需额外加载
   }
 
   @override
@@ -84,12 +76,11 @@ class _StartPageState extends State<StartPage> {
               ),
               Text(
                 "Todo Cat",
-                style: GoogleFonts.ubuntu(
-                  textStyle: const TextStyle(
-                    fontSize: 60,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                style: const TextStyle(
+                  fontFamily: 'SourceHanSans',
+                  fontSize: 60,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
               if (_isLoading) ...[

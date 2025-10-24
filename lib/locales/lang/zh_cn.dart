@@ -196,4 +196,17 @@ const Map<String, String> zhCN = {
   'october': '10月',
   'november': '11月',
   'december': '12月',
+  // 功能开发中提示
+  'featureInDevelopment': '此功能正在开发中',
+  // 任务模板标题
+  'dailyLifeManagement': '日常生活管理',
+  // 任务模板选择对话框
+  'selectTaskTemplate': '选择任务模板',
+  'selectTemplateType': '请选择要使用的任务模板类型：',
+  'emptyTemplate': '空模板',
+  'emptyTemplateDescription': '创建空的todo、inProgress、done、another任务',
+  'studentScheduleTemplate': '学生日程模板',
+  'studentScheduleTemplateDescription': '包含具体todo项目的学习、编程、音乐、生活任务',
+  'confirmApplyTemplate': '确定要应用「{title}」模板吗？这将清除所有现有任务。',
+  'taskTemplateApplied': '任务模板已应用',
 };

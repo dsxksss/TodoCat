@@ -35,7 +35,9 @@ class SettingsContent extends GetView<SettingsController> {
             children: [
               Text(
                 'settings'.tr,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontFamily: 'SourceHanSans',
+                ),
               ),
               IconButton(
                 icon: Obx(() {
@@ -115,11 +117,37 @@ class SettingsContent extends GetView<SettingsController> {
         title: Text('resetTasksTemplate'.tr),
       ),
       SettingsTile.switchTile(
-        onToggle: (_) => controller.targetEmailReminder(),
-        onPressed: (_) => controller.targetEmailReminder(),
-        initialValue: controller.appCtrl.appConfig.value.emailReminderEnabled,
-        leading: const Icon(Icons.mark_email_unread_outlined),
-        title: Text('emailReminder'.tr),
+        onToggle: (_) {
+          // 禁用功能，显示开发中提示
+          showToast(
+            "featureInDevelopment".tr,
+            toastStyleType: TodoCatToastStyleType.warning,
+          );
+        },
+        onPressed: (_) {
+          // 禁用功能，显示开发中提示
+          showToast(
+            "featureInDevelopment".tr,
+            toastStyleType: TodoCatToastStyleType.warning,
+          );
+        },
+        initialValue: false, // 强制设为false，禁用状态
+        leading: Tooltip(
+          message: "featureInDevelopment".tr,
+          child: const Icon(
+            Icons.mark_email_unread_outlined,
+            color: Colors.grey, // 灰色表示禁用状态
+          ),
+        ),
+        title: Tooltip(
+          message: "featureInDevelopment".tr,
+          child: Text(
+            'emailReminder'.tr,
+            style: const TextStyle(
+              color: Colors.grey, // 灰色表示禁用状态
+            ),
+          ),
+        ),
       ),
       // 开机自启动开关（仅桌面端）
       SettingsTile.switchTile(

@@ -196,4 +196,17 @@ const Map<String, String> enUS = {
   'october': 'October',
   'november': 'November',
   'december': 'December',
+  // Feature in development notice
+  'featureInDevelopment': 'This feature is under development',
+  // Task template titles
+  'dailyLifeManagement': 'Daily Life Management',
+  // Task template selection dialog
+  'selectTaskTemplate': 'Select Task Template',
+  'selectTemplateType': 'Please select the task template type to use:',
+  'emptyTemplate': 'Empty Template',
+  'emptyTemplateDescription': 'Create empty todo, inProgress, done, another tasks',
+  'studentScheduleTemplate': 'Student Schedule Template',
+  'studentScheduleTemplateDescription': 'Contains specific todo items for study, programming, music, and life tasks',
+  'confirmApplyTemplate': 'Are you sure you want to apply the "{title}" template? This will clear all existing tasks.',
+  'taskTemplateApplied': 'Task template has been applied',
 };

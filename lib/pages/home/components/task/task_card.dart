@@ -42,7 +42,7 @@ class TaskCard extends StatelessWidget {
     final colorAndIcon = _getColorAndIcon();
 
     return Container(
-      width: context.isPhone ? 0.9.sw : 240,
+      width: context.isPhone ? 0.9.sw : 260,
       decoration: BoxDecoration(
         color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(10),
