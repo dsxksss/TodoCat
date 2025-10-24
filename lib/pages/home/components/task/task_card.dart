@@ -91,71 +91,84 @@ class TaskCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const SizedBox(
-                          width: 18,
-                        ),
-                        Container(
-                          width: 5,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: colorAndIcon[0],
-                            borderRadius: BorderRadius.circular(20),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 18,
                           ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Icon(
-                          colorAndIcon[1],
-                          size: colorAndIcon[1] == FontAwesomeIcons.pencil
-                              ? 18
-                              : 20,
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          _task.title.tr,
-                          style: GoogleFonts.getFont(
-                            'Ubuntu',
-                            textStyle: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
+                          Container(
+                            width: 5,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: colorAndIcon[0],
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                        ),
-                        if (todosLength > 0)
-                          Row(
-                            children: [
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Container(
-                                width: 24,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: const Color.fromRGBO(225, 224, 240, 1),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Icon(
+                            colorAndIcon[1],
+                            size: colorAndIcon[1] == FontAwesomeIcons.pencil
+                                ? 18
+                                : 20,
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                            child: Tooltip(
+                              message: _task.title.tr,
+                              preferBelow: false,
+                              child: Text(
+                                _task.title.tr,
+                                style: GoogleFonts.getFont(
+                                  'Ubuntu',
+                                  textStyle: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
-                                child: Center(
-                                  child: Text(
-                                    todosLength.toString(),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromRGBO(17, 10, 76, 1),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          if (todosLength > 0)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(
+                                  width: 15,
+                                ),
+                                Container(
+                                  width: 24,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                    color: const Color.fromRGBO(225, 224, 240, 1),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      todosLength.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromRGBO(17, 10, 76, 1),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                      ],
+                                const SizedBox(
+                                  width: 15,
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(right: 15),
+                      padding: const EdgeInsets.only(right: 20),
                       child: DPDMenuBtn(
                         tag: dropDownMenuBtnTag,
                         menuItems: [

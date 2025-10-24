@@ -185,9 +185,7 @@ class HomePage extends GetView<HomeController> {
 
   /// 构建标题
   String _buildTitle(BuildContext context) {
-    return context.isPhone
-        ? "myTasks".tr
-        : "${"myTasks".tr} ${controller.appCtrl.appConfig.value.isDebugMode ? 'Debug' : 'Release'}";
+    return "myTasks".tr;
   }
 
   /// 构建左侧控件列表

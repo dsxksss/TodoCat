@@ -149,13 +149,6 @@ class SettingsController extends GetxController {
     appCtrl.appConfig.refresh();
   }
 
-  void targetDebugMode() {
-    final newConfig = appCtrl.appConfig.value.copyWith(
-      isDebugMode: !appCtrl.appConfig.value.isDebugMode,
-    );
-    appCtrl.appConfig.value = newConfig;
-    appCtrl.appConfig.refresh();
-  }
 
   // 以下为开机自启动相关逻辑（桌面端）
   Future<void> _refreshLaunchAtStartupState() async {

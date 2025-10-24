@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
-import 'package:uuid/uuid.dart';
+import 'package:todo_cat/widgets/template_selector_dialog.dart';
 
 /// 管理任务数据的类，处理任务的CRUD操作和持久化
 class TaskManager {
@@ -79,10 +79,17 @@ class TaskManager {
     return uniqueTasks;
   }
 
-  /// 重置任务模板，完全清除所有数据并重新加载默认模板
+  /// 重置任务模板，显示模板选择对话框
   Future<void> resetTasksTemplate() async {
+    showTemplateSelectorDialog((TaskTemplateType type) async {
+      await _resetTasksTemplateWithType(type);
+    });
+  }
+
+  /// 使用指定类型重置任务模板
+  Future<void> _resetTasksTemplateWithType(TaskTemplateType type) async {
     try {
-      _logger.d('Starting tasks template reset');
+      _logger.d('Starting tasks template reset with type: $type');
 
       // 1. 清空内存中的任务列表
       tasks.clear();
@@ -91,12 +98,12 @@ class TaskManager {
       await _clearAllTasks();
 
       // 3. 创建新的默认任务（确保每次都是全新的UUID）
-      final freshDefaultTasks = _createFreshDefaultTasks();
+      final freshDefaultTasks = createTaskTemplate(type);
 
       // 4. 添加到内存和数据库
       await assignAll(freshDefaultTasks);
 
-      _logger.d('Tasks template reset completed successfully');
+      _logger.d('Tasks template reset completed successfully with type: $type');
     } catch (e) {
       _logger.e('Error resetting tasks template: $e');
       throw Exception('Failed to reset tasks template: $e');
@@ -123,40 +130,6 @@ class TaskManager {
     }
   }
 
-  /// 创建全新的默认任务（确保 todos 为空）
-  List<Task> _createFreshDefaultTasks() {
-    final currentTime = DateTime.now().millisecondsSinceEpoch;
-
-    return [
-      Task()
-        ..uuid = const Uuid().v4()
-        ..title = "todo"
-        ..createdAt = currentTime
-        ..tags = ["\u9ed8\u8ba4", "\u81ea\u5e26"]
-        ..todos = [], // 确保为空
-
-      Task()
-        ..uuid = const Uuid().v4()
-        ..title = "inProgress"
-        ..createdAt = currentTime + 1
-        ..tags = ["\u9ed8\u8ba4", "\u81ea\u5e26"]
-        ..todos = [], // 确保为空
-
-      Task()
-        ..uuid = const Uuid().v4()
-        ..title = "done"
-        ..createdAt = currentTime + 2
-        ..tags = ["\u9ed8\u8ba4", "\u81ea\u5e26"]
-        ..todos = [], // 确保为空
-
-      Task()
-        ..uuid = const Uuid().v4()
-        ..title = "another"
-        ..createdAt = currentTime + 3
-        ..tags = ["\u9ed8\u8ba4", "\u81ea\u5e26"]
-        ..todos = [], // 确保为空
-    ];
-  }
 
   /// 重新排序任务
   Future<void> reorderTasks(int oldIndex, int newIndex) async {

@@ -110,7 +110,7 @@ class SettingsContent extends GetView<SettingsController> {
         title: Text('resetSettings'.tr),
       ),
       SettingsTile(
-        onPressed: (_) => _showResetTasksTemplateToast(),
+        onPressed: (_) => controller.resetTasksTemplate(),
         leading: const Icon(Icons.featured_play_list_outlined),
         title: Text('resetTasksTemplate'.tr),
       ),
@@ -120,13 +120,6 @@ class SettingsContent extends GetView<SettingsController> {
         initialValue: controller.appCtrl.appConfig.value.emailReminderEnabled,
         leading: const Icon(Icons.mark_email_unread_outlined),
         title: Text('emailReminder'.tr),
-      ),
-      SettingsTile.switchTile(
-        onToggle: (_) => controller.targetDebugMode(),
-        onPressed: (_) => controller.targetDebugMode(),
-        initialValue: controller.appCtrl.appConfig.value.isDebugMode,
-        leading: const Icon(Icons.bug_report_outlined),
-        title: Text('enbleDebugMode'.tr),
       ),
       // 开机自启动开关（仅桌面端）
       SettingsTile.switchTile(
@@ -153,18 +146,6 @@ class SettingsContent extends GetView<SettingsController> {
     );
   }
 
-  void _showResetTasksTemplateToast() {
-    showToast(
-      "areYouSureResetTasksTemplate".tr,
-      confirmMode: true,
-      alwaysShow: true,
-      toastStyleType: TodoCatToastStyleType.warning,
-      onYesCallback: () {
-        controller.resetTasksTemplate();
-        showSuccessNotification("tasksTemplateResetSuccess".tr);
-      },
-    );
-  }
 
   /// 构建数据管理的设置项
   List<SettingsTile> _buildDataManagementTiles(BuildContext context) {

@@ -10,6 +10,7 @@ final darkTheme = ThemeData(
   hintColor: Colors.blue,
   dividerColor: Colors.grey.shade800,
   dialogBackgroundColor: const Color.fromRGBO(29, 35, 42, 1),
+  fontFamily: 'SourceHanSans', // 使用思源黑体
   inputDecorationTheme: const InputDecorationTheme(
     fillColor: Color.fromRGBO(29, 35, 42, 1),
   ),
@@ -18,14 +19,18 @@ final darkTheme = ThemeData(
     bodyLarge: TextStyle(
       color: Colors.white,
       fontSize: fontSize + 4,
+      fontFamily: 'SourceHanSans', // 使用思源黑体
     ),
     bodyMedium: TextStyle(
       color: Colors.white,
       fontSize: fontSize + 2,
+      fontFamily: 'SourceHanSans', // 使用思源黑体
     ),
     bodySmall: TextStyle(
       color: Colors.white,
       fontSize: fontSize,
+      fontFamily: 'SourceHanSans', // 使用思源黑体
     ),
-  ), dialogTheme: const DialogTheme(backgroundColor: Color.fromRGBO(29, 35, 42, 1)),
+  ), 
+  dialogTheme: const DialogTheme(backgroundColor: Color.fromRGBO(29, 35, 42, 1)),
 );

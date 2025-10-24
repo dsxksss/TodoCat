@@ -10,6 +10,7 @@ final lightTheme = ThemeData(
   hintColor: Colors.blue,
   dividerColor: Colors.grey.shade300,
   dialogBackgroundColor: Colors.white,
+  fontFamily: 'SourceHanSans', // 使用思源黑体
   inputDecorationTheme: const InputDecorationTheme(
     fillColor: Colors.white,
   ),
@@ -18,14 +19,18 @@ final lightTheme = ThemeData(
     bodyLarge: TextStyle(
       color: Colors.black,
       fontSize: fontSize + 4,
+      fontFamily: 'SourceHanSans', // 使用思源黑体
     ),
     bodyMedium: TextStyle(
       color: Colors.black,
       fontSize: fontSize + 2,
+      fontFamily: 'SourceHanSans', // 使用思源黑体
     ),
     bodySmall: TextStyle(
       color: Colors.black,
       fontSize: fontSize,
+      fontFamily: 'SourceHanSans', // 使用思源黑体
     ),
-  ), dialogTheme: const DialogTheme(backgroundColor: Colors.white),
+  ), 
+  dialogTheme: const DialogTheme(backgroundColor: Colors.white),
 );

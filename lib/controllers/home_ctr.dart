@@ -1,9 +1,6 @@
-import 'dart:math';
 import 'package:get/get.dart';
-import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/data/test/todo.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/controllers/data_export_import_ctr.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
@@ -53,11 +50,7 @@ class HomeController extends GetxController
     await _taskManager.initialize();
 
     if (_taskManager.tasks.isEmpty) {
-      if (appCtrl.appConfig.value.isDebugMode) {
-        await _addDebugTasks();
-      } else {
-        await _showEmptyTaskToast();
-      }
+      await _showEmptyTaskToast();
     }
   }
 
@@ -98,30 +91,10 @@ class HomeController extends GetxController
       confirmMode: true,
       onYesCallback: () async {
         await resetTasksTemplate();
-        showSuccessNotification("tasksTemplateResetSuccess".tr);
       },
     );
   }
 
-  Future<void> _addDebugTasks() async {
-    _logger.d('Adding debug tasks');
-    for (var task in defaultTasks) {
-      await _taskManager.addTask(task);
-      selectTask(task);
-
-      final random = Random();
-      final todoCount = random.nextInt(5);
-      for (var i = 0; i < todoCount; i++) {
-        final todoIndex = random.nextInt(3);
-        if (task.todos == null ||
-            !task.todos!
-                .any((todo) => todo.uuid == todoTestList[todoIndex].uuid)) {
-          await addTodo(todoTestList[todoIndex], task.uuid);
-        }
-      }
-      deselectTask();
-    }
-  }
 
   // 添加Todo到指定任务
   Future<bool> addTodo(Todo todo, String taskId) async {

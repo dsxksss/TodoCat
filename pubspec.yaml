@@ -75,6 +75,33 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  fonts:
+    - family: SourceHanSans
+      fonts:
+        - asset: assets/fonts/SourceHanSansCN-Regular.otf
+        - asset: assets/fonts/SourceHanSansCN-Medium.otf
+          weight: 500
+        - asset: assets/fonts/SourceHanSansCN-Bold.otf
+          weight: 700
+        - asset: assets/fonts/SourceHanSansCN-Light.otf
+          weight: 300
+        - asset: assets/fonts/SourceHanSansCN-ExtraLight.otf
+          weight: 200
+        - asset: assets/fonts/SourceHanSansCN-Heavy.otf
+          weight: 800
+        - asset: assets/fonts/SourceHanSansCN-Normal.otf
+          weight: 400
+    # 备用字体：Ubuntu
+    - family: Ubuntu
+      fonts:
+        - asset: assets/fonts/Ubuntu-Regular.ttf
+        - asset: assets/fonts/Ubuntu-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Ubuntu-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Ubuntu-Light.ttf
+          weight: 300
+
   assets:
     - assets/
     - assets/imgs/
