@@ -467,24 +467,25 @@ class HomePage extends GetView<HomeController> {
     final notificationCenter = Get.find<NotificationCenterManager>();
     return Obx(() {
       final unreadCount = notificationCenter.unreadCount;
-      return NavBarBtn(
-        onPressed: _showNotificationCenter,
-        child: badges.Badge(
-          showBadge: unreadCount > 0,
-          badgeContent: Text(
-            unreadCount > 99 ? '99+' : unreadCount.toString(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
+      // Badge 放在 NavBarBtn 外面，这样 hover 不会影响 badge 的颜色
+      return badges.Badge(
+        showBadge: unreadCount > 0,
+        badgeContent: Text(
+          unreadCount > 99 ? '99+' : unreadCount.toString(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
           ),
-          badgeStyle: const badges.BadgeStyle(
-            badgeColor: Colors.red,
-            padding: EdgeInsets.all(4),
-            elevation: 0,
-          ),
-          position: badges.BadgePosition.topEnd(top: -4, end: -4),
+        ),
+        badgeStyle: const badges.BadgeStyle(
+          badgeColor: Colors.red,
+          padding: EdgeInsets.all(4),
+          elevation: 0,
+        ),
+        position: badges.BadgePosition.topEnd(top: -4, end: -4),
+        child: NavBarBtn(
+          onPressed: _showNotificationCenter,
           child: Builder(
             builder: (context) => Icon(
               Icons.mail_outline,
