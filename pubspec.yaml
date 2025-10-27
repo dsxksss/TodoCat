@@ -1,7 +1,7 @@
 name: todo_cat
 description: A new Flutter project.
 publish_to: "none"
-version: 1.0.1
+version: 1.0.3
 
 environment:
   sdk: ">=3.0.6 <4.0.0"
@@ -121,8 +121,8 @@ flutter_launcher_icons:
     image_path: "assets/imgs/logo-light-rounded.png"
   windows:
     generate: true
-    image_path: "assets/imgs/logo-light-rounded.png"
-    icon_size: 48 # min:48, max:256, default: 48
+    image_path: "assets/imgs/logo-light-rounded.png"  # 会自动转换
+    icon_size: 256 # 生成高质量图标
   macos:
     generate: true
     image_path: "assets/imgs/logo-light-rounded.png"
