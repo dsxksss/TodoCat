@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
 import 'package:todo_cat/controllers/data_export_import_ctr.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:todo_cat/widgets/background_setting_dialog.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class SettingsContent extends GetView<SettingsController> {
   const SettingsContent({super.key});
@@ -124,6 +127,18 @@ class SettingsContent extends GetView<SettingsController> {
         leading: const Icon(Icons.featured_play_list_outlined),
         title: Text('resetTasksTemplate'.tr),
       ),
+      // 背景图片设置
+      SettingsTile(
+        onPressed: (_) => _showBackgroundImageDialog(),
+        leading: const Icon(Icons.image_outlined),
+        title: Text('backgroundImage'.tr),
+        description: Obx(() {
+          final hasBackground = controller.appCtrl.appConfig.value.backgroundImagePath != null &&
+              GetPlatform.isDesktop &&
+              controller.appCtrl.appConfig.value.backgroundImagePath!.isNotEmpty;
+          return Text(hasBackground ? 'backgroundImageSet'.tr : 'backgroundImageNotSet'.tr);
+        }),
+      ),
       SettingsTile.switchTile(
         onToggle: (_) {
           // 禁用功能，显示开发中提示
@@ -241,5 +256,33 @@ class SettingsContent extends GetView<SettingsController> {
     if (!dataController.isImporting.value) {
       await dataController.importData();
     }
+  }
+
+  /// 显示背景图片对话框
+  void _showBackgroundImageDialog() {
+    if (!GetPlatform.isDesktop) {
+      showToast('此功能仅在桌面端可用');
+      return;
+    }
+    
+    SmartDialog.show(
+      tag: 'background_setting_dialog',
+      alignment: Alignment.center,
+      maskColor: Colors.black.withOpacity(0.3),
+      clickMaskDismiss: true,
+      useAnimation: true,
+      animationTime: const Duration(milliseconds: 200),
+      builder: (_) => const BackgroundSettingDialog(),
+      animationBuilder: (controller, child, _) {
+        return child
+            .animate(controller: controller)
+            .fade(duration: controller.duration)
+            .scaleXY(
+              begin: 0.95,
+              duration: controller.duration,
+              curve: Curves.easeOut,
+            );
+      },
+    );
   }
 }

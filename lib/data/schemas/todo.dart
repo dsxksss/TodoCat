@@ -20,6 +20,7 @@ class Todo {
   TodoStatus status = TodoStatus.todo;
   int reminders = 0;
   int progress = 0;
+  List<String> images = []; // 图片路径列表
 
   // 默认构造函数
   Todo();
@@ -39,6 +40,7 @@ class Todo {
       'status': status.name,
       'reminders': reminders,
       'progress': progress,
+      'images': images,
     };
   }
 
@@ -62,9 +64,11 @@ class Todo {
         orElse: () => TodoStatus.todo,
       )
       ..reminders = json['reminders'] as int? ?? 0
-      ..progress = json['progress'] as int? ?? 0;
+      ..progress = json['progress'] as int? ?? 0
+      ..images = List<String>.from(json['images'] ?? []);
   }
   /// 获取带颜色的标签列表
+  @ignore
   List<TagWithColor> get tagsWithColor {
     try {
       if (tagsWithColorJsonString.isEmpty || tagsWithColorJsonString == '[]') {

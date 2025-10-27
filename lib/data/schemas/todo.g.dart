@@ -33,40 +33,50 @@ const TodoSchema = Schema(
       name: r'finishedAt',
       type: IsarType.long,
     ),
-    r'priority': PropertySchema(
+    r'images': PropertySchema(
       id: 4,
+      name: r'images',
+      type: IsarType.stringList,
+    ),
+    r'priority': PropertySchema(
+      id: 5,
       name: r'priority',
       type: IsarType.byte,
       enumMap: _TodopriorityEnumValueMap,
     ),
     r'progress': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'progress',
       type: IsarType.long,
     ),
     r'reminders': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'reminders',
       type: IsarType.long,
     ),
     r'status': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TodostatusEnumValueMap,
     ),
     r'tags': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'tags',
       type: IsarType.stringList,
     ),
+    r'tagsWithColorJsonString': PropertySchema(
+      id: 10,
+      name: r'tagsWithColorJsonString',
+      type: IsarType.string,
+    ),
     r'title': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'title',
       type: IsarType.string,
     ),
     r'uuid': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -84,6 +94,13 @@ int _todoEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.description.length * 3;
+  bytesCount += 3 + object.images.length * 3;
+  {
+    for (var i = 0; i < object.images.length; i++) {
+      final value = object.images[i];
+      bytesCount += value.length * 3;
+    }
+  }
   bytesCount += 3 + object.tags.length * 3;
   {
     for (var i = 0; i < object.tags.length; i++) {
@@ -91,6 +108,7 @@ int _todoEstimateSize(
       bytesCount += value.length * 3;
     }
   }
+  bytesCount += 3 + object.tagsWithColorJsonString.length * 3;
   bytesCount += 3 + object.title.length * 3;
   bytesCount += 3 + object.uuid.length * 3;
   return bytesCount;
@@ -106,13 +124,15 @@ void _todoSerialize(
   writer.writeString(offsets[1], object.description);
   writer.writeLong(offsets[2], object.dueDate);
   writer.writeLong(offsets[3], object.finishedAt);
-  writer.writeByte(offsets[4], object.priority.index);
-  writer.writeLong(offsets[5], object.progress);
-  writer.writeLong(offsets[6], object.reminders);
-  writer.writeByte(offsets[7], object.status.index);
-  writer.writeStringList(offsets[8], object.tags);
-  writer.writeString(offsets[9], object.title);
-  writer.writeString(offsets[10], object.uuid);
+  writer.writeStringList(offsets[4], object.images);
+  writer.writeByte(offsets[5], object.priority.index);
+  writer.writeLong(offsets[6], object.progress);
+  writer.writeLong(offsets[7], object.reminders);
+  writer.writeByte(offsets[8], object.status.index);
+  writer.writeStringList(offsets[9], object.tags);
+  writer.writeString(offsets[10], object.tagsWithColorJsonString);
+  writer.writeString(offsets[11], object.title);
+  writer.writeString(offsets[12], object.uuid);
 }
 
 Todo _todoDeserialize(
@@ -126,16 +146,18 @@ Todo _todoDeserialize(
   object.description = reader.readString(offsets[1]);
   object.dueDate = reader.readLong(offsets[2]);
   object.finishedAt = reader.readLong(offsets[3]);
+  object.images = reader.readStringList(offsets[4]) ?? [];
   object.priority =
-      _TodopriorityValueEnumMap[reader.readByteOrNull(offsets[4])] ??
+      _TodopriorityValueEnumMap[reader.readByteOrNull(offsets[5])] ??
           TodoPriority.lowLevel;
-  object.progress = reader.readLong(offsets[5]);
-  object.reminders = reader.readLong(offsets[6]);
-  object.status = _TodostatusValueEnumMap[reader.readByteOrNull(offsets[7])] ??
+  object.progress = reader.readLong(offsets[6]);
+  object.reminders = reader.readLong(offsets[7]);
+  object.status = _TodostatusValueEnumMap[reader.readByteOrNull(offsets[8])] ??
       TodoStatus.todo;
-  object.tags = reader.readStringList(offsets[8]) ?? [];
-  object.title = reader.readString(offsets[9]);
-  object.uuid = reader.readString(offsets[10]);
+  object.tags = reader.readStringList(offsets[9]) ?? [];
+  object.tagsWithColorJsonString = reader.readString(offsets[10]);
+  object.title = reader.readString(offsets[11]);
+  object.uuid = reader.readString(offsets[12]);
   return object;
 }
 
@@ -155,20 +177,24 @@ P _todoDeserializeProp<P>(
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 5:
       return (_TodopriorityValueEnumMap[reader.readByteOrNull(offset)] ??
           TodoPriority.lowLevel) as P;
-    case 5:
-      return (reader.readLong(offset)) as P;
     case 6:
       return (reader.readLong(offset)) as P;
     case 7:
+      return (reader.readLong(offset)) as P;
+    case 8:
       return (_TodostatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TodoStatus.todo) as P;
-    case 8:
-      return (reader.readStringList(offset) ?? []) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -480,6 +506,220 @@ extension TodoQueryFilter on QueryBuilder<Todo, Todo, QFilterCondition> {
         upper: upper,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'images',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'images',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'images',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'images',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'images',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'images',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'images',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'images',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'images',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'images',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'images',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'images',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'images',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'images',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'images',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> imagesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'images',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -904,6 +1144,144 @@ extension TodoQueryFilter on QueryBuilder<Todo, Todo, QFilterCondition> {
         upper,
         includeUpper,
       );
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tagsWithColorJsonString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'tagsWithColorJsonString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tagsWithColorJsonString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition>
+      tagsWithColorJsonStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'tagsWithColorJsonString',
+        value: '',
+      ));
     });
   }
 

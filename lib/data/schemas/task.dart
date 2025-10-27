@@ -82,6 +82,7 @@ class Task {
   }
 
   /// 获取带颜色的标签列表
+  @ignore
   List<TagWithColor> get tagsWithColor {
     try {
       if (tagsWithColorJsonString.isEmpty || tagsWithColorJsonString == '[]') {

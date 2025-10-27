@@ -84,7 +84,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
         children: [
           Container(
             width: 1.sw,
-            color: context.theme.scaffoldBackgroundColor,
+            color: Colors.transparent,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
               child: Row(

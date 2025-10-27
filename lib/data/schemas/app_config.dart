@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' as material;
 import 'package:isar/isar.dart';
 
 part 'app_config.g.dart';
@@ -15,6 +16,11 @@ class AppConfig {
   late String countryCode;
   late bool emailReminderEnabled;
   late bool isDebugMode;
+  String? backgroundImagePath; // 背景图片路径
+  int? primaryColorValue; // 主题色值
+  double backgroundImageOpacity = 0.15; // 背景图片透明度 (0.0-1.0)
+  double backgroundImageBlur = 0.0; // 背景图片模糊度
+  bool backgroundAffectsNavBar = false; // 背景是否影响导航栏
 
   // 默认构造函数
   AppConfig();
@@ -26,6 +32,11 @@ class AppConfig {
     required Locale locale,
     required bool emailReminderEnabled,
     required bool isDebugMode,
+    String? backgroundImagePath,
+    int? primaryColorValue,
+    double backgroundImageOpacity = 0.15,
+    double backgroundImageBlur = 0.0,
+    bool backgroundAffectsNavBar = false,
   }) {
     return AppConfig()
       ..configName = configName
@@ -33,12 +44,23 @@ class AppConfig {
       ..languageCode = locale.languageCode
       ..countryCode = locale.countryCode ?? ''
       ..emailReminderEnabled = emailReminderEnabled
-      ..isDebugMode = isDebugMode;
+      ..isDebugMode = isDebugMode
+      ..backgroundImagePath = backgroundImagePath
+      ..primaryColorValue = primaryColorValue
+      ..backgroundImageOpacity = backgroundImageOpacity
+      ..backgroundImageBlur = backgroundImageBlur
+      ..backgroundAffectsNavBar = backgroundAffectsNavBar;
   }
 
   // 将 locale 标记为忽略，因为它是计算属性
   @ignore
   Locale get locale => Locale(languageCode, countryCode);
+  
+  // 获取主题色
+  @ignore
+  material.Color? get primaryColor => primaryColorValue != null 
+      ? material.Color(primaryColorValue!)
+      : null;
 
   // 更新 Locale 的方法
   void updateLocale(Locale newLocale) {
@@ -53,6 +75,11 @@ class AppConfig {
     Locale? locale,
     bool? emailReminderEnabled,
     bool? isDebugMode,
+    String? backgroundImagePath,
+    int? primaryColorValue,
+    double? backgroundImageOpacity,
+    double? backgroundImageBlur,
+    bool? backgroundAffectsNavBar,
   }) {
     return AppConfig()
       ..configName = configName ?? this.configName
@@ -60,7 +87,12 @@ class AppConfig {
       ..languageCode = locale?.languageCode ?? languageCode
       ..countryCode = locale?.countryCode ?? countryCode
       ..emailReminderEnabled = emailReminderEnabled ?? this.emailReminderEnabled
-      ..isDebugMode = isDebugMode ?? this.isDebugMode;
+      ..isDebugMode = isDebugMode ?? this.isDebugMode
+      ..backgroundImagePath = backgroundImagePath ?? this.backgroundImagePath
+      ..primaryColorValue = primaryColorValue ?? this.primaryColorValue
+      ..backgroundImageOpacity = backgroundImageOpacity ?? this.backgroundImageOpacity
+      ..backgroundImageBlur = backgroundImageBlur ?? this.backgroundImageBlur
+      ..backgroundAffectsNavBar = backgroundAffectsNavBar ?? this.backgroundAffectsNavBar;
   }
 
   // JSON序列化
@@ -72,6 +104,11 @@ class AppConfig {
       'countryCode': countryCode,
       'emailReminderEnabled': emailReminderEnabled,
       'isDebugMode': isDebugMode,
+      'backgroundImagePath': backgroundImagePath,
+      'primaryColorValue': primaryColorValue,
+      'backgroundImageOpacity': backgroundImageOpacity,
+      'backgroundImageBlur': backgroundImageBlur,
+      'backgroundAffectsNavBar': backgroundAffectsNavBar,
     };
   }
 
@@ -83,6 +120,11 @@ class AppConfig {
       ..languageCode = json['languageCode'] as String
       ..countryCode = json['countryCode'] as String
       ..emailReminderEnabled = json['emailReminderEnabled'] as bool
-      ..isDebugMode = json['isDebugMode'] as bool;
+      ..isDebugMode = json['isDebugMode'] as bool
+      ..backgroundImagePath = json['backgroundImagePath'] as String?
+      ..primaryColorValue = json['primaryColorValue'] as int?
+      ..backgroundImageOpacity = json['backgroundImageOpacity'] as double? ?? 0.15
+      ..backgroundImageBlur = json['backgroundImageBlur'] as double? ?? 0.0
+      ..backgroundAffectsNavBar = json['backgroundAffectsNavBar'] as bool? ?? false;
   }
 }

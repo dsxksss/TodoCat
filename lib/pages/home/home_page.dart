@@ -16,6 +16,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reorderables/reorderables.dart';
 import 'package:todo_cat/widgets/task_dialog.dart';
 import 'package:badges/badges.dart' as badges;
+import 'dart:io';
+import 'dart:ui';
+import 'package:todo_cat/controllers/app_ctr.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -25,10 +28,26 @@ class HomePage extends GetView<HomeController> {
   Widget build(BuildContext context) {
     // 在构建页面时就初始化 SettingsController
     Get.put(SettingsController(), permanent: true);
-
-    return Scaffold(
-      floatingActionButton: _buildFloatingActionButton(context),
-      body: TodoCatScaffold(
+    
+    // 获取 AppController 以读取背景图片设置
+    final appCtrl = Get.find<AppController>();
+    
+    return Obx(() {
+      final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
+      final hasBackground = backgroundImagePath != null && 
+                            backgroundImagePath.isNotEmpty && 
+                            File(backgroundImagePath).existsSync();
+      final affectsNavBar = hasBackground ? appCtrl.appConfig.value.backgroundAffectsNavBar : false;
+      final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
+      final blur = appCtrl.appConfig.value.backgroundImageBlur;
+      
+      return Scaffold(
+        floatingActionButton: _buildFloatingActionButton(context),
+        body: hasBackground && affectsNavBar
+            ? _buildWithBackground(backgroundImagePath, opacity, blur)
+            : hasBackground && !affectsNavBar
+                ? _buildWithBackgroundNavOnly(backgroundImagePath, opacity, blur)
+                : TodoCatScaffold(
         title: _buildTitle(context),
         leftWidgets: _buildLeftWidgets(),
         rightWidgets: _buildRightWidgets(context),
@@ -153,6 +172,223 @@ class HomePage extends GetView<HomeController> {
           ],
         ),
       ),
+    );
+    });
+  }
+
+  /// 构建带背景的页面（影响导航栏）
+  Widget _buildWithBackground(String imagePath, double opacity, double blur) {
+    return Stack(
+      children: [
+        // 背景图片层
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: FileImage(File(imagePath)),
+                fit: BoxFit.cover,
+                opacity: opacity,
+              ),
+            ),
+          ),
+        ),
+        // 模糊层（毛玻璃效果）
+        if (blur > 0)
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: blur,
+                sigmaY: blur,
+              ),
+              child: Container(color: Colors.white.withOpacity(0.0)),
+            ),
+          ),
+        // 内容层（完全透明）
+        TodoCatScaffold(
+          title: _buildTitle(Get.context!),
+          leftWidgets: _buildLeftWidgets(),
+          rightWidgets: _buildRightWidgets(Get.context!),
+          body: _buildBody(),
+        ),
+      ],
+    );
+  }
+
+  /// 构建带背景的页面（仅内容区域，不影响导航栏）
+  Widget _buildWithBackgroundNavOnly(String imagePath, double opacity, double blur) {
+    // 直接构建，不包裹在TodoCatScaffold中，手动处理导航栏和内容区域
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      floatingActionButton: _buildFloatingActionButton(Get.context!),
+      body: SafeArea(
+        minimum: EdgeInsets.zero,
+        bottom: false,
+        child: Column(
+          children: [
+            if (Platform.isMacOS) 15.verticalSpace,
+            // 导航栏（无背景，保持清晰）
+            NavBar(
+              title: _buildTitle(Get.context!),
+              leftWidgets: _buildLeftWidgets(),
+              rightWidgets: _buildRightWidgets(Get.context!),
+            ),
+            5.verticalSpace,
+            // 内容区域（有背景和模糊）- 使用ClipRect限制模糊范围
+            Expanded(
+              child: ClipRect(
+                child: Stack(
+                  children: [
+                    // 背景图片层
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: FileImage(File(imagePath)),
+                            fit: BoxFit.cover,
+                            opacity: opacity,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 模糊层（毛玻璃效果）
+                    if (blur > 0)
+                      Positioned.fill(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: blur,
+                            sigmaY: blur,
+                          ),
+                          child: Container(color: Colors.white.withOpacity(0.0)),
+                        ),
+                      ),
+                    // 内容层（完全透明）
+                    Container(
+                      color: Colors.transparent,
+                      child: _buildBody(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建主体内容
+  Widget _buildBody() {
+    return ListView(
+      controller: controller.scrollController,
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      children: [
+        Obx(
+          () => Animate(
+            target: controller.tasks.isEmpty ? 1 : 0,
+            effects: [
+              SwapEffect(
+                builder: (_, __) => SizedBox(
+                  height: 0.7.sh,
+                  child: Center(
+                    child: Text(
+                      "Do It Now !",
+                      style: GoogleFonts.getFont(
+                        'Ubuntu',
+                        textStyle: const TextStyle(
+                          fontSize: 60,
+                        ),
+                      ),
+                    ),
+                  ).animate().fade(),
+                ),
+              ),
+            ],
+            child: Padding(
+              padding: Get.context!.isPhone
+                  ? const EdgeInsets.only(bottom: 50)
+                  : const EdgeInsets.only(left: 20, bottom: 50),
+              child: Get.context!.isPhone
+                  ? ReorderableColumn(
+                      needsLongPressDraggable: true,
+                      onReorder: (oldIndex, int newIndex) {
+                        controller.reorderTask(oldIndex, newIndex).then((_) {
+                          controller.endDragging();
+                        });
+                      },
+                      onNoReorder: (index) {
+                        controller.endDragging();
+                      },
+                      onReorderStarted: (index) {
+                        controller.startDragging();
+                      },
+                      buildDraggableFeedback: (context, constraints, child) {
+                        return child.animate().scaleXY(
+                              begin: 1.0,
+                              end: 1.1,
+                              duration: 60.ms,
+                              curve: Curves.easeOut,
+                            );
+                      },
+                      children: controller.tasks
+                          .map((task) => Padding(
+                                key: ValueKey(task.uuid),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 10,
+                                ),
+                                child: SizedBox(
+                                  width: 0.9.sw,
+                                  child: TaskCard(task: task),
+                                ),
+                              ))
+                          .toList(),
+                    )
+                  : SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      child: ReorderableWrap(
+                        needsLongPressDraggable: true,
+                        scrollAnimationDuration: const Duration(milliseconds: 300),
+                        reorderAnimationDuration: const Duration(milliseconds: 200),
+                        spacing: 50,
+                        runSpacing: 30,
+                        padding: const EdgeInsets.all(8),
+                        onReorder: (oldIndex, int newIndex) {
+                          controller.reorderTask(oldIndex, newIndex).then((_) {
+                            controller.endDragging();
+                          });
+                        },
+                        onNoReorder: (index) {
+                          controller.endDragging();
+                        },
+                        onReorderStarted: (index) {
+                          controller.startDragging();
+                        },
+                        buildDraggableFeedback: (context, constraints, child) {
+                          return child.animate().scaleXY(
+                                begin: 1.0,
+                                end: 1.1,
+                                duration: 60.ms,
+                                curve: Curves.easeOut,
+                              );
+                        },
+                        enableReorder: true,
+                        alignment: WrapAlignment.start,
+                        children: controller.tasks
+                            .map((task) => TaskCard(
+                                  key: ValueKey(task.uuid),
+                                  task: task,
+                                ))
+                            .toList(),
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

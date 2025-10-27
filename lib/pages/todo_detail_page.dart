@@ -53,6 +53,12 @@ class TodoDetailPage extends StatelessWidget {
                 const SizedBox(height: 20),
               ],
               
+              // 图片部分
+              if (todo.images.isNotEmpty) ...[
+                _buildImagesSection(context, todo),
+                const SizedBox(height: 20),
+              ],
+              
               // 状态和优先级
               _buildStatusSection(context, todo, controller),
               const SizedBox(height: 20),
@@ -166,6 +172,74 @@ class TodoDetailPage extends StatelessWidget {
         ],
       ),
     ).animate(delay: 50.ms).fadeIn(duration: 200.ms);
+  }
+
+  Widget _buildImagesSection(BuildContext context, Todo todo) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                FontAwesomeIcons.image,
+                size: 16,
+                color: Colors.grey.shade600,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'images'.tr,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: todo.images.map((imagePath) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  imagePath,
+                  width: 150,
+                  height: 150,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 50,
+                        color: Colors.grey.shade400,
+                      ),
+                    );
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    ).animate(delay: 100.ms).fadeIn(duration: 200.ms);
   }
 
   Widget _buildStatusSection(BuildContext context, Todo todo, TodoDetailController controller) {

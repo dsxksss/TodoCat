@@ -5,12 +5,17 @@ import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/settings/settings_page.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:logger/logger.dart';
 
 class SettingsController extends GetxController {
+  static final _logger = Logger();
   final AppController appCtrl = Get.find();
   final HomeController homeCtrl = Get.find();
   late final Rx<String> currentLanguage;
@@ -197,6 +202,63 @@ class SettingsController extends GetxController {
       } catch (e) {
         // ignore errors
       }
+    }
+  }
+
+  /// 选择背景图片
+  Future<void> selectBackgroundImage() async {
+    try {
+      // 先选择图片文件
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        if (file.path != null) {
+          // 直接使用选择的图片（桌面端暂不支持裁剪）
+          // 更新应用配置
+          appCtrl.appConfig.value = appCtrl.appConfig.value.copyWith(
+            backgroundImagePath: file.path,
+          );
+          appCtrl.appConfig.refresh();
+          
+          showToast('背景图片已设置');
+          _logger.i('背景图片已设置: ${file.path}');
+        }
+      }
+    } catch (e) {
+      _logger.e('选择背景图片失败: $e');
+      showToast('选择背景图片失败');
+    }
+  }
+
+  /// 清除背景图片
+  Future<void> clearBackgroundImage() async {
+    try {
+      // 清除配置，设置为空字符串以覆盖之前的值
+      final currentConfig = appCtrl.appConfig.value;
+      appCtrl.appConfig.value = AppConfig()
+        ..configName = currentConfig.configName
+        ..isDarkMode = currentConfig.isDarkMode
+        ..languageCode = currentConfig.languageCode
+        ..countryCode = currentConfig.countryCode
+        ..emailReminderEnabled = currentConfig.emailReminderEnabled
+        ..isDebugMode = currentConfig.isDebugMode
+        ..backgroundImagePath = null  // 清除背景图片路径
+        ..primaryColorValue = currentConfig.primaryColorValue
+        ..backgroundImageOpacity = currentConfig.backgroundImageOpacity
+        ..backgroundImageBlur = currentConfig.backgroundImageBlur
+        ..backgroundAffectsNavBar = currentConfig.backgroundAffectsNavBar;
+      
+      appCtrl.appConfig.refresh();
+      
+      showToast('背景图片已清除');
+      _logger.i('背景图片已清除');
+    } catch (e) {
+      _logger.e('清除背景图片设置失败: $e');
+      showToast('清除背景图片设置失败');
     }
   }
 }

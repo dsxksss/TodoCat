@@ -25,8 +25,10 @@ class TodoCatScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent, // 使用透明背景以支持自定义背景图片
       body: SafeArea(
+        minimum: EdgeInsets.zero, // 不添加任何额外的边距
+        bottom: false, // 底部不需要安全区域
         child: Column(
           children: [
             if (Platform.isMacOS) 15.verticalSpace,

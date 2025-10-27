@@ -169,9 +169,18 @@ class NotificationCenterDialog extends StatelessWidget {
   Widget _buildNotificationList(
       BuildContext context, NotificationCenterManager manager) {
     return Obx(() {
-      final notifications = manager.notifications;
+      final allNotifications = manager.notifications;
+      
+      // 过滤掉不重要的通知，只显示错误和警告级别，以及未读信息
+      final filteredNotifications = allNotifications.where((notification) {
+        // 显示所有未读通知
+        if (!notification.isRead) return true;
+        // 显示错误和警告级别的通知
+        return notification.level == NotificationLevel.error || 
+               notification.level == NotificationLevel.warning;
+      }).toList();
 
-      if (notifications.isEmpty) {
+      if (filteredNotifications.isEmpty) {
         return _buildEmptyState(context);
       }
 
@@ -181,7 +190,7 @@ class NotificationCenterDialog extends StatelessWidget {
           parent: BouncingScrollPhysics(),
         ),
         child: Column(
-          children: notifications
+          children: filteredNotifications
               .map((notification) =>
                   _buildNotificationItem(context, notification, manager))
               .toList(),

@@ -17,35 +17,60 @@ const AppConfigSchema = CollectionSchema(
   name: r'AppConfig',
   id: -7085420701237142207,
   properties: {
-    r'configName': PropertySchema(
+    r'backgroundAffectsNavBar': PropertySchema(
       id: 0,
+      name: r'backgroundAffectsNavBar',
+      type: IsarType.bool,
+    ),
+    r'backgroundImageBlur': PropertySchema(
+      id: 1,
+      name: r'backgroundImageBlur',
+      type: IsarType.double,
+    ),
+    r'backgroundImageOpacity': PropertySchema(
+      id: 2,
+      name: r'backgroundImageOpacity',
+      type: IsarType.double,
+    ),
+    r'backgroundImagePath': PropertySchema(
+      id: 3,
+      name: r'backgroundImagePath',
+      type: IsarType.string,
+    ),
+    r'configName': PropertySchema(
+      id: 4,
       name: r'configName',
       type: IsarType.string,
     ),
     r'countryCode': PropertySchema(
-      id: 1,
+      id: 5,
       name: r'countryCode',
       type: IsarType.string,
     ),
     r'emailReminderEnabled': PropertySchema(
-      id: 2,
+      id: 6,
       name: r'emailReminderEnabled',
       type: IsarType.bool,
     ),
     r'isDarkMode': PropertySchema(
-      id: 3,
+      id: 7,
       name: r'isDarkMode',
       type: IsarType.bool,
     ),
     r'isDebugMode': PropertySchema(
-      id: 4,
+      id: 8,
       name: r'isDebugMode',
       type: IsarType.bool,
     ),
     r'languageCode': PropertySchema(
-      id: 5,
+      id: 9,
       name: r'languageCode',
       type: IsarType.string,
+    ),
+    r'primaryColorValue': PropertySchema(
+      id: 10,
+      name: r'primaryColorValue',
+      type: IsarType.long,
     )
   },
   estimateSize: _appConfigEstimateSize,
@@ -82,6 +107,12 @@ int _appConfigEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.backgroundImagePath;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.configName.length * 3;
   bytesCount += 3 + object.countryCode.length * 3;
   bytesCount += 3 + object.languageCode.length * 3;
@@ -94,12 +125,17 @@ void _appConfigSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.configName);
-  writer.writeString(offsets[1], object.countryCode);
-  writer.writeBool(offsets[2], object.emailReminderEnabled);
-  writer.writeBool(offsets[3], object.isDarkMode);
-  writer.writeBool(offsets[4], object.isDebugMode);
-  writer.writeString(offsets[5], object.languageCode);
+  writer.writeBool(offsets[0], object.backgroundAffectsNavBar);
+  writer.writeDouble(offsets[1], object.backgroundImageBlur);
+  writer.writeDouble(offsets[2], object.backgroundImageOpacity);
+  writer.writeString(offsets[3], object.backgroundImagePath);
+  writer.writeString(offsets[4], object.configName);
+  writer.writeString(offsets[5], object.countryCode);
+  writer.writeBool(offsets[6], object.emailReminderEnabled);
+  writer.writeBool(offsets[7], object.isDarkMode);
+  writer.writeBool(offsets[8], object.isDebugMode);
+  writer.writeString(offsets[9], object.languageCode);
+  writer.writeLong(offsets[10], object.primaryColorValue);
 }
 
 AppConfig _appConfigDeserialize(
@@ -109,13 +145,18 @@ AppConfig _appConfigDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AppConfig();
-  object.configName = reader.readString(offsets[0]);
-  object.countryCode = reader.readString(offsets[1]);
-  object.emailReminderEnabled = reader.readBool(offsets[2]);
+  object.backgroundAffectsNavBar = reader.readBool(offsets[0]);
+  object.backgroundImageBlur = reader.readDouble(offsets[1]);
+  object.backgroundImageOpacity = reader.readDouble(offsets[2]);
+  object.backgroundImagePath = reader.readStringOrNull(offsets[3]);
+  object.configName = reader.readString(offsets[4]);
+  object.countryCode = reader.readString(offsets[5]);
+  object.emailReminderEnabled = reader.readBool(offsets[6]);
   object.id = id;
-  object.isDarkMode = reader.readBool(offsets[3]);
-  object.isDebugMode = reader.readBool(offsets[4]);
-  object.languageCode = reader.readString(offsets[5]);
+  object.isDarkMode = reader.readBool(offsets[7]);
+  object.isDebugMode = reader.readBool(offsets[8]);
+  object.languageCode = reader.readString(offsets[9]);
+  object.primaryColorValue = reader.readLongOrNull(offsets[10]);
   return object;
 }
 
@@ -127,17 +168,27 @@ P _appConfigDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readBool(offset)) as P;
+    case 7:
+      return (reader.readBool(offset)) as P;
+    case 8:
+      return (reader.readBool(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -334,6 +385,302 @@ extension AppConfigQueryWhere
 
 extension AppConfigQueryFilter
     on QueryBuilder<AppConfig, AppConfig, QFilterCondition> {
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundAffectsNavBarEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroundAffectsNavBar',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImageBlurEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroundImageBlur',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImageBlurGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'backgroundImageBlur',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImageBlurLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'backgroundImageBlur',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImageBlurBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'backgroundImageBlur',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImageOpacityEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroundImageOpacity',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImageOpacityGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'backgroundImageOpacity',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImageOpacityLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'backgroundImageOpacity',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImageOpacityBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'backgroundImageOpacity',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'backgroundImagePath',
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'backgroundImagePath',
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroundImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'backgroundImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'backgroundImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'backgroundImagePath',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'backgroundImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'backgroundImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'backgroundImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'backgroundImagePath',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backgroundImagePath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      backgroundImagePathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'backgroundImagePath',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition> configNameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -819,6 +1166,80 @@ extension AppConfigQueryFilter
       ));
     });
   }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      primaryColorValueIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'primaryColorValue',
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      primaryColorValueIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'primaryColorValue',
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      primaryColorValueEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'primaryColorValue',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      primaryColorValueGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'primaryColorValue',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      primaryColorValueLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'primaryColorValue',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterFilterCondition>
+      primaryColorValueBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'primaryColorValue',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension AppConfigQueryObject
@@ -828,6 +1249,60 @@ extension AppConfigQueryLinks
     on QueryBuilder<AppConfig, AppConfig, QFilterCondition> {}
 
 extension AppConfigQuerySortBy on QueryBuilder<AppConfig, AppConfig, QSortBy> {
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      sortByBackgroundAffectsNavBar() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundAffectsNavBar', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      sortByBackgroundAffectsNavBarDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundAffectsNavBar', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy> sortByBackgroundImageBlur() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImageBlur', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      sortByBackgroundImageBlurDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImageBlur', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      sortByBackgroundImageOpacity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImageOpacity', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      sortByBackgroundImageOpacityDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImageOpacity', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy> sortByBackgroundImagePath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImagePath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      sortByBackgroundImagePathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImagePath', Sort.desc);
+    });
+  }
+
   QueryBuilder<AppConfig, AppConfig, QAfterSortBy> sortByConfigName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'configName', Sort.asc);
@@ -901,10 +1376,77 @@ extension AppConfigQuerySortBy on QueryBuilder<AppConfig, AppConfig, QSortBy> {
       return query.addSortBy(r'languageCode', Sort.desc);
     });
   }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy> sortByPrimaryColorValue() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'primaryColorValue', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      sortByPrimaryColorValueDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'primaryColorValue', Sort.desc);
+    });
+  }
 }
 
 extension AppConfigQuerySortThenBy
     on QueryBuilder<AppConfig, AppConfig, QSortThenBy> {
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      thenByBackgroundAffectsNavBar() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundAffectsNavBar', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      thenByBackgroundAffectsNavBarDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundAffectsNavBar', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy> thenByBackgroundImageBlur() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImageBlur', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      thenByBackgroundImageBlurDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImageBlur', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      thenByBackgroundImageOpacity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImageOpacity', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      thenByBackgroundImageOpacityDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImageOpacity', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy> thenByBackgroundImagePath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImagePath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      thenByBackgroundImagePathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'backgroundImagePath', Sort.desc);
+    });
+  }
+
   QueryBuilder<AppConfig, AppConfig, QAfterSortBy> thenByConfigName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'configName', Sort.asc);
@@ -990,10 +1532,52 @@ extension AppConfigQuerySortThenBy
       return query.addSortBy(r'languageCode', Sort.desc);
     });
   }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy> thenByPrimaryColorValue() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'primaryColorValue', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QAfterSortBy>
+      thenByPrimaryColorValueDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'primaryColorValue', Sort.desc);
+    });
+  }
 }
 
 extension AppConfigQueryWhereDistinct
     on QueryBuilder<AppConfig, AppConfig, QDistinct> {
+  QueryBuilder<AppConfig, AppConfig, QDistinct>
+      distinctByBackgroundAffectsNavBar() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'backgroundAffectsNavBar');
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QDistinct>
+      distinctByBackgroundImageBlur() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'backgroundImageBlur');
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QDistinct>
+      distinctByBackgroundImageOpacity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'backgroundImageOpacity');
+    });
+  }
+
+  QueryBuilder<AppConfig, AppConfig, QDistinct> distinctByBackgroundImagePath(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'backgroundImagePath',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<AppConfig, AppConfig, QDistinct> distinctByConfigName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1033,6 +1617,12 @@ extension AppConfigQueryWhereDistinct
       return query.addDistinctBy(r'languageCode', caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<AppConfig, AppConfig, QDistinct> distinctByPrimaryColorValue() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'primaryColorValue');
+    });
+  }
 }
 
 extension AppConfigQueryProperty
@@ -1040,6 +1630,34 @@ extension AppConfigQueryProperty
   QueryBuilder<AppConfig, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<AppConfig, bool, QQueryOperations>
+      backgroundAffectsNavBarProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'backgroundAffectsNavBar');
+    });
+  }
+
+  QueryBuilder<AppConfig, double, QQueryOperations>
+      backgroundImageBlurProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'backgroundImageBlur');
+    });
+  }
+
+  QueryBuilder<AppConfig, double, QQueryOperations>
+      backgroundImageOpacityProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'backgroundImageOpacity');
+    });
+  }
+
+  QueryBuilder<AppConfig, String?, QQueryOperations>
+      backgroundImagePathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'backgroundImagePath');
     });
   }
 
@@ -1077,6 +1695,12 @@ extension AppConfigQueryProperty
   QueryBuilder<AppConfig, String, QQueryOperations> languageCodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'languageCode');
+    });
+  }
+
+  QueryBuilder<AppConfig, int?, QQueryOperations> primaryColorValueProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'primaryColorValue');
     });
   }
 }

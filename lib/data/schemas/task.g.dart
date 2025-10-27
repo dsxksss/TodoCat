@@ -58,19 +58,24 @@ const TaskSchema = CollectionSchema(
       name: r'tags',
       type: IsarType.stringList,
     ),
-    r'title': PropertySchema(
+    r'tagsWithColorJsonString': PropertySchema(
       id: 8,
+      name: r'tagsWithColorJsonString',
+      type: IsarType.string,
+    ),
+    r'title': PropertySchema(
+      id: 9,
       name: r'title',
       type: IsarType.string,
     ),
     r'todos': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'todos',
       type: IsarType.objectList,
       target: r'Todo',
     ),
     r'uuid': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -143,6 +148,7 @@ int _taskEstimateSize(
       bytesCount += value.length * 3;
     }
   }
+  bytesCount += 3 + object.tagsWithColorJsonString.length * 3;
   bytesCount += 3 + object.title.length * 3;
   {
     final list = object.todos;
@@ -175,14 +181,15 @@ void _taskSerialize(
   writer.writeLong(offsets[5], object.reminders);
   writer.writeByte(offsets[6], object.status.index);
   writer.writeStringList(offsets[7], object.tags);
-  writer.writeString(offsets[8], object.title);
+  writer.writeString(offsets[8], object.tagsWithColorJsonString);
+  writer.writeString(offsets[9], object.title);
   writer.writeObjectList<Todo>(
-    offsets[9],
+    offsets[10],
     allOffsets,
     TodoSchema.serialize,
     object.todos,
   );
-  writer.writeString(offsets[10], object.uuid);
+  writer.writeString(offsets[11], object.uuid);
 }
 
 Task _taskDeserialize(
@@ -202,14 +209,15 @@ Task _taskDeserialize(
   object.status = _TaskstatusValueEnumMap[reader.readByteOrNull(offsets[6])] ??
       TaskStatus.todo;
   object.tags = reader.readStringList(offsets[7]) ?? [];
-  object.title = reader.readString(offsets[8]);
+  object.tagsWithColorJsonString = reader.readString(offsets[8]);
+  object.title = reader.readString(offsets[9]);
   object.todos = reader.readObjectList<Todo>(
-    offsets[9],
+    offsets[10],
     TodoSchema.deserialize,
     allOffsets,
     Todo(),
   );
-  object.uuid = reader.readString(offsets[10]);
+  object.uuid = reader.readString(offsets[11]);
   return object;
 }
 
@@ -240,13 +248,15 @@ P _taskDeserializeProp<P>(
     case 8:
       return (reader.readString(offset)) as P;
     case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
       return (reader.readObjectList<Todo>(
         offset,
         TodoSchema.deserialize,
         allOffsets,
         Todo(),
       )) as P;
-    case 10:
+    case 11:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1351,6 +1361,144 @@ extension TaskQueryFilter on QueryBuilder<Task, Task, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tagsWithColorJsonString',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'tagsWithColorJsonString',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'tagsWithColorJsonString',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tagsWithColorJsonString',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition>
+      tagsWithColorJsonStringIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'tagsWithColorJsonString',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Task, Task, QAfterFilterCondition> titleEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1804,6 +1952,18 @@ extension TaskQuerySortBy on QueryBuilder<Task, Task, QSortBy> {
     });
   }
 
+  QueryBuilder<Task, Task, QAfterSortBy> sortByTagsWithColorJsonString() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tagsWithColorJsonString', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterSortBy> sortByTagsWithColorJsonStringDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tagsWithColorJsonString', Sort.desc);
+    });
+  }
+
   QueryBuilder<Task, Task, QAfterSortBy> sortByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -1926,6 +2086,18 @@ extension TaskQuerySortThenBy on QueryBuilder<Task, Task, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Task, Task, QAfterSortBy> thenByTagsWithColorJsonString() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tagsWithColorJsonString', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterSortBy> thenByTagsWithColorJsonStringDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tagsWithColorJsonString', Sort.desc);
+    });
+  }
+
   QueryBuilder<Task, Task, QAfterSortBy> thenByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -2001,6 +2173,14 @@ extension TaskQueryWhereDistinct on QueryBuilder<Task, Task, QDistinct> {
     });
   }
 
+  QueryBuilder<Task, Task, QDistinct> distinctByTagsWithColorJsonString(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'tagsWithColorJsonString',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Task, Task, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2068,6 +2248,13 @@ extension TaskQueryProperty on QueryBuilder<Task, Task, QQueryProperty> {
   QueryBuilder<Task, List<String>, QQueryOperations> tagsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tags');
+    });
+  }
+
+  QueryBuilder<Task, String, QQueryOperations>
+      tagsWithColorJsonStringProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'tagsWithColorJsonString');
     });
   }
 
