@@ -221,18 +221,6 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
         ),
         const SizedBox(height: 10),
         Obx(() {
-          // 当selectedTags变化时，更新_selectedColor
-          if (widget.selectedTags.isNotEmpty) {
-            final lastTagColor = widget.selectedTags.last.color;
-            if (_selectedColor != lastTagColor) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                setState(() {
-                  _selectedColor = lastTagColor;
-                });
-              });
-            }
-          }
-          
           return Wrap(
             spacing: 8,
             runSpacing: 8,

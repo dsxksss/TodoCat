@@ -73,4 +73,15 @@ class TagWithColor {
 
   @override
   String toString() => 'TagWithColor(name: $name, color: $color)';
+
+  /// 复制方法
+  TagWithColor copyWith({
+    String? name,
+    Color? color,
+  }) {
+    return TagWithColor(
+      name: name ?? this.name,
+      color: color ?? this.color,
+    );
+  }
 }

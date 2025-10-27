@@ -148,10 +148,13 @@ class HomeController extends GetxController
 
   void _cleanupTaskNotifications(Task task) {
     if (task.todos != null) {
+      // 根据邮箱提醒设置决定是否发送删除请求
+      final shouldSendDeleteReq = appCtrl.appConfig.value.emailReminderEnabled;
+      
       for (var todo in task.todos!) {
         appCtrl.localNotificationManager.destroy(
           timerKey: todo.uuid,
-          sendDeleteReq: true,
+          sendDeleteReq: shouldSendDeleteReq,
         );
       }
     }
@@ -196,10 +199,11 @@ class HomeController extends GetxController
 
       final todo = task.todos![todoIndex];
 
-      // 清理通知
+      // 清理通知，根据邮箱提醒设置决定是否发送删除请求
+      final shouldSendDeleteReq = appCtrl.appConfig.value.emailReminderEnabled;
       await appCtrl.localNotificationManager.destroy(
         timerKey: todoUuid,
-        sendDeleteReq: true,
+        sendDeleteReq: shouldSendDeleteReq,
       );
 
       // 从任务中移除todo

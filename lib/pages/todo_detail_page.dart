@@ -58,7 +58,7 @@ class TodoDetailPage extends StatelessWidget {
               const SizedBox(height: 20),
               
               // 标签部分
-              if (todo.tags.isNotEmpty) ...[
+              if (todo.tagsWithColor.isNotEmpty || todo.tags.isNotEmpty) ...[
                 _buildTagsSection(context, todo),
                 const SizedBox(height: 20),
               ],
@@ -312,25 +312,16 @@ class TodoDetailPage extends StatelessWidget {
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
+              // 直接使用todo.tagsWithColor，它内部已经处理了兼容逻辑
+              // 如果有颜色数据则使用，如果没有但有字符串标签，则转换为带颜色的标签
               return Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: todo.tags.map((tagText) {
-                  // 为不同的标签使用不同的颜色
-                  final colors = [
-                    Colors.blueAccent,
-                    Colors.greenAccent,
-                    Colors.orangeAccent,
-                    Colors.purpleAccent,
-                    Colors.tealAccent,
-                    Colors.pinkAccent,
-                  ];
-                  final colorIndex = tagText.hashCode % colors.length;
-                  
+                children: todo.tagsWithColor.map((tagWithColor) {
                   // 限制标签文本长度，防止溢出
-                  String displayText = tagText;
-                  if (tagText.length > 15) {
-                    displayText = '${tagText.substring(0, 12)}...';
+                  String displayText = tagWithColor.name;
+                  if (tagWithColor.name.length > 15) {
+                    displayText = '${tagWithColor.name.substring(0, 12)}...';
                   }
                   
                   return ConstrainedBox(
@@ -339,7 +330,7 @@ class TodoDetailPage extends StatelessWidget {
                     ),
                     child: Tag(
                       tag: displayText,
-                      color: colors[colorIndex.abs()],
+                      color: tagWithColor.color, // 使用存储的颜色
                     ),
                   );
                 }).toList(),

@@ -31,16 +31,10 @@ class Task {
 
   List<String> tags = [];
   String tagsWithColorJsonString = '[]';
-  @ignore
-  List<Todo>? _todos;
+  List<Todo>? todos;
 
   // 默认构造函数
   Task();
-
-  List<Todo>? get todos => _todos;
-  set todos(List<Todo>? value) {
-    _todos = value != null ? List<Todo>.from(value) : null;
-  }
 
   // JSON序列化
   Map<String, dynamic> toJson() {

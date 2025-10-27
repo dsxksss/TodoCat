@@ -26,12 +26,13 @@ class TaskDialog extends GetView<TaskDialogController> {
                 topRight: Radius.circular(10),
               )
             : BorderRadius.circular(10),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: context.theme.dividerColor,
-            blurRadius: context.isDarkMode ? 1 : 2,
-          ),
-        ],
+        // 移除阴影效果，避免亮主题下的亮光高亮
+        // boxShadow: <BoxShadow>[
+        //   BoxShadow(
+        //     color: context.theme.dividerColor,
+        //     blurRadius: context.isDarkMode ? 1 : 2,
+        //   ),
+        // ],
       ),
       child: Form(
         key: controller.formKey,

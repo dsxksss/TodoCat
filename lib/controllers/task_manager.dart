@@ -93,17 +93,22 @@ class TaskManager {
 
       // 1. 清空内存中的任务列表
       tasks.clear();
+      tasks.refresh(); // 立即刷新UI
 
       // 2. 清空数据库中的所有任务
       await _clearAllTasks();
 
       // 3. 创建新的默认任务（确保每次都是全新的UUID）
       final freshDefaultTasks = createTaskTemplate(type);
+      _logger.d('Created ${freshDefaultTasks.length} template tasks');
 
       // 4. 添加到内存和数据库
       await assignAll(freshDefaultTasks);
 
-      _logger.d('Tasks template reset completed successfully with type: $type');
+      // 5. 确保UI完全刷新
+      tasks.refresh();
+      
+      _logger.d('Tasks template reset completed successfully with type: $type, final count: ${tasks.length}');
     } catch (e) {
       _logger.e('Error resetting tasks template: $e');
       throw Exception('Failed to reset tasks template: $e');

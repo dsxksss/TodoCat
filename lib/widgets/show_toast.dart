@@ -132,7 +132,7 @@ Widget _buildBottomLeftNotification(
         //   ),
         // ],
         border: Border.all(
-          color: iconData[1].withOpacity(0.8), // 保持固定透明度
+          color: iconData[1].withOpacity(0.3), // 降低透明度，避免亮主题下的亮光高亮
           width: 1, // 保持固定宽度
         ),
       ),
@@ -288,12 +288,13 @@ void showToast(
             decoration: BoxDecoration(
               color: context.theme.dialogBackgroundColor,
               borderRadius: BorderRadius.circular(5),
-              boxShadow: [
-                BoxShadow(
-                  color: context.theme.dividerColor,
-                  blurRadius: context.isDarkMode ? 1 : 5,
-                )
-              ],
+              // 移除阴影效果，避免亮主题下的亮光高亮
+              // boxShadow: [
+              //   BoxShadow(
+              //     color: context.theme.dividerColor,
+              //     blurRadius: context.isDarkMode ? 1 : 5,
+              //   )
+              // ],
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),

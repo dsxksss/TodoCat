@@ -51,12 +51,13 @@ class ColorPickerDialog extends StatelessWidget {
                 topRight: Radius.circular(10),
               )
             : BorderRadius.circular(10),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: context.theme.dividerColor,
-            blurRadius: context.isDarkMode ? 1 : 2,
-          ),
-        ],
+        // 移除阴影效果，避免亮主题下的亮光高亮
+        // boxShadow: <BoxShadow>[
+        //   BoxShadow(
+        //     color: context.theme.dividerColor,
+        //     blurRadius: context.isDarkMode ? 1 : 2,
+        //   ),
+        // ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -106,39 +107,44 @@ class ColorPickerDialog extends StatelessWidget {
                   itemCount: predefinedColors.length,
                   itemBuilder: (context, index) {
                     final color = predefinedColors[index];
-                    final isSelected = initialColor == color;
+                    // 使用color.value比较颜色值，而不是对象引用
+                    final isSelected = initialColor?.value == color.value;
                     
-                    return InkWell(
-                      onTap: () {
-                        onColorSelected(color);
-                        SmartDialog.dismiss(tag: 'color_picker');
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isSelected 
-                                ? Colors.white 
-                                : context.theme.dividerColor.withOpacity(0.3),
-                            width: isSelected ? 2 : 0.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: color.withOpacity(0.2),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          onColorSelected(color);
+                          SmartDialog.dismiss(tag: 'color_picker');
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected 
+                                  ? Colors.white 
+                                  : context.theme.dividerColor.withOpacity(0.3),
+                              width: isSelected ? 2 : 0.5,
                             ),
-                          ],
+                            // 移除阴影效果，避免亮主题下的亮光高亮
+                            // boxShadow: [
+                            //   BoxShadow(
+                            //     color: color.withOpacity(0.2),
+                            //     blurRadius: 2,
+                            //     offset: const Offset(0, 1),
+                            //   ),
+                            // ],
+                          ),
+                          child: isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 18,
+                                )
+                              : null,
                         ),
-                        child: isSelected
-                            ? const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 18,
-                              )
-                            : null,
                       ),
                     );
                   },

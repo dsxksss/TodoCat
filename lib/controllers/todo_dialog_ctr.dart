@@ -253,8 +253,18 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
         !compareStrings(titleController.text, originalState['title']);
     bool descriptionChanged = !compareStrings(
         descriptionController.text, originalState['description']);
-    bool tagsChanged = !compareListEquality(
-        selectedTags, originalState['tags'] as List<String>);
+    
+    // 比较带颜色的标签
+    bool tagsChanged = false;
+    if (originalState['tagsWithColor'] != null) {
+      final originalTags = (originalState['tagsWithColor'] as List<dynamic>)
+          .map((tag) => TagWithColor.fromJson(tag as Map<String, dynamic>))
+          .toList();
+      tagsChanged = selectedTags.length != originalTags.length ||
+          !selectedTags.every((tag) => originalTags.any((originalTag) =>
+              originalTag.name == tag.name && originalTag.colorValue == tag.colorValue));
+    }
+    
     bool priorityChanged = selectedPriority.value != originalState['priority'];
     bool remindersChanged = remindersValue.value != originalState['reminders'];
     bool statusChanged = selectedStatus.value != originalState['status'];
@@ -279,7 +289,7 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     }
     if (tagsChanged) {
       BaseFormController.logger
-          .d('Tags changed: $selectedTags != ${originalState['tags']}');
+          .d('Tags changed: $selectedTags != ${originalState['tagsWithColor']}');
     }
     if (priorityChanged) {
       BaseFormController.logger.d(
