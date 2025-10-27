@@ -106,11 +106,10 @@ class HomeController extends GetxController
         (task) => task.uuid == taskId,
       );
 
-      // 初始化 todos 列表
-      task.todos ??= [];
-
-      // 添加新的 todo
-      task.todos!.add(todo);
+      // 初始化 todos 列表并添加新的 todo（创建可变副本）
+      final newTodos = List<Todo>.from(task.todos ?? []);
+      newTodos.add(todo);
+      task.todos = newTodos;
 
       // 重要：保存修改后的任务到数据库
       await _taskManager.updateTask(taskId, task);
@@ -206,12 +205,14 @@ class HomeController extends GetxController
         sendDeleteReq: shouldSendDeleteReq,
       );
 
-      // 从任务中移除todo
-      final removed = task.todos!.remove(todo);
+      // 从任务中移除todo（创建可变副本）
+      final newTodos = List<Todo>.from(task.todos!);
+      final removed = newTodos.remove(todo);
       if (!removed) {
         _logger.w('Todo ${todo.uuid} was not found in task for removal');
         return false;
       }
+      task.todos = newTodos;
 
       // 重要：保存修改后的任务到数据库
       await _taskManager.updateTask(taskUuid, task);
@@ -364,12 +365,15 @@ class HomeController extends GetxController
         }
       }
 
-      // 从原task中移除
-      fromTask.todos!.removeWhere((todo) => todo.uuid == todoId);
+      // 从原task中移除（创建可变副本）
+      final fromTodos = List<Todo>.from(fromTask.todos!);
+      fromTodos.removeWhere((todo) => todo.uuid == todoId);
+      fromTask.todos = fromTodos;
 
-      // 添加到新task中
-      toTask.todos ??= [];
-      toTask.todos!.add(todoToMove);
+      // 添加到新task中（创建可变副本）
+      final toTodos = List<Todo>.from(toTask.todos ?? []);
+      toTodos.add(todoToMove);
+      toTask.todos = toTodos;
 
       // 批量更新，避免多次数据库操作
       await Future.wait([
@@ -440,18 +444,20 @@ class HomeController extends GetxController
         return;
       }
 
-      // 移除原来的todo
+      // 移除原来的todo并重新插入（创建可变副本）
       final todoIndex = task.todos!.indexWhere((t) => t.uuid == todo.uuid);
       if (todoIndex == -1) {
         _logger.w('Todo ${todo.uuid} not found in task');
         return;
       }
 
-      task.todos!.removeAt(todoIndex);
+      final newTodos = List<Todo>.from(task.todos!);
+      newTodos.removeAt(todoIndex);
 
       // 在新位置插入
-      newIndex = newIndex.clamp(0, task.todos!.length);
-      task.todos!.insert(newIndex, todo);
+      newIndex = newIndex.clamp(0, newTodos.length);
+      newTodos.insert(newIndex, todo);
+      task.todos = newTodos;
 
       // 保存更改
       await _taskManager.updateTask(taskId, task);

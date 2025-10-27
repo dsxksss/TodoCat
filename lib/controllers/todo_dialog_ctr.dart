@@ -84,7 +84,10 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
         );
 
         if (todoIndex != -1) {
-          task.todos![todoIndex] = updatedTodo;
+          // 创建可变副本来修改todo
+          final newTodos = List<Todo>.from(task.todos!);
+          newTodos[todoIndex] = updatedTodo;
+          task.todos = newTodos;
           await Get.find<HomeController>().updateTask(taskId!, task);
           // 不在这里清理表单，让对话框处理
           return true;
