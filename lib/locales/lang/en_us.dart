@@ -220,4 +220,16 @@ const Map<String, String> enUS = {
   'moreItems': 'more items',
   // Color picker
   'selectTagColor': 'Select Tag Color',
+  // Auto update
+  'checkForUpdates': 'Check for Updates',
+  'checkForUpdatesDescription': 'Check if a new version is available',
+  'update': 'Update',
+  'noUpdateAvailable': 'No updates available',
+  'updateError': 'Error checking for updates',
+  'updateAvailable': 'Update Available',
+  'newVersionAvailable': 'A new version is available',
+  'bugFixesAndImprovements': 'Bug fixes and improvements',
+  'later': 'Later',
+  'updateNow': 'Update Now',
+  'error': 'Error',
 };

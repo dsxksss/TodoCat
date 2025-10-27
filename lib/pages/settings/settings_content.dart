@@ -106,6 +106,14 @@ class SettingsContent extends GetView<SettingsController> {
         ),
         onPressed: (context) => controller.showLanguageMenu(context),
       ),
+      // 检查更新（仅桌面端显示）
+      if (GetPlatform.isDesktop)
+        SettingsTile(
+          onPressed: (_) => controller.checkForUpdates(),
+          leading: const Icon(Icons.system_update),
+          title: Text('checkForUpdates'.tr),
+          description: Text('checkForUpdatesDescription'.tr),
+        ),
       SettingsTile(
         onPressed: (_) => _showResetSettingsToast(),
         leading: const Icon(Icons.restart_alt_rounded),

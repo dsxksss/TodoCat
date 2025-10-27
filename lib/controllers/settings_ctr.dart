@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -181,5 +182,21 @@ class SettingsController extends GetxController {
 
   void resetTasksTemplate() {
     homeCtrl.resetTasksTemplate();
+  }
+
+  /// 检查更新（仅桌面端）
+  Future<void> checkForUpdates() async {
+    if (!GetPlatform.isDesktop) {
+      return;
+    }
+    
+    // 检查是否为 Windows 或 macOS
+    if (Platform.isWindows || Platform.isMacOS) {
+      try {
+        await appCtrl.checkForUpdates(silent: false);
+      } catch (e) {
+        // ignore errors
+      }
+    }
   }
 }

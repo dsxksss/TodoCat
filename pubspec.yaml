@@ -1,7 +1,7 @@
 name: todo_cat
 description: A new Flutter project.
 publish_to: "none"
-version: 1.0.0
+version: 1.0.1
 
 environment:
   sdk: ">=3.0.6 <4.0.0"
@@ -59,6 +59,10 @@ dependencies:
   badges: ^3.1.2
   # 开机自启动插件
   launch_at_startup: ^0.3.0
+  # 自动更新插件 (Windows/macOS)
+  auto_updater: ^1.0.0
+  # 获取应用版本信息
+  package_info_plus: ^8.1.2
 
 dev_dependencies:
   flutter_test:

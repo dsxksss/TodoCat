@@ -220,4 +220,16 @@ const Map<String, String> zhCN = {
   'moreItems': '更多项目',
   // 颜色选择器
   'selectTagColor': '选择标签颜色',
+  // 自动更新
+  'checkForUpdates': '检查更新',
+  'checkForUpdatesDescription': '检查是否有新版本可用',
+  'update': '更新',
+  'noUpdateAvailable': '暂无更新可用',
+  'updateError': '检查更新时出错',
+  'updateAvailable': '发现新版本',
+  'newVersionAvailable': '有新版本可用',
+  'bugFixesAndImprovements': '修复和功能改进',
+  'later': '稍后',
+  'updateNow': '立即更新',
+  'error': '错误',
 };
