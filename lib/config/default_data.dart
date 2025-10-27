@@ -6,11 +6,12 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 
 // 辅助函数：创建带颜色的标签
+// 根据tag名称选择颜色，确保相同名称的tag总是得到相同的颜色
 List<TagWithColor> _createTagsWithColors(List<String> tagNames, List<Color> colors) {
-  return tagNames.asMap().entries.map((entry) {
-    final index = entry.key;
-    final tagName = entry.value;
-    final color = index < colors.length ? colors[index] : Colors.blueAccent;
+  return tagNames.map((tagName) {
+    // 根据标签名称的hashCode选择颜色
+    final colorIndex = tagName.hashCode.abs() % colors.length;
+    final color = colors[colorIndex];
     return TagWithColor(name: tagName, color: color);
   }).toList();
 }
@@ -236,11 +237,251 @@ final Task emptyTask4 = Task()
   ..tagsWithColor = _createTagsWithColors(["默认", "自带"], _tagColors)
   ..todos = [];
 
+// 工作管理任务模板
+final Task workTask1 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "todo"
+  ..description = "管理工作项目和任务"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch
+  ..tagsWithColor = _createTagsWithColors(["工作", "项目管理"], _tagColors)
+  ..status = TaskStatus.todo
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "准备项目提案"
+      ..description = "收集需求并撰写项目建议书"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch
+      ..tagsWithColor = _createTagsWithColors(["提案", "文档"], _tagColors)
+      ..priority = TodoPriority.highLevel
+      ..status = TodoStatus.todo
+      ..dueDate = DateTime.now().add(const Duration(days: 3)).millisecondsSinceEpoch,
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "团队周会"
+      ..description = "讨论项目进度和下周计划"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 1
+      ..tagsWithColor = _createTagsWithColors(["会议", "协作"], _tagColors)
+      ..priority = TodoPriority.mediumLevel
+      ..status = TodoStatus.todo
+      ..dueDate = DateTime.now().add(const Duration(days: 5)).millisecondsSinceEpoch,
+  ];
+
+final Task workTask2 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "inProgress"
+  ..description = "进行中的开发工作"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
+  ..tagsWithColor = _createTagsWithColors(["开发", "进行中"], _tagColors)
+  ..status = TaskStatus.inProgress
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "完成功能开发"
+      ..description = "实现核心业务逻辑"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
+      ..tagsWithColor = _createTagsWithColors(["开发", "功能"], _tagColors)
+      ..priority = TodoPriority.highLevel
+      ..status = TodoStatus.inProgress
+      ..progress = 60
+      ..dueDate = DateTime.now().add(const Duration(days: 2)).millisecondsSinceEpoch,
+  ];
+
+final Task workTask3 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "done"
+  ..description = "已完成的工作"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
+  ..tagsWithColor = _createTagsWithColors(["完成", "归档"], _tagColors)
+  ..status = TaskStatus.done
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "提交代码"
+      ..description = "代码审查并合并到主分支"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
+      ..tagsWithColor = _createTagsWithColors(["代码", "审查"], _tagColors)
+      ..priority = TodoPriority.mediumLevel
+      ..status = TodoStatus.done
+      ..finishedAt = DateTime.now().subtract(const Duration(days: 1)).millisecondsSinceEpoch,
+  ];
+
+final Task workTask4 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "another"
+  ..description = "其他工作事项"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 30
+  ..tagsWithColor = _createTagsWithColors(["工作", "待办"], _tagColors)
+  ..status = TaskStatus.todo
+  ..todos = [];
+
+// 健身训练任务模板
+final Task fitnessTask1 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "todo"
+  ..description = "制定健身计划"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch
+  ..tagsWithColor = _createTagsWithColors(["健身", "计划"], _tagColors)
+  ..status = TaskStatus.todo
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "制定本周训练计划"
+      ..description = "安排有氧和力量训练"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch
+      ..tagsWithColor = _createTagsWithColors(["计划", "训练"], _tagColors)
+      ..priority = TodoPriority.mediumLevel
+      ..status = TodoStatus.todo
+      ..dueDate = DateTime.now().add(const Duration(days: 1)).millisecondsSinceEpoch,
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "准备运动装备"
+      ..description = "检查运动鞋和运动服"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 1
+      ..tagsWithColor = _createTagsWithColors(["装备", "准备"], _tagColors)
+      ..priority = TodoPriority.lowLevel
+      ..status = TodoStatus.todo
+      ..dueDate = DateTime.now().add(const Duration(days: 1)).millisecondsSinceEpoch,
+  ];
+
+final Task fitnessTask2 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "inProgress"
+  ..description = "进行中的训练"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
+  ..tagsWithColor = _createTagsWithColors(["训练", "进行中"], _tagColors)
+  ..status = TaskStatus.inProgress
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "力量训练"
+      ..description = "练习胸肌和背肌"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
+      ..tagsWithColor = _createTagsWithColors(["力量", "训练"], _tagColors)
+      ..priority = TodoPriority.highLevel
+      ..status = TodoStatus.inProgress
+      ..progress = 80
+      ..dueDate = DateTime.now().add(const Duration(days: 0)).millisecondsSinceEpoch,
+  ];
+
+final Task fitnessTask3 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "done"
+  ..description = "完成的训练"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
+  ..tagsWithColor = _createTagsWithColors(["完成", "记录"], _tagColors)
+  ..status = TaskStatus.done
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "晨跑5公里"
+      ..description = "完成有氧训练"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
+      ..tagsWithColor = _createTagsWithColors(["跑步", "有氧"], _tagColors)
+      ..priority = TodoPriority.mediumLevel
+      ..status = TodoStatus.done
+      ..finishedAt = DateTime.now().subtract(const Duration(days: 1)).millisecondsSinceEpoch,
+  ];
+
+final Task fitnessTask4 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "another"
+  ..description = "其他健身项目"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 30
+  ..tagsWithColor = _createTagsWithColors(["健身", "其他"], _tagColors)
+  ..status = TaskStatus.todo
+  ..todos = [];
+
+// 旅行计划任务模板
+final Task travelTask1 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "todo"
+  ..description = "规划旅行行程"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch
+  ..tagsWithColor = _createTagsWithColors(["旅行", "计划"], _tagColors)
+  ..status = TaskStatus.todo
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "预订酒店"
+      ..description = "选择合适位置和价格的酒店"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch
+      ..tagsWithColor = _createTagsWithColors(["酒店", "预订"], _tagColors)
+      ..priority = TodoPriority.highLevel
+      ..status = TodoStatus.todo
+      ..dueDate = DateTime.now().add(const Duration(days: 7)).millisecondsSinceEpoch,
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "购买机票"
+      ..description = "比较价格并订购"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 1
+      ..tagsWithColor = _createTagsWithColors(["机票", "交通"], _tagColors)
+      ..priority = TodoPriority.highLevel
+      ..status = TodoStatus.todo
+      ..dueDate = DateTime.now().add(const Duration(days: 10)).millisecondsSinceEpoch,
+  ];
+
+final Task travelTask2 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "inProgress"
+  ..description = "旅行前的准备"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
+  ..tagsWithColor = _createTagsWithColors(["准备", "进行中"], _tagColors)
+  ..status = TaskStatus.inProgress
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "准备行李"
+      ..description = "整理衣物和必需品"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
+      ..tagsWithColor = _createTagsWithColors(["行李", "准备"], _tagColors)
+      ..priority = TodoPriority.mediumLevel
+      ..status = TodoStatus.inProgress
+      ..progress = 50
+      ..dueDate = DateTime.now().add(const Duration(days: 3)).millisecondsSinceEpoch,
+  ];
+
+final Task travelTask3 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "done"
+  ..description = "完成的事项"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
+  ..tagsWithColor = _createTagsWithColors(["完成", "旅行"], _tagColors)
+  ..status = TaskStatus.done
+  ..todos = [
+    Todo()
+      ..uuid = const Uuid().v4()
+      ..title = "办理签证"
+      ..description = "提交材料并等待审批"
+      ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
+      ..tagsWithColor = _createTagsWithColors(["签证", "手续"], _tagColors)
+      ..priority = TodoPriority.highLevel
+      ..status = TodoStatus.done
+      ..finishedAt = DateTime.now().subtract(const Duration(days: 5)).millisecondsSinceEpoch,
+  ];
+
+final Task travelTask4 = Task()
+  ..uuid = const Uuid().v4()
+  ..title = "another"
+  ..description = "其他旅行事项"
+  ..createdAt = DateTime.now().millisecondsSinceEpoch + 30
+  ..tagsWithColor = _createTagsWithColors(["旅行", "其他"], _tagColors)
+  ..status = TaskStatus.todo
+  ..todos = [];
+
 // 空模板（标准模板）
 final emptyTemplateTasks = [emptyTask1, emptyTask2, emptyTask3, emptyTask4];
 
 // 有具体内容的模板（学生日程模板）
 final contentTemplateTasks = [englishLearningTask, programmingTask, musicTask, dailyLifeTask];
+
+// 工作管理模板
+final workTemplateTasks = [workTask1, workTask2, workTask3, workTask4];
+
+// 健身训练模板
+final fitnessTemplateTasks = [fitnessTask1, fitnessTask2, fitnessTask3, fitnessTask4];
+
+// 旅行计划模板
+final travelTemplateTasks = [travelTask1, travelTask2, travelTask3, travelTask4];
 
 // 默认使用内容模板
 final defaultTasks = contentTemplateTasks;

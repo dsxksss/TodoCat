@@ -36,6 +36,7 @@ class TagWithColor {
   factory TagWithColor.fromString(String tagName, {Color? defaultColor}) {
     // 如果没有指定颜色，为不同标签分配不同颜色
     if (defaultColor == null) {
+      // 使用与 default_data.dart 相同的颜色列表
       final colors = [
         Colors.red,
         Colors.blue,
@@ -45,10 +46,6 @@ class TagWithColor {
         Colors.teal,
         Colors.pink,
         Colors.indigo,
-        Colors.amber,
-        Colors.cyan,
-        Colors.lime,
-        Colors.deepOrange,
       ];
       
       // 根据标签名称的hashCode选择颜色，确保相同名称总是得到相同颜色

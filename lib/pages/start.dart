@@ -74,9 +74,9 @@ class _StartPageState extends State<StartPage> {
                 height: 250,
                 filterQuality: FilterQuality.medium,
               ),
-              Text(
+              const Text(
                 "Todo Cat",
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'SourceHanSans',
                   fontSize: 60,
                   fontWeight: FontWeight.bold,

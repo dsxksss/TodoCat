@@ -414,6 +414,7 @@ void _showStackedNotification(
     displayTime: null, // 移除自动显示时间，通知不会自动消失
     animationTime: 400.ms,
     tag: 'notification_$notificationId',
+    useSystem: false, // 确保显示在最高层
     keepSingle: false, // 允许多个通知并存
     alignment: Alignment.bottomLeft,
     maskColor: Colors.transparent,

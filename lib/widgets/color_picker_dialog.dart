@@ -82,7 +82,7 @@ class ColorPickerDialog extends StatelessWidget {
                 ),
                 LabelBtn(
                   ghostStyle: true,
-                  label: Text('取消'),
+                  label: Text('cancel'.tr),
                   onPressed: () => SmartDialog.dismiss(tag: 'color_picker'),
                 ),
               ],

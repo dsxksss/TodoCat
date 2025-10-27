@@ -207,8 +207,17 @@ const Map<String, String> zhCN = {
   'emptyTemplateDescription': '创建空的todo、inProgress、done、another任务',
   'studentScheduleTemplate': '学生日程模板',
   'studentScheduleTemplateDescription': '包含具体todo项目的学习、编程、音乐、生活任务',
+  'workManagementTemplate': '工作管理模板',
+  'workManagementTemplateDescription': '项目管理、团队协作、工作进度跟踪',
+  'fitnessTrainingTemplate': '健身训练模板',
+  'fitnessTrainingTemplateDescription': '制定健身计划、记录训练进度',
+  'travelPlanTemplate': '旅行计划模板',
+  'travelPlanTemplateDescription': '规划旅行行程、预订酒店机票',
+  'apply': '应用',
   'confirmApplyTemplate': '确定要应用「{title}」模板吗？这将清除所有现有任务。',
   'taskTemplateApplied': '任务模板已应用',
+  'templatePreview': '模板预览',
+  'moreItems': '更多项目',
   // 颜色选择器
   'selectTagColor': '选择标签颜色',
 };

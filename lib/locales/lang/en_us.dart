@@ -207,8 +207,17 @@ const Map<String, String> enUS = {
   'emptyTemplateDescription': 'Create empty todo, inProgress, done, another tasks',
   'studentScheduleTemplate': 'Student Schedule Template',
   'studentScheduleTemplateDescription': 'Contains specific todo items for study, programming, music, and life tasks',
+  'workManagementTemplate': 'Work Management Template',
+  'workManagementTemplateDescription': 'Project management, team collaboration, work progress tracking',
+  'fitnessTrainingTemplate': 'Fitness Training Template',
+  'fitnessTrainingTemplateDescription': 'Create fitness plans and track training progress',
+  'travelPlanTemplate': 'Travel Plan Template',
+  'travelPlanTemplateDescription': 'Plan travel itinerary, book hotels and flights',
+  'apply': 'Apply',
   'confirmApplyTemplate': 'Are you sure you want to apply the "{title}" template? This will clear all existing tasks.',
   'taskTemplateApplied': 'Task template has been applied',
+  'templatePreview': 'Template Preview',
+  'moreItems': 'more items',
   // Color picker
   'selectTagColor': 'Select Tag Color',
 };
