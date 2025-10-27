@@ -71,7 +71,7 @@ class ImportConflictDialog extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'importConflictTitle'.tr,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),

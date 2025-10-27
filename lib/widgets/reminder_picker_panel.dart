@@ -183,9 +183,9 @@ class ReminderPickerPanel extends StatelessWidget {
                   ),
                 ),
                 if (selectedReminder.value == value)
-                  Icon(
+                  const Icon(
                     Icons.check_circle,
-                    color: const Color(0xFF3B82F6),
+                    color: Color(0xFF3B82F6),
                     size: 18,
                   ),
               ],

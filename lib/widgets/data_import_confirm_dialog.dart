@@ -130,7 +130,7 @@ class DataImportConfirmDialog extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.warning_amber_outlined,
                         size: 16,
                         color: Colors.orange,
