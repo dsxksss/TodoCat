@@ -70,12 +70,14 @@ class _TaskCardState extends State<TaskCard> {
         color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(width: 0.4, color: context.theme.dividerColor),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: context.theme.dividerColor,
-            blurRadius: context.isDarkMode ? 0.2 : 3.5,
-          ),
-        ],
+        boxShadow: context.isDarkMode
+            ? <BoxShadow>[
+                BoxShadow(
+                  color: context.theme.dividerColor,
+                  blurRadius: 0.2,
+                ),
+              ]
+            : null, // 亮色主题下不使用阴影
       ),
                   child: DragTarget<Map<String, dynamic>>(
         onWillAcceptWithDetails: (details) {
