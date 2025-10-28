@@ -11,6 +11,8 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
+import 'package:todo_cat/widgets/todo_detail_dialog.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class TodoCard extends StatelessWidget {
   TodoCard({
@@ -112,10 +114,31 @@ class TodoCard extends StatelessWidget {
       color: Colors.transparent,
       child: GestureDetector(
         onTap: () {
-          Get.toNamed('/todo-detail', arguments: {
-            'todoId': todo.uuid,
-            'taskId': taskId,
-          });
+          SmartDialog.show(
+            tag: 'todo_detail_dialog',
+            alignment: Alignment.center,
+            animationTime: const Duration(milliseconds: 250),
+            animationBuilder: (animController, child, _) {
+              return FadeTransition(
+                opacity: animController,
+                child: ScaleTransition(
+                  scale: Tween<double>(
+                    begin: 0.9,
+                    end: 1.0,
+                  ).animate(CurvedAnimation(
+                    parent: animController,
+                    curve: Curves.easeOut,
+                  )),
+                  child: child,
+                ),
+              );
+            },
+            builder: (_) => TodoDetailDialog(
+              todoId: todo.uuid,
+              taskId: taskId,
+            ),
+            clickMaskDismiss: true,
+          );
         },
         child: Container(
           margin: const EdgeInsets.only(left: 15, right: 15, bottom: 15),

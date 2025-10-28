@@ -6,20 +6,16 @@ import 'package:todo_cat/controllers/todo_detail_ctr.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/pages/home/components/tag.dart';
-import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/widgets/todocat_scaffold.dart';
-import 'package:todo_cat/controllers/app_ctr.dart';
-import 'package:todo_cat/widgets/nav_bar.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'dart:io';
-import 'dart:ui';
+import 'package:todo_cat/widgets/label_btn.dart';
 
-class TodoDetailPage extends StatelessWidget {
+class TodoDetailDialog extends StatelessWidget {
   final String todoId;
   final String taskId;
 
-  const TodoDetailPage({
+  const TodoDetailDialog({
     super.key,
     required this.todoId,
     required this.taskId,
@@ -31,203 +27,197 @@ class TodoDetailPage extends StatelessWidget {
       todoId: todoId,
       taskId: taskId,
     ));
-    final appCtrl = Get.find<AppController>();
+    
+    return _buildDialog(context, controller);
+  }
 
+  Widget _buildDialog(BuildContext context, TodoDetailController controller) {
     return Obx(() {
-      final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
-      final hasBackground = backgroundImagePath != null && 
-                            backgroundImagePath.isNotEmpty && 
-                            File(backgroundImagePath).existsSync();
-      final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-      final blur = appCtrl.appConfig.value.backgroundImageBlur;
-      final affectsNavBar = hasBackground ? appCtrl.appConfig.value.backgroundAffectsNavBar : false;
-
-      Widget scaffold = TodoCatScaffold(
-      title: 'todoDetail'.tr,
-      rightWidgets: _buildRightWidgets(controller),
-      body: Obx(() {
-        final todo = controller.todo.value;
-        if (todo == null) {
-          return const Center(
+      final todo = controller.todo.value;
+      if (todo == null) {
+        return Container(
+          width: context.isPhone ? 1.sw : 430,
+          height: 400,
+          decoration: BoxDecoration(
+            color: context.theme.dialogBackgroundColor,
+            border: Border.all(width: 0.3, color: context.theme.dividerColor),
+            borderRadius: context.isPhone
+                ? const BorderRadius.only(
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10),
+                  )
+                : BorderRadius.circular(10),
+          ),
+          child: const Center(
             child: CircularProgressIndicator(),
-          );
-        }
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 标题部分
-              _buildTitleSection(context, todo),
-              const SizedBox(height: 20),
-              
-              // 描述部分
-              if (todo.description.isNotEmpty) ...[
-                _buildDescriptionSection(context, todo),
-                const SizedBox(height: 20),
-              ],
-              
-              // 图片部分
-              if (todo.images.isNotEmpty) ...[
-                _buildImagesSection(context, todo),
-                const SizedBox(height: 20),
-              ],
-              
-              // 状态和优先级
-              _buildStatusSection(context, todo, controller),
-              const SizedBox(height: 20),
-              
-              // 标签部分
-              if (todo.tagsWithColor.isNotEmpty || todo.tags.isNotEmpty) ...[
-                _buildTagsSection(context, todo),
-                const SizedBox(height: 20),
-              ],
-              
-              // 时间信息
-              _buildTimeSection(context, todo),
-              
-              // 提醒信息
-              if (todo.reminders > 0) ...[
-                const SizedBox(height: 20),
-                _buildReminderSection(context, todo),
-              ],
-            ],
           ),
         );
-      }),
-    );
+      }
 
-      if (hasBackground && affectsNavBar) {
-        return Stack(
+      return Container(
+        width: context.isPhone ? 1.sw : 600,
+        height: context.isPhone ? 0.8.sh : 650,
+        decoration: BoxDecoration(
+          color: context.theme.dialogBackgroundColor,
+          border: Border.all(width: 0.3, color: context.theme.dividerColor),
+          borderRadius: context.isPhone
+              ? const BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                )
+              : BorderRadius.circular(10),
+        ),
+        child: Column(
           children: [
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: FileImage(File(backgroundImagePath)),
-                    fit: BoxFit.cover,
-                    opacity: opacity,
+            // 头部
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: context.theme.dividerColor,
+                    width: 0.3,
                   ),
                 ),
               ),
-            ),
-            if (blur > 0)
-              Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-                  child: Container(color: Colors.white.withOpacity(0.0)),
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'todoDetail'.tr,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () {
+                      SmartDialog.dismiss(tag: 'todo_detail_dialog');
+                    },
+                  ),
+                ],
               ),
-            scaffold,
-          ],
-        );
-      } else if (hasBackground && !affectsNavBar) {
-        return Stack(
-          children: [
-            Scaffold(
-              backgroundColor: Colors.transparent,
-              body: SafeArea(
-                minimum: EdgeInsets.zero,
-                bottom: false,
+            ),
+            // 内容区域
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(15),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (Platform.isMacOS) 15.verticalSpace,
-                    NavBar(
-                      title: 'todoDetail'.tr,
-                      rightWidgets: _buildRightWidgets(controller),
-                    ),
-                    5.verticalSpace,
-                    Expanded(
-                      child: ClipRect(
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: FileImage(File(backgroundImagePath)),
-                                    fit: BoxFit.cover,
-                                    opacity: opacity,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (blur > 0)
-                              Positioned.fill(
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-                                  child: Container(color: Colors.white.withOpacity(0.0)),
-                                ),
-                              ),
-                            Container(
-                              color: Colors.transparent,
-                              child: Obx(() {
-                                final todo = controller.todo.value;
-                                if (todo == null) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-
-                                return SingleChildScrollView(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      _buildTitleSection(Get.context!, todo),
-                                      const SizedBox(height: 20),
-                                      if (todo.description.isNotEmpty) ...[
-                                        _buildDescriptionSection(Get.context!, todo),
-                                        const SizedBox(height: 20),
-                                      ],
-                                      if (todo.images.isNotEmpty) ...[
-                                        _buildImagesSection(Get.context!, todo),
-                                        const SizedBox(height: 20),
-                                      ],
-                                      _buildStatusSection(Get.context!, todo, controller),
-                                      const SizedBox(height: 20),
-                                      if (todo.tagsWithColor.isNotEmpty || todo.tags.isNotEmpty) ...[
-                                        _buildTagsSection(Get.context!, todo),
-                                        const SizedBox(height: 20),
-                                      ],
-                                      _buildTimeSection(Get.context!, todo),
-                                      if (todo.reminders > 0) ...[
-                                        const SizedBox(height: 20),
-                                        _buildReminderSection(Get.context!, todo),
-                                      ],
-                                    ],
-                                  ),
-                                );
-                              }),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // 标题部分
+                    _buildTitleSection(todo),
+                    const SizedBox(height: 15),
+                    
+                    // 描述部分
+                    if (todo.description.isNotEmpty) ...[
+                      _buildDescriptionSection(todo),
+                      const SizedBox(height: 15),
+                    ],
+                    
+                    // 状态和优先级
+                    _buildStatusSection(todo, controller),
+                    const SizedBox(height: 15),
+                    
+                    // 标签部分
+                    if (todo.tagsWithColor.isNotEmpty || todo.tags.isNotEmpty) ...[
+                      _buildTagsSection(todo),
+                      const SizedBox(height: 15),
+                    ],
+                    
+                    // 时间信息
+                    _buildTimeSection(todo),
+                    
+                    // 提醒信息
+                    if (todo.reminders > 0) ...[
+                      const SizedBox(height: 15),
+                      _buildReminderSection(todo),
+                    ],
+                    
+                    // 图片部分
+                    if (todo.images.isNotEmpty) ...[
+                      const SizedBox(height: 15),
+                      _buildImagesSection(todo),
+                    ],
                   ],
                 ),
               ),
             ),
+            // 底部按钮
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: context.theme.dividerColor,
+                    width: 0.3,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  LabelBtn(
+                    ghostStyle: true,
+                    label: Text(
+                      'edit'.tr,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 2,
+                    ),
+                    onPressed: () => controller.editTodo(),
+                  ),
+                  const SizedBox(width: 8),
+                  LabelBtn(
+                    label: Text(
+                      'delete'.tr,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    bgColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 2,
+                    ),
+                    onPressed: () {
+                      showToast(
+                        "sureDeleteTodo".tr,
+                        alwaysShow: true,
+                        confirmMode: true,
+                        toastStyleType: TodoCatToastStyleType.error,
+                        onYesCallback: () => controller.deleteTodo(),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
           ],
-        );
-      }
-
-      return Scaffold(
-        backgroundColor: context.theme.scaffoldBackgroundColor,
-        body: scaffold,
+        ),
       );
     });
   }
 
-  Widget _buildTitleSection(BuildContext context, Todo todo) {
+  Widget _buildTitleSection(Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Get.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).dividerColor,
+          color: Get.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -265,14 +255,14 @@ class TodoDetailPage extends StatelessWidget {
     ).animate().fadeIn(duration: 200.ms);
   }
 
-  Widget _buildDescriptionSection(BuildContext context, Todo todo) {
+  Widget _buildDescriptionSection(Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Get.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).dividerColor,
+          color: Get.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -310,14 +300,14 @@ class TodoDetailPage extends StatelessWidget {
     ).animate(delay: 50.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildImagesSection(BuildContext context, Todo todo) {
+  Widget _buildImagesSection(Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Get.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).dividerColor,
+          color: Get.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -378,14 +368,14 @@ class TodoDetailPage extends StatelessWidget {
     ).animate(delay: 100.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildStatusSection(BuildContext context, Todo todo, TodoDetailController controller) {
+  Widget _buildStatusSection(Todo todo, TodoDetailController controller) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Get.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).dividerColor,
+          color: Get.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -487,14 +477,14 @@ class TodoDetailPage extends StatelessWidget {
     ).animate(delay: 100.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildTagsSection(BuildContext context, Todo todo) {
+  Widget _buildTagsSection(Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Get.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).dividerColor,
+          color: Get.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -520,46 +510,34 @@ class TodoDetailPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // 直接使用todo.tagsWithColor，它内部已经处理了兼容逻辑
-              // 如果有颜色数据则使用，如果没有但有字符串标签，则转换为带颜色的标签
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: todo.tagsWithColor.map((tagWithColor) {
-                  // 限制标签文本长度，防止溢出
-                  String displayText = tagWithColor.name;
-                  if (tagWithColor.name.length > 15) {
-                    displayText = '${tagWithColor.name.substring(0, 12)}...';
-                  }
-                  
-                  return ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: constraints.maxWidth * 0.45, // 限制单个标签最大宽度为容器的45%
-                    ),
-                    child: Tag(
-                      tag: displayText,
-                      color: tagWithColor.color, // 使用存储的颜色
-                    ),
-                  );
-                }).toList(),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: todo.tagsWithColor.map((tagWithColor) {
+              String displayText = tagWithColor.name;
+              if (tagWithColor.name.length > 15) {
+                displayText = '${tagWithColor.name.substring(0, 12)}...';
+              }
+              
+              return Tag(
+                tag: displayText,
+                color: tagWithColor.color,
               );
-            },
+            }).toList(),
           ),
         ],
       ),
     ).animate(delay: 150.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildTimeSection(BuildContext context, Todo todo) {
+  Widget _buildTimeSection(Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Get.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).dividerColor,
+          color: Get.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -641,14 +619,14 @@ class TodoDetailPage extends StatelessWidget {
     ).animate(delay: 200.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildReminderSection(BuildContext context, Todo todo) {
+  Widget _buildReminderSection(Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Get.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).dividerColor,
+          color: Get.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -686,74 +664,6 @@ class TodoDetailPage extends StatelessWidget {
     ).animate(delay: 250.ms).fadeIn(duration: 200.ms);
   }
 
-  List<Widget> _buildRightWidgets(TodoDetailController controller) {
-    return [
-      Obx(() {
-        if (controller.todo.value == null) return const SizedBox.shrink();
-        
-        return SizedBox(
-          width: 40,
-          height: 40,
-          child: AnimationBtn(
-            onPressed: () => controller.editTodo(),
-            child: Container(
-              margin: const EdgeInsets.all(4),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Get.theme.cardColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Get.theme.dividerColor,
-                  width: 0.5,
-                ),
-              ),
-              child: const Icon(
-                FontAwesomeIcons.penToSquare,
-                size: 16,
-              ),
-            ),
-          ),
-        );
-      }),
-      Obx(() {
-        if (controller.todo.value == null) return const SizedBox.shrink();
-        
-        return SizedBox(
-          width: 40,
-          height: 40,
-          child: AnimationBtn(
-            onPressed: () {
-              showToast(
-                "sureDeleteTodo".tr,
-                alwaysShow: true,
-                confirmMode: true,
-                toastStyleType: TodoCatToastStyleType.error,
-                onYesCallback: () => controller.deleteTodo(),
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.all(4),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Get.theme.cardColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Colors.red.shade300,
-                  width: 0.5,
-                ),
-              ),
-              child: Icon(
-                FontAwesomeIcons.trashCan,
-                size: 16,
-                color: Colors.red.shade400,
-              ),
-            ),
-          ),
-        );
-      }),
-    ];
-  }
-
   Color _getStatusColor(TodoStatus status) {
     switch (status) {
       case TodoStatus.todo:
@@ -776,3 +686,4 @@ class TodoDetailPage extends StatelessWidget {
     }
   }
 }
+

@@ -15,13 +15,32 @@ import 'package:todo_cat/controllers/task_dialog_ctr.dart';
 import 'package:todo_cat/widgets/task_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 
-class TaskCard extends StatelessWidget {
+class TaskCard extends StatefulWidget {
   TaskCard({super.key, required Task task}) : _task = task;
-  final HomeController _homeCtrl = Get.find();
   final Task _task;
 
+  @override
+  State<TaskCard> createState() => _TaskCardState();
+}
+
+class _TaskCardState extends State<TaskCard> {
+  final HomeController _homeCtrl = Get.find();
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   List<dynamic> _getColorAndIcon() {
-    switch (_task.title) {
+    switch (widget._task.title) {
       case 'todo':
         return [Colors.grey, FontAwesomeIcons.clipboard];
       case 'inProgress':
@@ -38,7 +57,7 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todosLength = _task.todos?.length ?? 0;
+    final todosLength = widget._task.todos?.length ?? 0;
     final colorAndIcon = _getColorAndIcon();
 
     return Container(
@@ -54,16 +73,16 @@ class TaskCard extends StatelessWidget {
           ),
         ],
       ),
-      child: DragTarget<Map<String, dynamic>>(
+                  child: DragTarget<Map<String, dynamic>>(
         onWillAcceptWithDetails: (details) {
-          return details.data['fromTaskId'] != _task.uuid;
+          return details.data['fromTaskId'] != widget._task.uuid;
         },
         onAcceptWithDetails: (details) {
           try {
             final data = details.data;
             _homeCtrl.moveTodoToTask(
               data['fromTaskId']!,
-              _task.uuid,
+              widget._task.uuid,
               data['todoId']!,
             );
           } catch (e) {
@@ -82,8 +101,8 @@ class TaskCard extends StatelessWidget {
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Flex(
-              direction: Axis.vertical,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(
                   height: 10,
@@ -119,10 +138,10 @@ class TaskCard extends StatelessWidget {
                           ),
                           Expanded(
                             child: Tooltip(
-                              message: _task.title.tr,
+                              message: widget._task.title.tr,
                               preferBelow: false,
                               child: Text(
-                                _task.title.tr,
+                                widget._task.title.tr,
                                 style: GoogleFonts.getFont(
                                   'Ubuntu',
                                   textStyle: const TextStyle(
@@ -178,7 +197,7 @@ class TaskCard extends StatelessWidget {
                             callback: () async {
                               final taskDialogController =
                                   Get.put(TaskDialogController());
-                              taskDialogController.initForEditing(_task);
+                              taskDialogController.initForEditing(widget._task);
 
                               DialogService.showFormDialog(
                                 tag: addTaskDialogTag,
@@ -197,15 +216,15 @@ class TaskCard extends StatelessWidget {
                                 toastStyleType: TodoCatToastStyleType.error,
                                 onYesCallback: () async {
                                   final bool isDeleted =
-                                      await _homeCtrl.deleteTask(_task.uuid);
+                                      await _homeCtrl.deleteTask(widget._task.uuid);
                                   0.5.delay(() {
                                     if (isDeleted) {
                                       showSuccessNotification(
-                                        "${"task".tr} '${_task.title.tr}' ${"deletedSuccessfully".tr}",
+                                        "${"task".tr} '${widget._task.title.tr}' ${"deletedSuccessfully".tr}",
                                       );
                                     } else {
                                       showErrorNotification(
-                                        "${"task".tr} '${_task.title.tr}' ${"deletionFailed".tr}",
+                                        "${"task".tr} '${widget._task.title.tr}' ${"deletionFailed".tr}",
                                       );
                                     }
                                   });
@@ -222,59 +241,61 @@ class TaskCard extends StatelessWidget {
                   height: 15,
                 ),
                 AddTodoCardBtn(
-                  task: _task,
+                  task: widget._task,
                 ),
                 const SizedBox(
                   height: 15,
                 ),
-                Obx(
-                  () {
-                    // 安全地获取最新的任务状态
-                    final currentTask = _homeCtrl.allTasks.firstWhere(
-                      (task) => task.uuid == _task.uuid,
-                      orElse: () => _task,
-                    );
-                    final todos = currentTask.todos ?? [];
-                    return ReorderableColumn(
-                      needsLongPressDraggable: true,
-                      scrollController: ScrollController(),
-                      onReorder: (oldIndex, newIndex) {
-                        try {
-                          _homeCtrl.reorderTodo(_task.uuid, oldIndex, newIndex);
-                        } catch (e) {
-                          print('Reorder error: $e');
-                          _homeCtrl.endDragging();
-                        }
-                      },
-                      onNoReorder: (index) {
-                        try {
-                          _homeCtrl.endDragging();
-                        } catch (e) {
-                          print('NoReorder error: $e');
-                        }
-                      },
-                      onReorderStarted: (index) {
-                        try {
-                          _homeCtrl.startDragging();
-                        } catch (e) {
-                          print('ReorderStarted error: $e');
-                        }
-                      },
-                      buildDraggableFeedback: (context, constraints, child) {
-                        return Material(
-                          color: Colors.transparent.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(10),
-                        );
-                      },
-                      children: todos
-                          .map((todo) => TodoCard(
-                                key: ValueKey(todo.uuid),
-                                taskId: _task.uuid,
-                                todo: todo,
-                              ))
-                          .toList(),
-                    );
-                  },
+                Flexible(
+                  child: Obx(
+                    () {
+                      // 安全地获取最新的任务状态
+                      final currentTask = _homeCtrl.allTasks.firstWhere(
+                        (task) => task.uuid == widget._task.uuid,
+                        orElse: () => widget._task,
+                      );
+                      final todos = currentTask.todos ?? [];
+                      return ReorderableColumn(
+                        needsLongPressDraggable: true,
+                        scrollController: _scrollController,
+                        onReorder: (oldIndex, newIndex) {
+                          try {
+                            _homeCtrl.reorderTodo(widget._task.uuid, oldIndex, newIndex);
+                          } catch (e) {
+                            print('Reorder error: $e');
+                            _homeCtrl.endDragging();
+                          }
+                        },
+                        onNoReorder: (index) {
+                          try {
+                            _homeCtrl.endDragging();
+                          } catch (e) {
+                            print('NoReorder error: $e');
+                          }
+                        },
+                        onReorderStarted: (index) {
+                          try {
+                            _homeCtrl.startDragging();
+                          } catch (e) {
+                            print('ReorderStarted error: $e');
+                          }
+                        },
+                        buildDraggableFeedback: (context, constraints, child) {
+                          return Material(
+                            color: Colors.transparent.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(10),
+                          );
+                        },
+                        children: todos
+                            .map((todo) => TodoCard(
+                                  key: ValueKey(todo.uuid),
+                                  taskId: widget._task.uuid,
+                                  todo: todo,
+                                ))
+                            .toList(),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

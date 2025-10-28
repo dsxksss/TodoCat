@@ -18,7 +18,9 @@ import 'package:todo_cat/widgets/task_dialog.dart';
 import 'package:badges/badges.dart' as badges;
 import 'dart:io';
 import 'dart:ui';
+import 'dart:async';
 import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/data/schemas/task.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -51,39 +53,37 @@ class HomePage extends GetView<HomeController> {
         title: _buildTitle(context),
         leftWidgets: _buildLeftWidgets(),
         rightWidgets: _buildRightWidgets(context),
-        body: ListView(
-          controller: controller.scrollController,
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
-          children: [
-            Obx(
-              () => Animate(
-                target: controller.tasks.isEmpty ? 1 : 0,
-                effects: [
-                  SwapEffect(
-                    builder: (_, __) => SizedBox(
-                      height: 0.7.sh,
-                      child: Center(
-                        child: Text(
-                          "Do It Now !",
-                          style: GoogleFonts.getFont(
-                            'Ubuntu',
-                            textStyle: const TextStyle(
-                              fontSize: 60,
-                            ),
+        body: context.isPhone
+            ? ListView(
+                controller: controller.scrollController,
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                children: [
+                  Obx(
+                    () => Animate(
+                      target: controller.tasks.isEmpty ? 1 : 0,
+                      effects: [
+                        SwapEffect(
+                          builder: (_, __) => SizedBox(
+                            height: 0.7.sh,
+                            child: Center(
+                              child: Text(
+                                "Do It Now !",
+                                style: GoogleFonts.getFont(
+                                  'Ubuntu',
+                                  textStyle: const TextStyle(
+                                    fontSize: 60,
+                                  ),
+                                ),
+                              ),
+                            ).animate().fade(),
                           ),
                         ),
-                      ).animate().fade(),
-                    ),
-                  ),
-                ],
-                child: Padding(
-                  padding: context.isPhone
-                      ? const EdgeInsets.only(bottom: 50)
-                      : const EdgeInsets.only(left: 20, bottom: 50),
-                  child: context.isPhone
-                      ? ReorderableColumn(
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 50),
+                        child: ReorderableColumn(
                           needsLongPressDraggable: true,
                           onReorder: (oldIndex, int newIndex) {
                             controller
@@ -120,57 +120,36 @@ class HomePage extends GetView<HomeController> {
                                     ),
                                   ))
                               .toList(),
-                        )
-                      : SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(
-                            parent: BouncingScrollPhysics(),
-                          ),
-                          child: ReorderableWrap(
-                            needsLongPressDraggable: true,
-                            scrollAnimationDuration:
-                                const Duration(milliseconds: 300),
-                            reorderAnimationDuration:
-                                const Duration(milliseconds: 200),
-                            spacing: 50,
-                            runSpacing: 30,
-                            padding: const EdgeInsets.all(8),
-                            onReorder: (oldIndex, int newIndex) {
-                              controller
-                                  .reorderTask(oldIndex, newIndex)
-                                  .then((_) {
-                                controller.endDragging();
-                              });
-                            },
-                            onNoReorder: (index) {
-                              controller.endDragging();
-                            },
-                            onReorderStarted: (index) {
-                              controller.startDragging();
-                            },
-                            buildDraggableFeedback:
-                                (context, constraints, child) {
-                              return child.animate().scaleXY(
-                                    begin: 1.0,
-                                    end: 1.1,
-                                    duration: 60.ms,
-                                    curve: Curves.easeOut,
-                                  );
-                            },
-                            enableReorder: true,
-                            alignment: WrapAlignment.start,
-                            children: controller.tasks
-                                .map((task) => TaskCard(
-                                      key: ValueKey(task.uuid),
-                                      task: task,
-                                    ))
-                                .toList(),
-                          ),
                         ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Obx(
+                () => Animate(
+                  target: controller.tasks.isEmpty ? 1 : 0,
+                  effects: [
+                    SwapEffect(
+                      builder: (_, __) => SizedBox(
+                        height: 0.7.sh,
+                        child: Center(
+                          child: Text(
+                            "Do It Now !",
+                            style: GoogleFonts.getFont(
+                              'Ubuntu',
+                              textStyle: const TextStyle(
+                                fontSize: 60,
+                              ),
+                            ),
+                          ),
+                        ).animate().fade(),
+                      ),
+                    ),
+                  ],
+                  child: _TaskHorizontalList(tasks: controller.reactiveTasks),
                 ),
               ),
-            ),
-          ],
-        ),
       ),
     );
     });
@@ -278,39 +257,37 @@ class HomePage extends GetView<HomeController> {
 
   /// 构建主体内容
   Widget _buildBody() {
-    return ListView(
-      controller: controller.scrollController,
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
-      ),
-      children: [
-        Obx(
-          () => Animate(
-            target: controller.tasks.isEmpty ? 1 : 0,
-            effects: [
-              SwapEffect(
-                builder: (_, __) => SizedBox(
-                  height: 0.7.sh,
-                  child: Center(
-                    child: Text(
-                      "Do It Now !",
-                      style: GoogleFonts.getFont(
-                        'Ubuntu',
-                        textStyle: const TextStyle(
-                          fontSize: 60,
-                        ),
+    return Get.context!.isPhone
+        ? ListView(
+            controller: controller.scrollController,
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            children: [
+              Obx(
+                () => Animate(
+                  target: controller.tasks.isEmpty ? 1 : 0,
+                  effects: [
+                    SwapEffect(
+                      builder: (_, __) => SizedBox(
+                        height: 0.7.sh,
+                        child: Center(
+                          child: Text(
+                            "Do It Now !",
+                            style: GoogleFonts.getFont(
+                              'Ubuntu',
+                              textStyle: const TextStyle(
+                                fontSize: 60,
+                              ),
+                            ),
+                          ),
+                        ).animate().fade(),
                       ),
                     ),
-                  ).animate().fade(),
-                ),
-              ),
-            ],
-            child: Padding(
-              padding: Get.context!.isPhone
-                  ? const EdgeInsets.only(bottom: 50)
-                  : const EdgeInsets.only(left: 20, bottom: 50),
-              child: Get.context!.isPhone
-                  ? ReorderableColumn(
+                  ],
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 50),
+                    child: ReorderableColumn(
                       needsLongPressDraggable: true,
                       onReorder: (oldIndex, int newIndex) {
                         controller.reorderTask(oldIndex, newIndex).then((_) {
@@ -344,52 +321,68 @@ class HomePage extends GetView<HomeController> {
                                 ),
                               ))
                           .toList(),
-                    )
-                  : SingleChildScrollView(
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
+        : Obx(
+            () => Animate(
+              target: controller.tasks.isEmpty ? 1 : 0,
+              effects: [
+                SwapEffect(
+                  builder: (_, __) => SizedBox(
+                    height: 0.7.sh,
+                    child: Center(
+                      child: Text(
+                        "Do It Now !",
+                        style: GoogleFonts.getFont(
+                          'Ubuntu',
+                          textStyle: const TextStyle(
+                            fontSize: 60,
+                          ),
+                        ),
+                      ),
+                    ).animate().fade(),
+                  ),
+                ),
+              ],
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 0.8.sh,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
                       physics: const AlwaysScrollableScrollPhysics(
                         parent: BouncingScrollPhysics(),
                       ),
-                      child: ReorderableWrap(
-                        needsLongPressDraggable: true,
-                        scrollAnimationDuration: const Duration(milliseconds: 300),
-                        reorderAnimationDuration: const Duration(milliseconds: 200),
-                        spacing: 50,
-                        runSpacing: 30,
-                        padding: const EdgeInsets.all(8),
-                        onReorder: (oldIndex, int newIndex) {
-                          controller.reorderTask(oldIndex, newIndex).then((_) {
-                            controller.endDragging();
-                          });
-                        },
-                        onNoReorder: (index) {
-                          controller.endDragging();
-                        },
-                        onReorderStarted: (index) {
-                          controller.startDragging();
-                        },
-                        buildDraggableFeedback: (context, constraints, child) {
-                          return child.animate().scaleXY(
-                                begin: 1.0,
-                                end: 1.1,
-                                duration: 60.ms,
-                                curve: Curves.easeOut,
-                              );
-                        },
-                        enableReorder: true,
-                        alignment: WrapAlignment.start,
-                        children: controller.tasks
-                            .map((task) => TaskCard(
-                                  key: ValueKey(task.uuid),
-                                  task: task,
-                                ))
-                            .toList(),
+                      padding: const EdgeInsets.only(left: 20),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: controller.tasks
+                              .asMap()
+                              .entries
+                              .map((entry) {
+                            final index = entry.key;
+                            final task = entry.value;
+                            return Padding(
+                              key: ValueKey(task.uuid),
+                              padding: EdgeInsets.only(
+                                right: index == controller.tasks.length - 1 ? 0 : 30,
+                              ),
+                              child: TaskCard(task: task),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
-      ],
-    );
+          );
   }
 
   /// 构建浮动按钮
@@ -567,5 +560,142 @@ class HomePage extends GetView<HomeController> {
               );
       },
     );
+  }
+}
+
+/// Task横向列表组件，支持拖拽排序和边缘自动滚动
+class _TaskHorizontalList extends StatefulWidget {
+  final RxList<Task> tasks;
+  
+  const _TaskHorizontalList({required this.tasks});
+
+  @override
+  State<_TaskHorizontalList> createState() => _TaskHorizontalListState();
+}
+
+class _TaskHorizontalListState extends State<_TaskHorizontalList> with TickerProviderStateMixin {
+  late final ScrollController _scrollController;
+  final HomeController _controller = Get.find();
+  Timer? _scrollTimer;
+  late AnimationController _scrollAnimationController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollTimer?.cancel();
+    _scrollController.dispose();
+    _scrollAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerMove: (event) {
+        if (!_controller.shouldAnimate.value) return;
+        
+        const scrollThreshold = 150;
+        final screenWidth = MediaQuery.of(context).size.width;
+        final position = event.position;
+        const scrollSpeed = 20.0;
+        
+        _scrollTimer?.cancel();
+        
+        if (position.dx < scrollThreshold && _scrollController.offset > 0) {
+          // 接近左边缘，向左滚动
+          _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+            if (!mounted || !_controller.shouldAnimate.value) {
+              _scrollTimer?.cancel();
+              return;
+            }
+            final offset = _scrollController.offset - scrollSpeed;
+            if (offset > 0) {
+              _scrollController.jumpTo(offset);
+            }
+          });
+        } else if (position.dx > screenWidth - scrollThreshold &&
+            _scrollController.offset < _scrollController.position.maxScrollExtent) {
+          // 接近右边缘，向右滚动
+          _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+            if (!mounted || !_controller.shouldAnimate.value) {
+              _scrollTimer?.cancel();
+              return;
+            }
+            final maxOffset = _scrollController.position.maxScrollExtent;
+            final offset = _scrollController.offset + scrollSpeed;
+            if (offset < maxOffset) {
+              _scrollController.jumpTo(offset);
+            }
+          });
+        }
+      },
+      onPointerUp: (_) {
+        _scrollTimer?.cancel();
+      },
+      child: SizedBox(
+          height: 0.8.sh,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.only(left: 20),
+            child: IntrinsicHeight(
+              child: ReorderableRow(
+                needsLongPressDraggable: true,
+                scrollAnimationDuration: const Duration(milliseconds: 300),
+                reorderAnimationDuration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.zero,
+                onReorder: (oldIndex, int newIndex) {
+                  _controller
+                      .reorderTask(oldIndex, newIndex)
+                      .then((_) {
+                    _controller.endDragging();
+                  });
+                },
+                onNoReorder: (index) {
+                  _controller.endDragging();
+                },
+                onReorderStarted: (index) {
+                  _controller.startDragging();
+                },
+                buildDraggableFeedback: (context, constraints, child) {
+                  return child.animate().scaleXY(
+                        begin: 1.0,
+                        end: 1.1,
+                        duration: 60.ms,
+                        curve: Curves.easeOut,
+                      );
+                },
+                children: widget.tasks
+                    .asMap()
+                    .entries
+                    .map((entry) {
+                  final index = entry.key;
+                  final task = entry.value;
+                  return Padding(
+                    key: ValueKey(task.uuid),
+                    padding: EdgeInsets.only(
+                      right: index == widget.tasks.length - 1 ? 0 : 30,
+                    ),
+                    child: TaskCard(task: task),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+      );
   }
 }
