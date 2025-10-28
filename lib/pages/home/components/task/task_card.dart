@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reorderables/reorderables.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
@@ -16,7 +16,11 @@ import 'package:todo_cat/widgets/task_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 
 class TaskCard extends StatefulWidget {
-  TaskCard({super.key, required Task task}) : _task = task;
+  TaskCard({
+    super.key, 
+    required Task task,
+    ScrollController? parentScrollController, // 保留但不使用，避免破坏调用
+  }) : _task = task;
   final Task _task;
 
   @override
@@ -247,54 +251,96 @@ class _TaskCardState extends State<TaskCard> {
                   height: 15,
                 ),
                 Flexible(
-                  child: Obx(
-                    () {
-                      // 安全地获取最新的任务状态
-                      final currentTask = _homeCtrl.allTasks.firstWhere(
-                        (task) => task.uuid == widget._task.uuid,
-                        orElse: () => widget._task,
-                      );
-                      final todos = currentTask.todos ?? [];
-                      return ReorderableColumn(
-                        needsLongPressDraggable: true,
-                        scrollController: _scrollController,
-                        onReorder: (oldIndex, newIndex) {
-                          try {
-                            _homeCtrl.reorderTodo(widget._task.uuid, oldIndex, newIndex);
-                          } catch (e) {
-                            print('Reorder error: $e');
-                            _homeCtrl.endDragging();
-                          }
-                        },
-                        onNoReorder: (index) {
-                          try {
-                            _homeCtrl.endDragging();
-                          } catch (e) {
-                            print('NoReorder error: $e');
-                          }
-                        },
-                        onReorderStarted: (index) {
-                          try {
-                            _homeCtrl.startDragging();
-                          } catch (e) {
-                            print('ReorderStarted error: $e');
-                          }
-                        },
-                        buildDraggableFeedback: (context, constraints, child) {
-                          return Material(
-                            color: Colors.transparent.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(10),
+                  child: Listener(
+                    // 拦截滚动事件，在 todos 区域内纵向滚动，不影响外层横向滚动
+                    onPointerSignal: (pointerSignal) {
+                      if (pointerSignal is PointerScrollEvent) {
+                        final scrollDelta = pointerSignal.scrollDelta.dy;
+                        if (_scrollController.hasClients && scrollDelta != 0) {
+                          // 手动处理纵向滚动
+                          final newOffset = _scrollController.offset + scrollDelta;
+                          _scrollController.animateTo(
+                            newOffset.clamp(
+                              0.0,
+                              _scrollController.position.maxScrollExtent,
+                            ),
+                            duration: const Duration(milliseconds: 100),
+                            curve: Curves.easeOut,
                           );
-                        },
-                        children: todos
-                            .map((todo) => TodoCard(
-                                  key: ValueKey(todo.uuid),
-                                  taskId: widget._task.uuid,
-                                  todo: todo,
-                                ))
-                            .toList(),
-                      );
+                        }
+                        // 不传递事件到父组件，阻止外层横向滚动
+                      }
                     },
+                    child: Obx(
+                      () {
+                        // 安全地获取最新的任务状态
+                        final currentTask = _homeCtrl.allTasks.firstWhere(
+                          (task) => task.uuid == widget._task.uuid,
+                          orElse: () => widget._task,
+                        );
+                        final todos = currentTask.todos ?? [];
+                        // 使用官方 ReorderableListView
+                        return ReorderableListView(
+                          shrinkWrap: true,
+                          buildDefaultDragHandles: false, // 移除默认拖拽手柄
+                          scrollController: _scrollController,
+                          onReorder: (oldIndex, newIndex) {
+                            try {
+                              if (newIndex > oldIndex) {
+                                newIndex -= 1;
+                              }
+                              _homeCtrl.reorderTodo(widget._task.uuid, oldIndex, newIndex);
+                            } catch (e) {
+                              print('Reorder error: $e');
+                            }
+                          },
+                          onReorderStart: (index) {
+                            try {
+                              _homeCtrl.startDragging();
+                            } catch (e) {
+                              print('ReorderStarted error: $e');
+                            }
+                          },
+                          onReorderEnd: (index) {
+                            try {
+                              _homeCtrl.endDragging();
+                            } catch (e) {
+                              print('ReorderEnd error: $e');
+                            }
+                          },
+                          proxyDecorator: (child, index, animation) {
+                            return AnimatedBuilder(
+                              animation: animation,
+                              builder: (context, child) {
+                                return Material(
+                                  elevation: 0, // 移除阴影
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Opacity(
+                                    opacity: 0.8, // 轻微半透明
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: child,
+                            );
+                          },
+                          children: todos.asMap().entries.map<Widget>((entry) {
+                            final index = entry.key;
+                            final todo = entry.value;
+                            // 使用 ReorderableDelayedDragStartListener 支持直接拖动
+                            return ReorderableDelayedDragStartListener(
+                              key: ValueKey(todo.uuid),
+                              index: index,
+                              child: TodoCard(
+                                taskId: widget._task.uuid,
+                                todo: todo,
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],

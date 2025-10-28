@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -13,12 +15,10 @@ import 'package:todo_cat/widgets/notification_center_dialog.dart';
 import 'package:todo_cat/core/notification_center_manager.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:reorderables/reorderables.dart';
 import 'package:todo_cat/widgets/task_dialog.dart';
 import 'package:badges/badges.dart' as badges;
 import 'dart:io';
 import 'dart:ui';
-import 'dart:async';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 
@@ -81,46 +81,52 @@ class HomePage extends GetView<HomeController> {
                           ),
                         ),
                       ],
-                      child: Padding(
+                      child: ReorderableListView(
+                        buildDefaultDragHandles: false, // 移除默认拖拽手柄
+                        onReorder: (oldIndex, int newIndex) {
+                          if (newIndex > oldIndex) {
+                            newIndex -= 1;
+                          }
+                          controller.reorderTask(oldIndex, newIndex);
+                        },
+                        onReorderStart: (index) {
+                          controller.startDragging();
+                        },
+                        onReorderEnd: (index) {
+                          controller.endDragging();
+                        },
                         padding: const EdgeInsets.only(bottom: 50),
-                        child: ReorderableColumn(
-                          needsLongPressDraggable: true,
-                          onReorder: (oldIndex, int newIndex) {
-                            controller
-                                .reorderTask(oldIndex, newIndex)
-                                .then((_) {
-                              controller.endDragging();
-                            });
-                          },
-                          onNoReorder: (index) {
-                            controller.endDragging();
-                          },
-                          onReorderStarted: (index) {
-                            controller.startDragging();
-                          },
-                          buildDraggableFeedback:
-                              (context, constraints, child) {
-                            return child.animate().scaleXY(
-                                  begin: 1.0,
-                                  end: 1.1,
-                                  duration: 60.ms,
-                                  curve: Curves.easeOut,
-                                );
-                          },
-                          children: controller.tasks
-                              .map((task) => Padding(
-                                    key: ValueKey(task.uuid),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 10,
-                                    ),
-                                    child: SizedBox(
-                                      width: 0.9.sw,
-                                      child: TaskCard(task: task),
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
+                        proxyDecorator: (child, index, animation) {
+                          return AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, child) {
+                              final scale = lerpDouble(1.0, 1.05, animation.value) ?? 1.0;
+                              return Transform.scale(
+                                scale: scale,
+                                child: child,
+                              );
+                            },
+                            child: child,
+                          );
+                        },
+                        children: controller.tasks.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final task = entry.value;
+                          return ReorderableDragStartListener(
+                            key: ValueKey(task.uuid),
+                            index: index,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              child: SizedBox(
+                                width: 0.9.sw,
+                                child: TaskCard(task: task),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ),
@@ -285,43 +291,52 @@ class HomePage extends GetView<HomeController> {
                       ),
                     ),
                   ],
-                  child: Padding(
+                  child: ReorderableListView(
+                    buildDefaultDragHandles: false, // 移除默认拖拽手柄
+                    onReorder: (oldIndex, int newIndex) {
+                      if (newIndex > oldIndex) {
+                        newIndex -= 1;
+                      }
+                      controller.reorderTask(oldIndex, newIndex);
+                    },
+                    onReorderStart: (index) {
+                      controller.startDragging();
+                    },
+                    onReorderEnd: (index) {
+                      controller.endDragging();
+                    },
                     padding: const EdgeInsets.only(bottom: 50),
-                    child: ReorderableColumn(
-                      needsLongPressDraggable: true,
-                      onReorder: (oldIndex, int newIndex) {
-                        controller.reorderTask(oldIndex, newIndex).then((_) {
-                          controller.endDragging();
-                        });
-                      },
-                      onNoReorder: (index) {
-                        controller.endDragging();
-                      },
-                      onReorderStarted: (index) {
-                        controller.startDragging();
-                      },
-                      buildDraggableFeedback: (context, constraints, child) {
-                        return child.animate().scaleXY(
-                              begin: 1.0,
-                              end: 1.1,
-                              duration: 60.ms,
-                              curve: Curves.easeOut,
-                            );
-                      },
-                      children: controller.tasks
-                          .map((task) => Padding(
-                                key: ValueKey(task.uuid),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 10,
-                                ),
-                                child: SizedBox(
-                                  width: 0.9.sw,
-                                  child: TaskCard(task: task),
-                                ),
-                              ))
-                          .toList(),
-                    ),
+                    proxyDecorator: (child, index, animation) {
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, child) {
+                          final scale = lerpDouble(1.0, 1.05, animation.value) ?? 1.0;
+                          return Transform.scale(
+                            scale: scale,
+                            child: child,
+                          );
+                        },
+                        child: child,
+                      );
+                    },
+                    children: controller.tasks.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final task = entry.value;
+                      return ReorderableDragStartListener(
+                        key: ValueKey(task.uuid),
+                        index: index,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          child: SizedBox(
+                            width: 0.9.sw,
+                            child: TaskCard(task: task),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
               ),
@@ -348,39 +363,7 @@ class HomePage extends GetView<HomeController> {
                   ),
                 ),
               ],
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 0.8.sh,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const AlwaysScrollableScrollPhysics(
-                        parent: BouncingScrollPhysics(),
-                      ),
-                      padding: const EdgeInsets.only(left: 20),
-                      child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: controller.tasks
-                              .asMap()
-                              .entries
-                              .map((entry) {
-                            final index = entry.key;
-                            final task = entry.value;
-                            return Padding(
-                              key: ValueKey(task.uuid),
-                              padding: EdgeInsets.only(
-                                right: index == controller.tasks.length - 1 ? 0 : 30,
-                              ),
-                              child: TaskCard(task: task),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              child: _TaskHorizontalList(tasks: controller.reactiveTasks),
             ),
           );
   }
@@ -573,129 +556,237 @@ class _TaskHorizontalList extends StatefulWidget {
   State<_TaskHorizontalList> createState() => _TaskHorizontalListState();
 }
 
-class _TaskHorizontalListState extends State<_TaskHorizontalList> with TickerProviderStateMixin {
+class _TaskHorizontalListState extends State<_TaskHorizontalList> {
   late final ScrollController _scrollController;
   final HomeController _controller = Get.find();
   Timer? _scrollTimer;
-  late AnimationController _scrollAnimationController;
+  bool _isDragging = false;
+  final Map<String, GlobalKey> _taskKeys = {}; // 存储每个task的key
   
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _scrollAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
+    _initTaskKeys();
+  }
+
+  void _initTaskKeys() {
+    _taskKeys.clear();
+    for (var task in widget.tasks) {
+      _taskKeys[task.uuid] = GlobalKey();
+    }
+  }
+
+  bool _isPointerOverTaskCard(Offset globalPosition) {
+    for (var entry in _taskKeys.entries) {
+      final key = entry.value;
+      final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null) {
+        final localPosition = renderBox.globalToLocal(globalPosition);
+        final size = renderBox.size;
+        if (localPosition.dx >= 0 &&
+            localPosition.dx <= size.width &&
+            localPosition.dy >= 0 &&
+            localPosition.dy <= size.height) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @override
   void dispose() {
     _scrollTimer?.cancel();
     _scrollController.dispose();
-    _scrollAnimationController.dispose();
     super.dispose();
+  }
+
+  void _startEdgeScroll(double dx, double screenWidth) {
+    _scrollTimer?.cancel();
+    
+    const scrollThreshold = 150;
+    const scrollSpeed = 20.0;
+    
+    if (dx < scrollThreshold && _scrollController.hasClients && _scrollController.offset > 0) {
+      // 接近左边缘，向左滚动
+      _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+        if (!mounted || !_isDragging) {
+          _scrollTimer?.cancel();
+          return;
+        }
+        final offset = _scrollController.offset - scrollSpeed;
+        if (offset > 0) {
+          _scrollController.jumpTo(offset);
+        } else {
+          _scrollController.jumpTo(0);
+          _scrollTimer?.cancel();
+        }
+      });
+    } else if (dx > screenWidth - scrollThreshold &&
+        _scrollController.hasClients &&
+        _scrollController.offset < _scrollController.position.maxScrollExtent) {
+      // 接近右边缘，向右滚动
+      _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+        if (!mounted || !_isDragging) {
+          _scrollTimer?.cancel();
+          return;
+        }
+        final maxOffset = _scrollController.position.maxScrollExtent;
+        final offset = _scrollController.offset + scrollSpeed;
+        if (offset < maxOffset) {
+          _scrollController.jumpTo(offset);
+        } else {
+          _scrollController.jumpTo(maxOffset);
+          _scrollTimer?.cancel();
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Listener(
       behavior: HitTestBehavior.translucent,
+      // 处理鼠标滚轮事件
+      onPointerSignal: (pointerSignal) {
+        if (pointerSignal is PointerScrollEvent) {
+          final scrollDeltaX = pointerSignal.scrollDelta.dx;
+          final scrollDeltaY = pointerSignal.scrollDelta.dy;
+          
+          // 检查鼠标是否在某个TaskCard上
+          final isOverTaskCard = _isPointerOverTaskCard(pointerSignal.position);
+          
+          if (_scrollController.hasClients) {
+            // 如果有横向滚动增量，优先处理横向滚动
+            if (scrollDeltaX.abs() > 0) {
+              final newOffset = _scrollController.offset + scrollDeltaX;
+              _scrollController.animateTo(
+                newOffset.clamp(
+                  0.0,
+                  _scrollController.position.maxScrollExtent,
+                ),
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeOut,
+              );
+            }
+            // 如果只有纵向滚动
+            else if (scrollDeltaY != 0) {
+              // 如果鼠标在TaskCard上，不做处理，让内部的todo列表处理
+              if (isOverTaskCard) {
+                // 内部滚动，不拦截
+                return;
+              }
+              // 如果鼠标不在TaskCard上，将纵向滚动转换为横向滚动
+              else {
+                final newOffset = _scrollController.offset + scrollDeltaY;
+                _scrollController.animateTo(
+                  newOffset.clamp(
+                    0.0,
+                    _scrollController.position.maxScrollExtent,
+                  ),
+                  duration: const Duration(milliseconds: 100),
+                  curve: Curves.easeOut,
+                );
+              }
+            }
+          }
+        }
+      },
       onPointerMove: (event) {
-        if (!_controller.shouldAnimate.value) return;
-        
-        const scrollThreshold = 150;
-        final screenWidth = MediaQuery.of(context).size.width;
-        final position = event.position;
-        const scrollSpeed = 20.0;
-        
-        _scrollTimer?.cancel();
-        
-        if (position.dx < scrollThreshold && _scrollController.offset > 0) {
-          // 接近左边缘，向左滚动
-          _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
-            if (!mounted || !_controller.shouldAnimate.value) {
-              _scrollTimer?.cancel();
-              return;
-            }
-            final offset = _scrollController.offset - scrollSpeed;
-            if (offset > 0) {
-              _scrollController.jumpTo(offset);
-            }
-          });
-        } else if (position.dx > screenWidth - scrollThreshold &&
-            _scrollController.offset < _scrollController.position.maxScrollExtent) {
-          // 接近右边缘，向右滚动
-          _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
-            if (!mounted || !_controller.shouldAnimate.value) {
-              _scrollTimer?.cancel();
-              return;
-            }
-            final maxOffset = _scrollController.position.maxScrollExtent;
-            final offset = _scrollController.offset + scrollSpeed;
-            if (offset < maxOffset) {
-              _scrollController.jumpTo(offset);
-            }
-          });
+        if (_isDragging) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          _startEdgeScroll(event.position.dx, screenWidth);
         }
       },
       onPointerUp: (_) {
         _scrollTimer?.cancel();
       },
-      child: SizedBox(
-          height: 0.8.sh,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
+        child: Scrollbar(
+          controller: _scrollController,
+          thumbVisibility: false, // 自动隐藏滚动条（鼠标悬停时显示）
+          thickness: 10.0, // 滚动条粗细
+          radius: const Radius.circular(5.0), // 滚动条圆角
           child: SingleChildScrollView(
             controller: _scrollController,
             scrollDirection: Axis.horizontal,
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            padding: const EdgeInsets.only(left: 20),
-            child: IntrinsicHeight(
-              child: ReorderableRow(
-                needsLongPressDraggable: true,
-                scrollAnimationDuration: const Duration(milliseconds: 300),
-                reorderAnimationDuration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.zero,
-                onReorder: (oldIndex, int newIndex) {
-                  _controller
-                      .reorderTask(oldIndex, newIndex)
-                      .then((_) {
-                    _controller.endDragging();
-                  });
-                },
-                onNoReorder: (index) {
-                  _controller.endDragging();
-                },
-                onReorderStarted: (index) {
-                  _controller.startDragging();
-                },
-                buildDraggableFeedback: (context, constraints, child) {
-                  return child.animate().scaleXY(
-                        begin: 1.0,
-                        end: 1.1,
-                        duration: 60.ms,
-                        curve: Curves.easeOut,
-                      );
-                },
-                children: widget.tasks
-                    .asMap()
-                    .entries
-                    .map((entry) {
-                  final index = entry.key;
-                  final task = entry.value;
-                  return Padding(
-                    key: ValueKey(task.uuid),
-                    padding: EdgeInsets.only(
-                      right: index == widget.tasks.length - 1 ? 0 : 30,
+            child: ReorderableListView(
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              buildDefaultDragHandles: false,
+              physics: const NeverScrollableScrollPhysics(),
+              onReorder: (oldIndex, newIndex) {
+                if (newIndex > oldIndex) {
+                  newIndex -= 1;
+                }
+                _controller.reorderTask(oldIndex, newIndex);
+              },
+              onReorderStart: (index) {
+                setState(() {
+                  _isDragging = true;
+                });
+                _controller.startDragging();
+              },
+              onReorderEnd: (index) {
+                setState(() {
+                  _isDragging = false;
+                });
+                _scrollTimer?.cancel();
+                _controller.endDragging();
+              },
+              proxyDecorator: (child, index, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (context, child) {
+                    return Material(
+                      elevation: 0,
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Opacity(
+                        opacity: 0.8,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: child,
+                );
+              },
+              children: widget.tasks.asMap().entries.map<Widget>((entry) {
+                final index = entry.key;
+                final task = entry.value;
+                final cardWidth = context.isPhone ? 0.9.sw : 260.0;
+                
+                // 确保每个task都有对应的key
+                if (!_taskKeys.containsKey(task.uuid)) {
+                  _taskKeys[task.uuid] = GlobalKey();
+                }
+                
+                return ReorderableDragStartListener(
+                  key: ValueKey(task.uuid),
+                  index: index,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: index == widget.tasks.length - 1 ? 0 : 30),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: Container(
+                        key: _taskKeys[task.uuid], // 添加GlobalKey用于位置检测
+                        width: cardWidth,
+                        child: TaskCard(task: task),
+                      ),
                     ),
-                    child: TaskCard(task: task),
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 }
+
