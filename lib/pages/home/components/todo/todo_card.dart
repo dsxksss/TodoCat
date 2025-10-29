@@ -91,29 +91,10 @@ class TodoCard extends StatelessWidget {
       onDragEnd: (_) => _homeCtrl.endDragging(),
       onDraggableCanceled: (_, __) => _homeCtrl.endDragging(),
       feedback: Material(
-        color: context.theme.cardColor,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: 260,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: context.theme.cardColor,
-            border: Border.all(color: context.theme.dividerColor),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: context.theme.shadowColor.withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Text(
-            todo.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 14),
-          ),
+        color: Colors.transparent,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 260),
+          child: content,
         ),
       ),
       childWhenDragging: Opacity(
