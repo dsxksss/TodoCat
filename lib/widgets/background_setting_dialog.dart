@@ -76,7 +76,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  DefaultBackgroundGrid(),
+                  const DefaultBackgroundGrid(),
                   const SizedBox(height: 24),
                   
                   // 分隔线
@@ -364,7 +364,7 @@ class DefaultBackgroundGrid extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.check,
                             size: 14,
                             color: Colors.white,
