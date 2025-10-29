@@ -16,7 +16,7 @@ import 'package:todo_cat/widgets/task_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 
 class TaskCard extends StatefulWidget {
-  TaskCard({
+  const TaskCard({
     super.key, 
     required Task task,
     ScrollController? parentScrollController, // 保留但不使用，避免破坏调用

@@ -67,13 +67,17 @@ class HomePage extends GetView<HomeController> {
                         SwapEffect(
                           builder: (_, __) => SizedBox(
                             height: 0.7.sh,
-                            child: Center(
-                              child: Text(
-                                "Do It Now !",
-                                style: GoogleFonts.getFont(
-                                  'Ubuntu',
-                                  textStyle: const TextStyle(
-                                    fontSize: 60,
+                            child: Align(
+                              alignment: Alignment.topLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Text(
+                                  "Do It Now !",
+                                  style: GoogleFonts.getFont(
+                                    'Ubuntu',
+                                    textStyle: const TextStyle(
+                                      fontSize: 60,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -709,13 +713,15 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
           thumbVisibility: false, // 自动隐藏滚动条（鼠标悬停时显示）
           thickness: 10.0, // 滚动条粗细
           radius: const Radius.circular(5.0), // 滚动条圆角
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            scrollDirection: Axis.horizontal,
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            child: ReorderableListView(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              child: ReorderableListView(
               shrinkWrap: true,
               scrollDirection: Axis.horizontal,
               buildDefaultDragHandles: false,
@@ -772,8 +778,8 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
                   child: Padding(
                     padding: EdgeInsets.only(right: index == widget.tasks.length - 1 ? 0 : 30),
                     child: Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(
                         key: _taskKeys[task.uuid], // 添加GlobalKey用于位置检测
                         width: cardWidth,
                         child: TaskCard(task: task),
@@ -782,6 +788,7 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
                   ),
                 );
               }).toList(),
+              ),
             ),
           ),
         ),
