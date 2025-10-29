@@ -224,13 +224,33 @@ class SettingsController extends GetxController {
           );
           appCtrl.appConfig.refresh();
           
-          showToast('背景图片已设置');
+          showToast('backgroundImageSetSuccess'.tr);
           _logger.i('背景图片已设置: ${file.path}');
         }
       }
     } catch (e) {
       _logger.e('选择背景图片失败: $e');
-      showToast('选择背景图片失败');
+      showToast('selectBackgroundImageFailed'.tr);
+    }
+  }
+
+  /// 选择默认背景模板
+  Future<void> selectDefaultBackground(String templateId) async {
+    try {
+      // 使用特殊标记来表示这是默认模板
+      // 格式: default_template:{templateId}
+      final templatePath = 'default_template:$templateId';
+      
+      appCtrl.appConfig.value = appCtrl.appConfig.value.copyWith(
+        backgroundImagePath: templatePath,
+      );
+      appCtrl.appConfig.refresh();
+      
+      showToast('backgroundTemplateApplied'.tr);
+      _logger.i('应用默认背景模板: $templateId');
+    } catch (e) {
+      _logger.e('应用默认背景模板失败: $e');
+      showToast('applyDefaultTemplateFailed'.tr);
     }
   }
 
@@ -254,11 +274,11 @@ class SettingsController extends GetxController {
       
       appCtrl.appConfig.refresh();
       
-      showToast('背景图片已清除');
+      showToast('backgroundImageCleared'.tr);
       _logger.i('背景图片已清除');
     } catch (e) {
       _logger.e('清除背景图片设置失败: $e');
-      showToast('清除背景图片设置失败');
+      showToast('backgroundImageClearFailed'.tr);
     }
   }
 }

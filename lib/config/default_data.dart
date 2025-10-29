@@ -492,4 +492,8 @@ final defaultAppConfig = AppConfig.create(
   locale: const Locale("zh", "CN"),
   emailReminderEnabled: false,
   isDebugMode: false,
+  backgroundImagePath: 'default_template:background_1',
+  backgroundImageOpacity: 0.8,
+  backgroundImageBlur: 0.0,
+  backgroundAffectsNavBar: true,
 );

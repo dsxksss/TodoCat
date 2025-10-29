@@ -261,7 +261,7 @@ class SettingsContent extends GetView<SettingsController> {
   /// 显示背景图片对话框
   void _showBackgroundImageDialog() {
     if (!GetPlatform.isDesktop) {
-      showToast('此功能仅在桌面端可用');
+      showToast('desktopOnlyFeature'.tr);
       return;
     }
     

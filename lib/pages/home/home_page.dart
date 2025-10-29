@@ -21,6 +21,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/config/default_backgrounds.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -36,9 +37,14 @@ class HomePage extends GetView<HomeController> {
     
     return Obx(() {
       final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
-      final hasBackground = backgroundImagePath != null && 
+      final isDefaultTemplate = backgroundImagePath != null && 
+                                backgroundImagePath.startsWith('default_template:');
+      final isCustomImage = backgroundImagePath != null && 
+                            !isDefaultTemplate && 
                             backgroundImagePath.isNotEmpty && 
+                            GetPlatform.isDesktop &&
                             File(backgroundImagePath).existsSync();
+      final hasBackground = isDefaultTemplate || isCustomImage;
       final affectsNavBar = hasBackground ? appCtrl.appConfig.value.backgroundAffectsNavBar : false;
       final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
       final blur = appCtrl.appConfig.value.backgroundImageBlur;
@@ -165,20 +171,82 @@ class HomePage extends GetView<HomeController> {
     });
   }
 
+  /// 获取背景装饰
+  Widget _getBackgroundWidget(String? backgroundPath) {
+    // 检查是否是默认模板
+    if (backgroundPath != null && backgroundPath.startsWith('default_template:')) {
+      final templateId = backgroundPath.split(':').last;
+      final imageUrl = _getTemplateImageUrl(templateId);
+      
+      if (imageUrl != null) {
+        // 使用本地图片
+        return Image.asset(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // 回退到渐变占位符
+            final colors = _getGradientColors(templateId);
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: colors,
+                ),
+              ),
+            );
+          },
+        );
+      } else {
+        // 回退到渐变
+        final colors = _getGradientColors(templateId);
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+          ),
+        );
+      }
+    } else {
+      // 自定义图片
+      return Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: FileImage(File(backgroundPath!)),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
+  /// 获取渐变颜色（用作占位符）
+  List<Color> _getGradientColors(String templateId) {
+    // 简单的灰色渐变占位符
+    return [Colors.grey.shade300, Colors.grey.shade400];
+  }
+  
+  /// 获取模板图片URL
+  String? _getTemplateImageUrl(String templateId) {
+    try {
+      return DefaultBackgrounds.templates.firstWhere((bg) => bg.id == templateId).imageUrl;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// 构建带背景的页面（影响导航栏）
   Widget _buildWithBackground(String imagePath, double opacity, double blur) {
     return Stack(
       children: [
-        // 背景图片层
+        // 背景图片/渐变层
         Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: FileImage(File(imagePath)),
-                fit: BoxFit.cover,
-                opacity: opacity,
-              ),
-            ),
+          child: Opacity(
+            opacity: opacity,
+            child: _getBackgroundWidget(imagePath),
           ),
         ),
         // 模糊层（毛玻璃效果）
@@ -227,16 +295,11 @@ class HomePage extends GetView<HomeController> {
               child: ClipRect(
                 child: Stack(
                   children: [
-                    // 背景图片层
+                    // 背景图片/渐变层
                     Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: FileImage(File(imagePath)),
-                            fit: BoxFit.cover,
-                            opacity: opacity,
-                          ),
-                        ),
+                      child: Opacity(
+                        opacity: opacity,
+                        child: _getBackgroundWidget(imagePath),
                       ),
                     ),
                     // 模糊层（毛玻璃效果）
