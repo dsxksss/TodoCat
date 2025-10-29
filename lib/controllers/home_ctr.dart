@@ -396,6 +396,71 @@ class HomeController extends GetxController
     }
   }
 
+  /// 将todo从一个task移动到另一个task，并按索引插入
+  Future<void> moveTodoToTaskAtIndex(
+      String fromTaskId, String toTaskId, String todoId, int insertIndex) async {
+    try {
+      _logger.d(
+          'Moving todo $todoId from task $fromTaskId to task $toTaskId at index $insertIndex');
+
+      final fromTask = allTasks.firstWhere((task) => task.uuid == fromTaskId);
+      final toTask = allTasks.firstWhere((task) => task.uuid == toTaskId);
+
+      if (fromTask.todos == null) {
+        _logger.w('Source task todos is null');
+        return;
+      }
+
+      // 找到要移动的todo
+      final todoToMove = fromTask.todos!.firstWhere(
+        (todo) => todo.uuid == todoId,
+        orElse: () {
+          _logger.w('Todo $todoId not found in source task');
+          throw Exception('Todo not found');
+        },
+      );
+
+      // 根据目标task的类型智能更新todo的状态
+      final newStatus = _getStatusFromTaskTitle(toTask.title);
+      if (newStatus != null && newStatus != todoToMove.status) {
+        _logger.d(
+            'Updating todo status from ${todoToMove.status} to $newStatus based on target task: ${toTask.title}');
+        todoToMove.status = newStatus;
+
+        if (newStatus == TodoStatus.done) {
+          todoToMove.finishedAt = DateTime.now().millisecondsSinceEpoch;
+        } else {
+          todoToMove.finishedAt = 0;
+        }
+      }
+
+      // 从原task中移除（创建可变副本）
+      final fromTodos = List<Todo>.from(fromTask.todos!);
+      fromTodos.removeWhere((todo) => todo.uuid == todoId);
+      fromTask.todos = fromTodos;
+
+      // 按索引插入到新task中（创建可变副本）
+      final toTodos = List<Todo>.from(toTask.todos ?? []);
+      final clampedIndex = insertIndex.clamp(0, toTodos.length);
+      toTodos.insert(clampedIndex, todoToMove);
+      toTask.todos = toTodos;
+
+      await Future.wait([
+        _taskManager.updateTask(fromTaskId, fromTask),
+        _taskManager.updateTask(toTaskId, toTask),
+      ]);
+
+      _taskManager.tasks.refresh();
+      _refreshExportPreview();
+
+      _logger.d(
+          'Todo $todoId moved and inserted at index $clampedIndex successfully');
+    } catch (e) {
+      _logger.e('Error moving todo between tasks at index: $e');
+      await _taskManager.refresh();
+    }
+  }
+
   /// 根据task的标题推断todo的状态
   TodoStatus? _getStatusFromTaskTitle(String taskTitle) {
     final lowerTitle = taskTitle.toLowerCase();

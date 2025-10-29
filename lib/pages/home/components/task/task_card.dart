@@ -330,13 +330,22 @@ class _TaskCardState extends State<TaskCard> {
                           children: todos.asMap().entries.map<Widget>((entry) {
                             final index = entry.key;
                             final todo = entry.value;
-                            // 使用 ReorderableDelayedDragStartListener 支持直接拖动
                             return ReorderableDelayedDragStartListener(
                               key: ValueKey(todo.uuid),
                               index: index,
-                              child: TodoCard(
-                                taskId: widget._task.uuid,
-                                todo: todo,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // 每个条目前插入位
+                                  _buildCrossTaskInsertTarget(insertIndex: index),
+                                  TodoCard(
+                                    taskId: widget._task.uuid,
+                                    todo: todo,
+                                  ),
+                                  // 最后一项后再补一个末尾插入位
+                                  if (index == todos.length - 1)
+                                    _buildCrossTaskInsertTarget(insertIndex: todos.length),
+                                ],
                               ),
                             );
                           }).toList(),
@@ -350,6 +359,40 @@ class _TaskCardState extends State<TaskCard> {
           );
         },
       ),
+    );
+  }
+
+  // 跨 Task 拖入时的插入位置目标（仅当来源是其它 Task 的 todo 时接收）
+  Widget _buildCrossTaskInsertTarget({required int insertIndex}) {
+    return DragTarget<Map<String, dynamic>>(
+      key: ValueKey('insert-${widget._task.uuid}-$insertIndex'),
+      onWillAcceptWithDetails: (details) {
+        final data = details.data;
+        return data['fromTaskId'] != widget._task.uuid;
+      },
+      onAcceptWithDetails: (details) {
+        final data = details.data;
+        _homeCtrl.moveTodoToTaskAtIndex(
+          data['fromTaskId'],
+          widget._task.uuid,
+          data['todoId'],
+          insertIndex,
+        );
+      },
+      builder: (context, candidate, rejected) {
+        final hovering = candidate.isNotEmpty;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          height: hovering ? 12 : 6,
+          margin: EdgeInsets.symmetric(horizontal: 12, vertical: hovering ? 4 : 2),
+          decoration: BoxDecoration(
+            color: hovering
+                ? context.theme.colorScheme.primary.withOpacity(0.25)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        );
+      },
     );
   }
 }

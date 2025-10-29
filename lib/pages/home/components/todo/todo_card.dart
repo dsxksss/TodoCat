@@ -79,8 +79,7 @@ class TodoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todoContent = buildTodoContent(context);
-
+    final content = buildTodoContent(context);
     return Draggable<Map<String, dynamic>>(
       data: {
         'todoId': todo.uuid,
@@ -88,24 +87,40 @@ class TodoCard extends StatelessWidget {
         'todo': todo,
       },
       maxSimultaneousDrags: 1,
-      onDragStarted: () {
-        _homeCtrl.startDragging();
-      },
-      onDragEnd: (details) {
-        _homeCtrl.endDragging();
-      },
-      onDraggableCanceled: (velocity, offset) {
-        _homeCtrl.endDragging();
-      },
-      feedback: DefaultTextStyle(
-        style: DefaultTextStyle.of(context).style,
-        child: todoContent,
+      onDragStarted: () => _homeCtrl.startDragging(),
+      onDragEnd: (_) => _homeCtrl.endDragging(),
+      onDraggableCanceled: (_, __) => _homeCtrl.endDragging(),
+      feedback: Material(
+        color: context.theme.cardColor,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: 260,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: context.theme.cardColor,
+            border: Border.all(color: context.theme.dividerColor),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: context.theme.shadowColor.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Text(
+            todo.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ),
       ),
       childWhenDragging: Opacity(
         opacity: 0.5,
-        child: todoContent,
+        child: content,
       ),
-      child: todoContent,
+      child: content,
     );
   }
 
@@ -184,41 +199,45 @@ class TodoCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    DPDMenuBtn(
-                      tag: dropDownMenuBtnTag,
-                      menuItems: [
-                        MenuItem(
-                          title: 'edit',
-                          iconData: FontAwesomeIcons.penToSquare,
-                          callback: () async {
-                            final todoDialogController = Get.put(
-                              AddTodoDialogController(),
-                              tag: 'edit_todo_dialog',
-                              permanent: true,
-                            );
-                            todoDialogController.initForEditing(taskId, todo);
+                    Row(
+                      children: [
+                        DPDMenuBtn(
+                          tag: dropDownMenuBtnTag,
+                          menuItems: [
+                            MenuItem(
+                              title: 'edit',
+                              iconData: FontAwesomeIcons.penToSquare,
+                              callback: () async {
+                                final todoDialogController = Get.put(
+                                  AddTodoDialogController(),
+                                  tag: 'edit_todo_dialog',
+                                  permanent: true,
+                                );
+                                todoDialogController.initForEditing(taskId, todo);
 
-                            DialogService.showFormDialog(
-                              tag: addTodoDialogTag,
-                              dialog: const TodoDialog(
-                                  dialogTag: 'edit_todo_dialog'),
-                            );
-                          },
-                        ),
-                        MenuItem(
-                          title: 'delete',
-                          iconData: FontAwesomeIcons.trashCan,
-                          callback: () => {
-                            showToast(
-                              "sureDeleteTodo".tr,
-                              alwaysShow: true,
-                              confirmMode: true,
-                              toastStyleType: TodoCatToastStyleType.error,
-                              onYesCallback: () {
-                                _handleDelete();
+                                DialogService.showFormDialog(
+                                  tag: addTodoDialogTag,
+                                  dialog: const TodoDialog(
+                                      dialogTag: 'edit_todo_dialog'),
+                                );
                               },
-                            )
-                          },
+                            ),
+                            MenuItem(
+                              title: 'delete',
+                              iconData: FontAwesomeIcons.trashCan,
+                              callback: () => {
+                                showToast(
+                                  "sureDeleteTodo".tr,
+                                  alwaysShow: true,
+                                  confirmMode: true,
+                                  toastStyleType: TodoCatToastStyleType.error,
+                                  onYesCallback: () {
+                                    _handleDelete();
+                                  },
+                                )
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
