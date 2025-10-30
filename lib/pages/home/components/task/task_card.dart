@@ -255,22 +255,35 @@ class _TaskCardState extends State<TaskCard> {
                 Flexible(
                   child: Listener(
                     // 拦截滚动事件，在 todos 区域内纵向滚动，不影响外层横向滚动
+                    behavior: HitTestBehavior.opaque, // 完全捕获事件，阻止传播到父级
                     onPointerSignal: (pointerSignal) {
                       if (pointerSignal is PointerScrollEvent) {
                         final scrollDelta = pointerSignal.scrollDelta.dy;
-                        if (_scrollController.hasClients && scrollDelta != 0) {
-                          // 手动处理纵向滚动
-                          final newOffset = _scrollController.offset + scrollDelta;
-                          _scrollController.animateTo(
-                            newOffset.clamp(
-                              0.0,
-                              _scrollController.position.maxScrollExtent,
-                            ),
-                            duration: const Duration(milliseconds: 100),
-                            curve: Curves.easeOut,
-                          );
+                        // 只处理纵向滚动，并且只有在scrollController可用且有可滚动内容时才处理
+                        if (_scrollController.hasClients && 
+                            scrollDelta != 0 && 
+                            _scrollController.position.maxScrollExtent > 0) {
+                          // 检查是否可以滚动（是否在边界）
+                          final canScrollUp = _scrollController.offset > 0;
+                          final canScrollDown = _scrollController.offset < _scrollController.position.maxScrollExtent;
+                          
+                          // 只有当需要滚动时才处理
+                          if ((scrollDelta < 0 && canScrollUp) || (scrollDelta > 0 && canScrollDown)) {
+                            // 手动处理纵向滚动
+                            final newOffset = _scrollController.offset + scrollDelta;
+                            _scrollController.animateTo(
+                              newOffset.clamp(
+                                0.0,
+                                _scrollController.position.maxScrollExtent,
+                              ),
+                              duration: const Duration(milliseconds: 100),
+                              curve: Curves.easeOut,
+                            );
+                            // 由于 behavior 是 opaque，事件已被阻止传播到父级
+                          }
+                          // 如果已经到达边界，不处理，但由于 opaque 行为，事件仍被阻止传播
+                          // 这样可以确保在 todo 列表区域内时，无论如何都不会触发父级滚动
                         }
-                        // 不传递事件到父组件，阻止外层横向滚动
                       }
                     },
                     child: Obx(
