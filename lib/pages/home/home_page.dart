@@ -22,6 +22,8 @@ import 'dart:ui';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/config/default_backgrounds.dart';
+import 'package:todo_cat/drag_and_drop_lists/drag_and_drop_lists.dart';
+import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -143,28 +145,7 @@ class HomePage extends GetView<HomeController> {
                 ],
               )
             : Obx(
-                () => Animate(
-                  target: controller.tasks.isEmpty ? 1 : 0,
-                  effects: [
-                    SwapEffect(
-                      builder: (_, __) => SizedBox(
-                        height: 0.7.sh,
-                        child: Center(
-                          child: Text(
-                            "Do It Now !",
-                            style: GoogleFonts.getFont(
-                              'Ubuntu',
-                              textStyle: const TextStyle(
-                                fontSize: 60,
-                              ),
-                            ),
-                          ),
-                        ).animate().fade(),
-                      ),
-                    ),
-                  ],
-                  child: _TaskHorizontalList(tasks: controller.reactiveTasks),
-                ),
+                () => _TaskHorizontalList(tasks: controller.reactiveTasks),
               ),
       ),
     );
@@ -628,35 +609,40 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
   final HomeController _controller = Get.find();
   Timer? _scrollTimer;
   bool _isDragging = false;
-  final Map<String, GlobalKey> _taskKeys = {}; // 存储每个task的key
+  final Map<String, GlobalKey> _listKeys = {}; // 每列区域的 GlobalKey
   
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _initTaskKeys();
+    _syncListKeys();
   }
 
-  void _initTaskKeys() {
-    _taskKeys.clear();
-    for (var task in widget.tasks) {
-      _taskKeys[task.uuid] = GlobalKey();
+  @override
+  void didUpdateWidget(_TaskHorizontalList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncListKeys();
+  }
+
+  void _syncListKeys() {
+    // 为每个 task.uuid 维护一个 GlobalKey，用于命中检测
+    final ids = widget.tasks.map((t) => t.uuid).toSet();
+    // 添加缺失
+    for (final id in ids) {
+      _listKeys.putIfAbsent(id, () => GlobalKey());
     }
+    // 移除已不存在的
+    _listKeys.removeWhere((id, _) => !ids.contains(id));
   }
 
   bool _isPointerOverTaskCard(Offset globalPosition) {
-    for (var entry in _taskKeys.entries) {
-      final key = entry.value;
-      final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        final localPosition = renderBox.globalToLocal(globalPosition);
-        final size = renderBox.size;
-        if (localPosition.dx >= 0 &&
-            localPosition.dx <= size.width &&
-            localPosition.dy >= 0 &&
-            localPosition.dy <= size.height) {
-          return true;
-        }
+    for (final key in _listKeys.values) {
+      final renderObject = key.currentContext?.findRenderObject() as RenderBox?;
+      if (renderObject == null || !renderObject.attached) continue;
+      final local = renderObject.globalToLocal(globalPosition);
+      final size = renderObject.size;
+      if (local.dx >= 0 && local.dx <= size.width && local.dy >= 0 && local.dy <= size.height) {
+        return true;
       }
     }
     return false;
@@ -714,7 +700,7 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
   @override
   Widget build(BuildContext context) {
     return Listener(
-      behavior: HitTestBehavior.translucent,
+      behavior: HitTestBehavior.deferToChild,
       // 处理鼠标滚轮事件
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
@@ -725,6 +711,11 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
           final isOverTaskCard = _isPointerOverTaskCard(pointerSignal.position);
           
           if (_scrollController.hasClients) {
+            // 如果指针位于 TaskCard 内部，且垂直滚动占主导（|dy| >= |dx|），
+            // 直接交给内部 todolist 处理，外层不消费该滚轮事件
+            if (isOverTaskCard && scrollDeltaY.abs() >= scrollDeltaX.abs()) {
+              return;
+            }
             // 如果有横向滚动增量，优先处理横向滚动
             if (scrollDeltaX.abs() > 0) {
               final newOffset = _scrollController.offset + scrollDeltaX;
@@ -737,15 +728,11 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
                 curve: Curves.easeOut,
               );
             }
-            // 如果只有纵向滚动
+            // 如果只有纵向滚动：
+            // - 鼠标在 TaskCard 上：交给内部 todolist 处理（外层不处理）
+            // - 鼠标不在 TaskCard 上：将纵向滚动转换为横向滚动，保证页面可横向浏览
             else if (scrollDeltaY != 0) {
-              // 如果鼠标在TaskCard上，不做处理，让内部的todo列表处理
-              if (isOverTaskCard) {
-                // 内部滚动，不拦截
-                return;
-              }
-              // 如果鼠标不在TaskCard上，将纵向滚动转换为横向滚动
-              else {
+              if (!isOverTaskCard) {
                 final newOffset = _scrollController.offset + scrollDeltaY;
                 _scrollController.animateTo(
                   newOffset.clamp(
@@ -755,7 +742,7 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
                   duration: const Duration(milliseconds: 100),
                   curve: Curves.easeOut,
                 );
-              }
+              } // 在 TaskCard 上由上面的早退逻辑处理
             }
           }
         }
@@ -777,82 +764,115 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
           thickness: 10.0, // 滚动条粗细
           radius: const Radius.circular(5.0), // 滚动条圆角
           child: Align(
-            alignment: Alignment.centerLeft,
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              child: ReorderableListView(
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              buildDefaultDragHandles: false,
-              physics: const NeverScrollableScrollPhysics(),
-              onReorder: (oldIndex, newIndex) {
-                if (newIndex > oldIndex) {
-                  newIndex -= 1;
-                }
-                _controller.reorderTask(oldIndex, newIndex);
-              },
-              onReorderStart: (index) {
-                setState(() {
-                  _isDragging = true;
-                });
-                _controller.startDragging();
-              },
-              onReorderEnd: (index) {
-                setState(() {
-                  _isDragging = false;
-                });
-                _scrollTimer?.cancel();
-                _controller.endDragging();
-              },
-              proxyDecorator: (child, index, animation) {
-                return AnimatedBuilder(
-                  animation: animation,
-                  builder: (context, child) {
-                    return Material(
-                      elevation: 0,
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Opacity(
-                        opacity: 0.8,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: child,
-                );
-              },
-              children: widget.tasks.asMap().entries.map<Widget>((entry) {
-                final index = entry.key;
-                final task = entry.value;
+            alignment: Alignment.topLeft, // 使用 start-start 对齐（左上角）
+            child: Obx(() {
+              // 将 tasks 转换为 DragAndDropList 列表，每个 list 包含该 task 的所有 todos
+              // 注意：不在 build 方法中调用 _syncTaskKeys()，避免 GlobalKey 重复使用
+              final dragAndDropLists = widget.tasks.map((task) {
                 final cardWidth = context.isPhone ? 0.9.sw : 260.0;
                 
-                // 确保每个task都有对应的key
-                if (!_taskKeys.containsKey(task.uuid)) {
-                  _taskKeys[task.uuid] = GlobalKey();
-                }
-                
-                return ReorderableDragStartListener(
-                  key: ValueKey(task.uuid),
-                  index: index,
-                  child: Padding(
-                    padding: EdgeInsets.only(right: index == widget.tasks.length - 1 ? 0 : 30),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: SizedBox(
-                        key: _taskKeys[task.uuid], // 添加GlobalKey用于位置检测
-                        width: cardWidth,
-                        child: TaskCard(task: task),
-                      ),
+                // 将 todos 转换为 DragAndDropItem，用于跨列拖拽
+                final todoItems = (task.todos ?? []).map((todo) {
+                  return DragAndDropItem(
+                    key: ValueKey(todo.uuid),
+                    child: TodoCard(
+                      taskId: task.uuid,
+                      todo: todo,
                     ),
+                  );
+                }).toList();
+                
+                // 使用 TaskCard 的样式装饰整个 DragAndDropList
+                // 这样 TaskCard 可以视觉上包裹 todos
+                final theme = Theme.of(context);
+                final isDarkMode = Get.isDarkMode;
+                
+                // 返回 DragAndDropList，同时额外把 key 存在全局 map，build 里用不到
+                final listKey = _listKeys[task.uuid]!;
+                // 保证命中检测数据存在
+                listKey;
+                return DragAndDropList(
+                  key: ValueKey(task.uuid),
+                  children: todoItems,
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(width: 0.4, color: theme.dividerColor),
+                    boxShadow: isDarkMode
+                        ? <BoxShadow>[
+                            BoxShadow(
+                              color: theme.dividerColor,
+                              blurRadius: 0.2,
+                            ),
+                          ]
+                        : null,
                   ),
+                  header: SizedBox(
+                    width: cardWidth,
+                    child: TaskCard(task: task, showTodos: false),
+                  ),
+                  contentsWhenEmpty: null,
                 );
-              }).toList(),
-              ),
-            ),
+              }).toList();
+              
+              return DragAndDropLists(
+                children: dragAndDropLists,
+                axis: Axis.horizontal,
+                listWidth: context.isPhone ? 0.9.sw : 260.0,
+                listDraggingWidth: context.isPhone ? 0.9.sw : 260.0,
+                scrollController: _scrollController,
+                horizontalAlignment: MainAxisAlignment.start, // start-start 对齐
+                verticalAlignment: CrossAxisAlignment.start, // start-start 对齐
+                listDragOnLongPress: false, // 立即拖拽
+                itemDragOnLongPress: false, // todo 立即拖拽
+                listSizeAnimationDurationMilliseconds: 200, // 调整动画持续时间，使动画更流畅
+                listGhostOpacity: 0.3, // 降低 ghost 透明度，使其更不明显
+                onListReorder: (oldIndex, newIndex) {
+                  _controller.reorderTask(oldIndex, newIndex);
+                },
+                onListDraggingChanged: (list, dragging) {
+                  setState(() {
+                    _isDragging = dragging;
+                  });
+                  if (dragging) {
+                    _controller.startDragging();
+                  } else {
+                    _scrollTimer?.cancel();
+                    _controller.endDragging();
+                  }
+                },
+                onItemReorder: (oldItemIndex, oldListIndex, newItemIndex, newListIndex) {
+                  // 处理 todo 的重新排序或跨列拖拽
+                  if (oldListIndex == newListIndex) {
+                    // 同一 task 内的重新排序
+                    final taskId = widget.tasks[oldListIndex].uuid;
+                    _controller.reorderTodo(taskId, oldItemIndex, newItemIndex);
+                  } else {
+                    // 跨列拖拽：从一个 task 移动到另一个 task
+                    final fromTaskId = widget.tasks[oldListIndex].uuid;
+                    final toTaskId = widget.tasks[newListIndex].uuid;
+                    final todo = widget.tasks[oldListIndex].todos![oldItemIndex];
+                    _controller.moveTodoToTaskAt(fromTaskId, toTaskId, todo.uuid, newItemIndex);
+                  }
+                },
+                onItemDraggingChanged: (item, dragging) {
+                  if (dragging) {
+                    _controller.startDragging();
+                  } else {
+                    _controller.endDragging();
+                  }
+                },
+                listDecoration: const BoxDecoration(
+                  color: Colors.transparent,
+                ),
+                listPadding: EdgeInsets.zero,
+                disableScrolling: true, // 使用外层的 ScrollController
+                itemDecorationWhileDragging: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                itemGhostOpacity: 0.8,
+              );
+            }),
           ),
         ),
       ),

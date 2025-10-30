@@ -79,34 +79,8 @@ class TodoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todoContent = buildTodoContent(context);
-
-    return Draggable<Map<String, dynamic>>(
-      data: {
-        'todoId': todo.uuid,
-        'fromTaskId': taskId,
-        'todo': todo,
-      },
-      maxSimultaneousDrags: 1,
-      onDragStarted: () {
-        _homeCtrl.startDragging();
-      },
-      onDragEnd: (details) {
-        _homeCtrl.endDragging();
-      },
-      onDraggableCanceled: (velocity, offset) {
-        _homeCtrl.endDragging();
-      },
-      feedback: DefaultTextStyle(
-        style: DefaultTextStyle.of(context).style,
-        child: todoContent,
-      ),
-      childWhenDragging: Opacity(
-        opacity: 0.5,
-        child: todoContent,
-      ),
-      child: todoContent,
-    );
+    // 不再使用 Draggable，因为拖拽现在由 DragAndDropItem 处理
+    return buildTodoContent(context);
   }
 
   Widget buildTodoContent(BuildContext context) {

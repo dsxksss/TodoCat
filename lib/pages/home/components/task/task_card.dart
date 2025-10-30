@@ -14,14 +14,17 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/controllers/task_dialog_ctr.dart';
 import 'package:todo_cat/widgets/task_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
+import 'dart:async';
 
 class TaskCard extends StatefulWidget {
   const TaskCard({
     super.key, 
     required Task task,
     ScrollController? parentScrollController, // 保留但不使用，避免破坏调用
+    this.showTodos = true, // 是否显示内部 todo 列表，默认显示
   }) : _task = task;
   final Task _task;
+  final bool showTodos; // 新增参数，控制是否显示内部 todo 列表
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -30,6 +33,8 @@ class TaskCard extends StatefulWidget {
 class _TaskCardState extends State<TaskCard> {
   final HomeController _homeCtrl = Get.find();
   late final ScrollController _scrollController;
+  Timer? _autoScrollTimer;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -41,6 +46,38 @@ class _TaskCardState extends State<TaskCard> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _startAutoScroll(double pointerDy, BuildContext context) {
+    const edgeMargin = 40.0;
+    const scrollSpeed = 18.0;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final height = box.size.height;
+    _autoScrollTimer?.cancel();
+
+    void scrollTick() {
+      if (!_scrollController.hasClients) return;
+      if (!_isDragging) {
+        _autoScrollTimer?.cancel();
+        return;
+      }
+      final position = _scrollController.position;
+      if (pointerDy < edgeMargin && position.pixels > 0) {
+        final to = (position.pixels - scrollSpeed).clamp(0.0, position.maxScrollExtent);
+        _scrollController.jumpTo(to);
+      } else if (pointerDy > height - edgeMargin && position.pixels < position.maxScrollExtent) {
+        final to = (position.pixels + scrollSpeed).clamp(0.0, position.maxScrollExtent);
+        _scrollController.jumpTo(to);
+      }
+    }
+
+    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) => scrollTick());
+  }
+
+  void _stopAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = null;
   }
 
   List<dynamic> _getColorAndIcon() {
@@ -64,50 +101,10 @@ class _TaskCardState extends State<TaskCard> {
     final todosLength = widget._task.todos?.length ?? 0;
     final colorAndIcon = _getColorAndIcon();
 
-    return Container(
-      width: context.isPhone ? 0.9.sw : 260,
-      decoration: BoxDecoration(
-        color: context.theme.cardColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(width: 0.4, color: context.theme.dividerColor),
-        boxShadow: context.isDarkMode
-            ? <BoxShadow>[
-                BoxShadow(
-                  color: context.theme.dividerColor,
-                  blurRadius: 0.2,
-                ),
-              ]
-            : null, // 亮色主题下不使用阴影
-      ),
-                  child: DragTarget<Map<String, dynamic>>(
-        onWillAcceptWithDetails: (details) {
-          return details.data['fromTaskId'] != widget._task.uuid;
-        },
-        onAcceptWithDetails: (details) {
-          try {
-            final data = details.data;
-            _homeCtrl.moveTodoToTask(
-              data['fromTaskId']!,
-              widget._task.uuid,
-              data['todoId']!,
-            );
-          } catch (e) {
-            print('DragTarget accept error: $e');
-            // 发生错误时结束拖动状态
-            _homeCtrl.endDragging();
-          }
-        },
-        builder: (context, candidateData, rejectedData) {
-          final isTargeted = candidateData.isNotEmpty;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              color: isTargeted
-                  ? context.theme.highlightColor.withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
+    // 如果 showTodos 为 false，不显示 Container decoration（由外部的 DragAndDropList decoration 提供）
+    final showContainer = widget.showTodos;
+    
+    Widget content = Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(
@@ -252,117 +249,163 @@ class _TaskCardState extends State<TaskCard> {
                 const SizedBox(
                   height: 15,
                 ),
-                Flexible(
-                  child: Listener(
-                    // 拦截滚动事件，在 todos 区域内纵向滚动，不影响外层横向滚动
-                    behavior: HitTestBehavior.opaque, // 完全捕获事件，阻止传播到父级
-                    onPointerSignal: (pointerSignal) {
-                      if (pointerSignal is PointerScrollEvent) {
-                        final scrollDelta = pointerSignal.scrollDelta.dy;
-                        // 只处理纵向滚动，并且只有在scrollController可用且有可滚动内容时才处理
-                        if (_scrollController.hasClients && 
-                            scrollDelta != 0 && 
-                            _scrollController.position.maxScrollExtent > 0) {
-                          // 检查是否可以滚动（是否在边界）
-                          final canScrollUp = _scrollController.offset > 0;
-                          final canScrollDown = _scrollController.offset < _scrollController.position.maxScrollExtent;
-                          
-                          // 只有当需要滚动时才处理
-                          if ((scrollDelta < 0 && canScrollUp) || (scrollDelta > 0 && canScrollDown)) {
-                            // 手动处理纵向滚动
-                            final newOffset = _scrollController.offset + scrollDelta;
-                            _scrollController.animateTo(
-                              newOffset.clamp(
-                                0.0,
-                                _scrollController.position.maxScrollExtent,
-                              ),
-                              duration: const Duration(milliseconds: 100),
-                              curve: Curves.easeOut,
-                            );
-                            // 由于 behavior 是 opaque，事件已被阻止传播到父级
+                // 如果 showTodos 为 false，则不在内部显示 todo 列表（todo 列表在 home_page 中通过 DragAndDropLists 显示）
+                if (widget.showTodos)
+                  Flexible(
+                    child: Listener(
+                      // 拦截滚动事件，在 todos 区域内纵向滚动，不影响外层横向滚动
+                      behavior: HitTestBehavior.opaque, // 完全捕获事件，阻止传播到父级
+                      onPointerSignal: (pointerSignal) {
+                        if (pointerSignal is PointerScrollEvent) {
+                          final scrollDelta = pointerSignal.scrollDelta.dy;
+                          // 只处理纵向滚动，并且只有在scrollController可用且有可滚动内容时才处理
+                          if (_scrollController.hasClients && 
+                              scrollDelta != 0 && 
+                              _scrollController.position.maxScrollExtent > 0) {
+                            // 检查是否可以滚动（是否在边界）
+                            final canScrollUp = _scrollController.offset > 0;
+                            final canScrollDown = _scrollController.offset < _scrollController.position.maxScrollExtent;
+                            
+                            // 只有当需要滚动时才处理
+                            if ((scrollDelta < 0 && canScrollUp) || (scrollDelta > 0 && canScrollDown)) {
+                              // 手动处理纵向滚动
+                              final newOffset = _scrollController.offset + scrollDelta;
+                              _scrollController.animateTo(
+                                newOffset.clamp(
+                                  0.0,
+                                  _scrollController.position.maxScrollExtent,
+                                ),
+                                duration: const Duration(milliseconds: 100),
+                                curve: Curves.easeOut,
+                              );
+                              // 由于 behavior 是 opaque，事件已被阻止传播到父级
+                            }
+                            // 如果已经到达边界，不处理，但由于 opaque 行为，事件仍被阻止传播
+                            // 这样可以确保在 todo 列表区域内时，无论如何都不会触发父级滚动
                           }
-                          // 如果已经到达边界，不处理，但由于 opaque 行为，事件仍被阻止传播
-                          // 这样可以确保在 todo 列表区域内时，无论如何都不会触发父级滚动
                         }
-                      }
-                    },
-                    child: Obx(
-                      () {
-                        // 安全地获取最新的任务状态
-                        final currentTask = _homeCtrl.allTasks.firstWhere(
-                          (task) => task.uuid == widget._task.uuid,
-                          orElse: () => widget._task,
-                        );
-                        final todos = currentTask.todos ?? [];
-                        // 使用官方 ReorderableListView
-                        return ReorderableListView(
-                          shrinkWrap: true,
-                          buildDefaultDragHandles: false, // 移除默认拖拽手柄
-                          scrollController: _scrollController,
-                          onReorder: (oldIndex, newIndex) {
-                            try {
-                              if (newIndex > oldIndex) {
-                                newIndex -= 1;
-                              }
-                              _homeCtrl.reorderTodo(widget._task.uuid, oldIndex, newIndex);
-                            } catch (e) {
-                              print('Reorder error: $e');
-                            }
-                          },
-                          onReorderStart: (index) {
-                            try {
-                              _homeCtrl.startDragging();
-                            } catch (e) {
-                              print('ReorderStarted error: $e');
-                            }
-                          },
-                          onReorderEnd: (index) {
-                            try {
-                              _homeCtrl.endDragging();
-                            } catch (e) {
-                              print('ReorderEnd error: $e');
-                            }
-                          },
-                          proxyDecorator: (child, index, animation) {
-                            return AnimatedBuilder(
-                              animation: animation,
-                              builder: (context, child) {
-                                return Material(
-                                  elevation: 0, // 移除阴影
-                                  color: Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Opacity(
-                                    opacity: 0.8, // 轻微半透明
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              child: child,
-                            );
-                          },
-                          children: todos.asMap().entries.map<Widget>((entry) {
-                            final index = entry.key;
-                            final todo = entry.value;
-                            // 使用 ReorderableDelayedDragStartListener 支持直接拖动
-                            return ReorderableDelayedDragStartListener(
-                              key: ValueKey(todo.uuid),
-                              index: index,
-                              child: TodoCard(
-                                taskId: widget._task.uuid,
-                                todo: todo,
-                              ),
-                            );
-                          }).toList(),
-                        );
                       },
+                      onPointerMove: (event) {
+                        if (_isDragging) {
+                          final local = (context.findRenderObject() as RenderBox?)?.globalToLocal(event.position);
+                          if (local != null) {
+                            _startAutoScroll(local.dy, context);
+                          }
+                        }
+                      },
+                      onPointerUp: (event) {
+                        _stopAutoScroll();
+                      },
+                      child: Obx(
+                        () {
+                          // 安全地获取最新的任务状态
+                          final currentTask = _homeCtrl.allTasks.firstWhere(
+                            (task) => task.uuid == widget._task.uuid,
+                            orElse: () => widget._task,
+                          );
+                          final todos = currentTask.todos ?? [];
+                          
+                          // 使用 DragAndDropLists 显示 todo 列表（用于向后兼容，如果 showTodos 为 true）
+                          if (todos.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          
+                          // 使用 ReorderableListView 支持拖拽，但需要与外部的 DragAndDropLists 配合
+                          // 使用 ClampingScrollPhysics 防止滚动影响父级
+                          return ReorderableListView(
+                            shrinkWrap: true,
+                            buildDefaultDragHandles: false, // 移除默认拖拽手柄
+                            scrollController: _scrollController,
+                            physics: const ClampingScrollPhysics(), // 限制滚动范围，不影响父级 x 轴滚动
+                            onReorder: (oldIndex, newIndex) {
+                              try {
+                                if (newIndex > oldIndex) {
+                                  newIndex -= 1;
+                                }
+                                _homeCtrl.reorderTodo(widget._task.uuid, oldIndex, newIndex);
+                              } catch (e) {
+                                print('Reorder error: $e');
+                              }
+                            },
+                            onReorderStart: (index) {
+                              try {
+                                _homeCtrl.startDragging();
+                                _isDragging = true;
+                              } catch (e) {
+                                print('ReorderStarted error: $e');
+                              }
+                            },
+                            onReorderEnd: (index) {
+                              try {
+                                _homeCtrl.endDragging();
+                                _isDragging = false;
+                                _stopAutoScroll();
+                              } catch (e) {
+                                print('ReorderEnd error: $e');
+                              }
+                            },
+                            proxyDecorator: (child, index, animation) {
+                              return AnimatedBuilder(
+                                animation: animation,
+                                builder: (context, child) {
+                                  return Material(
+                                    elevation: 0,
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Opacity(
+                                      opacity: 0.8,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: child,
+                              );
+                            },
+                            children: todos.asMap().entries.map<Widget>((entry) {
+                              final index = entry.key;
+                              final todo = entry.value;
+                              return ReorderableDelayedDragStartListener(
+                                key: ValueKey(todo.uuid),
+                                index: index,
+                                child: TodoCard(
+                                  taskId: widget._task.uuid,
+                                  todo: todo,
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
               ],
-            ),
-          );
-        },
-      ),
-    );
+            );
+
+    if (showContainer) {
+      return Container(
+        width: context.isPhone ? 0.9.sw : 260,
+        decoration: BoxDecoration(
+          color: context.theme.cardColor,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(width: 0.4, color: context.theme.dividerColor),
+          boxShadow: context.isDarkMode
+              ? <BoxShadow>[
+                  BoxShadow(
+                    color: context.theme.dividerColor,
+                    blurRadius: 0.2,
+                  ),
+                ]
+              : null, // 亮色主题下不使用阴影
+        ),
+        child: content,
+      );
+    } else {
+      // showTodos 为 false 时，只返回内容，不包裹 Container
+      // Container decoration 由外部的 DragAndDropList 提供
+      return SizedBox(
+        width: context.isPhone ? 0.9.sw : 260,
+        child: content,
+      );
+    }
   }
 }
