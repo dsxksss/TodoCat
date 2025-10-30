@@ -142,7 +142,7 @@ class _TaskCardState extends State<TaskCard> {
             top: 0,
             height: 64,
             child: DragTarget<Map<String, dynamic>>(
-              onWillAcceptWithDetails: (_) => true,
+              onWillAcceptWithDetails: (d) => d.data.containsKey('todoId'),
               onMove: (_) => _startEdgeScroll(-1),
               onLeave: (_) => _stopEdgeScroll(),
               onAcceptWithDetails: (_) => _stopEdgeScroll(),
@@ -156,7 +156,7 @@ class _TaskCardState extends State<TaskCard> {
             bottom: 0,
             height: 64,
                   child: DragTarget<Map<String, dynamic>>(
-              onWillAcceptWithDetails: (_) => true,
+              onWillAcceptWithDetails: (d) => d.data.containsKey('todoId'),
               onMove: (_) => _startEdgeScroll(1),
               onLeave: (_) => _stopEdgeScroll(),
               onAcceptWithDetails: (_) => _stopEdgeScroll(),
