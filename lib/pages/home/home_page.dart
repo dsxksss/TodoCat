@@ -22,8 +22,7 @@ import 'dart:ui';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/config/default_backgrounds.dart';
-import 'package:todo_cat/drag_and_drop_lists/drag_and_drop_lists.dart';
-import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
+import 'package:todo_cat/widgets/appflowy_board_adapter.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -606,7 +605,6 @@ class _TaskHorizontalList extends StatefulWidget {
 
 class _TaskHorizontalListState extends State<_TaskHorizontalList> {
   late final ScrollController _scrollController;
-  final HomeController _controller = Get.find();
   Timer? _scrollTimer;
   bool _isDragging = false;
   final Map<String, GlobalKey> _listKeys = {}; // 每列区域的 GlobalKey
@@ -758,122 +756,17 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
       },
       child: Padding(
         padding: const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
-        child: Scrollbar(
-          controller: _scrollController,
-          thumbVisibility: false, // 自动隐藏滚动条（鼠标悬停时显示）
-          thickness: 10.0, // 滚动条粗细
-          radius: const Radius.circular(5.0), // 滚动条圆角
-          child: Align(
-            alignment: Alignment.topLeft, // 使用 start-start 对齐（左上角）
-            child: Obx(() {
-              // 将 tasks 转换为 DragAndDropList 列表，每个 list 包含该 task 的所有 todos
-              // 注意：不在 build 方法中调用 _syncTaskKeys()，避免 GlobalKey 重复使用
-              final dragAndDropLists = widget.tasks.map((task) {
-                final cardWidth = context.isPhone ? 0.9.sw : 260.0;
-                
-                // 将 todos 转换为 DragAndDropItem，用于跨列拖拽
-                final todoItems = (task.todos ?? []).map((todo) {
-                  return DragAndDropItem(
-                    key: ValueKey(todo.uuid),
-                    child: TodoCard(
-                      taskId: task.uuid,
-                      todo: todo,
-                    ),
-                  );
-                }).toList();
-                
-                // 使用 TaskCard 的样式装饰整个 DragAndDropList
-                // 这样 TaskCard 可以视觉上包裹 todos
-                final theme = Theme.of(context);
-                final isDarkMode = Get.isDarkMode;
-                
-                // 返回 DragAndDropList，同时额外把 key 存在全局 map，build 里用不到
-                final listKey = _listKeys[task.uuid]!;
-                // 保证命中检测数据存在
-                listKey;
-                return DragAndDropList(
-                  key: ValueKey(task.uuid),
-                  children: todoItems,
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(width: 0.4, color: theme.dividerColor),
-                    boxShadow: isDarkMode
-                        ? <BoxShadow>[
-                            BoxShadow(
-                              color: theme.dividerColor,
-                              blurRadius: 0.2,
-                            ),
-                          ]
-                        : null,
-                  ),
-                  header: SizedBox(
-                    width: cardWidth,
-                    child: TaskCard(task: task, showTodos: false),
-                  ),
-                  contentsWhenEmpty: null,
-                );
-              }).toList();
-              
-              return DragAndDropLists(
-                children: dragAndDropLists,
-                axis: Axis.horizontal,
-                listWidth: context.isPhone ? 0.9.sw : 260.0,
-                listDraggingWidth: context.isPhone ? 0.9.sw : 260.0,
-                scrollController: _scrollController,
-                horizontalAlignment: MainAxisAlignment.start, // start-start 对齐
-                verticalAlignment: CrossAxisAlignment.start, // start-start 对齐
-                listDragOnLongPress: false, // 立即拖拽
-                itemDragOnLongPress: false, // todo 立即拖拽
-                listSizeAnimationDurationMilliseconds: 200, // 调整动画持续时间，使动画更流畅
-                listGhostOpacity: 0.3, // 降低 ghost 透明度，使其更不明显
-                onListReorder: (oldIndex, newIndex) {
-                  _controller.reorderTask(oldIndex, newIndex);
-                },
-                onListDraggingChanged: (list, dragging) {
-                  setState(() {
-                    _isDragging = dragging;
-                  });
-                  if (dragging) {
-                    _controller.startDragging();
-                  } else {
-                    _scrollTimer?.cancel();
-                    _controller.endDragging();
-                  }
-                },
-                onItemReorder: (oldItemIndex, oldListIndex, newItemIndex, newListIndex) {
-                  // 处理 todo 的重新排序或跨列拖拽
-                  if (oldListIndex == newListIndex) {
-                    // 同一 task 内的重新排序
-                    final taskId = widget.tasks[oldListIndex].uuid;
-                    _controller.reorderTodo(taskId, oldItemIndex, newItemIndex);
-                  } else {
-                    // 跨列拖拽：从一个 task 移动到另一个 task
-                    final fromTaskId = widget.tasks[oldListIndex].uuid;
-                    final toTaskId = widget.tasks[newListIndex].uuid;
-                    final todo = widget.tasks[oldListIndex].todos![oldItemIndex];
-                    _controller.moveTodoToTaskAt(fromTaskId, toTaskId, todo.uuid, newItemIndex);
-                  }
-                },
-                onItemDraggingChanged: (item, dragging) {
-                  if (dragging) {
-                    _controller.startDragging();
-                  } else {
-                    _controller.endDragging();
-                  }
-                },
-                listDecoration: const BoxDecoration(
-                  color: Colors.transparent,
-                ),
-                listPadding: EdgeInsets.zero,
-                disableScrolling: true, // 使用外层的 ScrollController
-                itemDecorationWhileDragging: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                itemGhostOpacity: 0.8,
-              );
-            }),
-          ),
+        child: Align(
+          alignment: Alignment.topLeft, // 使用 start-start 对齐（左上角）
+          child: Obx(() {
+            // 强制建立对 RxList 的依赖，避免 GetX 提示未使用可观察对象
+            final _ = widget.tasks.length;
+            // 使用 AppFlowyBoard 的拖拽逻辑，保持原 Task/Todo UI
+            return AppFlowyTodosBoard(
+              tasks: widget.tasks,
+              listWidth: context.isPhone ? 0.9.sw : 260.0,
+            );
+          }),
         ),
       ),
     );

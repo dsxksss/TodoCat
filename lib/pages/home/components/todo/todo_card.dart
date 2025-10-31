@@ -19,11 +19,15 @@ class TodoCard extends StatelessWidget {
     super.key,
     required this.taskId,
     required this.todo,
+    this.outerMargin,
+    this.compact = false,
   });
 
   final String taskId;
   final Todo todo;
   final HomeController _homeCtrl = Get.find();
+  final EdgeInsets? outerMargin;
+  final bool compact;
 
   Color _getPriorityColor() {
     switch (todo.priority) {
@@ -115,7 +119,7 @@ class TodoCard extends StatelessWidget {
           );
         },
         child: Container(
-          margin: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
+          margin: outerMargin ?? const EdgeInsets.only(left: 15, right: 15, bottom: 15),
           padding: const EdgeInsets.only(left: 10, right: 10, top: 5),
           decoration: BoxDecoration(
             color: context.theme.cardColor,
@@ -314,9 +318,7 @@ class TodoCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 15,
-                )
+                SizedBox(height: compact ? 6 : 15)
               ],
             ),
           ),
