@@ -32,6 +32,9 @@ class Task {
   List<String> tags = [];
   String tagsWithColorJsonString = '[]';
   List<Todo>? todos;
+  
+  @Index()
+  int deletedAt = 0; // 删除时间戳，0表示未删除
 
   // 默认构造函数
   Task();
@@ -51,6 +54,7 @@ class Task {
       'tags': tags,
       'tagsWithColor': tagsWithColorJsonString,
       'todos': todos?.map((todo) => todo.toJson()).toList(),
+      'deletedAt': deletedAt,
     };
   }
 
@@ -70,7 +74,8 @@ class Task {
       ..progress = json['progress'] as int? ?? 0
       ..reminders = json['reminders'] as int? ?? 0
       ..tags = List<String>.from(json['tags'] ?? [])
-      ..tagsWithColorJsonString = json['tagsWithColor'] as String? ?? '[]';
+      ..tagsWithColorJsonString = json['tagsWithColor'] as String? ?? '[]'
+      ..deletedAt = json['deletedAt'] as int? ?? 0;
     
     if (json['todos'] != null) {
       task.todos = (json['todos'] as List)

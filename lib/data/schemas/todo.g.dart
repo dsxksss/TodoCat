@@ -18,65 +18,70 @@ const TodoSchema = Schema(
       name: r'createdAt',
       type: IsarType.long,
     ),
-    r'description': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 1,
+      name: r'deletedAt',
+      type: IsarType.long,
+    ),
+    r'description': PropertySchema(
+      id: 2,
       name: r'description',
       type: IsarType.string,
     ),
     r'dueDate': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'dueDate',
       type: IsarType.long,
     ),
     r'finishedAt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'finishedAt',
       type: IsarType.long,
     ),
     r'images': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'images',
       type: IsarType.stringList,
     ),
     r'priority': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'priority',
       type: IsarType.byte,
       enumMap: _TodopriorityEnumValueMap,
     ),
     r'progress': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'progress',
       type: IsarType.long,
     ),
     r'reminders': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'reminders',
       type: IsarType.long,
     ),
     r'status': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TodostatusEnumValueMap,
     ),
     r'tags': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'tagsWithColorJsonString': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'tagsWithColorJsonString',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'title',
       type: IsarType.string,
     ),
     r'uuid': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -121,18 +126,19 @@ void _todoSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.description);
-  writer.writeLong(offsets[2], object.dueDate);
-  writer.writeLong(offsets[3], object.finishedAt);
-  writer.writeStringList(offsets[4], object.images);
-  writer.writeByte(offsets[5], object.priority.index);
-  writer.writeLong(offsets[6], object.progress);
-  writer.writeLong(offsets[7], object.reminders);
-  writer.writeByte(offsets[8], object.status.index);
-  writer.writeStringList(offsets[9], object.tags);
-  writer.writeString(offsets[10], object.tagsWithColorJsonString);
-  writer.writeString(offsets[11], object.title);
-  writer.writeString(offsets[12], object.uuid);
+  writer.writeLong(offsets[1], object.deletedAt);
+  writer.writeString(offsets[2], object.description);
+  writer.writeLong(offsets[3], object.dueDate);
+  writer.writeLong(offsets[4], object.finishedAt);
+  writer.writeStringList(offsets[5], object.images);
+  writer.writeByte(offsets[6], object.priority.index);
+  writer.writeLong(offsets[7], object.progress);
+  writer.writeLong(offsets[8], object.reminders);
+  writer.writeByte(offsets[9], object.status.index);
+  writer.writeStringList(offsets[10], object.tags);
+  writer.writeString(offsets[11], object.tagsWithColorJsonString);
+  writer.writeString(offsets[12], object.title);
+  writer.writeString(offsets[13], object.uuid);
 }
 
 Todo _todoDeserialize(
@@ -143,21 +149,22 @@ Todo _todoDeserialize(
 ) {
   final object = Todo();
   object.createdAt = reader.readLong(offsets[0]);
-  object.description = reader.readString(offsets[1]);
-  object.dueDate = reader.readLong(offsets[2]);
-  object.finishedAt = reader.readLong(offsets[3]);
-  object.images = reader.readStringList(offsets[4]) ?? [];
+  object.deletedAt = reader.readLong(offsets[1]);
+  object.description = reader.readString(offsets[2]);
+  object.dueDate = reader.readLong(offsets[3]);
+  object.finishedAt = reader.readLong(offsets[4]);
+  object.images = reader.readStringList(offsets[5]) ?? [];
   object.priority =
-      _TodopriorityValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+      _TodopriorityValueEnumMap[reader.readByteOrNull(offsets[6])] ??
           TodoPriority.lowLevel;
-  object.progress = reader.readLong(offsets[6]);
-  object.reminders = reader.readLong(offsets[7]);
-  object.status = _TodostatusValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+  object.progress = reader.readLong(offsets[7]);
+  object.reminders = reader.readLong(offsets[8]);
+  object.status = _TodostatusValueEnumMap[reader.readByteOrNull(offsets[9])] ??
       TodoStatus.todo;
-  object.tags = reader.readStringList(offsets[9]) ?? [];
-  object.tagsWithColorJsonString = reader.readString(offsets[10]);
-  object.title = reader.readString(offsets[11]);
-  object.uuid = reader.readString(offsets[12]);
+  object.tags = reader.readStringList(offsets[10]) ?? [];
+  object.tagsWithColorJsonString = reader.readString(offsets[11]);
+  object.title = reader.readString(offsets[12]);
+  object.uuid = reader.readString(offsets[13]);
   return object;
 }
 
@@ -171,30 +178,32 @@ P _todoDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
-    case 2:
       return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 6:
       return (_TodopriorityValueEnumMap[reader.readByteOrNull(offset)] ??
           TodoPriority.lowLevel) as P;
-    case 6:
-      return (reader.readLong(offset)) as P;
     case 7:
       return (reader.readLong(offset)) as P;
     case 8:
+      return (reader.readLong(offset)) as P;
+    case 9:
       return (_TodostatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TodoStatus.todo) as P;
-    case 9:
-      return (reader.readStringList(offset) ?? []) as P;
     case 10:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 11:
       return (reader.readString(offset)) as P;
     case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -267,6 +276,58 @@ extension TodoQueryFilter on QueryBuilder<Todo, Todo, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> deletedAtEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> deletedAtGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> deletedAtLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Todo, Todo, QAfterFilterCondition> deletedAtBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,

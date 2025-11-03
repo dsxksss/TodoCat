@@ -21,6 +21,7 @@ class Todo {
   int reminders = 0;
   int progress = 0;
   List<String> images = []; // 图片路径列表
+  int deletedAt = 0; // 删除时间戳，0表示未删除
 
   // 默认构造函数
   Todo();
@@ -41,6 +42,7 @@ class Todo {
       'reminders': reminders,
       'progress': progress,
       'images': images,
+      'deletedAt': deletedAt,
     };
   }
 
@@ -65,7 +67,8 @@ class Todo {
       )
       ..reminders = json['reminders'] as int? ?? 0
       ..progress = json['progress'] as int? ?? 0
-      ..images = List<String>.from(json['images'] ?? []);
+      ..images = List<String>.from(json['images'] ?? [])
+      ..deletedAt = json['deletedAt'] as int? ?? 0;
   }
   /// 获取带颜色的标签列表
   @ignore

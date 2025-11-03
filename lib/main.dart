@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:todo_cat/data/services/database.dart';
@@ -8,34 +9,79 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 
 void main() async {
-  // 确保flutterBinding初始化成功
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // 使用 runZonedGuarded 捕获所有异步错误
+  runZonedGuarded(
+    () async {
+      // 确保flutterBinding初始化成功
+      WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-  // 初始化 Isar 数据库
-  await Database.getInstance();
+      // 全局错误处理：捕获并忽略特定的 setState 错误
+      // 这主要是为了处理第三方包（如 appflowy_board）内部的生命周期问题
+      final originalOnError = FlutterError.onError;
+      FlutterError.onError = (FlutterErrorDetails details) {
+        final exception = details.exception;
+        // 检查是否是 "setState() called after dispose()" 错误
+        if (exception is FlutterError) {
+          final message = exception.message;
+          if (message.contains('setState() called after dispose()') &&
+              message.contains('ReorderFlexState')) {
+            // 忽略 appflowy_board 内部的 setState after dispose 错误
+            // 这是包内部的问题，不影响应用功能
+            debugPrint('⚠️ Ignoring known setState after dispose error in appflowy_board');
+            return;
+          }
+        }
+        // 对于其他错误，使用原始处理器
+        if (originalOnError != null) {
+          originalOnError(details);
+        } else {
+          FlutterError.presentError(details);
+        }
+      };
 
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    initWindow();
+      // 初始化 Isar 数据库
+      await Database.getInstance();
 
-    // 初始化桌面端开机自启动插件（Windows/Linux/macOS）
-    launchAtStartup.setup(
-      appName: 'TodoCat',
-      appPath: Platform.resolvedExecutable,
-    );
-  }
+      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        initWindow();
 
-  if (Platform.isAndroid || Platform.isIOS) {
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: Colors.transparent,
-      ),
-    );
-    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  }
+        // 初始化桌面端开机自启动插件（Windows/Linux/macOS）
+        launchAtStartup.setup(
+          appName: 'TodoCat',
+          appPath: Platform.resolvedExecutable,
+        );
+      }
 
-  runApp(
-    const App(),
+      if (Platform.isAndroid || Platform.isIOS) {
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        SystemChrome.setSystemUIOverlayStyle(
+          const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: Colors.transparent,
+          ),
+        );
+        FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+      }
+
+      runApp(
+        const App(),
+      );
+    },
+    (error, stack) {
+      // 捕获所有异步异常（包括 Future 回调中的异常）
+      final errorString = error.toString();
+      
+      // 检查是否是 setState after dispose 错误
+      if (errorString.contains('setState() called after dispose()') &&
+          errorString.contains('ReorderFlexState')) {
+        // 静默忽略 appflowy_board 的已知问题
+        debugPrint('⚠️ Caught and ignored setState after dispose error in appflowy_board');
+        return;
+      }
+      
+      // 对于其他错误，打印堆栈跟踪（保留原有的错误处理行为）
+      debugPrint('Caught error in runZonedGuarded: $error');
+      debugPrint('Stack trace: $stack');
+    },
   );
 }

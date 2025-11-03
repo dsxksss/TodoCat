@@ -128,9 +128,8 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
 
       SmartDialog.dismiss(tag: addTaskDialogTag);
 
-      if (success) {
-        showSuccessToast('taskUpdatedSuccessfully'.tr);
-      } else {
+      // 只在失败时显示通知，成功时不添加消息到消息中心
+      if (!success) {
         showErrorToast('taskUpdateFailed'.tr);
       }
     } else {

@@ -29,15 +29,21 @@ class DPDMenuContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 120,
+      constraints: const BoxConstraints(
+        minWidth: 120, // 最小宽度
+        maxWidth: 300, // 最大宽度，防止过长文本撑破布局
+      ),
       decoration: BoxDecoration(
         color: context.theme.cardColor,
         border: Border.all(width: 0.5, color: context.theme.dividerColor),
         borderRadius: BorderRadius.circular(5),
       ),
-      child: Column(
-        children:
-            _menuItems.map((item) => _buildMenuItem(context, item)).toList(),
+      child: IntrinsicWidth(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children:
+              _menuItems.map((item) => _buildMenuItem(context, item)).toList(),
+        ),
       ),
     );
   }
@@ -52,6 +58,8 @@ class DPDMenuContent extends StatelessWidget {
       child: ListTile(
         enabled: !isDisabled,
         minLeadingWidth: 0,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        dense: true,
         hoverColor: isDisabled ? Colors.transparent : context.theme.hoverColor,
         leading: item.iconData == null
             ? null
@@ -69,6 +77,7 @@ class DPDMenuContent extends StatelessWidget {
             fontSize: 14.5,
             fontWeight: FontWeight.w500,
           ),
+          overflow: TextOverflow.visible, // 允许文本完整显示
         ),
         onTap: isDisabled
             ? null

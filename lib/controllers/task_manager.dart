@@ -115,20 +115,17 @@ class TaskManager {
     }
   }
 
-  /// 清空数据库中的所有任务
+  /// 清空数据库中的所有任务（应用模板时永久删除，不移动到回收站）
   Future<void> _clearAllTasks() async {
     try {
-      _logger.d('Clearing all tasks from database');
+      _logger.d('Clearing all tasks from database (permanently)');
 
-      // 获取所有任务的UUID
-      final allTasks = await repository.readAll();
+      // 永久删除所有任务（包括回收站中的）- 直接清空表
+      await repository.isar.writeTxn(() async {
+        await repository.isar.tasks.clear();
+      });
 
-      // 逐个删除所有任务
-      for (final task in allTasks) {
-        await repository.delete(task.uuid);
-      }
-
-      _logger.d('All tasks cleared from database');
+      _logger.d('All tasks permanently deleted from database');
     } catch (e) {
       _logger.e('Error clearing all tasks: $e');
       throw Exception('Failed to clear all tasks: $e');

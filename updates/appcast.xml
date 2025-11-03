@@ -9,6 +9,7 @@
       <description><![CDATA[
         <h2>更新内容</h2>
         <ul>
+          <li>新增回收站功能，支持恢复删除的TodoCard</li>
           <li>重构Task Todo布局拖拽按钮及触发条件</li>
           <li>优化拖动布局与使用体验，支持跨列拖拽、拖拽TodoCard至Task列既可排序TodoCard</li>
           <li>修复TodoCard显示异常问题</li>

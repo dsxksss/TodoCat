@@ -53,7 +53,8 @@ class BackgroundSettingDialog extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
-                  onPressed: () => SmartDialog.dismiss(tag: 'background_setting_dialog'),
+                  onPressed: () =>
+                      SmartDialog.dismiss(tag: 'background_setting_dialog'),
                   color: context.theme.iconTheme.color,
                 ),
               ],
@@ -78,24 +79,26 @@ class BackgroundSettingDialog extends StatelessWidget {
                   const SizedBox(height: 12),
                   const DefaultBackgroundGrid(),
                   const SizedBox(height: 24),
-                  
+
                   // 分隔线
                   Divider(color: context.theme.dividerColor, height: 1),
                   const SizedBox(height: 24),
-                  
+
                   // 当前状态
                   Obx(() {
                     final settingsCtrl = Get.find<SettingsController>();
                     final appCtrl = settingsCtrl.appCtrl;
                     final config = appCtrl.appConfig.value;
-                    final isDefaultTemplate = config.backgroundImagePath != null &&
-                                          config.backgroundImagePath!.startsWith('default_template:');
-                    final isCustomImage = config.backgroundImagePath != null && 
-                                      !isDefaultTemplate &&
-                                      GetPlatform.isDesktop && 
-                                      File(config.backgroundImagePath!).existsSync();
+                    final isDefaultTemplate =
+                        config.backgroundImagePath != null &&
+                            config.backgroundImagePath!
+                                .startsWith('default_template:');
+                    final isCustomImage = config.backgroundImagePath != null &&
+                        !isDefaultTemplate &&
+                        GetPlatform.isDesktop &&
+                        File(config.backgroundImagePath!).existsSync();
                     final hasBackground = isDefaultTemplate || isCustomImage;
-                    
+
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -109,16 +112,22 @@ class BackgroundSettingDialog extends StatelessWidget {
                       child: Row(
                         children: [
                           Icon(
-                            hasBackground ? Icons.check_circle : Icons.info_outline,
+                            hasBackground
+                                ? Icons.check_circle
+                                : Icons.info_outline,
                             size: 18,
-                            color: hasBackground ? Colors.green : context.theme.textTheme.bodySmall?.color,
+                            color: hasBackground
+                                ? Colors.green
+                                : context.theme.textTheme.bodySmall?.color,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                      hasBackground 
-                          ? (isDefaultTemplate ? 'defaultTemplateApplied'.tr : 'backgroundImageSet'.tr)
-                          : 'backgroundImageNotSet'.tr,
+                              hasBackground
+                                  ? (isDefaultTemplate
+                                      ? 'defaultTemplateApplied'.tr
+                                      : 'backgroundImageSet'.tr)
+                                  : 'backgroundImageNotSet'.tr,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: context.theme.textTheme.bodySmall?.color,
@@ -129,14 +138,14 @@ class BackgroundSettingDialog extends StatelessWidget {
                       ),
                     );
                   }),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // 背景设置调节
                   Obx(() {
                     final settingsCtrl = Get.find<SettingsController>();
                     final config = settingsCtrl.appCtrl.appConfig.value;
-                    
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -153,13 +162,13 @@ class BackgroundSettingDialog extends StatelessWidget {
                         OpacitySlider(
                           value: config.backgroundImageOpacity,
                           onChanged: (value) {
-                            settingsCtrl.appCtrl.appConfig.value = 
+                            settingsCtrl.appCtrl.appConfig.value =
                                 config.copyWith(backgroundImageOpacity: value);
                             settingsCtrl.appCtrl.appConfig.refresh();
                           },
                         ),
                         const SizedBox(height: 12),
-                        
+
                         // 模糊度设置
                         Text(
                           'blur'.tr,
@@ -173,13 +182,13 @@ class BackgroundSettingDialog extends StatelessWidget {
                         BlurSlider(
                           value: config.backgroundImageBlur,
                           onChanged: (value) {
-                            settingsCtrl.appCtrl.appConfig.value = 
+                            settingsCtrl.appCtrl.appConfig.value =
                                 config.copyWith(backgroundImageBlur: value);
                             settingsCtrl.appCtrl.appConfig.refresh();
                           },
                         ),
                         const SizedBox(height: 12),
-                        
+
                         // 影响导航栏开关
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -190,7 +199,8 @@ class BackgroundSettingDialog extends StatelessWidget {
                                   Icon(
                                     Icons.table_bar,
                                     size: 18,
-                                    color: context.theme.textTheme.bodySmall?.color,
+                                    color: context
+                                        .theme.textTheme.bodySmall?.color,
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
@@ -199,7 +209,8 @@ class BackgroundSettingDialog extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
-                                        color: context.theme.textTheme.bodySmall?.color,
+                                        color: context
+                                            .theme.textTheme.bodySmall?.color,
                                       ),
                                     ),
                                   ),
@@ -209,8 +220,8 @@ class BackgroundSettingDialog extends StatelessWidget {
                             Switch(
                               value: config.backgroundAffectsNavBar,
                               onChanged: (value) {
-                                settingsCtrl.appCtrl.appConfig.value = 
-                                    config.copyWith(backgroundAffectsNavBar: value);
+                                settingsCtrl.appCtrl.appConfig.value = config
+                                    .copyWith(backgroundAffectsNavBar: value);
                                 settingsCtrl.appCtrl.appConfig.refresh();
                               },
                             ),
@@ -220,20 +231,22 @@ class BackgroundSettingDialog extends StatelessWidget {
                       ],
                     );
                   }),
-                  
+
                   // 操作按钮
                   Obx(() {
                     final settingsCtrl = Get.find<SettingsController>();
                     final config = settingsCtrl.appCtrl.appConfig.value;
-                    final isDefaultTemplate = config.backgroundImagePath != null &&
-                                          config.backgroundImagePath!.startsWith('default_template:');
+                    final isDefaultTemplate =
+                        config.backgroundImagePath != null &&
+                            config.backgroundImagePath!
+                                .startsWith('default_template:');
                     final isCustomImage = config.backgroundImagePath != null &&
-                                      !isDefaultTemplate &&
-                                      config.backgroundImagePath!.isNotEmpty &&
-                                      GetPlatform.isDesktop &&
-                                      File(config.backgroundImagePath!).existsSync();
+                        !isDefaultTemplate &&
+                        config.backgroundImagePath!.isNotEmpty &&
+                        GetPlatform.isDesktop &&
+                        File(config.backgroundImagePath!).existsSync();
                     final hasBackground = isDefaultTemplate || isCustomImage;
-                    
+
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -246,15 +259,23 @@ class BackgroundSettingDialog extends StatelessWidget {
                               children: [
                                 const Icon(Icons.image, size: 18),
                                 const SizedBox(width: 8),
-                                Flexible(child: Text('selectBackground'.tr, textAlign: TextAlign.center)),
+                                Flexible(
+                                    child: Text(
+                                  'selectBackground'.tr,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: Colors.white),
+                                )),
                               ],
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 16),
                             onPressed: () async {
                               // 先关闭dialog
-                              SmartDialog.dismiss(tag: 'background_setting_dialog');
+                              SmartDialog.dismiss(
+                                  tag: 'background_setting_dialog');
                               // 等待dialog完全关闭
-                              await Future.delayed(const Duration(milliseconds: 300));
+                              await Future.delayed(
+                                  const Duration(milliseconds: 300));
                               await settingsCtrl.selectBackgroundImage();
                             },
                           ),
@@ -270,15 +291,20 @@ class BackgroundSettingDialog extends StatelessWidget {
                                 children: [
                                   const Icon(Icons.delete_outline, size: 18),
                                   const SizedBox(width: 8),
-                                  Flexible(child: Text('clearBackground'.tr, textAlign: TextAlign.center)),
+                                  Flexible(
+                                      child: Text('clearBackground'.tr,
+                                          textAlign: TextAlign.center)),
                                 ],
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 14, horizontal: 16),
                               ghostStyle: true,
                               onPressed: () async {
                                 // 先关闭dialog
-                                SmartDialog.dismiss(tag: 'background_setting_dialog');
-                                await Future.delayed(const Duration(milliseconds: 200));
+                                SmartDialog.dismiss(
+                                    tag: 'background_setting_dialog');
+                                await Future.delayed(
+                                    const Duration(milliseconds: 200));
                                 await settingsCtrl.clearBackgroundImage();
                               },
                             ),
@@ -307,10 +333,11 @@ class DefaultBackgroundGrid extends StatelessWidget {
     return Obx(() {
       final settingsCtrl = Get.find<SettingsController>();
       final config = settingsCtrl.appCtrl.appConfig.value;
-      final currentTemplateId = config.backgroundImagePath?.startsWith('default_template:') ?? false
-          ? config.backgroundImagePath!.split(':').last
-          : null;
-      
+      final currentTemplateId =
+          config.backgroundImagePath?.startsWith('default_template:') ?? false
+              ? config.backgroundImagePath!.split(':').last
+              : null;
+
       return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -324,7 +351,7 @@ class DefaultBackgroundGrid extends StatelessWidget {
         itemBuilder: (context, index) {
           final template = DefaultBackgrounds.templates[index];
           final isSelected = currentTemplateId == template.id;
-          
+
           return GestureDetector(
             onTap: () async {
               // 应用模板
@@ -392,7 +419,7 @@ class DefaultBackgroundGrid extends StatelessWidget {
         imageUrl: 'assets/imgs/background_1.jpg',
       ),
     );
-    
+
     // 加载本地图片
     return Image.asset(
       template.imageUrl,
@@ -415,13 +442,13 @@ class DefaultBackgroundGrid extends StatelessWidget {
 class OpacitySlider extends StatefulWidget {
   final double value;
   final ValueChanged<double> onChanged;
-  
+
   const OpacitySlider({
     super.key,
     required this.value,
     required this.onChanged,
   });
-  
+
   @override
   State<OpacitySlider> createState() => _OpacitySliderState();
 }
@@ -429,13 +456,13 @@ class OpacitySlider extends StatefulWidget {
 class _OpacitySliderState extends State<OpacitySlider> {
   late double _currentValue;
   Timer? _debounceTimer;
-  
+
   @override
   void initState() {
     super.initState();
     _currentValue = widget.value;
   }
-  
+
   @override
   void didUpdateWidget(OpacitySlider oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -443,25 +470,25 @@ class _OpacitySliderState extends State<OpacitySlider> {
       _currentValue = widget.value;
     }
   }
-  
+
   void _onChanged(double value) {
     setState(() {
       _currentValue = value;
     });
-    
+
     // 防抖处理
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 150), () {
       widget.onChanged(value);
     });
   }
-  
+
   @override
   void dispose() {
     _debounceTimer?.cancel();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -495,13 +522,13 @@ class _OpacitySliderState extends State<OpacitySlider> {
 class BlurSlider extends StatefulWidget {
   final double value;
   final ValueChanged<double> onChanged;
-  
+
   const BlurSlider({
     super.key,
     required this.value,
     required this.onChanged,
   });
-  
+
   @override
   State<BlurSlider> createState() => _BlurSliderState();
 }
@@ -509,13 +536,13 @@ class BlurSlider extends StatefulWidget {
 class _BlurSliderState extends State<BlurSlider> {
   late double _currentValue;
   Timer? _debounceTimer;
-  
+
   @override
   void initState() {
     super.initState();
     _currentValue = widget.value;
   }
-  
+
   @override
   void didUpdateWidget(BlurSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -523,25 +550,25 @@ class _BlurSliderState extends State<BlurSlider> {
       _currentValue = widget.value;
     }
   }
-  
+
   void _onChanged(double value) {
     setState(() {
       _currentValue = value;
     });
-    
+
     // 防抖处理
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 150), () {
       widget.onChanged(value);
     });
   }
-  
+
   @override
   void dispose() {
     _debounceTimer?.cancel();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Row(

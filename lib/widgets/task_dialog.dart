@@ -118,7 +118,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                     const SizedBox(height: 15),
                     AddTagWithColorPicker(
                       textInputAction: TextInputAction.next,
-                      maxLength: 6,
+                      maxLength: 50,
                       maxLines: 1,
                       radius: 6,
                       fieldTitle: "tag".tr,

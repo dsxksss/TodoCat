@@ -23,6 +23,8 @@ import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/config/default_backgrounds.dart';
 import 'package:todo_cat/widgets/appflowy_board_adapter.dart';
+import 'package:todo_cat/controllers/trash_ctr.dart';
+import 'package:todo_cat/widgets/trash_dialog.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -464,6 +466,9 @@ class HomePage extends GetView<HomeController> {
   /// 构建右侧控件列表
   List<Widget> _buildRightWidgets(BuildContext context) {
     return [
+      // 回收站按钮
+      _buildTrashButton(),
+      const SizedBox(width: 8),
       // 通知中心按钮
       _buildNotificationCenterButton(),
       const SizedBox(width: 8),
@@ -483,6 +488,47 @@ class HomePage extends GetView<HomeController> {
         ),
       ),
     ];
+  }
+
+  /// 构建回收站按钮
+  Widget _buildTrashButton() {
+    return GetBuilder<TrashController>(
+      init: Get.isRegistered<TrashController>() ? Get.find<TrashController>() : TrashController(),
+      builder: (trashCtrl) {
+        return Obx(() {
+          final deletedCount = trashCtrl.deletedTasks.length;
+          return badges.Badge(
+            showBadge: deletedCount > 0,
+            badgeContent: Text(
+              deletedCount > 99 ? '99+' : deletedCount.toString(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            badgeStyle: const badges.BadgeStyle(
+              badgeColor: Colors.orange,
+              padding: EdgeInsets.all(4),
+              elevation: 0,
+            ),
+            position: badges.BadgePosition.topEnd(top: -4, end: -4),
+            child: NavBarBtn(
+              onPressed: () {
+                _showTrashDialog(Get.context!);
+              },
+              child: Builder(
+                builder: (context) => Icon(
+                  Icons.delete_outline,
+                  size: 24,
+                  color: context.theme.iconTheme.color,
+                ),
+              ),
+            ),
+          );
+        });
+      },
+    );
   }
 
   /// 构建通知中心按钮
@@ -519,6 +565,39 @@ class HomePage extends GetView<HomeController> {
         ),
       );
     });
+  }
+
+  /// 显示回收站对话框
+  void _showTrashDialog(BuildContext context) {
+    SmartDialog.show(
+      useSystem: false,
+      debounce: true,
+      keepSingle: true,
+      tag: 'trash_dialog',
+      backType: SmartBackType.normal,
+      animationTime: const Duration(milliseconds: 200),
+      alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
+      builder: (_) => context.isPhone
+          ? const Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: TrashDialog(),
+              ),
+            )
+          : const TrashDialog(),
+      clickMaskDismiss: true,
+      animationBuilder: (controller, child, _) {
+        return child
+            .animate(controller: controller)
+            .fade(duration: controller.duration)
+            .scaleXY(
+              begin: 0.95,
+              duration: controller.duration,
+              curve: Curves.easeOut,
+            );
+      },
+    );
   }
 
   /// 显示通知中心对话框

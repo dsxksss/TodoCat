@@ -77,8 +77,8 @@ class TodoCard extends StatelessWidget {
     }
   }
 
-  Future<void> _handleDelete() async {
-    await _homeCtrl.deleteTodo(taskId, todo.uuid);
+  Future<bool> _handleDelete() async {
+    return await _homeCtrl.deleteTodo(taskId, todo.uuid);
   }
 
   @override
@@ -192,8 +192,16 @@ class TodoCard extends StatelessWidget {
                               alwaysShow: true,
                               confirmMode: true,
                               toastStyleType: TodoCatToastStyleType.error,
-                              onYesCallback: () {
-                                _handleDelete();
+                              onYesCallback: () async {
+                                final bool isDeleted = await _handleDelete();
+                                // 只在删除失败时显示通知，成功时不添加消息到消息中心
+                                if (!isDeleted) {
+                                  0.5.delay(() {
+                                    showErrorNotification(
+                                      "${"todo".tr} '${todo.title}' ${"deletionFailed".tr}",
+                                    );
+                                  });
+                                }
                               },
                             )
                           },

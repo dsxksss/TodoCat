@@ -249,8 +249,9 @@ void showToast(
             (Platform.isAndroid || Platform.isIOS
                 ? Alignment.topCenter
                 : Alignment.bottomCenter)),
-    maskColor: Colors.transparent,
-    maskWidget: Container(),
+    maskColor: confirmMode ? Colors.black.withOpacity(0.3) : Colors.transparent,
+    usePenetrate: !confirmMode,
+    maskWidget: confirmMode ? null : Container(),
     clickMaskDismiss: false,
     backType: isBottomLeft 
         ? SmartBackType.normal // 左下角通知不阻塞返回

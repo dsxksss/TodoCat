@@ -8,7 +8,12 @@ import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/components/task/task_card.dart';
 import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
 
-/// 使用 AppFlowyBoard 渲染横向任务列与待办卡片，尽量保持项目原有 UI。
+/// 使用 AppFlowyBoard 渲染横向任务列与待办卡片
+/// 
+/// 优化策略：
+/// 1. 拖拽锁定：拖拽时暂停数据同步，避免冲突
+/// 2. 智能防抖：减少不必要的重建
+/// 3. 生命周期保护：防止 dispose 后的操作
 class AppFlowyTodosBoard extends StatefulWidget {
   const AppFlowyTodosBoard(
       {super.key, required this.tasks, this.listWidth = 260.0});
@@ -24,8 +29,15 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
   final HomeController _controller = Get.find();
   late final AppFlowyBoardController _boardController;
   late final ScrollController _scrollController;
+  
   String _lastSignature = '';
   Timer? _debounceTimer;
+  bool _isSyncing = false;
+  bool _isDisposed = false;
+  
+  // 拖拽锁定机制
+  bool _isDragging = false;
+  bool _hasPendingUpdate = false;
 
   @override
   void initState() {
@@ -33,14 +45,19 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
     _scrollController = ScrollController();
     _boardController = AppFlowyBoardController(
       onMoveGroup: (fromGroupId, fromIndex, toGroupId, toIndex) {
+        if (_isDisposed || !mounted) return;
+        _isDragging = false; // 拖拽结束
         _controller.reorderTask(fromIndex, toIndex);
       },
       onMoveGroupItem: (groupId, fromIndex, toIndex) {
-        // 同组内的拖拽，AppFlowy 新索引包含占位导致向后移动时 +1，这里做校正
-        final adjusted = toIndex > fromIndex ? toIndex - 1 : toIndex;
-        _controller.reorderTodo(groupId, fromIndex, adjusted);
+        if (_isDisposed || !mounted) return;
+        _isDragging = false; // 拖拽结束
+        // 直接使用 appflowy_board 提供的索引，不做调整
+        _controller.reorderTodo(groupId, fromIndex, toIndex);
       },
       onMoveGroupItemToGroup: (fromGroupId, fromIndex, toGroupId, toIndex) {
+        if (_isDisposed || !mounted) return;
+        _isDragging = false; // 拖拽结束
         final fromTask =
             widget.tasks.firstWhereOrNull((t) => t.uuid == fromGroupId);
         if (fromTask == null) return;
@@ -59,20 +76,50 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _debounceTimer?.cancel();
-    _scrollController.dispose();
-    _boardController.dispose();
+    _debounceTimer = null;
+    
+    if (_scrollController.hasClients) {
+      try {
+        _scrollController.jumpTo(_scrollController.offset);
+      } catch (e) {
+        // 忽略错误
+      }
+    }
+    
+    try {
+      _scrollController.dispose();
+    } catch (e) {
+      // 忽略错误
+    }
+    
+    Future.microtask(() {
+      try {
+        if (_isDisposed) {
+          _boardController.dispose();
+        }
+      } catch (e) {
+        // 忽略错误
+      }
+    });
+    
     super.dispose();
   }
 
-  void _syncGroups() {
-    // 计算包含任务与其 todos 顺序及内容的签名，用于判断是否需要重建
+  /// 计算数据签名
+  String _calculateSignature(List<Task> tasks) {
     final buffer = StringBuffer();
-    for (final task in widget.tasks) {
+    for (final task in tasks) {
       buffer.write(task.uuid);
       buffer.write('#');
       buffer.write(task.title);
-      for (final todo in (task.todos ?? const <Todo>[])) {
+      buffer.write('#');
+      buffer.write(task.deletedAt);
+      
+      final activeTodos = (task.todos ?? const <Todo>[])
+          .where((todo) => todo.deletedAt == 0);
+      for (final todo in activeTodos) {
         buffer.write('::');
         buffer.write(todo.uuid);
         buffer.write('#');
@@ -85,37 +132,99 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
         buffer.write(todo.tags.join(','));
         buffer.write('#');
         buffer.write(todo.dueDate);
+        buffer.write('#');
+        buffer.write(todo.deletedAt);
       }
       buffer.write('|');
     }
-    final signature = buffer.toString();
-    if (signature == _lastSignature) return;
+    return buffer.toString();
+  }
 
-    // 取消之前的防抖计时器
+  /// 同步分组数据（简化版本，避免复杂的差量更新）
+  void _syncGroups() {
+    if (_isDisposed || !mounted) return;
+    if (_isSyncing) return;
+    
+    // 拖拽时不同步，标记待更新
+    if (_isDragging) {
+      _hasPendingUpdate = true;
+      return;
+    }
+    
+    final newSignature = _calculateSignature(widget.tasks);
+    if (newSignature == _lastSignature) return;
+    
     _debounceTimer?.cancel();
-
-    // 使用防抖避免频繁重建，减少 ScrollController 冲突
-    _debounceTimer = Timer(const Duration(milliseconds: 100), () {
-      if (!mounted) return;
-
+    
+    // 拖拽后延迟更长，避免动画冲突
+    final debounceTime = _hasPendingUpdate ? 150 : 50;
+    _hasPendingUpdate = false;
+    
+    _debounceTimer = Timer(Duration(milliseconds: debounceTime), () {
+      if (_isDisposed || !mounted) {
+        _debounceTimer = null;
+        return;
+      }
+      
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-
-        // 直接按当前数据全量重建分组与条目，可保证顺序与跨列拖拽后的正确性
-        final existing = List<String>.from(_boardController.groupIds);
-        for (final id in existing) {
-          _boardController.removeGroup(id);
+        if (_isDisposed || !mounted) {
+          _isSyncing = false;
+          _debounceTimer = null;
+          return;
         }
-        for (var i = 0; i < widget.tasks.length; i++) {
-          _boardController.insertGroup(i, _toGroup(widget.tasks[i]));
+        
+        _isSyncing = true;
+        
+        try {
+          _performSync();
+          if (!_isDisposed && mounted) {
+            _lastSignature = newSignature;
+          }
+        } catch (e) {
+          debugPrint('Sync error: $e');
+        } finally {
+          _isSyncing = false;
+          _debounceTimer = null;
         }
-        _lastSignature = signature;
       });
     });
   }
 
+  /// 执行同步（全量重建，但简单稳定）
+  void _performSync() {
+    if (_isDisposed || !mounted) return;
+    
+    try {
+      final currentGroups = List<String>.from(_boardController.groupIds);
+      
+      // 移除所有旧分组
+      for (final id in currentGroups) {
+        if (_isDisposed || !mounted) return;
+        try {
+          _boardController.removeGroup(id);
+        } catch (e) {
+          // 忽略
+        }
+      }
+      
+      // 添加新分组
+      for (var i = 0; i < widget.tasks.length; i++) {
+        if (_isDisposed || !mounted) return;
+        try {
+          final group = _toGroup(widget.tasks[i]);
+          _boardController.insertGroup(i, group);
+        } catch (e) {
+          // 忽略
+        }
+      }
+    } catch (e) {
+      debugPrint('Perform sync error: $e');
+    }
+  }
+
   AppFlowyGroupData<AppFlowyGroupItem> _toGroup(Task task) {
     final List<AppFlowyGroupItem> items = (task.todos ?? <Todo>[])
+        .where((todo) => todo.deletedAt == 0)
         .map<AppFlowyGroupItem>(
             (todo) => _TodoItem(taskId: task.uuid, todo: todo))
         .toList();
@@ -125,12 +234,22 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
 
   @override
   Widget build(BuildContext context) {
-    _syncGroups();
+    // 首次构建时同步
+    if (_lastSignature.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_isDisposed) {
+          _syncGroups();
+        }
+      });
+    }
+    
     const boardConfig = AppFlowyBoardConfig(
       groupCornerRadius: 10,
-      groupMargin: EdgeInsets.only(right: 16), // 统一右边距，避免第一个和最后一个宽度不一致
+      groupMargin: EdgeInsets.only(right: 16),
       groupBodyPadding: EdgeInsets.all(0),
-      stretchGroupHeight: true, // 启用拉伸高度，使列占满整个高度，支持在空白区域放置
+      groupFooterPadding: EdgeInsets.all(0),
+      groupHeaderPadding: EdgeInsets.all(0),
+      stretchGroupHeight: true,
     );
 
     return Scrollbar(
@@ -141,17 +260,19 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
           controller: _boardController,
           groupConstraints: BoxConstraints.tightFor(width: widget.listWidth),
           config: boardConfig,
-          scrollController: _scrollController, // 使用独立的 ScrollController 避免冲突
+          scrollController: _scrollController,
           headerBuilder: (_, groupData) {
-            final task = widget.tasks.firstWhere((t) => t.uuid == groupData.id);
-            final hasTodos = (task.todos ?? []).isNotEmpty;
+            final task = widget.tasks.firstWhereOrNull((t) => t.uuid == groupData.id);
+            if (task == null) {
+              return const SizedBox.shrink();
+            }
+            final hasTodos = (task.todos ?? []).where((t) => t.deletedAt == 0).isNotEmpty;
 
             return KeyedSubtree(
               key: ValueKey(groupData.id),
               child: Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  // 如果没有todo项，则显示底部圆角；如果有todo项，则不显示底部圆角
                   borderRadius: hasTodos
                       ? null
                       : const BorderRadius.only(
@@ -171,14 +292,11 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
           },
           cardBuilder: (_, group, item) {
             if (item is! _TodoItem) {
-              // 占位/幻影卡片由 appflowy_board 自行渲染
               return const SizedBox.shrink(key: ValueKey('phantom'));
             }
 
             final data = item;
-
-            // 判断是否是该列的最后一个todo
-            final items = group.items;
+            final items = group.items.whereType<_TodoItem>().toList();
             final isLastItem = items.isNotEmpty && items.last.id == data.id;
 
             return KeyedSubtree(
@@ -186,22 +304,21 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  // 只有最后一个todo才应用底部圆角
                   borderRadius: isLastItem
                       ? const BorderRadius.only(
                           bottomLeft: Radius.circular(10),
                           bottomRight: Radius.circular(10),
                         )
                       : null,
+                  border: Border.all(width: 0, color: Theme.of(context).cardColor),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 0),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 150),
                     child: TodoCard(
                       taskId: data.taskId,
                       todo: data.todo,
-                      // outerMargin: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                       compact: true,
                     ),
                   ),

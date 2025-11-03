@@ -22,60 +22,65 @@ const TaskSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.long,
     ),
-    r'description': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 1,
+      name: r'deletedAt',
+      type: IsarType.long,
+    ),
+    r'description': PropertySchema(
+      id: 2,
       name: r'description',
       type: IsarType.string,
     ),
     r'finishedAt': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'finishedAt',
       type: IsarType.long,
     ),
     r'order': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'order',
       type: IsarType.long,
     ),
     r'progress': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'progress',
       type: IsarType.long,
     ),
     r'reminders': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'reminders',
       type: IsarType.long,
     ),
     r'status': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TaskstatusEnumValueMap,
     ),
     r'tags': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'tagsWithColorJsonString': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'tagsWithColorJsonString',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'title',
       type: IsarType.string,
     ),
     r'todos': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'todos',
       type: IsarType.objectList,
       target: r'Todo',
     ),
     r'uuid': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -120,6 +125,19 @@ const TaskSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'createdAt',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -174,22 +192,23 @@ void _taskSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.description);
-  writer.writeLong(offsets[2], object.finishedAt);
-  writer.writeLong(offsets[3], object.order);
-  writer.writeLong(offsets[4], object.progress);
-  writer.writeLong(offsets[5], object.reminders);
-  writer.writeByte(offsets[6], object.status.index);
-  writer.writeStringList(offsets[7], object.tags);
-  writer.writeString(offsets[8], object.tagsWithColorJsonString);
-  writer.writeString(offsets[9], object.title);
+  writer.writeLong(offsets[1], object.deletedAt);
+  writer.writeString(offsets[2], object.description);
+  writer.writeLong(offsets[3], object.finishedAt);
+  writer.writeLong(offsets[4], object.order);
+  writer.writeLong(offsets[5], object.progress);
+  writer.writeLong(offsets[6], object.reminders);
+  writer.writeByte(offsets[7], object.status.index);
+  writer.writeStringList(offsets[8], object.tags);
+  writer.writeString(offsets[9], object.tagsWithColorJsonString);
+  writer.writeString(offsets[10], object.title);
   writer.writeObjectList<Todo>(
-    offsets[10],
+    offsets[11],
     allOffsets,
     TodoSchema.serialize,
     object.todos,
   );
-  writer.writeString(offsets[11], object.uuid);
+  writer.writeString(offsets[12], object.uuid);
 }
 
 Task _taskDeserialize(
@@ -200,24 +219,25 @@ Task _taskDeserialize(
 ) {
   final object = Task();
   object.createdAt = reader.readLong(offsets[0]);
-  object.description = reader.readString(offsets[1]);
-  object.finishedAt = reader.readLong(offsets[2]);
+  object.deletedAt = reader.readLong(offsets[1]);
+  object.description = reader.readString(offsets[2]);
+  object.finishedAt = reader.readLong(offsets[3]);
   object.id = id;
-  object.order = reader.readLong(offsets[3]);
-  object.progress = reader.readLong(offsets[4]);
-  object.reminders = reader.readLong(offsets[5]);
-  object.status = _TaskstatusValueEnumMap[reader.readByteOrNull(offsets[6])] ??
+  object.order = reader.readLong(offsets[4]);
+  object.progress = reader.readLong(offsets[5]);
+  object.reminders = reader.readLong(offsets[6]);
+  object.status = _TaskstatusValueEnumMap[reader.readByteOrNull(offsets[7])] ??
       TaskStatus.todo;
-  object.tags = reader.readStringList(offsets[7]) ?? [];
-  object.tagsWithColorJsonString = reader.readString(offsets[8]);
-  object.title = reader.readString(offsets[9]);
+  object.tags = reader.readStringList(offsets[8]) ?? [];
+  object.tagsWithColorJsonString = reader.readString(offsets[9]);
+  object.title = reader.readString(offsets[10]);
   object.todos = reader.readObjectList<Todo>(
-    offsets[10],
+    offsets[11],
     TodoSchema.deserialize,
     allOffsets,
     Todo(),
   );
-  object.uuid = reader.readString(offsets[11]);
+  object.uuid = reader.readString(offsets[12]);
   return object;
 }
 
@@ -231,9 +251,9 @@ P _taskDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
-    case 2:
       return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
@@ -241,22 +261,24 @@ P _taskDeserializeProp<P>(
     case 5:
       return (reader.readLong(offset)) as P;
     case 6:
+      return (reader.readLong(offset)) as P;
+    case 7:
       return (_TaskstatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TaskStatus.todo) as P;
-    case 7:
-      return (reader.readStringList(offset) ?? []) as P;
     case 8:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
       return (reader.readObjectList<Todo>(
         offset,
         TodoSchema.deserialize,
         allOffsets,
         Todo(),
       )) as P;
-    case 11:
+    case 12:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -359,6 +381,14 @@ extension TaskQueryWhereSort on QueryBuilder<Task, Task, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'createdAt'),
+      );
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
       );
     });
   }
@@ -649,6 +679,95 @@ extension TaskQueryWhere on QueryBuilder<Task, Task, QWhereClause> {
       ));
     });
   }
+
+  QueryBuilder<Task, Task, QAfterWhereClause> deletedAtEqualTo(int deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterWhereClause> deletedAtNotEqualTo(
+      int deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterWhereClause> deletedAtGreaterThan(
+    int deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterWhereClause> deletedAtLessThan(
+    int deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterWhereClause> deletedAtBetween(
+    int lowerDeletedAt,
+    int upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension TaskQueryFilter on QueryBuilder<Task, Task, QFilterCondition> {
@@ -696,6 +815,58 @@ extension TaskQueryFilter on QueryBuilder<Task, Task, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition> deletedAtEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition> deletedAtGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition> deletedAtLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterFilterCondition> deletedAtBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1880,6 +2051,18 @@ extension TaskQuerySortBy on QueryBuilder<Task, Task, QSortBy> {
     });
   }
 
+  QueryBuilder<Task, Task, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Task, Task, QAfterSortBy> sortByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
@@ -1999,6 +2182,18 @@ extension TaskQuerySortThenBy on QueryBuilder<Task, Task, QSortThenBy> {
   QueryBuilder<Task, Task, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Task, Task, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
@@ -2130,6 +2325,12 @@ extension TaskQueryWhereDistinct on QueryBuilder<Task, Task, QDistinct> {
     });
   }
 
+  QueryBuilder<Task, Task, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Task, Task, QDistinct> distinctByDescription(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2206,6 +2407,12 @@ extension TaskQueryProperty on QueryBuilder<Task, Task, QQueryProperty> {
   QueryBuilder<Task, int, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<Task, int, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
     });
   }
 

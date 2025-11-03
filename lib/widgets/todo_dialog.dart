@@ -397,7 +397,7 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                     const SizedBox(height: 10),
                     AddTagWithColorPicker(
                       textInputAction: TextInputAction.next,
-                      maxLength: 6,
+                      maxLength: 50,
                       maxLines: 1,
                       radius: 6,
                       fieldTitle: "tag".tr,

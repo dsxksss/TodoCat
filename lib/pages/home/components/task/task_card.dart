@@ -220,17 +220,14 @@ class _TaskCardState extends State<TaskCard> {
                                 onYesCallback: () async {
                                   final bool isDeleted =
                                       await _homeCtrl.deleteTask(widget._task.uuid);
-                                  0.5.delay(() {
-                                    if (isDeleted) {
-                                      showSuccessNotification(
-                                        "${"task".tr} '${widget._task.title.tr}' ${"deletedSuccessfully".tr}",
-                                      );
-                                    } else {
+                                  // 只在删除失败时显示通知，成功时不添加消息到消息中心
+                                  if (!isDeleted) {
+                                    0.5.delay(() {
                                       showErrorNotification(
                                         "${"task".tr} '${widget._task.title.tr}' ${"deletionFailed".tr}",
                                       );
-                                    }
-                                  });
+                                    });
+                                  }
                                 },
                               )
                             },
@@ -303,7 +300,8 @@ class _TaskCardState extends State<TaskCard> {
                             (task) => task.uuid == widget._task.uuid,
                             orElse: () => widget._task,
                           );
-                          final todos = currentTask.todos ?? [];
+                          // 过滤已删除的todos
+                          final todos = (currentTask.todos ?? []).where((todo) => todo.deletedAt == 0).toList();
                           
                           // 使用 DragAndDropLists 显示 todo 列表（用于向后兼容，如果 showTodos 为 true）
                           if (todos.isEmpty) {

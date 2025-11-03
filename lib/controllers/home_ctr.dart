@@ -1,8 +1,10 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/controllers/data_export_import_ctr.dart';
+import 'package:todo_cat/controllers/trash_ctr.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/controllers/task_manager.dart';
@@ -64,8 +66,8 @@ class HomeController extends GetxController
   Future<void> refreshData() async {
     _logger.i('刷新主页数据...');
     try {
-      // 重新初始化TaskManager，从数据库加载最新数据
-      await _taskManager.initialize();
+      // 直接刷新TaskManager，从数据库加载最新数据
+      await _taskManager.refresh();
       _logger.i('主页数据刷新成功');
     } catch (e) {
       _logger.e('主页数据刷新失败: $e');
@@ -80,6 +82,19 @@ class HomeController extends GetxController
     } catch (e) {
       // 如果找不到DataExportImportController，忽略错误
       _logger.d('未找到DataExportImportController，跳过刷新导出预览: $e');
+    }
+  }
+
+  /// 刷新回收站数据
+  void _refreshTrash() {
+    try {
+      if (Get.isRegistered<TrashController>()) {
+        final trashController = Get.find<TrashController>();
+        trashController.refresh();
+      }
+    } catch (e) {
+      // 如果找不到TrashController，忽略错误
+      _logger.d('未找到TrashController，跳过刷新回收站: $e');
     }
   }
 
@@ -136,8 +151,13 @@ class HomeController extends GetxController
       final task = _taskManager.tasks.firstWhere((task) => task.uuid == uuid);
       _cleanupTaskNotifications(task);
       await _taskManager.removeTask(uuid);
+      
+      // removeTask 已经会自动刷新UI，无需额外调用 refresh()
+      
       // 刷新导出预览数据
       _refreshExportPreview();
+      // 刷新回收站数据，更新badge
+      _refreshTrash();
       return true;
     } catch (e) {
       _logger.e('Error deleting task: $e');
@@ -181,8 +201,13 @@ class HomeController extends GetxController
     try {
       _logger.d('Deleting todo $todoUuid from task $taskUuid');
 
-      final task =
-          _taskManager.tasks.firstWhere((task) => task.uuid == taskUuid);
+      final taskIndex = _taskManager.tasks.indexWhere((t) => t.uuid == taskUuid);
+      if (taskIndex == -1) {
+        _logger.w('Task $taskUuid not found');
+        return false;
+      }
+      
+      final task = _taskManager.tasks[taskIndex];
 
       if (task.todos == null || task.todos!.isEmpty) {
         _logger.w('Task todos is null or empty');
@@ -196,8 +221,6 @@ class HomeController extends GetxController
         return false;
       }
 
-      final todo = task.todos![todoIndex];
-
       // 清理通知，根据邮箱提醒设置决定是否发送删除请求
       final shouldSendDeleteReq = appCtrl.appConfig.value.emailReminderEnabled;
       await appCtrl.localNotificationManager.destroy(
@@ -205,22 +228,53 @@ class HomeController extends GetxController
         sendDeleteReq: shouldSendDeleteReq,
       );
 
-      // 从任务中移除todo（创建可变副本）
+      // 标记todo为已删除而不是从列表中移除
+      // 创建一个新的todos列表，确保触发UI更新
       final newTodos = List<Todo>.from(task.todos!);
-      final removed = newTodos.remove(todo);
-      if (!removed) {
-        _logger.w('Todo ${todo.uuid} was not found in task for removal');
-        return false;
-      }
+      final updatedTodo = newTodos[todoIndex];
+      final deleteTime = DateTime.now().millisecondsSinceEpoch;
+      updatedTodo.deletedAt = deleteTime;
       task.todos = newTodos;
-
-      // 重要：保存修改后的任务到数据库
-      await _taskManager.updateTask(taskUuid, task);
+      
+      // 注意：不再自动删除空的 task
+      // 即使所有 todos 都被删除，task 也应该保留，除非用户手动删除 task
+      
+      // 关键：先保存到数据库
+      await _taskManager.repository.update(taskUuid, task);
+      
+      // 然后触发内存更新（创建新对象，确保引用变化）
+      final updatedTask = Task()
+        ..uuid = task.uuid
+        ..title = task.title
+        ..description = task.description
+        ..createdAt = task.createdAt
+        ..order = task.order
+        ..deletedAt = task.deletedAt
+        ..tagsWithColor = task.tagsWithColor
+        ..status = task.status
+        ..progress = task.progress
+        ..reminders = task.reminders
+        ..todos = task.todos; // 包含已更新的 todos
+      
+      _taskManager.tasks[taskIndex] = updatedTask;
+      
+      // 延迟刷新UI，避免与正在进行的动画冲突（修复 setState after dispose 错误）
+      // 使用多个 postFrameCallback 确保所有动画完成后再刷新
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_taskManager.tasks.isNotEmpty || _taskManager.tasks.isEmpty) {
+            _taskManager.tasks.refresh();
+          }
+        });
+      });
 
       // 刷新导出预览数据
       _refreshExportPreview();
+      
+      // 刷新回收站数据，更新badge
+      _refreshTrash();
 
-      _logger.d('Todo deleted successfully and saved to database');
+      _logger.d('Todo deleted successfully and UI refreshed');
       return true;
     } catch (e) {
       _logger.e('Error deleting todo: $e');
@@ -290,14 +344,6 @@ class HomeController extends GetxController
         return;
       }
 
-      // 如果新位置在列表末尾，调整索引
-      if (newIndex >= task.todos!.length) {
-        newIndex = task.todos!.length - 1;
-      }
-      if (newIndex < 0) {
-        newIndex = 0;
-      }
-
       // 如果索引相同，不需要操作
       if (oldIndex == newIndex) {
         _logger.d('Same index, no reorder needed');
@@ -307,16 +353,23 @@ class HomeController extends GetxController
       // 创建新的todos列表
       final List<Todo> newTodos = List.from(task.todos!);
       final todo = newTodos.removeAt(oldIndex);
+      
+      // 在 removeAt 之后调整 newIndex（此时列表长度已经减1）
+      // 确保 newIndex 在有效范围内
+      if (newIndex > newTodos.length) {
+        newIndex = newTodos.length;
+      }
+      if (newIndex < 0) {
+        newIndex = 0;
+      }
+      
       newTodos.insert(newIndex, todo);
 
       // 更新task的todos
       task.todos = newTodos;
 
-      // 保存更改到存储
+      // 保存更改到存储（updateTask 会自动刷新UI）
       await _taskManager.updateTask(taskId, task);
-
-      // 只刷新UI，不重新从数据库加载
-      _taskManager.tasks.refresh();
 
       _logger.d('Todo reordered successfully');
     } catch (e) {
@@ -375,14 +428,11 @@ class HomeController extends GetxController
       toTodos.add(todoToMove);
       toTask.todos = toTodos;
 
-      // 批量更新，避免多次数据库操作
+      // 批量更新，避免多次数据库操作（updateTask 会自动刷新UI）
       await Future.wait([
         _taskManager.updateTask(fromTaskId, fromTask),
         _taskManager.updateTask(toTaskId, toTask),
       ]);
-
-      // 只刷新一次UI，不重新从数据库加载
-      _taskManager.tasks.refresh();
 
       // 刷新导出预览数据
       _refreshExportPreview();
@@ -444,13 +494,12 @@ class HomeController extends GetxController
       toTodos.insert(targetIndex, todoToMove);
       toTask.todos = toTodos;
 
-      // 批量更新
+      // 批量更新（updateTask 会自动刷新UI）
       await Future.wait([
         _taskManager.updateTask(fromTaskId, fromTask),
         _taskManager.updateTask(toTaskId, toTask),
       ]);
 
-      _taskManager.tasks.refresh();
       _refreshExportPreview();
       _logger.d(
           'Todo $todoId moved successfully to index $targetIndex with status ${todoToMove.status}');
@@ -523,11 +572,8 @@ class HomeController extends GetxController
       newTodos.insert(newIndex, todo);
       task.todos = newTodos;
 
-      // 保存更改
+      // 保存更改（updateTask 会自动刷新UI）
       await _taskManager.updateTask(taskId, task);
-
-      // 只刷新UI，不重新从数据库加载
-      _taskManager.tasks.refresh();
 
       _logger.d('Todo reordered in same task successfully');
     } catch (e) {
