@@ -5,19 +5,18 @@
     <description>TodoCat Update Feed</description>
     <language>en</language>
     <item>
-      <title>Version 1.0.6</title>
+      <title>Version 10.7</title>
       <description><![CDATA[
         <h2>更新内容</h2>
         <ul>
-          <li>优化了task列表布局问题</li>
-          <li>增加了默认背景模板设置</li>
+          <li>重构Task Todo布局拖拽按钮及触发条件</li>
         </ul>
       ]]> </description>
       <pubDate>Wed, 29 Oct 2025 12:00:00 +0000</pubDate>
       <enclosure 
-        url="https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.6/todo_cat-1.0.6-windows-setup.exe" 
-        sparkle:version="1.0.6" 
-        sparkle:shortVersionString="1.0.6"
+        url="https://gitee.com/dsxksss/TodoCat/releases/download/v10.7/todo_cat-10.7-windows-setup.exe" 
+        sparkle:version="10.7" 
+        sparkle:shortVersionString="10.7"
         length="50000000" 
         type="application/octet-stream" />
     </item>
