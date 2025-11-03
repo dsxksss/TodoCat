@@ -606,7 +606,7 @@ class _TaskHorizontalList extends StatefulWidget {
 class _TaskHorizontalListState extends State<_TaskHorizontalList> {
   late final ScrollController _scrollController;
   Timer? _scrollTimer;
-  bool _isDragging = false;
+  final bool _isDragging = false;
   final Map<String, GlobalKey> _listKeys = {}; // 每列区域的 GlobalKey
   
   @override

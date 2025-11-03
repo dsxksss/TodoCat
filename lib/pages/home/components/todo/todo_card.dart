@@ -83,7 +83,6 @@ class TodoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 不再使用 Draggable，因为拖拽现在由 DragAndDropItem 处理
     return buildTodoContent(context);
   }
 
@@ -137,6 +136,7 @@ class TodoCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: 5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -150,7 +150,7 @@ class TodoCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 5),
                         SizedBox(
-                          width: 120,
+                          width: 120, // 文字宽度限制
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 1.0),
                             child: Text(
