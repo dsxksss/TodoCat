@@ -1,7 +1,7 @@
 name: todo_cat
 description: A new Flutter project.
 publish_to: "none"
-version: 1.0.7
+version: 1.0.8
 
 environment:
   sdk: ">=3.0.6 <4.0.0"
@@ -63,7 +63,7 @@ dependencies:
   auto_updater: ^1.0.0
   # 获取应用版本信息
   package_info_plus: ^8.1.2
-  # 看板拖拽组件（采用 AppFlowy Todos 同源实现）
+  # 看板拖拽组件
   appflowy_board: 0.1.2
 
 dev_dependencies:

@@ -93,14 +93,14 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
 
     // 取消之前的防抖计时器
     _debounceTimer?.cancel();
-    
+
     // 使用防抖避免频繁重建，减少 ScrollController 冲突
     _debounceTimer = Timer(const Duration(milliseconds: 100), () {
       if (!mounted) return;
-      
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        
+
         // 直接按当前数据全量重建分组与条目，可保证顺序与跨列拖拽后的正确性
         final existing = List<String>.from(_boardController.groupIds);
         for (final id in existing) {
@@ -133,78 +133,84 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
       stretchGroupHeight: true, // 启用拉伸高度，使列占满整个高度，支持在空白区域放置
     );
 
-    return AppFlowyBoard(
-      controller: _boardController,
-      groupConstraints: BoxConstraints.tightFor(width: widget.listWidth),
-      config: boardConfig,
-      scrollController: _scrollController, // 使用独立的 ScrollController 避免冲突
-      headerBuilder: (_, groupData) {
-        final task = widget.tasks.firstWhere((t) => t.uuid == groupData.id);
-        final hasTodos = (task.todos ?? []).isNotEmpty;
-        
-        return KeyedSubtree(
-          key: ValueKey(groupData.id),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              // 如果没有todo项，则显示底部圆角；如果有todo项，则不显示底部圆角
-              borderRadius: hasTodos 
-                  ? null 
-                  : const BorderRadius.only(
-                      bottomLeft: Radius.circular(10),
-                      bottomRight: Radius.circular(10),
-                    ),
-            ),
-            width: widget.listWidth,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(),
-              child: ClipRect(
-                child: TaskCard(task: task, showTodos: false),
-              ),
-            ),
-          ),
-        );
-      },
-      cardBuilder: (_, group, item) {
-        if (item is! _TodoItem) {
-          // 占位/幻影卡片由 appflowy_board 自行渲染
-          return const SizedBox.shrink(key: ValueKey('phantom'));
-        }
+    return Scrollbar(
+      controller: _scrollController,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        child: AppFlowyBoard(
+          controller: _boardController,
+          groupConstraints: BoxConstraints.tightFor(width: widget.listWidth),
+          config: boardConfig,
+          scrollController: _scrollController, // 使用独立的 ScrollController 避免冲突
+          headerBuilder: (_, groupData) {
+            final task = widget.tasks.firstWhere((t) => t.uuid == groupData.id);
+            final hasTodos = (task.todos ?? []).isNotEmpty;
 
-        final data = item;
-        
-        // 判断是否是该列的最后一个todo
-        final items = group.items;
-        final isLastItem = items.isNotEmpty && items.last.id == data.id;
-        
-        return KeyedSubtree(
-          key: ValueKey(data.id),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              // 只有最后一个todo才应用底部圆角
-              borderRadius: isLastItem 
-                  ? const BorderRadius.only(
-                      bottomLeft: Radius.circular(10),
-                      bottomRight: Radius.circular(10),
-                    )
-                  : null,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 150),
-                child: TodoCard(
-                  taskId: data.taskId,
-                  todo: data.todo,
-                  // outerMargin: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                  compact: true,
+            return KeyedSubtree(
+              key: ValueKey(groupData.id),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  // 如果没有todo项，则显示底部圆角；如果有todo项，则不显示底部圆角
+                  borderRadius: hasTodos
+                      ? null
+                      : const BorderRadius.only(
+                          bottomLeft: Radius.circular(10),
+                          bottomRight: Radius.circular(10),
+                        ),
+                ),
+                width: widget.listWidth,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(),
+                  child: ClipRect(
+                    child: TaskCard(task: task, showTodos: false),
+                  ),
                 ),
               ),
-            ),
-          ),
-        );
-      },
+            );
+          },
+          cardBuilder: (_, group, item) {
+            if (item is! _TodoItem) {
+              // 占位/幻影卡片由 appflowy_board 自行渲染
+              return const SizedBox.shrink(key: ValueKey('phantom'));
+            }
+
+            final data = item;
+
+            // 判断是否是该列的最后一个todo
+            final items = group.items;
+            final isLastItem = items.isNotEmpty && items.last.id == data.id;
+
+            return KeyedSubtree(
+              key: ValueKey(data.id),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  // 只有最后一个todo才应用底部圆角
+                  borderRadius: isLastItem
+                      ? const BorderRadius.only(
+                          bottomLeft: Radius.circular(10),
+                          bottomRight: Radius.circular(10),
+                        )
+                      : null,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 150),
+                    child: TodoCard(
+                      taskId: data.taskId,
+                      todo: data.todo,
+                      // outerMargin: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                      compact: true,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
