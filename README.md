@@ -1,6 +1,5 @@
 # Todo Cat <img src="readme_assets/imgs/logo-light-rounded.png" alt="Image Description" width="25" height="25" />
 
-## Demonstrations
 ### Desktop
 
 ![Dark theme][home-dark-screenshot]
