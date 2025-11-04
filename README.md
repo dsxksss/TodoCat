@@ -1,13 +1,13 @@
 # Todo Cat <img src="readme_assets/imgs/logo-light-rounded.png" alt="Image Description" width="25" height="25" />
 
 ## Demonstrations
-
-![screenshot-phone][screenshot-phone]
-
 ### Desktop
 
-![Light theme][home-screenshot]
 ![Dark theme][home-dark-screenshot]
+![Light theme][home-screenshot]
+
+## Mobile
+![screenshot-phone][screenshot-phone]
 
 ## Attention
 
