@@ -1,10 +1,10 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/start.dart';
-import 'package:todo_cat/pages/home/home_page.dart';
-import 'package:todo_cat/pages/todo_detail_page.dart';
-import 'package:todo_cat/pages/trash/trash_page.dart';
-import 'package:todo_cat/controllers/trash_ctr.dart';
+import 'package:TodoCat/pages/start.dart';
+import 'package:TodoCat/pages/home/home_page.dart';
+import 'package:TodoCat/pages/todo_detail_page.dart';
+import 'package:TodoCat/pages/trash/trash_page.dart';
+import 'package:TodoCat/controllers/trash_ctr.dart';
 
 List<GetPage<dynamic>> routerMap = [
   GetPage(

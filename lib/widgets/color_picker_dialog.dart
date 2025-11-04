@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/utils/font_utils.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:TodoCat/utils/font_utils.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
 
 /// 颜色选择器对话框
 class ColorPickerDialog extends StatelessWidget {

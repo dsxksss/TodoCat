@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:todo_cat/controllers/task_manager.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:TodoCat/controllers/task_manager.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {

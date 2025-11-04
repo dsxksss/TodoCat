@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:todo_cat/data/schemas/app_config.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/services/repositorys/app_config.dart';
-import 'package:todo_cat/data/services/repositorys/task.dart';
-import 'package:todo_cat/widgets/import_conflict_dialog.dart';
+import 'package:TodoCat/data/schemas/app_config.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/services/repositorys/app_config.dart';
+import 'package:TodoCat/data/services/repositorys/task.dart';
+import 'package:TodoCat/widgets/import_conflict_dialog.dart';
 import 'package:logger/logger.dart';
 
 class DataExportImportService {

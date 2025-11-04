@@ -1,5 +1,5 @@
 import 'package:isar/isar.dart';
-import 'package:todo_cat/data/schemas/tag_with_color.dart';
+import 'package:TodoCat/data/schemas/tag_with_color.dart';
 import 'dart:convert';
 
 part 'todo.g.dart';

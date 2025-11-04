@@ -1,7 +1,7 @@
 import 'package:isar/isar.dart';
 import 'package:logger/logger.dart';
-import 'package:todo_cat/data/schemas/notification_history.dart';
-import 'package:todo_cat/data/services/database.dart';
+import 'package:TodoCat/data/schemas/notification_history.dart';
+import 'package:TodoCat/data/services/database.dart';
 
 class NotificationHistoryRepository {
   static final _logger = Logger();

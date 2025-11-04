@@ -1,15 +1,15 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/controllers/app_ctr.dart';
-import 'package:todo_cat/controllers/data_export_import_ctr.dart';
-import 'package:todo_cat/controllers/trash_ctr.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/controllers/app_ctr.dart';
+import 'package:TodoCat/controllers/data_export_import_ctr.dart';
+import 'package:TodoCat/controllers/trash_ctr.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:logger/logger.dart';
-import 'package:todo_cat/controllers/task_manager.dart';
-import 'package:todo_cat/controllers/mixins/scroll_controller_mixin.dart';
-import 'package:todo_cat/controllers/mixins/task_state_mixin.dart';
+import 'package:TodoCat/controllers/task_manager.dart';
+import 'package:TodoCat/controllers/mixins/scroll_controller_mixin.dart';
+import 'package:TodoCat/controllers/mixins/task_state_mixin.dart';
 
 class HomeController extends GetxController
     with ScrollControllerMixin, TaskStateMixin {

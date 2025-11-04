@@ -1,6 +1,6 @@
 {
-    "name": "todo_cat",
-    "short_name": "todo_cat",
+    "name": "TodoCat",
+    "short_name": "TodoCat",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

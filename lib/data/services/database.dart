@@ -1,9 +1,9 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:todo_cat/data/schemas/app_config.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/local_notice.dart';
-import 'package:todo_cat/data/schemas/notification_history.dart';
+import 'package:TodoCat/data/schemas/app_config.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/local_notice.dart';
+import 'package:TodoCat/data/schemas/notification_history.dart';
 import 'package:logger/logger.dart';
 
 class Database {

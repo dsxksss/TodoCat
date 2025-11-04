@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
-import 'package:todo_cat/data/schemas/app_config.dart';
-import 'package:todo_cat/data/services/database.dart';
+import 'package:TodoCat/data/schemas/app_config.dart';
+import 'package:TodoCat/data/services/database.dart';
 
 class AppConfigRepository {
   static AppConfigRepository? _instance;

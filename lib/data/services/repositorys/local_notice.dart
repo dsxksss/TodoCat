@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
-import 'package:todo_cat/data/schemas/local_notice.dart';
-import 'package:todo_cat/data/services/database.dart';
+import 'package:TodoCat/data/schemas/local_notice.dart';
+import 'package:TodoCat/data/services/database.dart';
 
 class LocalNoticeRepository {
   static LocalNoticeRepository? _instance;

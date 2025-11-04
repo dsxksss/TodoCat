@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/services/database.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/services/database.dart';
 
 class TaskRepository {
   static TaskRepository? _instance;

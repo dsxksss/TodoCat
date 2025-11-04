@@ -5,10 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/core/notification_stack_manager.dart';
-import 'package:todo_cat/core/notification_center_manager.dart';
-import 'package:todo_cat/data/schemas/notification_history.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:TodoCat/core/notification_stack_manager.dart';
+import 'package:TodoCat/core/notification_center_manager.dart';
+import 'package:TodoCat/data/schemas/notification_history.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
 
 /// Toast 样式类型枚举
 enum TodoCatToastStyleType {

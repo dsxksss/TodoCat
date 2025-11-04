@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:todo_cat/controllers/trash_ctr.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/widgets/todocat_scaffold.dart';
-import 'package:todo_cat/widgets/animation_btn.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:TodoCat/controllers/trash_ctr.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/widgets/todocat_scaffold.dart';
+import 'package:TodoCat/widgets/animation_btn.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/controllers/home_ctr.dart';
 
 /// 回收站页面
 class TrashPage extends GetView<TrashController> {

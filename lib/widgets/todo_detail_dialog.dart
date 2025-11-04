@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/controllers/todo_detail_ctr.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/core/utils/date_time.dart';
-import 'package:todo_cat/pages/home/components/tag.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:TodoCat/controllers/todo_detail_ctr.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/core/utils/date_time.dart';
+import 'package:TodoCat/pages/home/components/tag.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
 
 class TodoDetailDialog extends StatelessWidget {
   final String todoId;
@@ -20,13 +20,18 @@ class TodoDetailDialog extends StatelessWidget {
     required this.todoId,
     required this.taskId,
   });
+  
+  String get _dialogTag => 'todo_detail_dialog_$todoId';
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(TodoDetailController(
-      todoId: todoId,
-      taskId: taskId,
-    ));
+    final controller = Get.put(
+      TodoDetailController(
+        todoId: todoId,
+        taskId: taskId,
+      ),
+      tag: _dialogTag,  // 使用唯一的 tag 创建独立的 controller
+    );
     
     return _buildDialog(context, controller);
   }
@@ -93,7 +98,7 @@ class TodoDetailDialog extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.close, size: 20),
                     onPressed: () {
-                      SmartDialog.dismiss(tag: 'todo_detail_dialog');
+                      SmartDialog.dismiss(tag: _dialogTag);
                     },
                   ),
                 ],

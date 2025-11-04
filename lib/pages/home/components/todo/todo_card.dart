@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/pages/home/components/tag.dart';
-import 'package:todo_cat/core/utils/date_time.dart';
-import 'package:todo_cat/keys/dialog_keys.dart';
-import 'package:todo_cat/widgets/dpd_menu_btn.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
-import 'package:todo_cat/widgets/todo_dialog.dart';
-import 'package:todo_cat/services/dialog_service.dart';
-import 'package:todo_cat/widgets/todo_detail_dialog.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/controllers/home_ctr.dart';
+import 'package:TodoCat/controllers/todo_detail_ctr.dart';
+import 'package:TodoCat/pages/home/components/tag.dart';
+import 'package:TodoCat/core/utils/date_time.dart';
+import 'package:TodoCat/keys/dialog_keys.dart';
+import 'package:TodoCat/widgets/dpd_menu_btn.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/controllers/todo_dialog_ctr.dart';
+import 'package:TodoCat/widgets/todo_dialog.dart';
+import 'package:TodoCat/services/dialog_service.dart';
+import 'package:TodoCat/widgets/todo_detail_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class TodoCard extends StatelessWidget {
@@ -91,8 +92,9 @@ class TodoCard extends StatelessWidget {
       color: Colors.transparent,
       child: GestureDetector(
         onTap: () {
+          final dialogTag = 'todo_detail_dialog_${todo.uuid}';
           SmartDialog.show(
-            tag: 'todo_detail_dialog',
+            tag: dialogTag,
             alignment: Alignment.center,
             animationTime: const Duration(milliseconds: 250),
             animationBuilder: (animController, child, _) {
@@ -115,6 +117,10 @@ class TodoCard extends StatelessWidget {
               taskId: taskId,
             ),
             clickMaskDismiss: true,
+            onDismiss: () {
+              // 清理 controller，避免内存泄漏
+              Get.delete<TodoDetailController>(tag: dialogTag);
+            },
           );
         },
         child: Container(

@@ -2,11 +2,11 @@ import 'dart:async';
 import 'package:appflowy_board/appflowy_board.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/pages/home/components/task/task_card.dart';
-import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
+import 'package:TodoCat/controllers/home_ctr.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/pages/home/components/task/task_card.dart';
+import 'package:TodoCat/pages/home/components/todo/todo_card.dart';
 
 /// 使用 AppFlowyBoard 渲染横向任务列与待办卡片
 /// 

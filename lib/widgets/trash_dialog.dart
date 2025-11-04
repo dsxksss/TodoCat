@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:todo_cat/controllers/trash_ctr.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
-import 'package:todo_cat/widgets/dpd_menu_btn.dart';
-import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:TodoCat/controllers/trash_ctr.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:TodoCat/widgets/dpd_menu_btn.dart';
+import 'package:TodoCat/controllers/home_ctr.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 /// 回收站对话框

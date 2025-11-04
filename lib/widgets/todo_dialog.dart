@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
-import 'package:todo_cat/keys/dialog_keys.dart';
-import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
-import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
-import 'package:todo_cat/widgets/date_picker_panel.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/widgets/tag_dialog_btn.dart';
-import 'package:todo_cat/widgets/priority_picker_panel.dart';
-import 'package:todo_cat/widgets/reminder_picker_panel.dart';
-import 'package:todo_cat/widgets/status_picker_panel.dart';
+import 'package:TodoCat/controllers/todo_dialog_ctr.dart';
+import 'package:TodoCat/keys/dialog_keys.dart';
+import 'package:TodoCat/pages/home/components/add_tag_with_color_screen.dart';
+import 'package:TodoCat/pages/home/components/text_form_field_item.dart';
+import 'package:TodoCat/widgets/date_picker_panel.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/tag_dialog_btn.dart';
+import 'package:TodoCat/widgets/priority_picker_panel.dart';
+import 'package:TodoCat/widgets/reminder_picker_panel.dart';
+import 'package:TodoCat/widgets/status_picker_panel.dart';
 import 'package:intl/intl.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
 
 class TodoDialog extends GetView<AddTodoDialogController> {
   const TodoDialog({

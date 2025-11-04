@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:todo_cat/widgets/nav_bar.dart';
+import 'package:TodoCat/widgets/nav_bar.dart';
 
 /// 自定义 Scaffold 组件，包含导航栏和主体内容
 class TodoCatScaffold extends StatelessWidget {

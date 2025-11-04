@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:todo_cat/pages/home/components/tag.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:TodoCat/pages/home/components/tag.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
 
 class TagDialogBtn extends StatelessWidget {
   const TagDialogBtn({

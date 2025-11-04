@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:todo_cat/controllers/settings_ctr.dart';
-import 'package:todo_cat/controllers/data_export_import_ctr.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/widgets/background_setting_dialog.dart';
+import 'package:TodoCat/controllers/settings_ctr.dart';
+import 'package:TodoCat/controllers/data_export_import_ctr.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/background_setting_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class SettingsContent extends GetView<SettingsController> {

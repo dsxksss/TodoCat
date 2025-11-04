@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
-import 'package:todo_cat/controllers/settings_ctr.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:TodoCat/controllers/settings_ctr.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:todo_cat/config/default_backgrounds.dart';
+import 'package:TodoCat/config/default_backgrounds.dart';
 import 'dart:io';
 
 /// 背景设置对话框

@@ -2,17 +2,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/config/default_data.dart';
-import 'package:todo_cat/controllers/app_ctr.dart';
-import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/data/schemas/app_config.dart';
-import 'package:todo_cat/data/services/database.dart';
-import 'package:todo_cat/keys/dialog_keys.dart';
-import 'package:todo_cat/pages/settings/settings_page.dart';
-import 'package:todo_cat/widgets/dpd_menu_btn.dart';
+import 'package:TodoCat/config/default_data.dart';
+import 'package:TodoCat/controllers/app_ctr.dart';
+import 'package:TodoCat/controllers/home_ctr.dart';
+import 'package:TodoCat/data/schemas/app_config.dart';
+import 'package:TodoCat/data/services/database.dart';
+import 'package:TodoCat/keys/dialog_keys.dart';
+import 'package:TodoCat/pages/settings/settings_page.dart';
+import 'package:TodoCat/widgets/dpd_menu_btn.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:logger/logger.dart';
 
 class SettingsController extends GetxController {

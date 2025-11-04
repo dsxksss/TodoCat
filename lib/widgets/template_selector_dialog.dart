@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/config/default_data.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
-import 'package:todo_cat/utils/font_utils.dart';
+import 'package:TodoCat/config/default_data.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:TodoCat/utils/font_utils.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:uuid/uuid.dart';
-import 'package:todo_cat/pages/home/components/task/task_card.dart';
+import 'package:TodoCat/pages/home/components/task/task_card.dart';
 
 enum TaskTemplateType {
   empty,    // 空模板

@@ -1,7 +1,7 @@
-import 'package:todo_cat/data/schemas/app_config.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/data/schemas/todo.dart';
-import 'package:todo_cat/data/schemas/tag_with_color.dart';
+import 'package:TodoCat/data/schemas/app_config.dart';
+import 'package:TodoCat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/data/schemas/tag_with_color.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 

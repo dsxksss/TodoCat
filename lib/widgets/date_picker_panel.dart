@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/controllers/datepicker_ctr.dart';
-import 'package:todo_cat/widgets/date_panel.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
-import 'package:todo_cat/widgets/time_panel.dart';
+import 'package:TodoCat/controllers/datepicker_ctr.dart';
+import 'package:TodoCat/widgets/date_panel.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:TodoCat/widgets/time_panel.dart';
 
 class DatePickerPanel extends StatefulWidget {
   const DatePickerPanel({

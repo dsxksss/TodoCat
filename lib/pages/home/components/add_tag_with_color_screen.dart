@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
-import 'package:todo_cat/widgets/tag_dialog_btn.dart';
-import 'package:todo_cat/widgets/color_picker_dialog.dart';
-import 'package:todo_cat/data/schemas/tag_with_color.dart';
+import 'package:TodoCat/pages/home/components/text_form_field_item.dart';
+import 'package:TodoCat/widgets/tag_dialog_btn.dart';
+import 'package:TodoCat/widgets/color_picker_dialog.dart';
+import 'package:TodoCat/data/schemas/tag_with_color.dart';
 
 class AddTagWithColorScreen extends StatelessWidget {
   const AddTagWithColorScreen({

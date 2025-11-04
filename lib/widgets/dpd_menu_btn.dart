@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/keys/dialog_keys.dart';
-import 'package:todo_cat/widgets/dropdown_menu_btn.dart';
+import 'package:TodoCat/keys/dialog_keys.dart';
+import 'package:TodoCat/widgets/dropdown_menu_btn.dart';
 
 /// 菜单项类，包含标题、图标和回调函数
 class MenuItem {

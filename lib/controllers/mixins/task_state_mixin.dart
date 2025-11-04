@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:todo_cat/data/schemas/task.dart';
+import 'package:TodoCat/data/schemas/task.dart';
 
 /// 任务状态管理Mixin
 /// 提供通用的任务过滤、搜索、分组等功能

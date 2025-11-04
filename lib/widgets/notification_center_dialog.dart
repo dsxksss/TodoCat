@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:todo_cat/core/notification_center_manager.dart';
-import 'package:todo_cat/data/schemas/notification_history.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:TodoCat/core/notification_center_manager.dart';
+import 'package:TodoCat/data/schemas/notification_history.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
 
 class NotificationCenterDialog extends StatelessWidget {
   const NotificationCenterDialog({super.key});

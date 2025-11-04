@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
 
 /// 通知系统测试页面
 class NotificationTestPage extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
 
 /// 数据验证Mixin
 /// 提供常用的验证方法
