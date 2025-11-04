@@ -51,7 +51,7 @@ mixin ValidationMixin {
     }
     
     if (number < min || number > max) {
-      return 'numberOutOfRange'.trParams({'min': min.toString(), 'max': max.toString()});
+      return '${'numberOutOfRange'.tr} ($min - $max)';
     }
     
     return null;
@@ -62,11 +62,11 @@ mixin ValidationMixin {
     value ??= '';
     
     if (minLength != null && value.length < minLength) {
-      return 'textTooShort'.trParams({'min': minLength.toString()});
+      return '${'textTooShort'.tr} ($minLength)';
     }
     
     if (maxLength != null && value.length > maxLength) {
-      return 'textTooLong'.trParams({'max': maxLength.toString()});
+      return '${'textTooLong'.tr} ($maxLength)';
     }
     
     return null;

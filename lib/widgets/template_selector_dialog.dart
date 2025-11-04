@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/config/default_data.dart';
+import 'package:TodoCat/config/template_generator.dart';
 import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/data/schemas/custom_template.dart';
+import 'package:TodoCat/data/services/repositorys/custom_template.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:TodoCat/widgets/label_btn.dart';
 import 'package:TodoCat/utils/font_utils.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:uuid/uuid.dart';
 import 'package:TodoCat/pages/home/components/task/task_card.dart';
+import 'dart:io';
+import 'dart:ui';
+import 'package:TodoCat/controllers/app_ctr.dart';
+import 'package:TodoCat/config/default_backgrounds.dart';
 
 enum TaskTemplateType {
   empty,    // 空模板
@@ -19,18 +23,48 @@ enum TaskTemplateType {
   travel,   // 旅行计划模板
 }
 
-class TemplateSelectorDialog extends StatelessWidget {
+class TemplateSelectorDialog extends StatefulWidget {
   final Function(TaskTemplateType) onTemplateSelected;
+  final Function(CustomTemplate)? onCustomTemplateSelected;
 
   const TemplateSelectorDialog({
     Key? key,
     required this.onTemplateSelected,
+    this.onCustomTemplateSelected,
   }) : super(key: key);
+
+  @override
+  State<TemplateSelectorDialog> createState() => _TemplateSelectorDialogState();
+}
+
+class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
+  List<CustomTemplate> _customTemplates = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomTemplates();
+  }
+
+  Future<void> _loadCustomTemplates() async {
+    try {
+      final repository = await CustomTemplateRepository.getInstance();
+      final templates = await repository.readAll();
+      if (mounted) {
+        setState(() {
+          _customTemplates = templates;
+        });
+      }
+    } catch (e) {
+      // 加载失败，保持空列表
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: context.isPhone ? 1.sw : 450,
+      height: MediaQuery.of(context).size.height * 0.85, // 限制最大高度为屏幕的85%
       child: Container(
         decoration: BoxDecoration(
           color: context.theme.dialogBackgroundColor,
@@ -43,7 +77,7 @@ class TemplateSelectorDialog extends StatelessWidget {
               : BorderRadius.circular(10),
         ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
           // 标题栏
           Container(
@@ -71,14 +105,32 @@ class TemplateSelectorDialog extends StatelessWidget {
               ],
             ),
           ),
-          // 内容区域
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          // 内容区域 - 使用 Expanded 和 SingleChildScrollView 使其可滚动
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                // 显示自定义模板（放在前面）
+                if (_customTemplates.isNotEmpty) ...[
+                  Text(
+                    'customTemplates'.tr,
+                    style: FontUtils.getTextStyle(
+                      fontSize: 14,
+                      color: context.theme.textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ..._customTemplates.map((template) => 
+                    _buildCustomTemplateOption(context, template),
+                  ).toList(),
+                  const SizedBox(height: 24),
+                  Divider(color: context.theme.dividerColor.withOpacity(0.3)),
+                  const SizedBox(height: 12),
+                ],
                 Text(
-                  'selectTemplateType'.tr,
+                  _customTemplates.isNotEmpty ? 'default'.tr : 'selectTemplateType'.tr,
                   style: FontUtils.getTextStyle(
                     fontSize: 14,
                     color: context.theme.textTheme.bodyMedium?.color,
@@ -130,11 +182,64 @@ class TemplateSelectorDialog extends StatelessWidget {
                   Colors.teal,
                 ),
               ],
+              ),
             ),
           ),
         ],
       ),
       ),
+    );
+  }
+  
+  Widget _buildCustomTemplateOption(BuildContext context, CustomTemplate template) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _CustomTemplateOptionWidget(
+        template: template,
+        onTap: (shouldClosePreview) {
+          _showConfirmDialogForCustom(context, template, shouldClosePreview);
+        },
+        onDelete: () async {
+          await _deleteCustomTemplate(template);
+        },
+      ),
+    );
+  }
+  
+  Future<void> _deleteCustomTemplate(CustomTemplate template) async {
+    showToast(
+      'confirmDeleteTemplate'.tr,
+      confirmMode: true,
+      alwaysShow: true,
+      toastStyleType: TodoCatToastStyleType.error,
+      onYesCallback: () async {
+        try {
+          final repository = await CustomTemplateRepository.getInstance();
+          await repository.delete(template.id);
+          showSuccessNotification('templateDeleted'.tr);
+          // 重新加载列表
+          await _loadCustomTemplates();
+        } catch (e) {
+          showErrorNotification('Error: $e');
+        }
+      },
+    );
+  }
+  
+  void _showConfirmDialogForCustom(BuildContext context, CustomTemplate template, bool shouldClosePreview) {
+    showToast(
+      "confirmApplyTemplate".tr.replaceAll('{title}', template.name),
+      confirmMode: true,
+      alwaysShow: true,
+      toastStyleType: TodoCatToastStyleType.warning,
+      onYesCallback: () {
+        widget.onCustomTemplateSelected?.call(template);
+        SmartDialog.dismiss(tag: 'template_selector');
+        if (shouldClosePreview) {
+          SmartDialog.dismiss(tag: 'custom_template_preview_${template.id}');
+        }
+        showSuccessNotification("taskTemplateApplied".tr);
+      },
     );
   }
 
@@ -165,7 +270,7 @@ class TemplateSelectorDialog extends StatelessWidget {
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
       onYesCallback: () {
-        onTemplateSelected(type);
+        widget.onTemplateSelected(type);
         SmartDialog.dismiss(tag: 'template_selector');
         if (shouldClosePreview) {
           SmartDialog.dismiss(tag: 'template_preview_$type');
@@ -176,166 +281,405 @@ class TemplateSelectorDialog extends StatelessWidget {
   }
 }
 
-/// 创建指定类型的任务模板
-List<Task> createTaskTemplate(TaskTemplateType type) {
-  final currentTime = DateTime.now().millisecondsSinceEpoch;
+/// 自定义模板选项组件
+class _CustomTemplateOptionWidget extends StatefulWidget {
+  final CustomTemplate template;
+  final Function(bool) onTap;
+  final VoidCallback onDelete;
+
+  const _CustomTemplateOptionWidget({
+    required this.template,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  State<_CustomTemplateOptionWidget> createState() => _CustomTemplateOptionWidgetState();
+}
+
+class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget> {
+  bool _isPreviewShowing = false;
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _showPreview() {
+    if (_isPreviewShowing) return;
+    
+    _isPreviewShowing = true;
+    
+    SmartDialog.show(
+      tag: 'custom_template_preview_${widget.template.id}',
+      alignment: Alignment.center,
+      maskColor: Colors.black.withOpacity(0.3),
+      clickMaskDismiss: true,
+      useSystem: false,
+      onDismiss: () {
+        _isPreviewShowing = false;
+      },
+      builder: (_) => _buildPreviewOverlay(),
+      animationBuilder: (controller, child, _) => ScaleTransition(
+        scale: Tween<double>(
+          begin: 0.95,
+          end: 1.0,
+        ).animate(CurvedAnimation(
+          parent: controller,
+          curve: Curves.easeOutCubic,
+        )),
+        child: FadeTransition(
+          opacity: controller,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  void _hidePreview() {
+    if (!_isPreviewShowing) return;
+    
+    SmartDialog.dismiss(tag: 'custom_template_preview_${widget.template.id}');
+    _isPreviewShowing = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        if (!_isPreviewShowing) {
+          _showPreview();
+        } else {
+          _hidePreview();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: context.theme.dividerColor.withOpacity(0.3),
+            width: 0.5,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color: context.theme.cardColor,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.bookmark,
+                color: Colors.deepPurple,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.template.name,
+                    style: FontUtils.getMediumStyle(
+                      fontSize: 16,
+                      color: context.theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  if (widget.template.description != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.template.description!,
+                      style: FontUtils.getTextStyle(
+                        fontSize: 13,
+                        color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, size: 20),
+              color: Colors.red,
+              onPressed: widget.onDelete,
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewOverlay() {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Center(
+          child: _buildPreview(),
+        ),
+      ],
+    );
+  }
+
+  void _applyTemplate() {
+    widget.onTap(true);
+  }
+
+  Widget _buildPreview() {
+    final templates = widget.template.getTasks();
+    
+    // 计算对话框宽度：屏幕宽度的90%，最大不超过1600（约6个卡片）
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = (screenWidth * 0.9).clamp(800.0, 1600.0);
+    
+    // 获取背景设置
+    final appCtrl = Get.find<AppController>();
+    final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
+    final isDefaultTemplate = backgroundImagePath != null && 
+                              backgroundImagePath.startsWith('default_template:');
+    final isCustomImage = backgroundImagePath != null && 
+                          !isDefaultTemplate && 
+                          backgroundImagePath.isNotEmpty && 
+                          GetPlatform.isDesktop &&
+                          File(backgroundImagePath).existsSync();
+    final hasBackground = isDefaultTemplate || isCustomImage;
+    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
+    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: maxWidth,
+        height: 640,
+        margin: const EdgeInsets.symmetric(horizontal: 40),
+        decoration: BoxDecoration(
+          color: context.theme.dialogBackgroundColor,
+          border: Border.all(width: 1, color: context.theme.dividerColor),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            children: [
+              // 背景图片层
+              if (hasBackground)
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: opacity,
+                    child: _getBackgroundWidget(backgroundImagePath),
+                  ),
+                ),
+              // 模糊层
+              if (hasBackground && blur > 0)
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: blur,
+                      sigmaY: blur,
+                    ),
+                    child: Container(color: Colors.white.withOpacity(0.0)),
+                  ),
+                ),
+              // 内容层
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 标题栏
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: context.theme.dividerColor.withOpacity(0.3),
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'templatePreview'.tr,
+                          style: FontUtils.getBoldStyle(fontSize: 18),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LabelBtn(
+                              label: Text('apply'.tr,style:const TextStyle(color: Colors.white)),
+                              onPressed: _applyTemplate,
+                              bgColor: Colors.lightBlue,
+                            ),
+                            const SizedBox(width: 12),
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: _hidePreview,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: context.theme.dividerColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 18,
+                                    color: context.theme.textTheme.bodyMedium?.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 预览内容 - 水平滚动
+                  Expanded(
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      scrollbarOrientation: ScrollbarOrientation.bottom,
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ...templates.map((task) => Padding(
+                              padding: const EdgeInsets.only(right: 50),
+                              child: _buildPreviewTaskCard(task),
+                            )).toList(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 获取背景装饰
+  Widget _getBackgroundWidget(String? backgroundPath) {
+    // 检查是否是默认模板
+    if (backgroundPath != null && backgroundPath.startsWith('default_template:')) {
+      final templateId = backgroundPath.split(':').last;
+      final imageUrl = _getTemplateImageUrl(templateId);
+      
+      if (imageUrl != null) {
+        // 使用本地图片
+        return Image.asset(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // 回退到渐变占位符
+            final colors = _getGradientColors(templateId);
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: colors,
+                ),
+              ),
+            );
+          },
+        );
+      } else {
+        // 回退到渐变
+        final colors = _getGradientColors(templateId);
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+          ),
+        );
+      }
+    } else {
+      // 自定义图片
+      return Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: FileImage(File(backgroundPath!)),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
+  /// 获取渐变颜色（用作占位符）
+  List<Color> _getGradientColors(String templateId) {
+    return [Colors.grey.shade300, Colors.grey.shade400];
+  }
   
+  /// 获取模板图片URL
+  String? _getTemplateImageUrl(String templateId) {
+    try {
+      return DefaultBackgrounds.templates.firstWhere((bg) => bg.id == templateId).imageUrl;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Widget _buildPreviewTaskCard(Task task) {
+    return IgnorePointer(
+      child: TaskCard(task: task),
+    );
+  }
+}
+
+/// 创建指定类型的任务模板（使用多语言支持的TemplateGenerator）
+List<Task> createTaskTemplate(TaskTemplateType type) {
   switch (type) {
     case TaskTemplateType.empty:
-      return emptyTemplateTasks.map((task) {
-        final newTask = Task()
-          ..uuid = const Uuid().v4()
-          ..title = task.title
-          ..description = task.description
-          ..createdAt = currentTime + emptyTemplateTasks.indexOf(task)
-          ..tagsWithColor = task.tagsWithColor.map((tag) => tag.copyWith()).toList()
-          ..status = task.status
-          ..progress = task.progress
-          ..reminders = task.reminders
-          ..todos = [];
-        
-        return newTask;
-      }).toList();
+      return TemplateGenerator.getEmptyTemplate();
       
     case TaskTemplateType.content:
-      return contentTemplateTasks.map((task) {
-        final newTask = Task()
-          ..uuid = const Uuid().v4()
-          ..title = task.title
-          ..description = task.description
-          ..createdAt = currentTime + contentTemplateTasks.indexOf(task)
-          ..tagsWithColor = task.tagsWithColor.map((tag) => tag.copyWith()).toList()
-          ..status = task.status
-          ..progress = task.progress
-          ..reminders = task.reminders;
-        
-        // 复制todos并重新生成UUID和时间戳
-        if (task.todos != null && task.todos!.isNotEmpty) {
-          newTask.todos = task.todos!.map((todo) {
-            return Todo()
-              ..uuid = const Uuid().v4()
-              ..title = todo.title
-              ..description = todo.description
-              ..createdAt = currentTime + contentTemplateTasks.indexOf(task) + task.todos!.indexOf(todo)
-              ..tagsWithColor = todo.tagsWithColor.map((tag) => tag.copyWith()).toList()
-              ..priority = todo.priority
-              ..status = todo.status
-              ..progress = todo.progress
-              ..reminders = todo.reminders
-              ..dueDate = todo.dueDate
-              ..finishedAt = todo.finishedAt;
-          }).toList();
-        } else {
-          newTask.todos = [];
-        }
-        
-        return newTask;
-      }).toList();
+      return TemplateGenerator.getStudentTemplate();
       
     case TaskTemplateType.work:
-      return workTemplateTasks.map((task) {
-        final newTask = Task()
-          ..uuid = const Uuid().v4()
-          ..title = task.title
-          ..description = task.description
-          ..createdAt = currentTime + workTemplateTasks.indexOf(task)
-          ..tagsWithColor = task.tagsWithColor.map((tag) => tag.copyWith()).toList()
-          ..status = task.status
-          ..progress = task.progress
-          ..reminders = task.reminders;
-        
-        // 复制todos并重新生成UUID和时间戳
-        if (task.todos != null && task.todos!.isNotEmpty) {
-          newTask.todos = task.todos!.map((todo) {
-            return Todo()
-              ..uuid = const Uuid().v4()
-              ..title = todo.title
-              ..description = todo.description
-              ..createdAt = currentTime + workTemplateTasks.indexOf(task) + task.todos!.indexOf(todo)
-              ..tagsWithColor = todo.tagsWithColor.map((tag) => tag.copyWith()).toList()
-              ..priority = todo.priority
-              ..status = todo.status
-              ..progress = todo.progress
-              ..reminders = todo.reminders
-              ..dueDate = todo.dueDate
-              ..finishedAt = todo.finishedAt;
-          }).toList();
-        } else {
-          newTask.todos = [];
-        }
-        
-        return newTask;
-      }).toList();
+      return TemplateGenerator.getWorkTemplate();
       
     case TaskTemplateType.fitness:
-      return fitnessTemplateTasks.map((task) {
-        final newTask = Task()
-          ..uuid = const Uuid().v4()
-          ..title = task.title
-          ..description = task.description
-          ..createdAt = currentTime + fitnessTemplateTasks.indexOf(task)
-          ..tagsWithColor = task.tagsWithColor.map((tag) => tag.copyWith()).toList()
-          ..status = task.status
-          ..progress = task.progress
-          ..reminders = task.reminders;
-        
-        // 复制todos并重新生成UUID和时间戳
-        if (task.todos != null && task.todos!.isNotEmpty) {
-          newTask.todos = task.todos!.map((todo) {
-            return Todo()
-              ..uuid = const Uuid().v4()
-              ..title = todo.title
-              ..description = todo.description
-              ..createdAt = currentTime + fitnessTemplateTasks.indexOf(task) + task.todos!.indexOf(todo)
-              ..tagsWithColor = todo.tagsWithColor.map((tag) => tag.copyWith()).toList()
-              ..priority = todo.priority
-              ..status = todo.status
-              ..progress = todo.progress
-              ..reminders = todo.reminders
-              ..dueDate = todo.dueDate
-              ..finishedAt = todo.finishedAt;
-          }).toList();
-        } else {
-          newTask.todos = [];
-        }
-        
-        return newTask;
-      }).toList();
+      return TemplateGenerator.getFitnessTemplate();
       
     case TaskTemplateType.travel:
-      return travelTemplateTasks.map((task) {
-        final newTask = Task()
-          ..uuid = const Uuid().v4()
-          ..title = task.title
-          ..description = task.description
-          ..createdAt = currentTime + travelTemplateTasks.indexOf(task)
-          ..tagsWithColor = task.tagsWithColor.map((tag) => tag.copyWith()).toList()
-          ..status = task.status
-          ..progress = task.progress
-          ..reminders = task.reminders;
-        
-        // 复制todos并重新生成UUID和时间戳
-        if (task.todos != null && task.todos!.isNotEmpty) {
-          newTask.todos = task.todos!.map((todo) {
-            return Todo()
-              ..uuid = const Uuid().v4()
-              ..title = todo.title
-              ..description = todo.description
-              ..createdAt = currentTime + travelTemplateTasks.indexOf(task) + task.todos!.indexOf(todo)
-              ..tagsWithColor = todo.tagsWithColor.map((tag) => tag.copyWith()).toList()
-              ..priority = todo.priority
-              ..status = todo.status
-              ..progress = todo.progress
-              ..reminders = todo.reminders
-              ..dueDate = todo.dueDate
-              ..finishedAt = todo.finishedAt;
-          }).toList();
-        } else {
-          newTask.todos = [];
-        }
-        
-        return newTask;
-      }).toList();
+      return TemplateGenerator.getTravelTemplate();
   }
 }
 
@@ -364,6 +708,19 @@ class _TemplateOptionWithPreview extends StatefulWidget {
 class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> {
   bool _isPreviewShowing = false;
   final GlobalKey _key = GlobalKey();
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   void _showPreview() {
     if (_isPreviewShowing) return;
@@ -490,10 +847,28 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
   Widget _buildPreview() {
     final templates = _getTemplateData();
     
+    // 计算对话框宽度：屏幕宽度的90%，最大不超过1600（约6个卡片）
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = (screenWidth * 0.9).clamp(800.0, 1600.0);
+    
+    // 获取背景设置
+    final appCtrl = Get.find<AppController>();
+    final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
+    final isDefaultTemplate = backgroundImagePath != null && 
+                              backgroundImagePath.startsWith('default_template:');
+    final isCustomImage = backgroundImagePath != null && 
+                          !isDefaultTemplate && 
+                          backgroundImagePath.isNotEmpty && 
+                          GetPlatform.isDesktop &&
+                          File(backgroundImagePath).existsSync();
+    final hasBackground = isDefaultTemplate || isCustomImage;
+    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
+    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 1250, // 4个260宽的卡片 + 3个50的间距 + padding: 260*4 + 50*3 + 40 = 1250
+        width: maxWidth,
         height: 640,
         margin: const EdgeInsets.symmetric(horizontal: 40),
         decoration: BoxDecoration(
@@ -508,74 +883,178 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 标题栏
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: context.theme.dividerColor.withOpacity(0.3),
-                    width: 0.5,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            children: [
+              // 背景图片层
+              if (hasBackground)
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: opacity,
+                    child: _getBackgroundWidget(backgroundImagePath),
                   ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'templatePreview'.tr,
-                    style: FontUtils.getBoldStyle(fontSize: 18),
+              // 模糊层
+              if (hasBackground && blur > 0)
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: blur,
+                      sigmaY: blur,
+                    ),
+                    child: Container(color: Colors.white.withOpacity(0.0)),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      LabelBtn(
-                        label: Text('apply'.tr,style:const TextStyle(color: Colors.white)),
-                        onPressed: _applyTemplate,
-                        bgColor: Colors.lightBlue,
-                      ),
-                      const SizedBox(width: 12),
-                      MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: _hidePreview,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: context.theme.dividerColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Icon(
-                              Icons.close,
-                              size: 18,
-                              color: context.theme.textTheme.bodyMedium?.color,
-                            ),
-                          ),
+                ),
+              // 内容层
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 标题栏
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: context.theme.dividerColor.withOpacity(0.3),
+                          width: 0.5,
                         ),
                       ),
-                    ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'templatePreview'.tr,
+                          style: FontUtils.getBoldStyle(fontSize: 18),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LabelBtn(
+                              label: Text('apply'.tr,style:const TextStyle(color: Colors.white)),
+                              onPressed: _applyTemplate,
+                              bgColor: Colors.lightBlue,
+                            ),
+                            const SizedBox(width: 12),
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: _hidePreview,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: context.theme.dividerColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 18,
+                                    color: context.theme.textTheme.bodyMedium?.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 预览内容 - 水平滚动
+                  Expanded(
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      scrollbarOrientation: ScrollbarOrientation.bottom,
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ...templates.map((task) => Padding(
+                              padding: const EdgeInsets.only(right: 50),
+                              child: _buildPreviewTaskCard(task),
+                            )).toList(),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-            // 预览内容
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(8),
-                child: Wrap(
-                  spacing: 50,
-                  runSpacing: 30,
-                  children: templates.map((task) => _buildPreviewTaskCard(task)).toList(),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  /// 获取背景装饰
+  Widget _getBackgroundWidget(String? backgroundPath) {
+    // 检查是否是默认模板
+    if (backgroundPath != null && backgroundPath.startsWith('default_template:')) {
+      final templateId = backgroundPath.split(':').last;
+      final imageUrl = _getTemplateImageUrl(templateId);
+      
+      if (imageUrl != null) {
+        // 使用本地图片
+        return Image.asset(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // 回退到渐变占位符
+            final colors = _getGradientColors(templateId);
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: colors,
+                ),
+              ),
+            );
+          },
+        );
+      } else {
+        // 回退到渐变
+        final colors = _getGradientColors(templateId);
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+          ),
+        );
+      }
+    } else {
+      // 自定义图片
+      return Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: FileImage(File(backgroundPath!)),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
+
+  /// 获取渐变颜色（用作占位符）
+  List<Color> _getGradientColors(String templateId) {
+    return [Colors.grey.shade300, Colors.grey.shade400];
+  }
+  
+  /// 获取模板图片URL
+  String? _getTemplateImageUrl(String templateId) {
+    try {
+      return DefaultBackgrounds.templates.firstWhere((bg) => bg.id == templateId).imageUrl;
+    } catch (e) {
+      return null;
+    }
   }
 
   Widget _buildPreviewTaskCard(Task task) {
@@ -585,24 +1064,16 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
   }
 
   List<Task> _getTemplateData() {
-    switch (widget.type) {
-      case TaskTemplateType.empty:
-        return emptyTemplateTasks;
-      case TaskTemplateType.content:
-        return contentTemplateTasks;
-      case TaskTemplateType.work:
-        return workTemplateTasks;
-      case TaskTemplateType.fitness:
-        return fitnessTemplateTasks;
-      case TaskTemplateType.travel:
-        return travelTemplateTasks;
-    }
+    return createTaskTemplate(widget.type);
   }
 
 }
 
 /// 显示模板选择对话框
-void showTemplateSelectorDialog(Function(TaskTemplateType) onTemplateSelected) {
+void showTemplateSelectorDialog({
+  required Function(TaskTemplateType) onTemplateSelected,
+  Function(CustomTemplate)? onCustomTemplateSelected,
+}) {
   // 使用SmartDialog确保对话框显示在最顶层
   SmartDialog.show(
     tag: 'template_selector',
@@ -611,7 +1082,10 @@ void showTemplateSelectorDialog(Function(TaskTemplateType) onTemplateSelected) {
     clickMaskDismiss: true,
     useAnimation: true,
     animationTime: const Duration(milliseconds: 300),
-    builder: (_) => TemplateSelectorDialog(onTemplateSelected: onTemplateSelected),
+    builder: (_) => TemplateSelectorDialog(
+      onTemplateSelected: onTemplateSelected,
+      onCustomTemplateSelected: onCustomTemplateSelected,
+    ),
     animationBuilder: (controller, child, animationParam) {
       return ScaleTransition(
         scale: Tween<double>(

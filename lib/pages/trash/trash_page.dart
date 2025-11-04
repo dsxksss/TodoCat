@@ -114,7 +114,16 @@ class TrashPage extends GetView<TrashController> {
   }
 
   Widget _buildDeletedTaskCard(BuildContext context, Task task) {
-    final deletedTime = controller.formatDeletedAt(task.deletedAt);
+    // 如果task本身被删除，使用task的删除时间；否则使用最早被删除的todo的时间
+    int displayDeletedAt = task.deletedAt;
+    if (displayDeletedAt == 0 && task.todos != null && task.todos!.isNotEmpty) {
+      // 找到最早被删除的todo
+      final deletedTodos = task.todos!.where((t) => t.deletedAt > 0).toList();
+      if (deletedTodos.isNotEmpty) {
+        displayDeletedAt = deletedTodos.map((t) => t.deletedAt).reduce((a, b) => a < b ? a : b);
+      }
+    }
+    final deletedTime = controller.formatDeletedAt(displayDeletedAt);
     final deletedTodos = task.todos ?? [];
     final hasTodos = deletedTodos.isNotEmpty;
 

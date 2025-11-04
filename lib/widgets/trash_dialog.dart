@@ -444,18 +444,16 @@ class _TrashDialogState extends State<TrashDialog> {
 
   /// 获取任务的颜色和图标
   List<dynamic> _getTaskColorAndIcon(Task task) {
-    switch (task.title) {
-      case 'todo':
+    switch (task.status) {
+      case TaskStatus.todo:
         return [Colors.grey, FontAwesomeIcons.clipboard];
-      case 'inProgress':
+      case TaskStatus.inProgress:
         return [Colors.orangeAccent, FontAwesomeIcons.pencil];
-      case 'done':
+      case TaskStatus.done:
         return [
           const Color.fromRGBO(46, 204, 147, 1),
           FontAwesomeIcons.circleCheck
         ];
-      default:
-        return [Colors.lightBlue, FontAwesomeIcons.listOl];
     }
   }
 

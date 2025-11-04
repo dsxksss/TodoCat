@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:get/get.dart';
 
 part 'notification_history.g.dart';
 
@@ -93,15 +94,21 @@ class NotificationHistoryItem {
     final diff = now.difference(timestamp);
     
     if (diff.inMinutes < 1) {
-      return '刚刚';
+      return 'justNow'.tr;
     } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}分钟前';
+      return '${diff.inMinutes} ${'minutesAgo'.tr}';
     } else if (diff.inHours < 24) {
-      return '${diff.inHours}小时前';
+      return '${diff.inHours} ${'hoursAgo'.tr}';
     } else if (diff.inDays < 7) {
-      return '${diff.inDays}天前';
+      return '${diff.inDays} ${'daysAgo'.tr}';
     } else {
-      return '${timestamp.month}月${timestamp.day}日';
+      // 格式化为 "11月4日" 或 "Nov 4"
+      final monthNames = [
+        'january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december'
+      ];
+      final monthName = monthNames[timestamp.month - 1].tr;
+      return '$monthName ${timestamp.day}';
     }
   }
 }

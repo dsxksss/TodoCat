@@ -134,7 +134,7 @@ class DataExportImportService {
       _logger.e('Data import failed: $e');
       return ImportResult(
           success: false,
-          message: 'importFailed'.trParams({'error': e.toString()}));
+          message: '${'importFailed'.tr}: ${e.toString()}');
     }
   }
 
@@ -358,13 +358,13 @@ class DataExportImportService {
     if (tasksImported > 0 || tasksReplaced > 0 || configImported) {
       final parts = <String>[];
       if (tasksImported > 0) {
-        parts.add('importedNewTasks'.trParams({'count': tasksImported.toString()}));
+        parts.add('${'importedNewTasks'.tr} $tasksImported');
       }
       if (tasksReplaced > 0) {
-        parts.add('replacedTasks'.trParams({'count': tasksReplaced.toString()}));
+        parts.add('${'replacedTasks'.tr} $tasksReplaced');
       }
       if (tasksSkipped > 0) {
-        parts.add('skippedTasks'.trParams({'count': tasksSkipped.toString()}));
+        parts.add('${'skippedTasks'.tr} $tasksSkipped');
       }
       if (configImported) {
         parts.add('updatedAppConfig'.tr);

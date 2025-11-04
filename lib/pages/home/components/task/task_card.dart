@@ -81,18 +81,16 @@ class _TaskCardState extends State<TaskCard> {
   }
 
   List<dynamic> _getColorAndIcon() {
-    switch (widget._task.title) {
-      case 'todo':
+    switch (widget._task.status) {
+      case TaskStatus.todo:
         return [Colors.grey, FontAwesomeIcons.clipboard];
-      case 'inProgress':
+      case TaskStatus.inProgress:
         return [Colors.orangeAccent, FontAwesomeIcons.pencil];
-      case 'done':
+      case TaskStatus.done:
         return [
           const Color.fromRGBO(46, 204, 147, 1),
           FontAwesomeIcons.circleCheck
         ];
-      default:
-        return [Colors.lightBlue, FontAwesomeIcons.listOl];
     }
   }
 

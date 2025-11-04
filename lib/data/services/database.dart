@@ -4,6 +4,7 @@ import 'package:TodoCat/data/schemas/app_config.dart';
 import 'package:TodoCat/data/schemas/task.dart';
 import 'package:TodoCat/data/schemas/local_notice.dart';
 import 'package:TodoCat/data/schemas/notification_history.dart';
+import 'package:TodoCat/data/schemas/custom_template.dart';
 import 'package:logger/logger.dart';
 
 class Database {
@@ -29,7 +30,7 @@ class Database {
     final dir = await getApplicationDocumentsDirectory();
     _logger.d('Database path: ${dir.path}');
     _isar = await Isar.open(
-      [TaskSchema, AppConfigSchema, LocalNoticeSchema, NotificationHistorySchema],
+      [TaskSchema, AppConfigSchema, LocalNoticeSchema, NotificationHistorySchema, CustomTemplateSchema],
       directory: dir.path,
       inspector: true,
     );
@@ -63,6 +64,7 @@ class Database {
       await _isar!.appConfigs.clear();
       await _isar!.localNotices.clear();
       await _isar!.notificationHistorys.clear();
+      await _isar!.customTemplates.clear();
       
       _logger.d('All data cleared successfully');
     });

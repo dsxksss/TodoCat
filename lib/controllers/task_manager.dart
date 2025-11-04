@@ -81,9 +81,43 @@ class TaskManager {
 
   /// 重置任务模板，显示模板选择对话框
   Future<void> resetTasksTemplate() async {
-    showTemplateSelectorDialog((TaskTemplateType type) async {
-      await _resetTasksTemplateWithType(type);
-    });
+    showTemplateSelectorDialog(
+      onTemplateSelected: (TaskTemplateType type) async {
+        await _resetTasksTemplateWithType(type);
+      },
+      onCustomTemplateSelected: (customTemplate) async {
+        await _applyCustomTemplate(customTemplate);
+      },
+    );
+  }
+  
+  /// 应用自定义模板
+  Future<void> _applyCustomTemplate(customTemplate) async {
+    try {
+      _logger.i('应用自定义模板: ${customTemplate.name}');
+      
+      // 1. 清空内存中的任务列表
+      tasks.clear();
+      tasks.refresh(); // 立即刷新UI
+
+      // 2. 清空数据库中的所有任务
+      await _clearAllTasks();
+      
+      // 3. 从自定义模板获取任务列表
+      final List<Task> templateTasks = customTemplate.getTasks();
+      _logger.d('Created ${templateTasks.length} template tasks from custom template');
+      
+      // 4. 添加到内存和数据库
+      await assignAll(templateTasks);
+      
+      // 5. 确保UI完全刷新
+      tasks.refresh();
+      
+      _logger.i('自定义模板应用成功, final count: ${tasks.length}');
+    } catch (e) {
+      _logger.e('应用自定义模板失败: $e');
+      rethrow;
+    }
   }
 
   /// 使用指定类型重置任务模板

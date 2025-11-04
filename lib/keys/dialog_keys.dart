@@ -4,3 +4,4 @@ const settingsDropDownMenuBtnTag = "SettingsDropDownMenuBtnTag";
 const confirmDialogTag = "ConfirmDialogTag";
 const addTodoTagDialogBtnTag = "AddTodoTagDialogBtnTag";
 const addTaskDialogTag = "AddTaskDialogTag";
+const saveTemplateDialogTag = "SaveTemplateDialogTag";

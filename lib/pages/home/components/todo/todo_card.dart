@@ -159,10 +159,14 @@ class TodoCard extends StatelessWidget {
                           width: 120, // 文字宽度限制
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 1.0),
+                            child: Tooltip(
+                              message: todo.title,
+                              preferBelow: false,
                             child: Text(
                               todo.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
                         ),

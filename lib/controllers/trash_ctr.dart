@@ -276,13 +276,13 @@ class TrashController extends GetxController {
     final difference = now.difference(deleted);
     
     if (difference.inDays > 0) {
-      return '${difference.inDays}天前';
+      return '${difference.inDays} ${'daysAgo'.tr}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}小时前';
+      return '${difference.inHours} ${'hoursAgo'.tr}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}分钟前';
+      return '${difference.inMinutes} ${'minutesAgo'.tr}';
     } else {
-      return '刚刚';
+      return 'justNow'.tr;
     }
   }
 

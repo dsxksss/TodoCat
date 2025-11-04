@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:TodoCat/controllers/settings_ctr.dart';
 import 'package:TodoCat/controllers/data_export_import_ctr.dart';
+import 'package:TodoCat/controllers/home_ctr.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:TodoCat/widgets/background_setting_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -127,6 +128,16 @@ class SettingsContent extends GetView<SettingsController> {
         leading: const Icon(Icons.featured_play_list_outlined),
         title: Text('tasksTemplate'.tr),
       ),
+      // 保存当前任务为模板
+      SettingsTile(
+        onPressed: (_) {
+          final homeController = Get.find<HomeController>();
+          homeController.saveAsTemplate();
+        },
+        leading: const Icon(Icons.save_alt),
+        title: Text('saveCurrentAsTemplate'.tr),
+        description: Text('saveCurrentAsTemplateDescription'.tr),
+      ),
       // 背景图片设置
       SettingsTile(
         onPressed: (_) => _showBackgroundImageDialog(),
@@ -186,13 +197,13 @@ class SettingsContent extends GetView<SettingsController> {
 
   void _showResetSettingsToast() {
     showToast(
-      "确定要重置设置吗?",
+      'confirmResetSettings'.tr,
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
       onYesCallback: () {
         controller.resetConfig();
-        showSuccessNotification("设置已重置");
+        showSuccessNotification('settingsResetSuccess'.tr);
       },
     );
   }
@@ -208,7 +219,7 @@ class SettingsContent extends GetView<SettingsController> {
         description: Obx(() {
           final preview = dataController.exportPreview.value;
           if (preview != null) {
-            return Text('任务: ${preview['tasksCount']}, Todo: ${preview['todosCount']}');
+            return Text('${'tasks'.tr}: ${preview['tasksCount']}, Todo: ${preview['todosCount']}');
           }
           return Text('exportDataDescription'.tr);
         }),

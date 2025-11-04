@@ -84,7 +84,7 @@ class DataExportImportController extends GetxController {
       
     } catch (e) {
       _logger.e('导出数据失败: $e');
-      showErrorNotification('exportFailed'.trParams({'error': e.toString()}));
+      showErrorNotification('${'exportFailed'.tr}: ${e.toString()}');
     } finally {
       isExporting.value = false;
     }
@@ -129,7 +129,7 @@ class DataExportImportController extends GetxController {
       
     } catch (e) {
       _logger.e('导入数据失败: $e');
-      showErrorNotification('importFailed'.trParams({'error': e.toString()}));
+      showErrorNotification('${'importFailed'.tr}: ${e.toString()}');
     } finally {
       isImporting.value = false;
     }

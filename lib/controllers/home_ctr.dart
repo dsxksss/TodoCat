@@ -6,6 +6,7 @@ import 'package:TodoCat/controllers/app_ctr.dart';
 import 'package:TodoCat/controllers/data_export_import_ctr.dart';
 import 'package:TodoCat/controllers/trash_ctr.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/save_template_dialog.dart';
 import 'package:logger/logger.dart';
 import 'package:TodoCat/controllers/task_manager.dart';
 import 'package:TodoCat/controllers/mixins/scroll_controller_mixin.dart';
@@ -70,8 +71,26 @@ class HomeController extends GetxController
       await _taskManager.refresh();
       _logger.i('主页数据刷新成功');
     } catch (e) {
-      _logger.e('主页数据刷新失败: $e');
+      _logger.e('刷新主页数据失败: $e');
     }
+  }
+
+  /// 保存当前所有任务为模板
+  void saveAsTemplate() {
+    if (tasks.isEmpty) {
+      showErrorNotification('noTasksToSave'.tr);
+      return;
+    }
+    
+    // 过滤掉已删除的任务
+    final validTasks = tasks.where((task) => task.deletedAt == 0).toList();
+    
+    if (validTasks.isEmpty) {
+      showErrorNotification('noTasksToSave'.tr);
+      return;
+    }
+    
+    showSaveTemplateDialog(validTasks);
   }
 
   /// 刷新导出预览数据

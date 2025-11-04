@@ -458,11 +458,11 @@ void showNotification(
       message: message,
       level: _mapToNotificationLevel(type),
     ).then((_) {}).catchError((e) {
-      print('通知中心保存失败: $e');
+      print('Failed to save notification: $e');
     });
   } catch (e) {
     // 如果通知中心未初始化，忽略错误
-    print('通知中心未初始化: $e');
+    print('NotificationCenterManager not initialized: $e');
   }
   
   final duration = displayTime ?? const Duration(milliseconds: 2500);
@@ -515,13 +515,13 @@ NotificationLevel _mapToNotificationLevel(TodoCatToastStyleType type) {
 String _getNotificationTitle(TodoCatToastStyleType type) {
   switch (type) {
     case TodoCatToastStyleType.success:
-      return '成功';
+      return 'success'.tr;
     case TodoCatToastStyleType.error:
-      return '错误';
+      return 'error'.tr;
     case TodoCatToastStyleType.warning:
-      return '警告';
+      return 'warning'.tr;
     case TodoCatToastStyleType.info:
-      return '信息';
+      return 'info'.tr;
   }
 }
 
