@@ -48,4 +48,23 @@ class Database {
       _isar = null;
     }
   }
+
+  /// 清除所有数据（保留数据库结构）
+  Future<void> clearAllData() async {
+    if (_isar == null) {
+      throw StateError('Database not initialized');
+    }
+    
+    _logger.w('Clearing all data from database...');
+    
+    await _isar!.writeTxn(() async {
+      // 清除所有集合的数据
+      await _isar!.tasks.clear();
+      await _isar!.appConfigs.clear();
+      await _isar!.localNotices.clear();
+      await _isar!.notificationHistorys.clear();
+      
+      _logger.d('All data cleared successfully');
+    });
+  }
 }

@@ -89,7 +89,7 @@ const Map<String, String> enUS = {
   'isResetTasksTemplate': 'The task is empty, do you want to add a task example template?',
   'areYouSureResetTasksTemplate': 'Are you sure you want to reset the tasks template?',
   'tasksTemplateResetSuccess': 'Tasks template reset successfully',
-  'resetTasksTemplate': 'Reset tasks template',
+  'tasksTemplate': 'Task Template',
   'todoDetail': 'Todo Detail',
   'timeInfo': 'Time Information',
   'createdAt': 'Created At',
@@ -184,6 +184,13 @@ const Map<String, String> enUS = {
   'appConfig': 'App Configuration',
   'estimatedSize': 'Estimated Size',
   'exportDataNotice': 'The exported file contains all your data. Please keep it safe.',
+  // Clear data
+  'clearAllData': 'Clear All Data',
+  'clearAllDataDescription': 'Delete all tasks, config and notification data',
+  'confirmClearAllData': 'Are you sure you want to clear all data? This cannot be undone!',
+  'clearingData': 'Clearing data...',
+  'clearAllDataSuccess': 'All data cleared',
+  'clearAllDataFailed': 'Failed to clear data',
   // Month Names
   'january': 'January',
   'february': 'February',

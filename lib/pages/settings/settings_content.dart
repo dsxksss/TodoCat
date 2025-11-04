@@ -125,7 +125,7 @@ class SettingsContent extends GetView<SettingsController> {
       SettingsTile(
         onPressed: (_) => controller.resetTasksTemplate(),
         leading: const Icon(Icons.featured_play_list_outlined),
-        title: Text('resetTasksTemplate'.tr),
+        title: Text('tasksTemplate'.tr),
       ),
       // 背景图片设置
       SettingsTile(
@@ -241,6 +241,13 @@ class SettingsContent extends GetView<SettingsController> {
         }),
         onPressed: (_) => _handleImportData(),
       ),
+      // 清除所有数据
+      SettingsTile(
+        leading: const Icon(Icons.delete_forever_rounded, color: Colors.red),
+        title: Text('clearAllData'.tr, style: const TextStyle(color: Colors.red)),
+        description: Text('clearAllDataDescription'.tr),
+        onPressed: (_) => _showClearAllDataDialog(),
+      ),
     ];
   }
 
@@ -282,6 +289,36 @@ class SettingsContent extends GetView<SettingsController> {
               duration: controller.duration,
               curve: Curves.easeOut,
             );
+      },
+    );
+  }
+
+  /// 显示清除所有数据确认对话框
+  void _showClearAllDataDialog() {
+    showToast(
+      'confirmClearAllData'.tr,
+      confirmMode: true,
+      alwaysShow: true,
+      toastStyleType: TodoCatToastStyleType.error,
+      onYesCallback: () async {
+        // 显示加载提示
+        SmartDialog.showLoading(msg: 'clearingData'.tr);
+        
+        try {
+          final success = await controller.clearAllData();
+          SmartDialog.dismiss();
+          
+          if (success) {
+            showSuccessNotification('clearAllDataSuccess'.tr);
+            // 关闭设置页面
+            SmartDialog.dismiss(tag: 'settings');
+          } else {
+            showErrorNotification('clearAllDataFailed'.tr);
+          }
+        } catch (e) {
+          SmartDialog.dismiss();
+          showErrorNotification('clearAllDataFailed'.tr);
+        }
       },
     );
   }

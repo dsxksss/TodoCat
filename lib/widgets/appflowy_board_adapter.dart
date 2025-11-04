@@ -48,12 +48,26 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
         if (_isDisposed || !mounted) return;
         _isDragging = false; // 拖拽结束
         _controller.reorderTask(fromIndex, toIndex);
+        // 延迟触发同步以确保数据已更新，避免ScrollController冲突
+        _hasPendingUpdate = true;
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (!_isDisposed && mounted) {
+            _syncGroups();
+          }
+        });
       },
       onMoveGroupItem: (groupId, fromIndex, toIndex) {
         if (_isDisposed || !mounted) return;
         _isDragging = false; // 拖拽结束
         // 直接使用 appflowy_board 提供的索引，不做调整
         _controller.reorderTodo(groupId, fromIndex, toIndex);
+        // 延迟触发同步以确保数据已更新，避免ScrollController冲突
+        _hasPendingUpdate = true;
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (!_isDisposed && mounted) {
+            _syncGroups();
+          }
+        });
       },
       onMoveGroupItemToGroup: (fromGroupId, fromIndex, toGroupId, toIndex) {
         if (_isDisposed || !mounted) return;
@@ -64,6 +78,13 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
         final todo = (fromTask.todos ?? const <Todo>[])[fromIndex];
         _controller.moveTodoToTaskAt(
             fromGroupId, toGroupId, todo.uuid, toIndex);
+        // 延迟触发同步以确保数据已更新，避免ScrollController冲突
+        _hasPendingUpdate = true;
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (!_isDisposed && mounted) {
+            _syncGroups();
+          }
+        });
       },
     );
   }
@@ -152,41 +173,54 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
     }
     
     final newSignature = _calculateSignature(widget.tasks);
-    if (newSignature == _lastSignature) return;
+    final hasPending = _hasPendingUpdate;
+    
+    // 如果数据没变且没有待更新标记，跳过同步
+    if (newSignature == _lastSignature && !hasPending) return;
     
     _debounceTimer?.cancel();
     
-    // 拖拽后延迟更长，避免动画冲突
-    final debounceTime = _hasPendingUpdate ? 150 : 50;
-    _hasPendingUpdate = false;
-    
-    _debounceTimer = Timer(Duration(milliseconds: debounceTime), () {
-      if (_isDisposed || !mounted) {
-        _debounceTimer = null;
-        return;
-      }
-      
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    // 拖拽后不使用防抖，立即同步以快速恢复UI
+    if (hasPending) {
+      _hasPendingUpdate = false;
+      _performSyncImmediate(newSignature);
+    } else {
+      // 正常数据变化使用防抖
+      _debounceTimer = Timer(const Duration(milliseconds: 50), () {
         if (_isDisposed || !mounted) {
-          _isSyncing = false;
           _debounceTimer = null;
           return;
         }
-        
-        _isSyncing = true;
-        
-        try {
-          _performSync();
-          if (!_isDisposed && mounted) {
-            _lastSignature = newSignature;
-          }
-        } catch (e) {
-          debugPrint('Sync error: $e');
-        } finally {
-          _isSyncing = false;
-          _debounceTimer = null;
-        }
+        _performSyncImmediate(newSignature);
+        _debounceTimer = null;
       });
+    }
+  }
+  
+  /// 立即执行同步
+  void _performSyncImmediate(String newSignature) {
+    if (_isDisposed || !mounted || _isSyncing) return;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isDisposed || !mounted) {
+        _isSyncing = false;
+        return;
+      }
+      
+      _isSyncing = true;
+      
+      try {
+        _performSync();
+        if (!_isDisposed && mounted) {
+          _lastSignature = newSignature;
+          // 强制刷新以确保UI正确更新
+          setState(() {});
+        }
+      } catch (e) {
+        debugPrint('Sync error: $e');
+      } finally {
+        _isSyncing = false;
+      }
     });
   }
 

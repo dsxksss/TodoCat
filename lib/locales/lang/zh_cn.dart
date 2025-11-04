@@ -89,7 +89,7 @@ const Map<String, String> zhCN = {
   'isResetTasksTemplate': '当前任务为空, 是否需要添加任务示例模板?',
   'areYouSureResetTasksTemplate': '你确定要重置任务示例模板吗?',
   'tasksTemplateResetSuccess': '任务示例模板重置成功',
-  'resetTasksTemplate': '重置任务示例模板',
+  'tasksTemplate': '任务模板',
   'todoDetail': '待办详情',
   'timeInfo': '时间信息',
   'createdAt': '创建时间',
@@ -184,6 +184,13 @@ const Map<String, String> zhCN = {
   'appConfig': '应用配置',
   'estimatedSize': '预估大小',
   'exportDataNotice': '导出的文件包含您的所有数据，请妥善保管。',
+  // 清除数据
+  'clearAllData': '清除所有数据',
+  'clearAllDataDescription': '删除所有任务、配置和通知数据',
+  'confirmClearAllData': '确定要清除所有数据吗？此操作不可恢复！',
+  'clearingData': '正在清除数据...',
+  'clearAllDataSuccess': '所有数据已清除',
+  'clearAllDataFailed': '清除数据失败',
   // 月份名称
   'january': '1月',
   'february': '2月',

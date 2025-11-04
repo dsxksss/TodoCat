@@ -6,6 +6,7 @@ import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
+import 'package:todo_cat/data/services/database.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/settings/settings_page.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
@@ -279,6 +280,34 @@ class SettingsController extends GetxController {
     } catch (e) {
       _logger.e('清除背景图片设置失败: $e');
       showToast('backgroundImageClearFailed'.tr);
+    }
+  }
+
+  /// 清除所有应用数据
+  Future<bool> clearAllData() async {
+    try {
+      _logger.w('开始清除所有应用数据...');
+      
+      // 1. 清除数据库中的所有数据
+      final db = await Database.getInstance();
+      await db.clearAllData();
+      
+      // 2. 重置应用配置为默认值
+      appCtrl.appConfig.value = defaultAppConfig.copyWith();
+      appCtrl.appConfig.refresh();
+      
+      // 3. 刷新主页数据
+      try {
+        await homeCtrl.refreshData();
+      } catch (e) {
+        _logger.e('刷新主页数据失败: $e');
+      }
+      
+      _logger.i('所有应用数据已清除并重新初始化');
+      return true;
+    } catch (e) {
+      _logger.e('清除所有数据失败: $e');
+      return false;
     }
   }
 }
