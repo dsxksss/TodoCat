@@ -137,7 +137,7 @@ class AnimationBtn extends StatelessWidget {
               )
               .animate(target: _onClickDisableAnimat.value ? 1 : 0)
               .tint(
-                color: Colors.red.withOpacity(0.9),
+                color: Colors.red.withValues(alpha:0.9),
                 duration: disableAnimatDuration ?? _defaultDuration,
               )
               .shakeX(

@@ -6,21 +6,25 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <isar_flutter_libs/isar_flutter_libs_plugin.h>
+#include <desktop_updater/desktop_updater_plugin.h>
 #include <local_notifier/local_notifier_plugin.h>
 #include <screen_retriever/screen_retriever_plugin.h>
+#include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <window_manager/window_manager_plugin.h>
 
 void fl_register_plugins(FlPluginRegistry* registry) {
-  g_autoptr(FlPluginRegistrar) isar_flutter_libs_registrar =
-      fl_plugin_registry_get_registrar_for_plugin(registry, "IsarFlutterLibsPlugin");
-  isar_flutter_libs_plugin_register_with_registrar(isar_flutter_libs_registrar);
+  g_autoptr(FlPluginRegistrar) desktop_updater_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "DesktopUpdaterPlugin");
+  desktop_updater_plugin_register_with_registrar(desktop_updater_registrar);
   g_autoptr(FlPluginRegistrar) local_notifier_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "LocalNotifierPlugin");
   local_notifier_plugin_register_with_registrar(local_notifier_registrar);
   g_autoptr(FlPluginRegistrar) screen_retriever_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "ScreenRetrieverPlugin");
   screen_retriever_plugin_register_with_registrar(screen_retriever_registrar);
+  g_autoptr(FlPluginRegistrar) sqlite3_flutter_libs_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "Sqlite3FlutterLibsPlugin");
+  sqlite3_flutter_libs_plugin_register_with_registrar(sqlite3_flutter_libs_registrar);
   g_autoptr(FlPluginRegistrar) window_manager_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "WindowManagerPlugin");
   window_manager_plugin_register_with_registrar(window_manager_registrar);

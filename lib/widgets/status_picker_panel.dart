@@ -96,7 +96,7 @@ class StatusPickerPanel extends StatelessWidget {
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: context.theme.dividerColor,

@@ -18,7 +18,7 @@ class TaskDialog extends GetView<TaskDialogController> {
       width: context.isPhone ? 1.sw : 430,
       height: context.isPhone ? 0.6.sh : 500,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
         borderRadius: context.isPhone
             ? const BorderRadius.only(

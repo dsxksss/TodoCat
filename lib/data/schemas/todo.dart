@@ -1,10 +1,8 @@
-import 'package:isar/isar.dart';
 import 'package:TodoCat/data/schemas/tag_with_color.dart';
 import 'dart:convert';
 
-part 'todo.g.dart';
-
-@embedded
+/// Todo 数据模型
+/// 注意：已迁移到 Drift，不再使用 Isar 注解
 class Todo {
   late String uuid;
   late String title;
@@ -12,11 +10,9 @@ class Todo {
   String tagsWithColorJsonString = '[]';
   late int createdAt;
   String description = '';
-  @enumerated
   TodoPriority priority = TodoPriority.lowLevel;
   int finishedAt = 0; // 实际完成时间
   int dueDate = 0; // 截止日期
-  @enumerated
   TodoStatus status = TodoStatus.todo;
   int reminders = 0;
   int progress = 0;
@@ -71,7 +67,6 @@ class Todo {
       ..deletedAt = json['deletedAt'] as int? ?? 0;
   }
   /// 获取带颜色的标签列表
-  @ignore
   List<TagWithColor> get tagsWithColor {
     try {
       if (tagsWithColorJsonString.isEmpty || tagsWithColorJsonString == '[]') {

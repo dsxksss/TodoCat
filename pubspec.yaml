@@ -2,9 +2,10 @@ name: TodoCat
 description: Todo Cat - A beautiful and simple Todo application built with Flutter | 事项猫 一个简洁UI风格的看板应用.
 publish_to: "https://github.com/dsxksss/TodoCat"
 version: 1.0.8
+license: GPL-3.0
 
 environment:
-  sdk: ">=3.0.6 <4.0.0"
+  sdk: ">=3.6.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -49,8 +50,9 @@ dependencies:
   # 设备显示模式插件
   flutter_displaymode: ^0.6.0
   reorderables: ^0.6.0
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
+  # Drift 数据库 (SQLite)
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.5.18
   path_provider: ^2.1.2 # 用于获取应用文档目录
   timezone: ^0.9.2
   intl: ^0.19.0
@@ -59,8 +61,8 @@ dependencies:
   badges: ^3.1.2
   # 开机自启动插件
   launch_at_startup: ^0.3.0
-  # 自动更新插件 (Windows/macOS)
-  auto_updater: ^1.0.0
+  # 自动更新插件 (Windows/macOS/Linux)
+  desktop_updater: 1.4.0
   # 获取应用版本信息
   package_info_plus: ^8.1.2
   # 看板拖拽组件
@@ -75,7 +77,7 @@ dev_dependencies:
   json_serializable: ^6.7.1
   # 图标生成插件
   flutter_launcher_icons: "^0.13.1"
-  isar_generator: ^3.1.0+1
+  drift_dev: ^2.14.0
   analyzer: ^5.13.0
 
 flutter:

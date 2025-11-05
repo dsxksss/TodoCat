@@ -43,7 +43,7 @@ class ColorPickerDialog extends StatelessWidget {
     return Container(
       width: context.isPhone ? 0.9.sw : 320,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
         borderRadius: context.isPhone
             ? const BorderRadius.only(
@@ -107,8 +107,8 @@ class ColorPickerDialog extends StatelessWidget {
                   itemCount: predefinedColors.length,
                   itemBuilder: (context, index) {
                     final color = predefinedColors[index];
-                    // 使用color.value比较颜色值，而不是对象引用
-                    final isSelected = initialColor?.value == color.value;
+                    // 使用color.toARGB32()比较颜色值，而不是对象引用
+                    final isSelected = initialColor?.toARGB32() == color.toARGB32();
                     
                     return Material(
                       color: Colors.transparent,
@@ -125,13 +125,13 @@ class ColorPickerDialog extends StatelessWidget {
                             border: Border.all(
                               color: isSelected 
                                   ? Colors.white 
-                                  : context.theme.dividerColor.withOpacity(0.3),
+                                  : context.theme.dividerColor.withValues(alpha:0.3),
                               width: isSelected ? 2 : 0.5,
                             ),
                             // 移除阴影效果，避免亮主题下的亮光高亮
                             // boxShadow: [
                             //   BoxShadow(
-                            //     color: color.withOpacity(0.2),
+                            //     color: color.withValues(alpha:0.2),
                             //     blurRadius: 2,
                             //     offset: const Offset(0, 1),
                             //   ),
@@ -166,7 +166,7 @@ void showColorPickerDialog({
   SmartDialog.show(
     tag: 'color_picker',
     alignment: Alignment.center,
-    maskColor: Colors.black.withOpacity(0.5),
+    maskColor: Colors.black.withValues(alpha:0.5),
     clickMaskDismiss: true,
     useAnimation: true,
     animationTime: const Duration(milliseconds: 200),

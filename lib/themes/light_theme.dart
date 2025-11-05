@@ -6,10 +6,9 @@ final lightTheme = ThemeData(
   brightness: Brightness.light,
   cardColor: Colors.white,
   primaryColor: Colors.grey[100],
-  hoverColor: Colors.grey.withOpacity(0.1),
+  hoverColor: Colors.grey.withValues(alpha:0.1),
   hintColor: Colors.blue,
   dividerColor: Colors.grey.shade300,
-  dialogBackgroundColor: Colors.white,
   fontFamily: 'SourceHanSans', // 使用思源黑体
   inputDecorationTheme: const InputDecorationTheme(
     fillColor: Colors.white,
@@ -32,5 +31,5 @@ final lightTheme = ThemeData(
       fontFamily: 'SourceHanSans', // 使用思源黑体
     ),
   ), 
-  dialogTheme: const DialogTheme(backgroundColor: Colors.white),
+  dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
 );

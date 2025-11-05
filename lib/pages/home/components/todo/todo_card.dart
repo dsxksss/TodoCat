@@ -132,7 +132,7 @@ class TodoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: context.theme.shadowColor.withOpacity(0.1),
+                color: context.theme.shadowColor.withValues(alpha: .1),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -259,7 +259,7 @@ class TodoCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.3),
+                              color: Colors.grey.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
@@ -318,7 +318,7 @@ class TodoCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: _getStatusColor().withOpacity(0.1),
+                        color: _getStatusColor().withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: _getStatusColor(),

@@ -1,10 +1,11 @@
-import 'package:isar/isar.dart';
 import 'package:TodoCat/data/schemas/local_notice.dart';
 import 'package:TodoCat/data/services/database.dart';
+import 'package:TodoCat/data/database/database.dart' as drift_db;
+import 'package:TodoCat/data/database/converters.dart';
 
 class LocalNoticeRepository {
   static LocalNoticeRepository? _instance;
-  late final Isar _isar;
+  drift_db.AppDatabase? _db;
 
   LocalNoticeRepository._();
 
@@ -15,31 +16,57 @@ class LocalNoticeRepository {
   }
 
   Future<void> _init() async {
-    final db = await Database.getInstance();
-    _isar = db.isar;
+    final dbService = await Database.getInstance();
+    _db = dbService.appDatabase;
+  }
+
+  drift_db.AppDatabase get db {
+    if (_db == null) {
+      throw StateError('LocalNoticeRepository not initialized');
+    }
+    return _db!;
   }
 
   Future<void> write(String id, LocalNotice notice) async {
-    await _isar.writeTxn(() async {
-      await _isar.localNotices.put(notice);
+    await db.transaction(() async {
+      final existing = await (db.select(db.localNotices)
+            ..where((t) => t.noticeId.equals(id)))
+          .getSingleOrNull();
+      
+      final companion = DbConverters.localNoticeToCompanion(notice);
+      
+      if (existing != null) {
+        notice.id = existing.id;
+        await (db.update(db.localNotices)..where((t) => t.id.equals(existing.id)))
+            .write(companion);
+      } else {
+        final insertedId = await db.into(db.localNotices).insert(companion);
+        notice.id = insertedId;
+      }
     });
   }
 
   Future<void> delete(String id) async {
-    await _isar.writeTxn(() async {
-      final notice =
-          await _isar.localNotices.filter().noticeIdEqualTo(id).findFirst();
+    await db.transaction(() async {
+      final notice = await (db.select(db.localNotices)
+            ..where((t) => t.noticeId.equals(id)))
+          .getSingleOrNull();
+      
       if (notice != null) {
-        await _isar.localNotices.delete(notice.id);
+        await (db.delete(db.localNotices)..where((t) => t.id.equals(notice.id))).go();
       }
     });
   }
 
   Future<LocalNotice?> read(String id) async {
-    return await _isar.localNotices.filter().noticeIdEqualTo(id).findFirst();
+    final row = await (db.select(db.localNotices)
+          ..where((t) => t.noticeId.equals(id)))
+        .getSingleOrNull();
+    return row != null ? DbConverters.localNoticeFromRow(row) : null;
   }
 
   Future<List<LocalNotice>> readAll() async {
-    return await _isar.localNotices.where().findAll();
+    final rows = await db.select(db.localNotices).get();
+    return rows.map((row) => DbConverters.localNoticeFromRow(row)).toList();
   }
 }

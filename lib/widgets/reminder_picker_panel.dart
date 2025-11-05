@@ -32,7 +32,7 @@ class ReminderPickerPanel extends StatelessWidget {
       width: 300,
       constraints: const BoxConstraints(maxHeight: 400),
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
       ),
@@ -135,7 +135,7 @@ class ReminderPickerPanel extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: selectedReminder.value == value
-                  ? const Color(0xFF3B82F6).withOpacity(0.1)
+                  ? const Color(0xFF3B82F6).withValues(alpha:0.1)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(

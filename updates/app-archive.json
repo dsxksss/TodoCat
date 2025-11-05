@@ -1,0 +1,37 @@
+{
+    "appName": "TodoCat",
+    "description": "事项猫 - 一个简洁UI风格的看板应用",
+    "items": [
+        {
+            "version": "1.0.8",
+            "shortVersion": 8,
+            "changes": [
+                {
+                    "type": "feat",
+                    "message": "新增回收站功能，支持恢复删除的TodoCard"
+                },
+                {
+                    "type": "refactor",
+                    "message": "重构Task Todo布局拖拽按钮及触发条件"
+                },
+                {
+                    "type": "feat",
+                    "message": "优化拖动布局与使用体验，支持跨列拖拽、拖拽TodoCard至Task列既可排序TodoCard"
+                },
+                {
+                    "type": "fix",
+                    "message": "修复TodoCard显示异常问题"
+                },
+                {
+                    "type": "fix",
+                    "message": "修复布局滚动异常问题"
+                }
+            ],
+            "date": "2025-01-10",
+            "mandatory": false,
+            "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.8/1.0.8+8-windows",
+            "platform": "windows"
+        }
+    ]
+}
+

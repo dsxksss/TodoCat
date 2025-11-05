@@ -1,13 +1,10 @@
 import 'dart:convert';
-import 'package:isar/isar.dart';
 import 'package:TodoCat/data/schemas/task.dart';
 
-part 'custom_template.g.dart';
-
 /// 自定义任务模板
-@collection
+/// 注意：已迁移到 Drift，不再使用 Isar 注解
 class CustomTemplate {
-  Id id = Isar.autoIncrement;
+  int? id;
   
   /// 模板名称
   late String name;

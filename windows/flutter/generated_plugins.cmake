@@ -3,10 +3,10 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  auto_updater_windows
-  isar_flutter_libs
+  desktop_updater
   local_notifier
   screen_retriever
+  sqlite3_flutter_libs
   window_manager
 )
 

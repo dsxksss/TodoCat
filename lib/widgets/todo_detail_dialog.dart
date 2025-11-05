@@ -44,7 +44,7 @@ class TodoDetailDialog extends StatelessWidget {
           width: context.isPhone ? 1.sw : 430,
           height: 400,
           decoration: BoxDecoration(
-            color: context.theme.dialogBackgroundColor,
+            color: context.theme.dialogTheme.backgroundColor,
             border: Border.all(width: 0.3, color: context.theme.dividerColor),
             borderRadius: context.isPhone
                 ? const BorderRadius.only(
@@ -63,7 +63,7 @@ class TodoDetailDialog extends StatelessWidget {
         width: context.isPhone ? 1.sw : 600,
         height: context.isPhone ? 0.8.sh : 650,
         decoration: BoxDecoration(
-          color: context.theme.dialogBackgroundColor,
+          color: context.theme.dialogTheme.backgroundColor,
           border: Border.all(width: 0.3, color: context.theme.dividerColor),
           borderRadius: context.isPhone
               ? const BorderRadius.only(
@@ -412,7 +412,7 @@ class TodoDetailDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(todo.status).withOpacity(0.1),
+                    color: _getStatusColor(todo.status).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _getStatusColor(todo.status),
@@ -458,7 +458,7 @@ class TodoDetailDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getPriorityColor(todo.priority).withOpacity(0.1),
+                    color: _getPriorityColor(todo.priority).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _getPriorityColor(todo.priority),

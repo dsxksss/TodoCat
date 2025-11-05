@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -320,7 +321,9 @@ class _TaskCardState extends State<TaskCard> {
                                 }
                                 _homeCtrl.reorderTodo(widget._task.uuid, oldIndex, newIndex);
                               } catch (e) {
-                                print('Reorder error: $e');
+                                if (kDebugMode) {
+                                  print('Reorder error: $e');
+                                }
                               }
                             },
                             onReorderStart: (index) {
@@ -328,7 +331,9 @@ class _TaskCardState extends State<TaskCard> {
                                 _homeCtrl.startDragging();
                                 _isDragging = true;
                               } catch (e) {
-                                print('ReorderStarted error: $e');
+                                if (kDebugMode) {
+                                  print('ReorderStarted error: $e');
+                                }
                               }
                             },
                             onReorderEnd: (index) {
@@ -337,7 +342,9 @@ class _TaskCardState extends State<TaskCard> {
                                 _isDragging = false;
                                 _stopAutoScroll();
                               } catch (e) {
-                                print('ReorderEnd error: $e');
+                                if (kDebugMode) {
+                                  print('ReorderEnd error: $e');
+                                }
                               }
                             },
                             proxyDecorator: (child, index, animation) {

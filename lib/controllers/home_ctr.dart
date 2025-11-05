@@ -199,7 +199,7 @@ class HomeController extends GetxController
   }
 
   Future<bool> updateTask(String uuid, Task task) async {
-    if (!_taskManager.has(uuid)) {
+    if (!(await _taskManager.has(uuid))) {
       _logger.w('Task $uuid not found for update');
       return false;
     }
@@ -212,7 +212,7 @@ class HomeController extends GetxController
   }
 
   Future<bool> deleteTodo(String taskUuid, String todoUuid) async {
-    if (!_taskManager.has(taskUuid)) {
+    if (!(await _taskManager.has(taskUuid))) {
       _logger.w('Task $taskUuid not found for todo deletion');
       return false;
     }

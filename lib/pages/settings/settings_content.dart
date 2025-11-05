@@ -28,7 +28,7 @@ class SettingsContent extends GetView<SettingsController> {
             color: Theme.of(context).scaffoldBackgroundColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha:0.5),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               ),
@@ -286,7 +286,7 @@ class SettingsContent extends GetView<SettingsController> {
     SmartDialog.show(
       tag: 'background_setting_dialog',
       alignment: Alignment.center,
-      maskColor: Colors.black.withOpacity(0.3),
+      maskColor: Colors.black.withValues(alpha:0.3),
       clickMaskDismiss: true,
       useAnimation: true,
       animationTime: const Duration(milliseconds: 200),

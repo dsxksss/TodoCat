@@ -6,21 +6,21 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <auto_updater_windows/auto_updater_windows_plugin_c_api.h>
-#include <isar_flutter_libs/isar_flutter_libs_plugin.h>
+#include <desktop_updater/desktop_updater_plugin_c_api.h>
 #include <local_notifier/local_notifier_plugin.h>
 #include <screen_retriever/screen_retriever_plugin.h>
+#include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <window_manager/window_manager_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  AutoUpdaterWindowsPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("AutoUpdaterWindowsPluginCApi"));
-  IsarFlutterLibsPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("IsarFlutterLibsPlugin"));
+  DesktopUpdaterPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("DesktopUpdaterPluginCApi"));
   LocalNotifierPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("LocalNotifierPlugin"));
   ScreenRetrieverPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ScreenRetrieverPlugin"));
+  Sqlite3FlutterLibsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("Sqlite3FlutterLibsPlugin"));
   WindowManagerPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("WindowManagerPlugin"));
 }

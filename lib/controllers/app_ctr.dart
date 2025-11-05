@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:desktop_updater/updater_controller.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:get/get.dart';
@@ -12,6 +13,7 @@ import 'package:TodoCat/themes/theme_mode.dart';
 import 'package:TodoCat/services/auto_update_service.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:logger/logger.dart';
+import 'package:desktop_updater/updater_controller.dart' show DesktopUpdaterController;
 
 class AppController extends GetxController {
   static final _logger = Logger();
@@ -21,6 +23,7 @@ class AppController extends GetxController {
   final appConfig = Rx<AppConfig>(defaultAppConfig);
   final isMaximize = false.obs;
   final isFullScreen = false.obs;
+  final updateControllerReady = false.obs;
 
   bool get _isMobilePlatform => Platform.isAndroid || Platform.isIOS;
 
@@ -42,16 +45,18 @@ class AppController extends GetxController {
   /// 初始化自动更新服务
   Future<void> initAutoUpdate() async {
     // 仅在桌面平台初始化
-    if (!Platform.isWindows && !Platform.isMacOS) {
+    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
       return;
     }
     
     try {
       _logger.d('Initializing auto update service');
       await _autoUpdateService.initialize();
+      updateControllerReady.value = _autoUpdateService.controller != null;
       _logger.d('Auto update service initialized');
     } catch (e) {
       _logger.e('Failed to initialize auto update: $e');
+      updateControllerReady.value = false;
     }
   }
 
@@ -59,6 +64,9 @@ class AppController extends GetxController {
   Future<void> checkForUpdates({bool silent = false}) async {
     await _autoUpdateService.checkForUpdates(silent: silent);
   }
+  
+  /// 获取更新控制器（用于 UI 组件）
+  DesktopUpdaterController? get updateController => _autoUpdateService.controller;
 
   Future<void> initConfig() async {
     _logger.d('Initializing app configuration');

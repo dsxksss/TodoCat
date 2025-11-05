@@ -79,6 +79,27 @@ void main() async {
         return;
       }
       
+      // 检查是否是 desktop_updater 相关的错误
+      if (errorString.contains('desktop_updater') ||
+          errorString.contains('FormatException') ||
+          errorString.contains('jsonDecode') ||
+          errorString.contains('VersionError') ||
+          errorString.contains('Invalid version format') ||
+          errorString.contains('PlatformException')) {
+        // 静默忽略 desktop_updater 相关的错误（可能是网络问题、文件不存在或版本格式问题）
+        debugPrint('⚠️ Caught and ignored desktop_updater error: $error');
+        return;
+      }
+      
+      // 检查是否是 google_fonts 相关的错误
+      if (errorString.contains('google_fonts') ||
+          errorString.contains('AssetManifest.json') ||
+          errorString.contains('Unable to load asset')) {
+        // 静默忽略 google_fonts 相关的错误（通常是构建问题，不影响功能）
+        debugPrint('⚠️ Caught and ignored google_fonts error: $error');
+        return;
+      }
+      
       // 对于其他错误，打印堆栈跟踪（保留原有的错误处理行为）
       debugPrint('Caught error in runZonedGuarded: $error');
       debugPrint('Stack trace: $stack');

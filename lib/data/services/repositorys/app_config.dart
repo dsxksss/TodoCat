@@ -1,10 +1,11 @@
-import 'package:isar/isar.dart';
 import 'package:TodoCat/data/schemas/app_config.dart';
 import 'package:TodoCat/data/services/database.dart';
+import 'package:TodoCat/data/database/database.dart' as drift_db;
+import 'package:TodoCat/data/database/converters.dart';
 
 class AppConfigRepository {
   static AppConfigRepository? _instance;
-  Isar? _isar;
+  drift_db.AppDatabase? _db;
   bool _isInitialized = false;
 
   AppConfigRepository._();
@@ -19,35 +20,42 @@ class AppConfigRepository {
 
   Future<void> _init() async {
     if (_isInitialized) return;
-    final db = await Database.getInstance();
-    _isar = db.isar;
+    final dbService = await Database.getInstance();
+    _db = dbService.appDatabase;
     _isInitialized = true;
   }
 
-  Isar get isar {
-    if (_isar == null) {
+  drift_db.AppDatabase get db {
+    if (_db == null) {
       throw StateError('AppConfigRepository not initialized');
     }
-    return _isar!;
+    return _db!;
   }
 
   Future<AppConfig?> read(String configName) async {
-    return await isar.appConfigs
-        .filter()
-        .configNameEqualTo(configName)
-        .findFirst();
+    final row = await (db.select(db.appConfigs)
+          ..where((t) => t.configName.equals(configName)))
+        .getSingleOrNull();
+    
+    return row != null ? DbConverters.appConfigFromRow(row) : null;
   }
 
   Future<void> write(String configName, AppConfig config) async {
-    await isar.writeTxn(() async {
-      final existingConfig = await isar.appConfigs
-          .filter()
-          .configNameEqualTo(configName)
-          .findFirst();
-      if (existingConfig != null) {
-        config.id = existingConfig.id;
+    await db.transaction(() async {
+      final existing = await (db.select(db.appConfigs)
+            ..where((t) => t.configName.equals(configName)))
+          .getSingleOrNull();
+      
+      final companion = DbConverters.appConfigToCompanion(config, isUpdate: existing != null);
+      
+      if (existing != null) {
+        config.id = existing.id;
+        await (db.update(db.appConfigs)..where((t) => t.id.equals(existing.id)))
+            .write(companion);
+      } else {
+        final id = await db.into(db.appConfigs).insert(companion);
+        config.id = id;
       }
-      await isar.appConfigs.put(config);
     });
   }
 

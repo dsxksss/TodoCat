@@ -20,7 +20,7 @@ class BackgroundSettingDialog extends StatelessWidget {
         maxHeight: context.isPhone ? 0.8.sh : 700,
       ),
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -385,7 +385,7 @@ class DefaultBackgroundGrid extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
+                                color: Colors.black.withValues(alpha:0.2),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),

@@ -155,9 +155,7 @@ class TaskManager {
       _logger.d('Clearing all tasks from database (permanently)');
 
       // 永久删除所有任务（包括回收站中的）- 直接清空表
-      await repository.isar.writeTxn(() async {
-        await repository.isar.tasks.clear();
-      });
+      await repository.updateMany([], (task) => task.uuid);
 
       _logger.d('All tasks permanently deleted from database');
     } catch (e) {
@@ -204,7 +202,7 @@ class TaskManager {
   ///
   /// 如果任务ID不存在，则添加任务并持久化
   Future<void> addTask(Task task) async {
-    if (!has(task.uuid)) {
+    if (!(await has(task.uuid))) {
       tasks.add(task);
       tasks.refresh();
       await repository.write(task.uuid, task);
@@ -278,7 +276,7 @@ class TaskManager {
   }
 
   /// 检查指定ID的任务是否存在
-  bool has(String uuid) {
-    return repository.has(uuid);
+  Future<bool> has(String uuid) async {
+    return await repository.has(uuid);
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -114,25 +115,25 @@ Widget _buildBottomLeftNotification(
       ),
       margin: const EdgeInsets.only(left: 20, bottom: 10),
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         borderRadius: BorderRadius.circular(12),
         // 移除阴影效果
         // boxShadow: [
         //   BoxShadow(
-        //     color: Colors.black.withOpacity(0.08),
+        //     color: Colors.black.withValues(alpha:0.08),
         //     blurRadius: 12,
         //     offset: const Offset(0, 4),
         //     spreadRadius: 0,
         //   ),
         //   BoxShadow(
-        //     color: iconData[1].withOpacity(0.15),
+        //     color: iconData[1].withValues(alpha:0.15),
         //     blurRadius: 4,
         //     offset: const Offset(0, 2),
         //     spreadRadius: 0,
         //   ),
         // ],
         border: Border.all(
-          color: iconData[1].withOpacity(0.3), // 降低透明度，避免亮主题下的亮光高亮
+          color: iconData[1].withValues(alpha:0.3), // 降低透明度，避免亮主题下的亮光高亮
           width: 1, // 保持固定宽度
         ),
       ),
@@ -144,7 +145,7 @@ Widget _buildBottomLeftNotification(
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: iconData[1].withOpacity(0.12),
+                color: iconData[1].withValues(alpha:0.12),
                 borderRadius: BorderRadius.circular(22),
               ),
               child: Icon(
@@ -181,7 +182,7 @@ Widget _buildBottomLeftNotification(
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1), // 保持固定样式
+                    color: Colors.grey.withValues(alpha:0.1), // 保持固定样式
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
@@ -249,7 +250,7 @@ void showToast(
             (Platform.isAndroid || Platform.isIOS
                 ? Alignment.topCenter
                 : Alignment.bottomCenter)),
-    maskColor: confirmMode ? Colors.black.withOpacity(0.3) : Colors.transparent,
+    maskColor: confirmMode ? Colors.black.withValues(alpha:0.3) : Colors.transparent,
     usePenetrate: !confirmMode,
     maskWidget: confirmMode ? null : Container(),
     clickMaskDismiss: false,
@@ -287,7 +288,7 @@ void showToast(
                     ? const EdgeInsets.only(top: 110)
                     : const EdgeInsets.only(bottom: 100)),
             decoration: BoxDecoration(
-              color: context.theme.dialogBackgroundColor,
+              color: context.theme.dialogTheme.backgroundColor,
               borderRadius: BorderRadius.circular(5),
               // 移除阴影效果，避免亮主题下的亮光高亮
               // boxShadow: [
@@ -458,11 +459,15 @@ void showNotification(
       message: message,
       level: _mapToNotificationLevel(type),
     ).then((_) {}).catchError((e) {
-      print('Failed to save notification: $e');
+      if (kDebugMode) {
+        print('Failed to save notification: $e');
+      }
     });
   } catch (e) {
     // 如果通知中心未初始化，忽略错误
-    print('NotificationCenterManager not initialized: $e');
+    if (kDebugMode) {
+      print('NotificationCenterManager not initialized: $e');
+    }
   }
   
   final duration = displayTime ?? const Duration(milliseconds: 2500);

@@ -71,7 +71,8 @@ class SettingsController extends GetxController {
             top: MediaQuery.of(Get.context!).padding.top + 20,
           ),
           decoration: BoxDecoration(
-            color: Get.theme.dialogBackgroundColor,
+            // ignore: deprecated_member_use
+            color: Get.theme.dialogTheme.backgroundColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: const ClipRRect(
@@ -196,8 +197,8 @@ class SettingsController extends GetxController {
       return;
     }
     
-    // 检查是否为 Windows 或 macOS
-    if (Platform.isWindows || Platform.isMacOS) {
+    // 检查是否为 Windows、macOS 或 Linux
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       try {
         await appCtrl.checkForUpdates(silent: false);
       } catch (e) {

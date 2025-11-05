@@ -20,7 +20,7 @@ class DataExportConfirmDialog extends StatelessWidget {
     return Container(
       width: context.isPhone ? 1.sw : 400,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
         borderRadius: context.isPhone
             ? const BorderRadius.only(
@@ -124,10 +124,10 @@ class DataExportConfirmDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: context.theme.primaryColor.withOpacity(0.1),
+                    color: context.theme.primaryColor.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: context.theme.primaryColor.withOpacity(0.2),
+                      color: context.theme.primaryColor.withValues(alpha:0.2),
                       width: 0.5,
                     ),
                   ),
@@ -144,7 +144,7 @@ class DataExportConfirmDialog extends StatelessWidget {
                           'exportDataNotice'.tr,
                           style: TextStyle(
                             fontSize: 12,
-                            color: context.theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+                            color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.8),
                           ),
                         ),
                       ),
@@ -166,7 +166,7 @@ class DataExportConfirmDialog extends StatelessWidget {
           width: 4,
           height: 4,
           decoration: BoxDecoration(
-            color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+            color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.6),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -175,7 +175,7 @@ class DataExportConfirmDialog extends StatelessWidget {
           '$label: ',
           style: TextStyle(
             fontSize: 13,
-            color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+            color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.8),
           ),
         ),
         Text(

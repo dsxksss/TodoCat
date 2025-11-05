@@ -193,12 +193,12 @@ class TimePanelState extends State<TimePanel> {
           Expanded(
             child: _buildPickerWithDrag(
               picker: CupertinoPicker(
-                backgroundColor: context.theme.dialogBackgroundColor,
+                backgroundColor: context.theme.dialogTheme.backgroundColor,
                 selectionOverlay: Container(
                   decoration: BoxDecoration(
                     border: Border.symmetric(
                       horizontal: BorderSide(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha:0.1),
                         width: 1,
                       ),
                     ),
@@ -243,12 +243,12 @@ class TimePanelState extends State<TimePanel> {
           Expanded(
             child: _buildPickerWithDrag(
               picker: CupertinoPicker(
-                backgroundColor: context.theme.dialogBackgroundColor,
+                backgroundColor: context.theme.dialogTheme.backgroundColor,
                 selectionOverlay: Container(
                   decoration: BoxDecoration(
                     border: Border.symmetric(
                       horizontal: BorderSide(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha:0.1),
                         width: 1,
                       ),
                     ),
@@ -293,12 +293,12 @@ class TimePanelState extends State<TimePanel> {
           Expanded(
             child: _buildPickerWithDrag(
               picker: CupertinoPicker(
-                backgroundColor: context.theme.dialogBackgroundColor,
+                backgroundColor: context.theme.dialogTheme.backgroundColor,
                 selectionOverlay: Container(
                   decoration: BoxDecoration(
                     border: Border.symmetric(
                       horizontal: BorderSide(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha:0.1),
                         width: 1,
                       ),
                     ),

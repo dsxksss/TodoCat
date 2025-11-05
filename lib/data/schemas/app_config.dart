@@ -1,14 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' as material;
-import 'package:isar/isar.dart';
 
-part 'app_config.g.dart';
-
-@collection
+/// AppConfig 数据模型
+/// 注意：已迁移到 Drift，不再使用 Isar 注解
 class AppConfig {
-  Id id = Isar.autoIncrement;
-
-  @Index(unique: true)
+  int? id;
   late String configName;
 
   late bool isDarkMode;
@@ -52,12 +48,10 @@ class AppConfig {
       ..backgroundAffectsNavBar = backgroundAffectsNavBar;
   }
 
-  // 将 locale 标记为忽略，因为它是计算属性
-  @ignore
+  // locale 计算属性
   Locale get locale => Locale(languageCode, countryCode);
   
   // 获取主题色
-  @ignore
   material.Color? get primaryColor => primaryColorValue != null 
       ? material.Color(primaryColorValue!)
       : null;

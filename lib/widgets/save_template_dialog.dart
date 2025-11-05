@@ -92,7 +92,7 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
       width: context.isPhone ? 1.sw : 430,
       height: context.isPhone ? 0.6.sh : 500,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
         borderRadius: context.isPhone
             ? const BorderRadius.only(
@@ -210,7 +210,7 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
                       '${"tasks".tr}: ${widget.tasks.length}',
                       style: TextStyle(
                         fontSize: 13,
-                        color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                        color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
                       ),
                     ),
                   ],

@@ -1,13 +1,9 @@
-import 'package:isar/isar.dart';
 import 'package:get/get.dart';
 
-part 'notification_history.g.dart';
-
-@collection
+/// NotificationHistory 数据模型
+/// 注意：已迁移到 Drift，不再使用 Isar 注解
 class NotificationHistory {
-  Id id = Isar.autoIncrement; // 自动递增ID
-  
-  @Index(unique: true)
+  int? id; // 自动递增ID
   late String notificationId; // 通知的唯一ID
   
   late String title;

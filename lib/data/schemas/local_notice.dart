@@ -1,12 +1,7 @@
-import 'package:isar/isar.dart';
-
-part 'local_notice.g.dart';
-
-@collection
+/// LocalNotice 数据模型
+/// 注意：已迁移到 Drift，不再使用 Isar 注解
 class LocalNotice {
-  Id id = Isar.autoIncrement;
-
-  @Index(unique: true)
+  int? id;
   late String noticeId;
 
   late String title;

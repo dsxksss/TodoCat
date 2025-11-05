@@ -1,25 +1,29 @@
 import 'dart:io';
-import 'package:auto_updater/auto_updater.dart';
+import 'package:desktop_updater/desktop_updater.dart' show DesktopUpdateLocalization;
+import 'package:desktop_updater/updater_controller.dart' show DesktopUpdaterController;
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// 自动更新服务
-/// 支持 Windows 和 macOS 平台的应用内更新
+/// 支持 Windows、macOS 和 Linux 平台的应用内更新
 class AutoUpdateService {
   static final _logger = Logger();
   
   // 更新源 URL - 使用 Gitee 托管
-  static const String _feedURL = 'https://gitee.com/dsxksss/TodoCat/raw/main/updates/appcast.xml';
+  static const String _appArchiveUrl = 'https://gitee.com/dsxksss/TodoCat/releases/download/test_desk_update/app-archive.json';
   
+  DesktopUpdaterController? _controller;
   bool _isInitialized = false;
-  bool _isCheckingForUpdates = false;
+  
+  /// 获取更新控制器
+  DesktopUpdaterController? get controller => _controller;
   
   /// 初始化自动更新服务
   Future<void> initialize() async {
-    // 仅支持 Windows 和 macOS
-    if (!Platform.isWindows && !Platform.isMacOS) {
-      _logger.d('Auto update is only supported on Windows and macOS');
+    // 仅支持桌面平台
+    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+      _logger.d('Auto update is only supported on desktop platforms');
       return;
     }
     
@@ -29,12 +33,21 @@ class AutoUpdateService {
     }
     
     try {
-      // 设置更新源 URL
-      await autoUpdater.setFeedURL(_feedURL);
-      
-      // 设置自动检查间隔（86400秒 = 24小时）
-      // 最小值 3600 秒（1小时），0 表示禁用自动检查
-      await autoUpdater.setScheduledCheckInterval(86400);
+      // 创建 DesktopUpdaterController
+      // 根据 desktop_updater 包的文档：https://github.com/MarlonJD/flutter_desktop_updater
+      _controller = DesktopUpdaterController(
+        appArchiveUrl: Uri.parse(_appArchiveUrl),
+        localization: DesktopUpdateLocalization(
+          updateAvailableText: 'updateAvailable'.tr,
+          newVersionAvailableText: '{} {} ${'newVersionAvailable'.tr}',
+          newVersionLongText: '${'newVersionAvailable'.tr}\n${'bugFixesAndImprovements'.tr}\n\n${'checkForUpdatesDescription'.tr}',
+          restartText: 'updateNow'.tr,
+          warningTitleText: 'update'.tr,
+          restartWarningText: '${'updateAvailable'.tr}\n${'checkForUpdatesDescription'.tr}\n\n${'later'.tr}',
+          warningCancelText: 'later'.tr,
+          warningConfirmText: 'updateNow'.tr,
+        ),
+      );
       
       _isInitialized = true;
       _logger.i('Auto update service initialized successfully');
@@ -45,32 +58,25 @@ class AutoUpdateService {
   
   /// 手动检查更新
   Future<bool> checkForUpdates({bool silent = false}) async {
-    if (!Platform.isWindows && !Platform.isMacOS) {
-      _logger.d('Auto update is only supported on Windows and macOS');
-      return false;
-    }
-    
-    if (_isCheckingForUpdates) {
-      _logger.d('Update check already in progress');
+    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+      _logger.d('Auto update is only supported on desktop platforms');
       return false;
     }
     
     try {
-      if (!_isInitialized) {
+      if (!_isInitialized || _controller == null) {
         await initialize();
       }
       
-      _isCheckingForUpdates = true;
+      if (_controller == null) {
+        _logger.e('DesktopUpdaterController is null');
+        return false;
+      }
       
-      // 检查更新 - 这会触发系统原生的更新对话框
-      await autoUpdater.checkForUpdates();
-      
-      _logger.i('Check for updates initiated');
-      
-      // 延迟重置状态
-      Future.delayed(const Duration(seconds: 2), () {
-        _isCheckingForUpdates = false;
-      });
+      // DesktopUpdaterController 会自动检查更新
+      // 更新检查通过 UpdateDialogListener 监听并显示对话框
+      // 不需要手动调用 checkForUpdates 方法
+      _logger.i('Update check is handled automatically by DesktopUpdaterController');
       
       if (!silent) {
         // 显示简单提示
@@ -85,7 +91,6 @@ class AutoUpdateService {
       return true;
     } catch (e) {
       _logger.e('Error checking for updates: $e');
-      _isCheckingForUpdates = false;
       
       if (!silent) {
         Get.snackbar(
@@ -111,12 +116,13 @@ class AutoUpdateService {
     }
   }
   
-  /// 检查更新是否可用
-  bool get isUpdateAvailable => _isCheckingForUpdates;
+  /// 检查更新是否已初始化
+  bool get isInitialized => _isInitialized;
   
-  /// 取消当前更新检查
-  void cancelUpdateCheck() {
-    _isCheckingForUpdates = false;
+  /// 清理资源
+  void dispose() {
+    _controller?.dispose();
+    _controller = null;
+    _isInitialized = false;
   }
 }
-

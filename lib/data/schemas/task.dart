@@ -1,29 +1,20 @@
-import 'package:isar/isar.dart';
 import 'package:TodoCat/data/schemas/todo.dart';
 import 'package:TodoCat/data/schemas/tag_with_color.dart';
 import 'dart:convert';
 
-part 'task.g.dart';
-
-@collection
+/// Task 数据模型
+/// 注意：已迁移到 Drift，不再使用 Isar 注解
 class Task {
-  Id id = Isar.autoIncrement;
+  int? id;
 
-  @Index(unique: true)
   late String uuid;
-
-  @Index()
   int order = 0;
-
   late String title;
-
-  @Index()
   late int createdAt;
 
   String description = "";
   int finishedAt = 0;
 
-  @enumerated
   TaskStatus status = TaskStatus.todo;
 
   int progress = 0;
@@ -33,7 +24,6 @@ class Task {
   String tagsWithColorJsonString = '[]';
   List<Todo>? todos;
   
-  @Index()
   int deletedAt = 0; // 删除时间戳，0表示未删除
 
   // 默认构造函数
@@ -87,7 +77,6 @@ class Task {
   }
 
   /// 获取带颜色的标签列表
-  @ignore
   List<TagWithColor> get tagsWithColor {
     try {
       if (tagsWithColorJsonString.isEmpty || tagsWithColorJsonString == '[]') {

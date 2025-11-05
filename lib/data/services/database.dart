@@ -1,16 +1,12 @@
-import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:TodoCat/data/schemas/app_config.dart';
-import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/data/schemas/local_notice.dart';
-import 'package:TodoCat/data/schemas/notification_history.dart';
-import 'package:TodoCat/data/schemas/custom_template.dart';
+import 'package:TodoCat/data/database/database.dart' as db;
 import 'package:logger/logger.dart';
 
+/// 数据库服务封装
+/// 提供对 Drift 数据库的访问
 class Database {
   static final _logger = Logger();
   static Database? _instance;
-  static Isar? _isar;
+  static db.AppDatabase? _appDatabase;
 
   Database._();
 
@@ -21,52 +17,37 @@ class Database {
   }
 
   Future<void> _init() async {
-    if (_isar != null) {
-      _logger.d('Reusing existing Isar instance');
+    if (_appDatabase != null) {
+      _logger.d('Reusing existing database instance');
       return;
     }
 
-    _logger.d('Initializing new Isar instance');
-    final dir = await getApplicationDocumentsDirectory();
-    _logger.d('Database path: ${dir.path}');
-    _isar = await Isar.open(
-      [TaskSchema, AppConfigSchema, LocalNoticeSchema, NotificationHistorySchema, CustomTemplateSchema],
-      directory: dir.path,
-      inspector: true,
-    );
+    _logger.d('Initializing new database instance');
+    _appDatabase = await db.AppDatabase.getInstance();
+    _logger.d('Database initialized successfully');
   }
 
-  Isar get isar {
-    if (_isar == null) {
+  db.AppDatabase get appDatabase {
+    if (_appDatabase == null) {
       throw StateError('Database not initialized');
     }
-    return _isar!;
+    return _appDatabase!;
   }
 
   Future<void> close() async {
-    if (_isar != null) {
-      await _isar!.close();
-      _isar = null;
+    if (_appDatabase != null) {
+      await _appDatabase!.close();
+      _appDatabase = null;
+      _logger.d('Database closed');
     }
   }
 
   /// 清除所有数据（保留数据库结构）
   Future<void> clearAllData() async {
-    if (_isar == null) {
+    if (_appDatabase == null) {
       throw StateError('Database not initialized');
     }
     
-    _logger.w('Clearing all data from database...');
-    
-    await _isar!.writeTxn(() async {
-      // 清除所有集合的数据
-      await _isar!.tasks.clear();
-      await _isar!.appConfigs.clear();
-      await _isar!.localNotices.clear();
-      await _isar!.notificationHistorys.clear();
-      await _isar!.customTemplates.clear();
-      
-      _logger.d('All data cleared successfully');
-    });
+    await _appDatabase!.clearAllData();
   }
 }

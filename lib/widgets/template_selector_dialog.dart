@@ -67,7 +67,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       height: MediaQuery.of(context).size.height * 0.85, // 限制最大高度为屏幕的85%
       child: Container(
         decoration: BoxDecoration(
-          color: context.theme.dialogBackgroundColor,
+          color: context.theme.dialogTheme.backgroundColor,
           border: Border.all(width: 0.3, color: context.theme.dividerColor),
           borderRadius: context.isPhone
               ? const BorderRadius.only(
@@ -126,7 +126,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                     _buildCustomTemplateOption(context, template),
                   ).toList(),
                   const SizedBox(height: 24),
-                  Divider(color: context.theme.dividerColor.withOpacity(0.3)),
+                  Divider(color: context.theme.dividerColor.withValues(alpha:0.3)),
                   const SizedBox(height: 12),
                 ],
                 Text(
@@ -214,8 +214,9 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       toastStyleType: TodoCatToastStyleType.error,
       onYesCallback: () async {
         try {
+          if (template.id == null) return;
           final repository = await CustomTemplateRepository.getInstance();
-          await repository.delete(template.id);
+          await repository.delete(template.id!);
           showSuccessNotification('templateDeleted'.tr);
           // 重新加载列表
           await _loadCustomTemplates();
@@ -321,7 +322,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
     SmartDialog.show(
       tag: 'custom_template_preview_${widget.template.id}',
       alignment: Alignment.center,
-      maskColor: Colors.black.withOpacity(0.3),
+      maskColor: Colors.black.withValues(alpha:0.3),
       clickMaskDismiss: true,
       useSystem: false,
       onDismiss: () {
@@ -365,7 +366,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: context.theme.dividerColor.withOpacity(0.3),
+            color: context.theme.dividerColor.withValues(alpha:0.3),
             width: 0.5,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -376,7 +377,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.deepPurple.withOpacity(0.1),
+                color: Colors.deepPurple.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -403,7 +404,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                       widget.template.description!,
                       style: FontUtils.getTextStyle(
                         fontSize: 13,
-                        color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                        color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -420,7 +421,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+              color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5),
             ),
           ],
         ),
@@ -471,12 +472,12 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
         height: 640,
         margin: const EdgeInsets.symmetric(horizontal: 40),
         decoration: BoxDecoration(
-          color: context.theme.dialogBackgroundColor,
+          color: context.theme.dialogTheme.backgroundColor,
           border: Border.all(width: 1, color: context.theme.dividerColor),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha:0.2),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -502,7 +503,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                       sigmaX: blur,
                       sigmaY: blur,
                     ),
-                    child: Container(color: Colors.white.withOpacity(0.0)),
+                    child: Container(color: Colors.white.withValues(alpha:0.0)),
                   ),
                 ),
               // 内容层
@@ -515,7 +516,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: context.theme.dividerColor.withOpacity(0.3),
+                          color: context.theme.dividerColor.withValues(alpha:0.3),
                           width: 0.5,
                         ),
                       ),
@@ -543,7 +544,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: context.theme.dividerColor.withOpacity(0.1),
+                                    color: context.theme.dividerColor.withValues(alpha:0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Icon(
@@ -730,7 +731,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
     SmartDialog.show(
       tag: 'template_preview_${widget.type}',
       alignment: Alignment.center,
-      maskColor: Colors.black.withOpacity(0.3),
+      maskColor: Colors.black.withValues(alpha:0.3),
       clickMaskDismiss: true,
       useSystem: false, // 使用系统overlay，降低层级
       onDismiss: () {
@@ -775,7 +776,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: context.theme.dividerColor.withOpacity(0.3),
+            color: context.theme.dividerColor.withValues(alpha:0.3),
             width: 0.5,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -786,7 +787,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: widget.color.withOpacity(0.1),
+                color: widget.color.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -812,7 +813,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                     widget.description,
                     style: FontUtils.getTextStyle(
                       fontSize: 13,
-                      color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
                     ),
                   ),
                 ],
@@ -821,7 +822,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+              color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5),
             ),
           ],
         ),
@@ -872,12 +873,12 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
         height: 640,
         margin: const EdgeInsets.symmetric(horizontal: 40),
         decoration: BoxDecoration(
-          color: context.theme.dialogBackgroundColor,
+          color: context.theme.dialogTheme.backgroundColor,
           border: Border.all(width: 1, color: context.theme.dividerColor),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha:0.2),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -903,7 +904,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                       sigmaX: blur,
                       sigmaY: blur,
                     ),
-                    child: Container(color: Colors.white.withOpacity(0.0)),
+                    child: Container(color: Colors.white.withValues(alpha:0.0)),
                   ),
                 ),
               // 内容层
@@ -916,7 +917,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: context.theme.dividerColor.withOpacity(0.3),
+                          color: context.theme.dividerColor.withValues(alpha:0.3),
                           width: 0.5,
                         ),
                       ),
@@ -944,7 +945,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: context.theme.dividerColor.withOpacity(0.1),
+                                    color: context.theme.dividerColor.withValues(alpha:0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Icon(
@@ -1078,7 +1079,7 @@ void showTemplateSelectorDialog({
   SmartDialog.show(
     tag: 'template_selector',
     alignment: Alignment.center,
-    maskColor: Colors.black.withOpacity(0.5),
+    maskColor: Colors.black.withValues(alpha:0.5),
     clickMaskDismiss: true,
     useAnimation: true,
     animationTime: const Duration(milliseconds: 300),

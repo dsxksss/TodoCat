@@ -8,13 +8,13 @@ class TagWithColor {
   TagWithColor({
     required this.name,
     required Color color,
-  }) : colorValue = color.value;
+  }) : colorValue = color.toARGB32();
 
   /// 获取颜色
   Color get color => Color(colorValue);
 
   /// 设置颜色
-  set color(Color color) => colorValue = color.value;
+  set color(Color color) => colorValue = color.toARGB32();
 
   /// 从JSON创建
   factory TagWithColor.fromJson(Map<String, dynamic> json) {

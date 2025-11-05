@@ -28,7 +28,7 @@ class ImportConflictDialog extends StatelessWidget {
     return Container(
       width: context.isPhone ? 1.sw : 450,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
         borderRadius: context.isPhone
             ? const BorderRadius.only(
@@ -99,10 +99,10 @@ class ImportConflictDialog extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: context.theme.primaryColor.withOpacity(0.1),
+                    color: context.theme.primaryColor.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: context.theme.primaryColor.withOpacity(0.2),
+                      color: context.theme.primaryColor.withValues(alpha:0.2),
                       width: 0.5,
                     ),
                   ),
@@ -205,7 +205,7 @@ class ImportConflictDialog extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: context.theme.iconTheme.color?.withOpacity(0.2),
+                color: context.theme.iconTheme.color?.withValues(alpha:0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -232,7 +232,7 @@ class ImportConflictDialog extends StatelessWidget {
                     description,
                     style: TextStyle(
                       fontSize: 12,
-                      color: context.theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+                      color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.8),
                     ),
                   ),
                 ],
@@ -242,7 +242,7 @@ class ImportConflictDialog extends StatelessWidget {
               builder: (context) => Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.6),
               ),
             ),
           ],

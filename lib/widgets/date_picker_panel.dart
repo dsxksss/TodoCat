@@ -87,7 +87,7 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
       return Container(
         width: 340,
         decoration: BoxDecoration(
-          color: context.theme.dialogBackgroundColor,
+          color: context.theme.dialogTheme.backgroundColor,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(

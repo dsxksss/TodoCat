@@ -239,7 +239,7 @@ class HomePage extends GetView<HomeController> {
                 sigmaX: blur,
                 sigmaY: blur,
               ),
-              child: Container(color: Colors.white.withOpacity(0.0)),
+              child: Container(color: Colors.white.withValues(alpha:0.0)),
             ),
           ),
         // 内容层（完全透明）
@@ -292,7 +292,7 @@ class HomePage extends GetView<HomeController> {
                             sigmaX: blur,
                             sigmaY: blur,
                           ),
-                          child: Container(color: Colors.white.withOpacity(0.0)),
+                          child: Container(color: Colors.white.withValues(alpha:0.0)),
                         ),
                       ),
                     // 内容层（完全透明）

@@ -43,6 +43,7 @@ class TagDialogBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     VoidCallback? callback = _onTap;
     if (callback == null && _openDialog != null) {
+      final dialog = _openDialog; // 在外部检查后，这里不为null
       callback = () {
         SmartDialog.show(
           tag: _dialogTag,
@@ -52,7 +53,7 @@ class TagDialogBtn extends StatelessWidget {
           backType: SmartBackType.normal,
           animationTime: 150.ms,
           onDismiss: _onDialogClose,
-          builder: (context) => _openDialog!,
+          builder: (context) => dialog,
           animationBuilder: (controller, child, _) => child
               .animate(controller: controller)
               .fade(duration: controller.duration)

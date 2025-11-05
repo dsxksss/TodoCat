@@ -4,8 +4,8 @@ import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'dart:io';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'dart:io';
 import 'package:TodoCat/controllers/timepicker_ctr.dart';
 import 'package:TodoCat/locales/locales.dart';
 import 'package:TodoCat/pages/binding.dart';
@@ -14,6 +14,7 @@ import 'package:TodoCat/pages/unknown_page.dart';
 import 'package:TodoCat/routers/router_map.dart';
 import 'package:TodoCat/themes/dark_theme.dart';
 import 'package:TodoCat/themes/light_theme.dart';
+import 'package:desktop_updater/desktop_updater.dart';
 
 /// 键盘事件过滤器，用于防止重复的键盘事件
 class KeyboardEventFilter {
@@ -86,52 +87,71 @@ class _AppState extends State<App> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return Focus(
-          // 添加键盘事件过滤器
-          onKeyEvent: (node, event) {
-            if (!KeyboardEventFilter.shouldProcessKeyEvent(event)) {
-              return KeyEventResult.handled;
-            }
-            return KeyEventResult.ignored;
-          },
-          child: Obx(
-            () => GetMaterialApp(
-              debugShowCheckedModeBanner: false,
-              title: "TodoCat",
-              translations: Locales(),
-              locale: _appController.appConfig.value.locale,
-              fallbackLocale: const Locale('en', 'US'),
-              builder: (context, widget) {
-                // 添加全局异常捕获
-                FlutterError.onError = (FlutterErrorDetails details) {
-                  // 过滤掉JSON解析错误和键盘事件错误的日志输出
-                  final errorMessage = details.exception.toString();
-                  if (!errorMessage.contains('Unable to parse JSON') &&
-                      !errorMessage.contains('KeyDownEvent is dispatched')) {
-                    FlutterError.presentError(details);
-                  }
-                };
-                
-                return FlutterSmartDialog.init()(
-                  context,
-                  widget ?? const SizedBox.shrink(),
-                );
-              },
-              navigatorObservers: [FlutterSmartDialog.observer],
-              themeMode: _appController.appConfig.value.isDarkMode
-                  ? ThemeMode.dark
-                  : ThemeMode.light,
-              theme: lightTheme,
-              darkTheme: darkTheme,
-              useInheritedMediaQuery: true,
-              unknownRoute: GetPage(
-                name: '/notfound',
-                page: () => const UnknownPage(),
-                transition: Transition.fadeIn,
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Focus(
+            // 添加键盘事件过滤器
+            onKeyEvent: (node, event) {
+              if (!KeyboardEventFilter.shouldProcessKeyEvent(event)) {
+                return KeyEventResult.handled;
+              }
+              return KeyEventResult.ignored;
+            },
+            child: Stack(
+              children: [
+                Obx(
+                  () => GetMaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  title: "TodoCat",
+                  translations: Locales(),
+                  locale: _appController.appConfig.value.locale,
+                  fallbackLocale: const Locale('en', 'US'),
+                  builder: (context, widget) {
+                    // 添加全局异常捕获
+                    FlutterError.onError = (FlutterErrorDetails details) {
+                      // 过滤掉JSON解析错误和键盘事件错误的日志输出
+                      final errorMessage = details.exception.toString();
+                      if (!errorMessage.contains('Unable to parse JSON') &&
+                          !errorMessage.contains('KeyDownEvent is dispatched')) {
+                        FlutterError.presentError(details);
+                      }
+                    };
+                    
+                    return FlutterSmartDialog.init()(
+                      context,
+                      widget ?? const SizedBox.shrink(),
+                    );
+                  },
+                  navigatorObservers: [FlutterSmartDialog.observer],
+                  themeMode: _appController.appConfig.value.isDarkMode
+                      ? ThemeMode.dark
+                      : ThemeMode.light,
+                  theme: lightTheme,
+                  darkTheme: darkTheme,
+                  useInheritedMediaQuery: true,
+                  unknownRoute: GetPage(
+                    name: '/notfound',
+                    page: () => const UnknownPage(),
+                    transition: Transition.fadeIn,
+                  ),
+                  initialRoute: context.isPhone ? '/start' : '/',
+                  getPages: routerMap,
+                  initialBinding: AppBinding(),
+                ),
               ),
-              initialRoute: context.isPhone ? '/start' : '/',
-              getPages: routerMap,
-              initialBinding: AppBinding(),
+              // 在桌面平台添加更新对话框监听器
+              Obx(() {
+                if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+                  if (_appController.updateControllerReady.value) {
+                    final updateController = _appController.updateController;
+                    if (updateController != null) {
+                      return UpdateDialogListener(controller: updateController);
+                    }
+                  }
+                }
+                return const SizedBox.shrink();
+              }),
+              ],
             ),
           ),
         );

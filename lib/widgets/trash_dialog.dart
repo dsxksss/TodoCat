@@ -39,7 +39,7 @@ class _TrashDialogState extends State<TrashDialog> {
       width: context.isPhone ? 1.sw : 700,
       height: context.isPhone ? 0.8.sh : 600,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
         borderRadius: context.isPhone
             ? const BorderRadius.only(
@@ -108,7 +108,7 @@ class _TrashDialogState extends State<TrashDialog> {
                             style: TextStyle(
                               fontSize: 12,
                               color: context.theme.textTheme.bodySmall?.color
-                                  ?.withOpacity(0.6),
+                                  ?.withValues(alpha:0.6),
                             ),
                             overflow: TextOverflow.ellipsis,
                           );
@@ -118,7 +118,7 @@ class _TrashDialogState extends State<TrashDialog> {
                           style: TextStyle(
                             fontSize: 12,
                             color: context.theme.textTheme.bodySmall?.color
-                                ?.withOpacity(0.6),
+                                ?.withValues(alpha:0.6),
                           ),
                           overflow: TextOverflow.ellipsis,
                         );
@@ -172,7 +172,7 @@ class _TrashDialogState extends State<TrashDialog> {
                     Icons.close,
                     size: 18,
                     color: context.theme.textTheme.bodyMedium?.color
-                        ?.withOpacity(0.6),
+                        ?.withValues(alpha:0.6),
                   ),
                 ),
                 padding: const EdgeInsets.all(4),
@@ -199,14 +199,14 @@ class _TrashDialogState extends State<TrashDialog> {
               Icon(
                 FontAwesomeIcons.trashCan,
                 size: 64,
-                color: context.theme.iconTheme.color?.withOpacity(0.3),
+                color: context.theme.iconTheme.color?.withValues(alpha:0.3),
               ),
               const SizedBox(height: 16),
               Text(
                 'trashEmpty'.tr,
                 style: TextStyle(
                   fontSize: 18,
-                  color: context.theme.textTheme.bodyLarge?.color?.withOpacity(0.6),
+                  color: context.theme.textTheme.bodyLarge?.color?.withValues(alpha:0.6),
                 ),
               ),
               const SizedBox(height: 8),
@@ -217,7 +217,7 @@ class _TrashDialogState extends State<TrashDialog> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                    color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5),
                   ),
                 ),
               ),
@@ -238,7 +238,16 @@ class _TrashDialogState extends State<TrashDialog> {
   }
 
   Widget _buildDeletedTaskCard(BuildContext context, TrashController controller, Task task) {
-    final deletedTime = controller.formatDeletedAt(task.deletedAt);
+    // 如果task本身被删除，使用task的删除时间；否则使用最早被删除的todo的时间
+    int displayDeletedAt = task.deletedAt;
+    if (displayDeletedAt == 0 && task.todos != null && task.todos!.isNotEmpty) {
+      // 找到最早被删除的todo
+      final deletedTodos = task.todos!.where((t) => t.deletedAt > 0).toList();
+      if (deletedTodos.isNotEmpty) {
+        displayDeletedAt = deletedTodos.map((t) => t.deletedAt).reduce((a, b) => a < b ? a : b);
+      }
+    }
+    final deletedTime = controller.formatDeletedAt(displayDeletedAt);
     final deletedTodos = task.todos ?? [];
     final hasTodos = deletedTodos.isNotEmpty;
 
@@ -248,7 +257,7 @@ class _TrashDialogState extends State<TrashDialog> {
         color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: context.theme.dividerColor.withOpacity(0.3),
+          color: context.theme.dividerColor.withValues(alpha:0.3),
           width: 0.5,
         ),
       ),
@@ -302,14 +311,14 @@ class _TrashDialogState extends State<TrashDialog> {
                               Icon(
                                 FontAwesomeIcons.clock,
                                 size: 11,
-                                color: context.theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                                color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.6),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 '${'deletedAt'.tr}: $deletedTime',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: context.theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                                  color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.6),
                                 ),
                               ),
                             ],
@@ -344,7 +353,7 @@ class _TrashDialogState extends State<TrashDialog> {
           
           // 已删除的Todos列表
           if (hasTodos) ...[
-            Divider(height: 1, color: context.theme.dividerColor.withOpacity(0.3)),
+            Divider(height: 1, color: context.theme.dividerColor.withValues(alpha:0.3)),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -355,7 +364,7 @@ class _TrashDialogState extends State<TrashDialog> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: context.theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+                      color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.8),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -376,10 +385,10 @@ class _TrashDialogState extends State<TrashDialog> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: context.theme.cardColor.withOpacity(0.5),
+        color: context.theme.cardColor.withValues(alpha:0.5),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: context.theme.dividerColor.withOpacity(0.5),
+          color: context.theme.dividerColor.withValues(alpha:0.5),
           width: 0.5,
         ),
       ),
@@ -402,7 +411,7 @@ class _TrashDialogState extends State<TrashDialog> {
                     todo.description,
                     style: TextStyle(
                       fontSize: 12,
-                      color: context.theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                      color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.7),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -413,7 +422,7 @@ class _TrashDialogState extends State<TrashDialog> {
                   deletedTime,
                   style: TextStyle(
                     fontSize: 11,
-                    color: context.theme.textTheme.bodySmall?.color?.withOpacity(0.5),
+                    color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.5),
                   ),
                 ),
               ],

@@ -34,6 +34,12 @@ class DefaultBackgrounds {
       description: '',
       imageUrl: 'assets/imgs/background_3.jpg',
     ),
+    DefaultBackground(
+      id: 'background_4',
+      name: '背景4',
+      description: '',
+      imageUrl: 'assets/imgs/background_4.jpg',
+    ),
   ];
   
   /// 根据ID获取模板

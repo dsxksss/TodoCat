@@ -22,7 +22,7 @@ class PriorityPickerPanel extends StatelessWidget {
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
       ),
@@ -138,7 +138,7 @@ class PriorityPickerPanel extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: selectedPriority.value == priority
-                  ? color.withOpacity(0.1)
+                  ? color.withValues(alpha:0.1)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(

@@ -177,10 +177,10 @@ class _DatePanelState extends State<DatePanel> {
               color: isSelected
                   ? Colors.white
                   : isPastDate
-                      ? Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.3)
+                      ? Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha:0.3)
                       : isCurrentMonth
                           ? Theme.of(context).textTheme.bodyLarge?.color
-                          : Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.5),
+                          : Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha:0.5),
             ),
           ),
         ),

@@ -6,10 +6,9 @@ final darkTheme = ThemeData(
   brightness: Brightness.dark,
   cardColor: const Color.fromRGBO(29, 35, 42, 1),
   primaryColor: Colors.black,
-  hoverColor: Colors.grey.withOpacity(0.1),
+  hoverColor: Colors.grey.withValues(alpha:0.1),
   hintColor: Colors.blue,
   dividerColor: Colors.grey.shade800,
-  dialogBackgroundColor: const Color.fromRGBO(29, 35, 42, 1),
   fontFamily: 'SourceHanSans', // 使用思源黑体
   inputDecorationTheme: const InputDecorationTheme(
     fillColor: Color.fromRGBO(29, 35, 42, 1),
@@ -32,5 +31,5 @@ final darkTheme = ThemeData(
       fontFamily: 'SourceHanSans', // 使用思源黑体
     ),
   ), 
-  dialogTheme: const DialogTheme(backgroundColor: Color.fromRGBO(29, 35, 42, 1)),
+  dialogTheme: const DialogThemeData(backgroundColor: Color.fromRGBO(29, 35, 42, 1)),
 );

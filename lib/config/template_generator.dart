@@ -36,24 +36,28 @@ class TemplateGenerator {
         ..title = 'todo'.tr
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..tagsWithColor = _createTagsWithColors(['default'.tr])
+        ..status = TaskStatus.todo
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
         ..title = 'inProgress'.tr
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 1
         ..tagsWithColor = _createTagsWithColors(['default'.tr])
+        ..status = TaskStatus.inProgress
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
         ..title = 'done'.tr
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 2
         ..tagsWithColor = _createTagsWithColors(['default'.tr])
+        ..status = TaskStatus.done
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
         ..title = 'another'.tr
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 3
         ..tagsWithColor = _createTagsWithColors(['default'.tr])
+        ..status = TaskStatus.todo
         ..todos = [],
     ];
   }

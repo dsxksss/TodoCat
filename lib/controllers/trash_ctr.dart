@@ -162,9 +162,7 @@ class TrashController extends GetxController {
       }
       
       // 确保 currentTask.todos 不为空
-      if (currentTask.todos == null) {
-        currentTask.todos = [];
-      }
+      currentTask.todos ??= [];
       
       // 从回收站的 task 中找到要恢复的 todo（可能包含已删除的 todo）
       final todoToRestore = task.todos!.firstWhereOrNull((t) => t.uuid == todoUuid);

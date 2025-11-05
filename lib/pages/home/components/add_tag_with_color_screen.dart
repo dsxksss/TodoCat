@@ -198,12 +198,12 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
                     color: _selectedColor,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: context.theme.dividerColor.withOpacity(0.3),
+                      color: context.theme.dividerColor.withValues(alpha: 0.3),
                       width: 0.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: _selectedColor.withOpacity(0.2),
+                        color: _selectedColor.withValues(alpha: 0.2),
                         blurRadius: 2,
                         offset: const Offset(0, 1),
                       ),

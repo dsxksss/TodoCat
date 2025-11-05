@@ -17,7 +17,7 @@ class NotificationCenterDialog extends StatelessWidget {
       width: context.isPhone ? 1.sw : 550,
       height: context.isPhone ? 0.7.sh : 600,
       decoration: BoxDecoration(
-        color: context.theme.dialogBackgroundColor,
+        color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
         borderRadius: context.isPhone
             ? const BorderRadius.only(
@@ -94,7 +94,7 @@ class NotificationCenterDialog extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             color: context.theme.textTheme.bodySmall?.color
-                                ?.withOpacity(0.6),
+                                ?.withValues(alpha:0.6),
                           ),
                           overflow: TextOverflow.ellipsis,
                         );
@@ -242,7 +242,7 @@ class NotificationCenterDialog extends StatelessWidget {
       decoration: BoxDecoration(
         color: notification.isRead
             ? Colors.transparent
-            : context.theme.primaryColor.withOpacity(0.05),
+            : context.theme.primaryColor.withValues(alpha:0.05),
         border: Border.all(
           color: context.theme.dividerColor,
           width: 0.3,
@@ -262,7 +262,7 @@ class NotificationCenterDialog extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
                   color: Color(notification.level.colorValue)
-                      .withOpacity(0.5),
+                      .withValues(alpha:0.5),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
@@ -312,7 +312,7 @@ class NotificationCenterDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: context.theme.textTheme.bodySmall?.color
-                            ?.withOpacity(0.8),
+                            ?.withValues(alpha:0.8),
                       ),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
@@ -323,7 +323,7 @@ class NotificationCenterDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         color: context.theme.textTheme.bodySmall?.color
-                            ?.withOpacity(0.5),
+                            ?.withValues(alpha:0.5),
                       ),
                     ),
                   ],
@@ -337,7 +337,7 @@ class NotificationCenterDialog extends StatelessWidget {
                     Icons.close,
                     size: 16,
                     color: context.theme.textTheme.bodyMedium?.color
-                        ?.withOpacity(0.6),
+                        ?.withValues(alpha:0.6),
                   ),
                 ),
                 padding: const EdgeInsets.all(4),

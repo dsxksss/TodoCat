@@ -116,7 +116,7 @@ class TodoDetailPage extends StatelessWidget {
               Positioned.fill(
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-                  child: Container(color: Colors.white.withOpacity(0.0)),
+                  child: Container(color: Colors.white.withValues(alpha:0.0)),
                 ),
               ),
             scaffold,
@@ -157,7 +157,7 @@ class TodoDetailPage extends StatelessWidget {
                               Positioned.fill(
                                 child: BackdropFilter(
                                   filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-                                  child: Container(color: Colors.white.withOpacity(0.0)),
+                                  child: Container(color: Colors.white.withValues(alpha:0.0)),
                                 ),
                               ),
                             Container(
@@ -417,7 +417,7 @@ class TodoDetailPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(todo.status).withOpacity(0.1),
+                    color: _getStatusColor(todo.status).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _getStatusColor(todo.status),
@@ -463,7 +463,7 @@ class TodoDetailPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getPriorityColor(todo.priority).withOpacity(0.1),
+                    color: _getPriorityColor(todo.priority).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _getPriorityColor(todo.priority),
