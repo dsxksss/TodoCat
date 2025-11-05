@@ -143,9 +143,9 @@ class _AppState extends State<App> {
               Obx(() {
                 if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
                   if (_appController.updateControllerReady.value) {
-                    final updateController = _appController.updateController;
-                    if (updateController != null) {
-                      return UpdateDialogListener(controller: updateController);
+                  final updateController = _appController.updateController;
+                  if (updateController != null) {
+                    return UpdateDialogListener(controller: updateController);
                     }
                   }
                 }
