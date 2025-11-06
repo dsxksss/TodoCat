@@ -190,7 +190,7 @@ class HomeController extends GetxController
       final shouldSendDeleteReq = appCtrl.appConfig.value.emailReminderEnabled;
       
       for (var todo in task.todos!) {
-        appCtrl.localNotificationManager.destroy(
+        appCtrl.localNotificationManager?.destroy(
           timerKey: todo.uuid,
           sendDeleteReq: shouldSendDeleteReq,
         );
@@ -242,7 +242,7 @@ class HomeController extends GetxController
 
       // 清理通知，根据邮箱提醒设置决定是否发送删除请求
       final shouldSendDeleteReq = appCtrl.appConfig.value.emailReminderEnabled;
-      await appCtrl.localNotificationManager.destroy(
+      await appCtrl.localNotificationManager?.destroy(
         timerKey: todoUuid,
         sendDeleteReq: shouldSendDeleteReq,
       );

@@ -268,14 +268,32 @@ class AutoUpdateService {
   }
   
   /// 发送更新可用通知到通知中心
+  /// 使用版本号进行去重，避免重复通知
   Future<void> _notifyUpdateAvailable(String version, String? changelog) async {
     try {
       if (Get.isRegistered<NotificationCenterManager>()) {
         final notificationCenter = Get.find<NotificationCenterManager>();
+        
+        // 检查是否已经有相同版本的通知（基于消息中的版本号去重）
+        final now = DateTime.now();
+        final windowStart = now.subtract(const Duration(hours: 24)); // 24小时内相同版本不重复通知
+        
+        final hasVersionDuplicate = notificationCenter.notifications.any((n) {
+          return n.title == 'updateAvailable'.tr && 
+                 n.message.contains(version) &&
+                 n.timestamp.isAfter(windowStart);
+        });
+        
+        if (hasVersionDuplicate) {
+          _logger.d('版本 $version 的通知已存在，跳过重复通知');
+          return;
+        }
+        
         await notificationCenter.addNotification(
           title: 'updateAvailable'.tr,
           message: '${'newVersionAvailable'.tr}: $version${changelog != null ? '\n\n$changelog' : ''}',
           level: NotificationLevel.info,
+          skipDuplicateCheck: true, // 跳过通用的重复检查，因为我们用了版本号检查
         );
         _logger.i('已发送更新通知到通知中心: $version');
       }

@@ -4,8 +4,10 @@ import 'package:TodoCat/data/services/database.dart';
 import 'package:TodoCat/data/database/converters.dart';
 import 'package:TodoCat/data/database/database.dart' as drift_db;
 import 'package:drift/drift.dart';
+import 'package:logger/logger.dart';
 
 class TaskRepository {
+  static final _logger = Logger();
   static TaskRepository? _instance;
   drift_db.AppDatabase? _db;
   bool _isInitialized = false;
@@ -42,6 +44,65 @@ class TaskRepository {
     return rows.map((row) => DbConverters.todoFromRow(row)).toList();
   }
 
+  /// 根据todo的uuid获取它所在的taskUuid
+  /// 如果存在多个相同uuid的todo，选择id最大的（最新的记录，即最后所在的位置）
+  Future<String?> getTaskUuidForTodo(String todoUuid) async {
+    try {
+      // 先查询所有匹配的记录
+      final allRows = await (db.select(db.todos)
+            ..where((t) => t.uuid.equals(todoUuid)))
+          .get();
+      
+      if (allRows.isEmpty) return null;
+      
+      // 如果存在多个记录，选择id最大的（最新的记录，即最后所在的位置）
+      // 因为id是自增的，所以id最大的记录是最后创建的，应该是todo最后所在的位置
+      if (allRows.length > 1) {
+        // 按id降序排序，取最新的记录
+        allRows.sort((a, b) => b.id.compareTo(a.id));
+        // 记录警告：存在重复的todo uuid
+        _logger.w('Found ${allRows.length} duplicate todos with uuid: $todoUuid. Using the latest one (id: ${allRows.first.id}, taskUuid: ${allRows.first.taskUuid})');
+      }
+      
+      return allRows.first.taskUuid;
+    } catch (e) {
+      // 如果查询失败，返回null
+      return null;
+    }
+  }
+
+  /// 根据todo的uuid获取todo（包括已删除的）
+  /// 如果存在多个相同uuid的todo，选择id最大的（最新的记录，即最后所在的位置）
+  Future<Todo?> getTodoByUuid(String todoUuid) async {
+    try {
+      // 先查询所有匹配的记录
+      final allRows = await (db.select(db.todos)
+            ..where((t) => t.uuid.equals(todoUuid)))
+          .get();
+      
+      if (allRows.isEmpty) return null;
+      
+      // 如果存在多个记录，选择id最大的（最新的记录，即最后所在的位置）
+      // 因为id是自增的，所以id最大的记录是最后创建的，应该是todo最后所在的位置
+      if (allRows.length > 1) {
+        // 按id降序排序，取最新的记录
+        allRows.sort((a, b) => b.id.compareTo(a.id));
+        // 记录警告：存在重复的todo uuid
+        _logger.w('Found ${allRows.length} duplicate todos with uuid: $todoUuid. Using the latest one (id: ${allRows.first.id})');
+      }
+      
+      return DbConverters.todoFromRow(allRows.first);
+    } catch (e) {
+      // 如果查询失败，返回null
+      return null;
+    }
+  }
+
+  /// 永久删除单个todo（从数据库中删除）
+  Future<void> permanentDeleteTodo(String todoUuid) async {
+    await (db.delete(db.todos)..where((t) => t.uuid.equals(todoUuid))).go();
+  }
+
   Future<void> write(String uuid, Task task) async {
     await db.transaction(() async {
       // 检查是否存在
@@ -70,13 +131,39 @@ class TaskRepository {
 
       // 保存 todos
       if (task.todos != null && task.todos!.isNotEmpty) {
-        // 先删除旧的 todos
-        await (db.delete(db.todos)..where((t) => t.taskUuid.equals(uuid))).go();
+        // 关键修复：确保todo只存在于一个task中
+        // 1. 先收集要添加的todo的uuid
+        final todoUuidsToAdd = task.todos!.map((t) => t.uuid).toSet();
         
-        // 插入新的 todos
+        // 2. 对于要添加的每个todo，先删除所有task中相同uuid的todo（防止重复）
+        // 这样可以确保todo只存在于当前task中，即使之前在其他task中
+        for (var todoUuid in todoUuidsToAdd) {
+          await (db.delete(db.todos)..where((t) => t.uuid.equals(todoUuid))).go();
+        }
+        
+        // 3. 删除当前task中不在新列表中的todos（清理残留，这些todos在步骤2中不会被删除）
+        // 先获取当前task的所有todo uuid（在步骤2删除后剩余的）
+        final currentTodos = await (db.select(db.todos)
+              ..where((t) => t.taskUuid.equals(uuid)))
+            .get();
+        final currentTodoUuids = currentTodos.map((t) => t.uuid).toSet();
+        
+        // 删除不在新列表中的todos（这些是当前task中需要移除的todos）
+        final todosToRemove = currentTodoUuids.difference(todoUuidsToAdd);
+        for (var todoUuid in todosToRemove) {
+          await (db.delete(db.todos)
+                ..where((t) => t.taskUuid.equals(uuid))
+                ..where((t) => t.uuid.equals(todoUuid)))
+              .go();
+        }
+        
+        // 4. 最后，插入新的 todos（确保每个todo只存在于当前task中）
         for (var todo in task.todos!) {
           await db.into(db.todos).insert(DbConverters.todoToCompanion(todo, uuid));
         }
+      } else {
+        // 如果task没有todos，只删除该task的todos
+        await (db.delete(db.todos)..where((t) => t.taskUuid.equals(uuid))).go();
       }
     });
   }

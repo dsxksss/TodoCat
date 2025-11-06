@@ -441,32 +441,38 @@ void _showStackedNotification(
 
 /// 显示左下角通知（便捷方法）
 /// 用于一般操作反馈，不会阻塞用户操作
+/// [saveToNotificationCenter] 是否保存到通知中心，默认true（编辑操作等成功通知设为false）
 void showNotification(
   String message, {
   TodoCatToastStyleType type = TodoCatToastStyleType.success,
   Duration? displayTime,
   String? title,
+  bool saveToNotificationCenter = true,
 }) {
   final stackManager = NotificationStackManager.instance;
   
-  try {
-    // 尝试获取通知中心管理器
-    final notificationCenter = Get.find<NotificationCenterManager>();
-    
-    // 添加到通知中心
-    notificationCenter.addNotification(
-      title: title ?? _getNotificationTitle(type),
-      message: message,
-      level: _mapToNotificationLevel(type),
-    ).then((_) {}).catchError((e) {
+  // 只有需要保存到通知中心的通知才添加到通知中心
+  // 成功类型的通知（如编辑成功）通常不需要保存到通知中心，只显示临时通知
+  if (saveToNotificationCenter) {
+    try {
+      // 尝试获取通知中心管理器
+      final notificationCenter = Get.find<NotificationCenterManager>();
+      
+      // 添加到通知中心（会自动去重）
+      notificationCenter.addNotification(
+        title: title ?? _getNotificationTitle(type),
+        message: message,
+        level: _mapToNotificationLevel(type),
+      ).then((_) {}).catchError((e) {
+        if (kDebugMode) {
+          print('Failed to save notification: $e');
+        }
+      });
+    } catch (e) {
+      // 如果通知中心未初始化，忽略错误
       if (kDebugMode) {
-        print('Failed to save notification: $e');
+        print('NotificationCenterManager not initialized: $e');
       }
-    });
-  } catch (e) {
-    // 如果通知中心未初始化，忽略错误
-    if (kDebugMode) {
-      print('NotificationCenterManager not initialized: $e');
     }
   }
   
@@ -531,16 +537,23 @@ String _getNotificationTitle(TodoCatToastStyleType type) {
 }
 
 /// 显示成功通知（左下角）
-void showSuccessNotification(String message) {
-  showNotification(message, type: TodoCatToastStyleType.success);
+/// [saveToNotificationCenter] 是否保存到通知中心，默认false（编辑操作等成功通知不保存）
+void showSuccessNotification(String message, {bool saveToNotificationCenter = false}) {
+  showNotification(
+    message, 
+    type: TodoCatToastStyleType.success,
+    saveToNotificationCenter: saveToNotificationCenter,
+  );
 }
 
 /// 显示错误通知（左下角）
+/// 错误通知默认保存到通知中心
 void showErrorNotification(String message) {
-  showNotification(message, type: TodoCatToastStyleType.error);
+  showNotification(message, type: TodoCatToastStyleType.error, saveToNotificationCenter: true);
 }
 
 /// 显示信息通知（左下角）
+/// 信息通知默认保存到通知中心
 void showInfoNotification(String message) {
-  showNotification(message, type: TodoCatToastStyleType.info);
+  showNotification(message, type: TodoCatToastStyleType.info, saveToNotificationCenter: true);
 }

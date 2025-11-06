@@ -100,90 +100,50 @@ class TrashController extends GetxController {
     try {
       _logger.d('Restoring todo $todoUuid from task $taskUuid');
       
-      // 先从已删除的任务列表中查找任务
-      Task? task = deletedTasks.firstWhereOrNull((t) => t.uuid == taskUuid);
-      
-      // 如果任务不存在，尝试从所有已删除的task中查找这个todo，然后创建新任务
-      if (task == null) {
-        _logger.d('Task $taskUuid not found in deleted tasks, searching for todo in all deleted tasks...');
-        Task? templateTask;
-        Todo? foundTodo;
-        
-        // 从所有已删除的任务中查找这个todo
-        for (var deletedTask in deletedTasks) {
-          if (deletedTask.todos != null) {
-            final todo = deletedTask.todos!.firstWhereOrNull((t) => t.uuid == todoUuid);
-            if (todo != null) {
-              templateTask = deletedTask;
-              foundTodo = todo;
-              break;
-            }
-          }
-        }
-        
-        if (foundTodo == null) {
-          _logger.e('Todo $todoUuid not found in any deleted task');
-          return false;
-        }
-        
-        // 创建新任务，使用找到的任务作为模板
-        final newTask = Task()
-          ..uuid = taskUuid
-          ..title = templateTask!.title
-          ..description = templateTask.description
-          ..createdAt = templateTask.createdAt > 0 
-              ? templateTask.createdAt 
-              : DateTime.now().millisecondsSinceEpoch
-          ..status = templateTask.status
-          ..tags = List<String>.from(templateTask.tags)
-          ..tagsWithColorJsonString = templateTask.tagsWithColorJsonString
-          ..deletedAt = 0
-          ..todos = [];
-        
-        // 恢复todo并添加到新任务
-        foundTodo.deletedAt = 0;
-        newTask.todos = [foundTodo];
-        
-        // 保存新任务
-        await _repository!.write(taskUuid, newTask);
-        await refresh();
-        _logger.d('Created new task and restored todo successfully');
-        return true;
+      // 关键修复：从数据库查询todo的实际taskUuid，而不是使用传入的taskUuid
+      // 这样可以确保todo恢复到正确的task中（即删除前的task）
+      // 如果存在多个相同uuid的todo，选择最新的（按id排序）
+      final actualTaskUuid = await _repository!.getTaskUuidForTodo(todoUuid);
+      if (actualTaskUuid == null) {
+        _logger.e('Todo $todoUuid not found in database');
+        return false;
       }
       
-      // 任务存在，恢复todo
-      // 关键：先从数据库读取最新的 task 数据，而不是使用回收站里的旧数据
-      // 这样可以避免覆盖已经移动过来的 todo
-      final currentTask = await _repository!.readOne(taskUuid);
+      _logger.d('Todo $todoUuid actually belongs to task $actualTaskUuid (requested: $taskUuid)');
+      
+      // 从数据库获取todo对象（如果有多个，会选择最新的）
+      final todoToRestore = await _repository!.getTodoByUuid(todoUuid);
+      if (todoToRestore == null) {
+        _logger.e('Todo $todoUuid not found in database');
+        return false;
+      }
+      
+      // 检查todo是否已删除
+      if (todoToRestore.deletedAt == 0) {
+        _logger.w('Todo $todoUuid is not deleted, nothing to restore');
+        return false;
+      }
+      
+      // 关键修复：在恢复前，先删除所有task中相同uuid的todo（清理重复数据）
+      // 这样可以确保恢复后todo只存在于一个task中
+      await _repository!.permanentDeleteTodo(todoUuid);
+      _logger.d('Cleaned up duplicate todos with uuid: $todoUuid');
+      
+      // 从数据库读取实际的task（todo所在的task）
+      final currentTask = await _repository!.readOne(actualTaskUuid);
       
       if (currentTask == null) {
-        _logger.e('Task $taskUuid not found in database');
+        _logger.e('Task $actualTaskUuid not found in database');
         return false;
       }
       
       // 确保 currentTask.todos 不为空
       currentTask.todos ??= [];
       
-      // 从回收站的 task 中找到要恢复的 todo（可能包含已删除的 todo）
-      final todoToRestore = task.todos!.firstWhereOrNull((t) => t.uuid == todoUuid);
-      if (todoToRestore == null) {
-        _logger.e('Todo $todoUuid not found in deleted task');
-        return false;
-      }
-      
-      // 检查当前 task 中是否已经存在这个 todo（可能已经恢复过了）
-      final existingTodoIndex = currentTask.todos!.indexWhere((t) => t.uuid == todoUuid);
-      
-      if (existingTodoIndex != -1) {
-        // 如果已经存在，只恢复它的 deletedAt 状态
-        currentTask.todos![existingTodoIndex].deletedAt = 0;
-        _logger.d('Todo already exists in task, just restoring its deletedAt status');
-      } else {
-        // 如果不存在，恢复 todo 并添加到当前 task
-        todoToRestore.deletedAt = 0;
-        currentTask.todos = List<Todo>.from(currentTask.todos!)..add(todoToRestore);
-        _logger.d('Todo restored and added to task');
-      }
+      // 恢复 todo 并添加到当前 task（因为已经删除了所有重复的，所以直接添加）
+      todoToRestore.deletedAt = 0;
+      currentTask.todos = List<Todo>.from(currentTask.todos!)..add(todoToRestore);
+      _logger.d('Todo restored and added to task $actualTaskUuid');
       
       // 恢复 todo 时，必须同时恢复父 task，否则 todo 无法在主页显示
       // 因为主页只显示 deletedAt == 0 的 task
@@ -192,14 +152,14 @@ class TrashController extends GetxController {
         currentTask.deletedAt = 0;
       }
       
-      // 保存更改
-      await _repository!.write(taskUuid, currentTask);
+      // 保存更改（write方法会确保todo只存在于当前task中）
+      await _repository!.write(actualTaskUuid, currentTask);
       
       // 立即刷新回收站和主页数据
       await refresh();
       await _refreshHomeData();
       
-      _logger.d('Todo restored successfully');
+      _logger.d('Todo restored successfully to task $actualTaskUuid');
       return true;
     } catch (e) {
       _logger.e('Error restoring todo: $e');
@@ -212,33 +172,32 @@ class TrashController extends GetxController {
     try {
       _logger.d('Permanently deleting todo $todoUuid from task $taskUuid');
       
-      final task = deletedTasks.firstWhere((t) => t.uuid == taskUuid);
-      if (task.todos == null) {
+      // 关键修复：从数据库查询todo的实际taskUuid，确保删除正确的todo
+      final actualTaskUuid = await _repository!.getTaskUuidForTodo(todoUuid);
+      if (actualTaskUuid == null) {
+        _logger.e('Todo $todoUuid not found in database');
         return false;
       }
       
-      // 从列表中移除todo
-      task.todos = task.todos!.where((t) => t.uuid != todoUuid).toList();
+      _logger.d('Todo $todoUuid actually belongs to task $actualTaskUuid (requested: $taskUuid)');
       
-      // 检查是否还有其他已删除的 todos
-      final hasOtherDeletedTodos = task.todos!.any((t) => t.deletedAt > 0);
+      // 直接从数据库删除todo
+      await _repository!.permanentDeleteTodo(todoUuid);
       
-      // 如果没有已删除的 todos 了
-      if (!hasOtherDeletedTodos) {
-        // 如果 task 本身被删除了，永久删除整个 task
-        if (task.deletedAt > 0) {
-          await _repository!.permanentDelete(taskUuid);
-        } else {
-          // 如果 task 本身未被删除，只是清理数据
-          await _repository!.write(taskUuid, task);
+      // 从数据库读取实际的task，检查是否还有其他已删除的todos
+      final task = await _repository!.readOne(actualTaskUuid);
+      if (task != null) {
+        // 检查是否还有其他已删除的 todos
+        final hasOtherDeletedTodos = task.todos?.any((t) => t.deletedAt > 0) ?? false;
+        
+        // 如果没有已删除的 todos 了，并且 task 本身被删除了，永久删除整个 task
+        if (!hasOtherDeletedTodos && task.deletedAt > 0) {
+          await _repository!.permanentDelete(actualTaskUuid);
         }
-      } else {
-        // 还有其他已删除的 todos，保存更新
-        await _repository!.write(taskUuid, task);
       }
       
       await refresh();
-      _logger.d('Todo permanently deleted');
+      _logger.d('Todo permanently deleted from task $actualTaskUuid');
       return true;
     } catch (e) {
       _logger.e('Error permanently deleting todo: $e');

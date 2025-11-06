@@ -51,11 +51,32 @@ class NotificationCenterManager extends GetxController {
   }
   
   /// 添加通知到历史记录
+  /// [skipDuplicateCheck] 是否跳过重复检查，默认false
+  /// [duplicateWindowMinutes] 重复检查的时间窗口（分钟），默认30分钟
   Future<void> addNotification({
     required String title,
     required String message,
     NotificationLevel level = NotificationLevel.info,
+    bool skipDuplicateCheck = false,
+    int duplicateWindowMinutes = 30,
   }) async {
+    // 检查是否在时间窗口内有重复的通知（相同的标题和消息）
+    if (!skipDuplicateCheck) {
+      final now = DateTime.now();
+      final windowStart = now.subtract(Duration(minutes: duplicateWindowMinutes));
+      
+      final hasDuplicate = notifications.any((n) {
+        return n.title == title && 
+               n.message == message && 
+               n.timestamp.isAfter(windowStart);
+      });
+      
+      if (hasDuplicate) {
+        _logger.d('Skipping duplicate notification: $title (within ${duplicateWindowMinutes} minutes)');
+        return;
+      }
+    }
+    
     final notification = NotificationHistoryItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,

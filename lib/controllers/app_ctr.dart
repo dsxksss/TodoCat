@@ -15,9 +15,12 @@ import 'package:logger/logger.dart';
 
 class AppController extends GetxController {
   static final _logger = Logger();
-  late final LocalNotificationManager localNotificationManager;
+  LocalNotificationManager? _localNotificationManager;
   late final AppConfigRepository appConfigRepository;
   final _autoUpdateService = AutoUpdateService();
+  
+  /// 获取本地通知管理器（可能为null如果初始化失败）
+  LocalNotificationManager? get localNotificationManager => _localNotificationManager;
   
   /// 获取自动更新服务（供外部访问）
   AutoUpdateService get autoUpdateService => _autoUpdateService;
@@ -30,16 +33,35 @@ class AppController extends GetxController {
   @override
   void onInit() async {
     _logger.i('Initializing AppController');
-    await initConfig();
-    await initLocalNotification();
-    await initAutoUpdate();
+    try {
+      await initConfig();
+    } catch (e, stack) {
+      _logger.e('Failed to initialize config: $e', error: e, stackTrace: stack);
+      // 配置初始化失败不应该阻止应用启动，使用默认配置
+    }
+    
+    try {
+      await initLocalNotification();
+    } catch (e, stack) {
+      _logger.e('Failed to initialize local notification: $e', error: e, stackTrace: stack);
+      // 通知服务初始化失败不应该阻止应用启动
+      // _localNotificationManager 保持为 null，后续访问时需要检查
+    }
+    
+    try {
+      await initAutoUpdate();
+    } catch (e, stack) {
+      _logger.e('Failed to initialize auto update: $e', error: e, stackTrace: stack);
+      // 更新服务初始化失败不应该阻止应用启动
+    }
+    
     super.onInit();
   }
 
   Future<void> initLocalNotification() async {
     _logger.d('Initializing local notification service');
-    localNotificationManager = await LocalNotificationManager.getInstance();
-    localNotificationManager.checkAllLocalNotification();
+    _localNotificationManager = await LocalNotificationManager.getInstance();
+    _localNotificationManager?.checkAllLocalNotification();
   }
 
   /// 初始化自动更新服务
@@ -81,8 +103,13 @@ class AppController extends GetxController {
     ever(
       appConfig,
       (value) async {
-        _logger.d('AppConfig changed, updating local storage');
-        await appConfigRepository.update(value.configName, value);
+        try {
+          _logger.d('AppConfig changed, updating local storage');
+          await appConfigRepository.update(value.configName, value);
+        } catch (e) {
+          _logger.e('Error updating app config: $e');
+          // 配置更新失败不应该导致应用崩溃
+        }
       },
     );
   }
@@ -94,29 +121,11 @@ class AppController extends GetxController {
     initSmartDialogConfiguration();
     WidgetsBinding.instance.addObserver(AppLifecycleObserver());
     
-    // 应用就绪后，延迟检查更新（静默模式，仅桌面端）
-    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      // 延迟3秒后静默检查更新，避免影响应用启动速度
-      Future.delayed(const Duration(seconds: 3), () {
-        _checkUpdatesOnStartup();
-      });
-    }
+    // 不再自动检查更新，用户可以在设置页面手动检查更新
+    // 这样可以避免应用启动时自动触发更新检查，提升启动体验
+    // 如果需要自动检查更新，可以在设置页面添加相关选项
     
     super.onReady();
-  }
-  
-  /// 应用启动时静默检查更新
-  Future<void> _checkUpdatesOnStartup() async {
-    try {
-      // 仅在更新服务已初始化时检查
-      if (_autoUpdateService.isInitialized) {
-        _logger.d('应用启动后静默检查更新');
-        await checkForUpdates(silent: true);
-      }
-    } catch (e) {
-      _logger.w('启动时检查更新失败: $e');
-      // 静默失败，不影响应用使用
-    }
   }
 
   void changeThemeMode(TodoCatThemeMode mode) {
@@ -152,7 +161,12 @@ class AppController extends GetxController {
   @override
   void onClose() {
     _logger.d('Cleaning up AppController resources');
-    localNotificationManager.destroyLocalNotification();
+    try {
+      _localNotificationManager?.destroyLocalNotification();
+    } catch (e) {
+      _logger.e('Error cleaning up AppController: $e');
+      // 清理失败不应该阻止应用关闭
+    }
     super.onClose();
   }
 
