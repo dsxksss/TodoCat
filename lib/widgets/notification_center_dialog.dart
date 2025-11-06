@@ -314,8 +314,7 @@ class NotificationCenterDialog extends StatelessWidget {
                         color: context.theme.textTheme.bodySmall?.color
                             ?.withValues(alpha:0.8),
                       ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
+                      // 移除行数限制，显示完整内容
                     ),
                     const SizedBox(height: 8),
                     Text(

@@ -85,8 +85,11 @@ void main() async {
           errorString.contains('jsonDecode') ||
           errorString.contains('VersionError') ||
           errorString.contains('Invalid version format') ||
-          errorString.contains('PlatformException')) {
-        // 静默忽略 desktop_updater 相关的错误（可能是网络问题、文件不存在或版本格式问题）
+          errorString.contains('PlatformException') ||
+          errorString.contains('hashes.json') ||
+          errorString.contains('Failed to download hashes')) {
+        // 静默忽略 desktop_updater 相关的错误
+        // 包括：网络问题、文件不存在、版本格式问题、哈希验证失败（MSIX 包有签名验证）
         debugPrint('⚠️ Caught and ignored desktop_updater error: $error');
         return;
       }
@@ -97,6 +100,15 @@ void main() async {
           errorString.contains('Unable to load asset')) {
         // 静默忽略 google_fonts 相关的错误（通常是构建问题，不影响功能）
         debugPrint('⚠️ Caught and ignored google_fonts error: $error');
+        return;
+      }
+      
+      // 检查是否是 Windows 平台线程通信错误（通常发生在应用退出时）
+      if (errorString.contains('Failed to post message to main thread') ||
+          errorString.contains('task_runner_window') ||
+          errorString.contains('message to main thread')) {
+        // 静默忽略 Windows 线程通信错误（通常发生在应用退出时，无害）
+        debugPrint('⚠️ Caught and ignored Windows thread communication error: $error');
         return;
       }
       

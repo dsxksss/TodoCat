@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -13,6 +14,7 @@ import 'package:TodoCat/widgets/dpd_menu_btn.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/services/auto_update_service.dart';
 import 'package:logger/logger.dart';
 
 class SettingsController extends GetxController {
@@ -23,6 +25,21 @@ class SettingsController extends GetxController {
   var isAnimating = false.obs;
   // 开机自启动状态（仅桌面端）
   final RxBool launchAtStartupEnabled = false.obs;
+  // 当前应用版本号
+  final RxString appVersion = 'Loading...'.obs;
+  // 更新检查状态
+  final RxDouble updateProgress = 0.0.obs; // 0.0 = 未开始, 0.0-1.0 = 进行中, 1.0 = 完成, -1.0 = 错误
+  final RxString updateStatus = ''.obs; // 更新状态文本
+  final RxBool isDownloading = false.obs; // 是否正在下载更新
+
+  @override
+  void onClose() {
+    // 取消下载（如果正在下载）
+    if (isDownloading.value) {
+      appCtrl.autoUpdateService.cancelDownload();
+    }
+    super.onClose();
+  }
 
   @override
   void onInit() {
@@ -41,6 +58,24 @@ class SettingsController extends GetxController {
     // 初始化自启动状态（桌面端）
     if (GetPlatform.isDesktop) {
       _refreshLaunchAtStartupState();
+    }
+    
+    // 加载应用版本号
+    _loadAppVersion();
+  }
+  
+  /// 加载应用版本号
+  Future<void> _loadAppVersion() async {
+    try {
+      final version = await AutoUpdateService.getCurrentVersion();
+      if (version != null) {
+        appVersion.value = version;
+      } else {
+        appVersion.value = 'Unknown';
+      }
+    } catch (e) {
+      _logger.e('获取版本号失败: $e');
+      appVersion.value = 'Unknown';
     }
   }
 
@@ -197,13 +232,183 @@ class SettingsController extends GetxController {
       return;
     }
     
+    // 如果正在下载，不允许再次检查更新
+    if (isDownloading.value) {
+      _logger.w('正在下载更新，无法再次检查');
+      return;
+    }
+    
     // 检查是否为 Windows、macOS 或 Linux
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       try {
+        // 设置更新进度监听
+        _setupUpdateProgressListeners();
+        
+        // 开始检查更新
         await appCtrl.checkForUpdates(silent: false);
       } catch (e) {
-        // ignore errors
+        _logger.e('检查更新失败: $e');
+        updateProgress.value = -1.0;
+        updateStatus.value = 'updateError'.tr;
+        showToast('updateError'.tr);
       }
+    }
+  }
+  
+  /// 取消更新下载
+  Future<void> cancelUpdate() async {
+    if (!isDownloading.value) {
+      return;
+    }
+    
+    try {
+      _logger.i('用户取消更新下载');
+      
+      // 重置状态
+      isDownloading.value = false;
+      updateProgress.value = 0.0;
+      updateStatus.value = '';
+      
+      // 取消下载
+      appCtrl.autoUpdateService.cancelDownload();
+      
+      showToast(
+        'updateCancelled'.tr,
+        toastStyleType: TodoCatToastStyleType.info,
+        position: TodoCatToastPosition.bottomLeft,
+      );
+    } catch (e) {
+      _logger.e('取消更新失败: $e');
+    }
+  }
+  
+  /// 设置更新进度监听
+  void _setupUpdateProgressListeners() {
+    final updateService = appCtrl.autoUpdateService;
+    
+    // 重置状态
+    updateProgress.value = 0.0;
+    updateStatus.value = 'checkingForUpdates'.tr;
+    
+    // 设置进度回调
+    updateService.onProgress = (progress, status) {
+      updateProgress.value = progress;
+      updateStatus.value = status;
+      _logger.d('更新进度: $progress, 状态: $status');
+    };
+    
+    updateService.onUpdateAvailable = (version, changelog) {
+      // 发现新版本，通知已通过 _notifyUpdateAvailable 发送到通知中心
+      _logger.i('发现新版本: $version');
+      updateProgress.value = 1.0;
+      updateStatus.value = '${'newVersionAvailable'.tr}: $version';
+      
+      // 显示确认对话框，让用户选择是否下载
+      // toast 不显示更新内容，只显示版本号
+      showToast(
+        '${'newVersionAvailable'.tr}: $version',
+        confirmMode: true,
+        alwaysShow: true,
+        toastStyleType: TodoCatToastStyleType.info,
+        tag: 'update_confirm_toast',
+        onYesCallback: () {
+          // 用户确认下载，关闭确认 toast
+          SmartDialog.dismiss(tag: 'update_confirm_toast');
+          
+          // 更新状态为"更新新版本中"，显示下载进度
+          isDownloading.value = true; // 标记为正在下载
+          updateProgress.value = 0.1; // 初始进度
+          updateStatus.value = 'downloadingUpdate'.tr;
+          
+          // 触发 desktop_updater 的下载流程
+          _logger.i('用户确认下载更新: $version');
+          _triggerDesktopUpdaterDownload();
+        },
+        onNoCallback: () {
+          // 用户取消下载，关闭确认 toast
+          SmartDialog.dismiss(tag: 'update_confirm_toast');
+          
+          _logger.i('用户取消下载更新');
+          updateProgress.value = 0.0;
+          updateStatus.value = '';
+        },
+      );
+    };
+    
+    updateService.onUpdateComplete = () {
+      // 重置下载状态
+      isDownloading.value = false;
+      
+      _logger.i('更新完成');
+      updateProgress.value = 1.0;
+      updateStatus.value = 'updateComplete'.tr;
+      showToast('updateComplete'.tr, toastStyleType: TodoCatToastStyleType.success);
+      
+      // 3秒后重置状态
+      Future.delayed(const Duration(seconds: 3), () {
+        if (updateProgress.value == 1.0) {
+          updateProgress.value = 0.0;
+          updateStatus.value = '';
+        }
+      });
+    };
+    
+    updateService.onUpdateError = (error) {
+      // 重置下载状态
+      isDownloading.value = false;
+      
+      _logger.e('更新错误: $error');
+      updateProgress.value = -1.0;
+      updateStatus.value = 'updateError'.tr;
+      showToast('updateError'.tr, toastStyleType: TodoCatToastStyleType.error);
+      
+      // 3秒后重置状态
+      Future.delayed(const Duration(seconds: 3), () {
+        if (updateProgress.value == -1.0) {
+          updateProgress.value = 0.0;
+          updateStatus.value = '';
+        }
+      });
+    };
+    
+    // 监听已是最新版本的回调
+    updateService.onAlreadyLatestVersion = () {
+      _logger.i('已是最新版本');
+      updateProgress.value = 1.0;
+      updateStatus.value = 'alreadyLatestVersion'.tr;
+      showToast('alreadyLatestVersion'.tr, toastStyleType: TodoCatToastStyleType.success);
+      
+      // 3秒后重置状态
+      Future.delayed(const Duration(seconds: 3), () {
+        if (updateProgress.value == 1.0) {
+          updateProgress.value = 0.0;
+          updateStatus.value = '';
+        }
+      });
+    };
+  }
+
+  /// 触发下载和安装更新
+  Future<void> _triggerDesktopUpdaterDownload() async {
+    try {
+      // 设置下载进度监听
+      final updateService = appCtrl.autoUpdateService;
+      updateService.onProgress = (progress, status) {
+        updateProgress.value = progress;
+        updateStatus.value = status.isNotEmpty ? status : 'downloadingUpdate'.tr;
+        _logger.d('更新进度: $progress, 状态: $status');
+      };
+      
+      // 下载并安装更新
+      await appCtrl.autoUpdateService.downloadAndInstallUpdate();
+    } catch (e) {
+      _logger.e('下载或安装更新失败: $e');
+      updateProgress.value = -1.0;
+      updateStatus.value = 'updateError'.tr;
+      showToast(
+        'updateError'.tr,
+        toastStyleType: TodoCatToastStyleType.error,
+      );
     }
   }
 

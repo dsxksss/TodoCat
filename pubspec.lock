@@ -210,29 +210,13 @@ packages:
     source: hosted
     version: "3.1.2"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       sha256: "1e445881f28f22d6140f181e07737b22f1e099a5e1ff94b0af2f9e4a463f4855"
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.6"
-  cryptography_flutter_plus:
-    dependency: transitive
-    description:
-      name: cryptography_flutter_plus
-      sha256: "35a8c270aae0abaac7125a6b6b33c2b3daa0ea90d85320aa7d588b6dd6c2edc9"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.3.4"
-  cryptography_plus:
-    dependency: transitive
-    description:
-      name: cryptography_plus
-      sha256: "34db787df4f4740a39474b6fb0a610aa6dc13a5b5b68754b4787a79939ac0454"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.7.1"
   csslib:
     dependency: transitive
     description:
@@ -257,14 +241,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.7.11"
-  desktop_updater:
-    dependency: "direct main"
-    description:
-      name: desktop_updater
-      sha256: abab8542cf02b1ce96428c1fca091e4c627716c6cffbe944b1b6014dd8df17ec
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.4.0"
   dio:
     dependency: "direct main"
     description:

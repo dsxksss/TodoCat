@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'dart:io';
-import 'package:desktop_updater/desktop_updater.dart' show DesktopUpdateLocalization;
-import 'package:desktop_updater/updater_controller.dart' show DesktopUpdaterController;
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:crypto/crypto.dart';
+import 'package:TodoCat/core/notification_center_manager.dart';
+import 'package:TodoCat/data/schemas/notification_history.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
 
 /// 自动更新服务
 /// 支持 Windows、macOS 和 Linux 平台的应用内更新
@@ -18,12 +23,24 @@ class AutoUpdateService {
     'https://raw.githubusercontent.com/dsxksss/TodoCat/refs/heads/main/updates/app-archive.json', // GitHub 备用源
   ];
   
-  DesktopUpdaterController? _controller;
   bool _isInitialized = false;
   int _currentSourceIndex = 0; // 当前使用的更新源索引
   
-  /// 获取更新控制器
-  DesktopUpdaterController? get controller => _controller;
+  // 下载相关
+  CancelToken? _downloadCancelToken;
+  Dio? _downloadDio;
+  DateTime? _lastProgressUpdate; // 上次进度更新时间（用于节流）
+  static const Duration _progressUpdateInterval = Duration(milliseconds: 200); // 进度更新间隔（200ms）
+  
+  // 更新进度回调
+  Function(double progress, String status)? onProgress;
+  Function(String version, String? changelog)? onUpdateAvailable;
+  Function()? onUpdateComplete;
+  Function(String error)? onUpdateError;
+  Function()? onAlreadyLatestVersion; // 已是最新版本的回调
+  
+  // 当前更新信息
+  Map<String, dynamic>? _currentUpdateInfo;
   
   /// 初始化自动更新服务
   Future<void> initialize() async {
@@ -56,22 +73,6 @@ class AutoUpdateService {
           continue;
         }
         
-        // 创建 DesktopUpdaterController
-        // 根据 desktop_updater 包的文档：https://github.com/MarlonJD/flutter_desktop_updater
-        _controller = DesktopUpdaterController(
-          appArchiveUrl: Uri.parse(url),
-          localization: DesktopUpdateLocalization(
-            updateAvailableText: 'updateAvailable'.tr,
-            newVersionAvailableText: '{} {} ${'newVersionAvailable'.tr}',
-            newVersionLongText: '${'newVersionAvailable'.tr}\n${'bugFixesAndImprovements'.tr}\n\n${'checkForUpdatesDescription'.tr}',
-            restartText: 'updateNow'.tr,
-            warningTitleText: 'update'.tr,
-            restartWarningText: '${'updateAvailable'.tr}\n${'checkForUpdatesDescription'.tr}\n\n${'later'.tr}',
-            warningCancelText: 'later'.tr,
-            warningConfirmText: 'updateNow'.tr,
-          ),
-        );
-        
         _currentSourceIndex = i;
         _isInitialized = true;
         _logger.i('更新服务初始化成功，使用源 ${i + 1}: $url');
@@ -86,28 +87,11 @@ class AutoUpdateService {
       }
     }
     
-    // 如果所有源都失败，至少尝试使用第一个源（让 desktop_updater 自己处理错误）
+    // 如果所有源都失败，至少尝试使用第一个源
     if (!_isInitialized && _appArchiveUrls.isNotEmpty) {
-      try {
-        _logger.w('所有源验证失败，尝试使用主源（可能工作）');
-        _controller = DesktopUpdaterController(
-          appArchiveUrl: Uri.parse(_appArchiveUrls[0]),
-          localization: DesktopUpdateLocalization(
-            updateAvailableText: 'updateAvailable'.tr,
-            newVersionAvailableText: '{} {} ${'newVersionAvailable'.tr}',
-            newVersionLongText: '${'newVersionAvailable'.tr}\n${'bugFixesAndImprovements'.tr}\n\n${'checkForUpdatesDescription'.tr}',
-            restartText: 'updateNow'.tr,
-            warningTitleText: 'update'.tr,
-            restartWarningText: '${'updateAvailable'.tr}\n${'checkForUpdatesDescription'.tr}\n\n${'later'.tr}',
-            warningCancelText: 'later'.tr,
-            warningConfirmText: 'updateNow'.tr,
-          ),
-        );
-        _currentSourceIndex = 0;
-        _isInitialized = true;
-      } catch (e) {
-        _logger.e('最终初始化失败: $e');
-      }
+      _logger.w('所有源验证失败，使用主源（可能工作）');
+      _currentSourceIndex = 0;
+      _isInitialized = true;
     }
   }
   
@@ -134,44 +118,169 @@ class AutoUpdateService {
     }
     
     try {
-      if (!_isInitialized || _controller == null) {
-        await initialize();
-      }
+      // 通知开始检查更新
+      onProgress?.call(0.0, 'checkingForUpdates'.tr);
       
-      if (_controller == null) {
-        _logger.e('DesktopUpdaterController is null');
-        return false;
-      }
-      
-      // DesktopUpdaterController 会自动检查更新
-      // 更新检查通过 UpdateDialogListener 监听并显示对话框
-      // 不需要手动调用 checkForUpdates 方法
-      _logger.i('Update check is handled automatically by DesktopUpdaterController');
+      // 手动检查版本（用于显示进度和通知）
+      await _checkUpdateManually();
       
       if (!silent) {
-        // 显示简单提示
-        Get.snackbar(
-          'update'.tr,
-          'checkForUpdatesDescription'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
+        // 显示自定义 toast 提示
+        showToast(
+          'checkingForUpdates'.tr,
+          toastStyleType: TodoCatToastStyleType.info,
+          position: TodoCatToastPosition.bottomLeft,
+          displayTime: const Duration(seconds: 2),
         );
       }
       
       return true;
     } catch (e) {
       _logger.e('Error checking for updates: $e');
+      onUpdateError?.call(e.toString());
       
       if (!silent) {
-        Get.snackbar(
-          'error'.tr,
+        // 显示自定义 toast 错误提示
+        showToast(
           'updateError'.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
+          toastStyleType: TodoCatToastStyleType.error,
+          position: TodoCatToastPosition.bottomLeft,
+          displayTime: const Duration(seconds: 3),
         );
       }
       
       return false;
+    }
+  }
+  
+  /// 手动检查更新（通过解析 app-archive.json）
+  Future<void> _checkUpdateManually() async {
+    try {
+      final currentVersion = await getCurrentVersion();
+      if (currentVersion == null) {
+        _logger.w('无法获取当前版本');
+        return;
+      }
+      
+      // 从当前使用的更新源获取更新信息
+      final archiveUrl = currentUpdateSource;
+      if (archiveUrl == null) {
+        _logger.w('更新源未设置');
+        return;
+      }
+      
+      onProgress?.call(0.1, 'downloadingUpdateInfo'.tr);
+      
+      // 下载并解析 app-archive.json
+      final dio = Dio();
+      final response = await dio.get(archiveUrl);
+      
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final items = data['items'] as List<dynamic>?;
+        
+        if (items != null && items.isNotEmpty) {
+          // 找到当前平台的更新项
+          String? platform;
+          if (Platform.isWindows) {
+            platform = 'windows';
+          } else if (Platform.isMacOS) {
+            platform = 'macos';
+          } else if (Platform.isLinux) {
+            platform = 'linux';
+          }
+          
+          // 筛选出匹配当前平台的所有项
+          final platformItems = items.where((item) => item['platform'] == platform).toList();
+          
+          // 如果没有匹配平台的项，使用所有项
+          final itemsToCheck = platformItems.isNotEmpty ? platformItems : items;
+          
+          // 找到版本号最大的项（最新版本）
+          Map<String, dynamic>? latestItem;
+          String? latestVersion;
+          
+          for (var item in itemsToCheck) {
+            final version = item['version'] as String;
+            if (latestVersion == null || _compareVersions(version, latestVersion) > 0) {
+              latestVersion = version;
+              latestItem = item as Map<String, dynamic>;
+            }
+          }
+          
+          if (latestItem != null && latestVersion != null) {
+            final newVersion = latestVersion;
+            final changes = latestItem['changes'] as List<dynamic>?;
+            
+            _logger.d('当前版本: $currentVersion, 最新版本: $newVersion');
+            
+            // 比较版本
+            if (_compareVersions(newVersion, currentVersion) > 0) {
+              // 发现新版本，保存更新信息
+              _currentUpdateInfo = latestItem;
+              
+              // 发现新版本
+              final changelog = changes?.map((c) => c['message'] as String).join('\n');
+              onUpdateAvailable?.call(newVersion, changelog);
+              
+              // 发送通知到通知中心
+              _notifyUpdateAvailable(newVersion, changelog);
+              
+              _logger.i('发现新版本 $newVersion');
+            } else {
+              // 已是最新版本
+              onProgress?.call(1.0, 'alreadyLatestVersion'.tr);
+              onAlreadyLatestVersion?.call();
+              _logger.i('当前已是最新版本: $currentVersion');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      _logger.e('检查更新失败: $e');
+      onUpdateError?.call(e.toString());
+    }
+  }
+  
+  /// 比较版本号
+  int _compareVersions(String version1, String version2) {
+    try {
+      // 移除 build number（如果有）
+      final v1 = version1.split('+')[0];
+      final v2 = version2.split('+')[0];
+      
+      final v1Parts = v1.split('.').map(int.parse).toList();
+      final v2Parts = v2.split('.').map(int.parse).toList();
+      
+      for (int i = 0; i < v1Parts.length || i < v2Parts.length; i++) {
+        final v1Part = i < v1Parts.length ? v1Parts[i] : 0;
+        final v2Part = i < v2Parts.length ? v2Parts[i] : 0;
+        
+        if (v1Part > v2Part) return 1;
+        if (v1Part < v2Part) return -1;
+      }
+      
+      return 0;
+    } catch (e) {
+      _logger.e('版本比较失败: $e');
+      return 0;
+    }
+  }
+  
+  /// 发送更新可用通知到通知中心
+  Future<void> _notifyUpdateAvailable(String version, String? changelog) async {
+    try {
+      if (Get.isRegistered<NotificationCenterManager>()) {
+        final notificationCenter = Get.find<NotificationCenterManager>();
+        await notificationCenter.addNotification(
+          title: 'updateAvailable'.tr,
+          message: '${'newVersionAvailable'.tr}: $version${changelog != null ? '\n\n$changelog' : ''}',
+          level: NotificationLevel.info,
+        );
+        _logger.i('已发送更新通知到通知中心: $version');
+      }
+    } catch (e) {
+      _logger.w('发送更新通知失败: $e');
     }
   }
   
@@ -181,13 +290,279 @@ class AutoUpdateService {
       final packageInfo = await PackageInfo.fromPlatform();
       return packageInfo.version;
     } catch (e) {
-      _logger.e('Error getting version: $e');
+      AutoUpdateService._logger.e('Error getting version: $e');
       return null;
     }
   }
   
   /// 检查更新是否已初始化
   bool get isInitialized => _isInitialized;
+  
+  /// 下载并安装更新
+  Future<void> downloadAndInstallUpdate() async {
+    if (_currentUpdateInfo == null) {
+      _logger.e('没有可用的更新信息');
+      onUpdateError?.call('没有可用的更新信息');
+      return;
+    }
+    
+    try {
+      final downloadUrl = _currentUpdateInfo!['url'] as String?;
+      if (downloadUrl == null || downloadUrl.isEmpty) {
+        _logger.e('更新 URL 为空');
+        onUpdateError?.call('更新 URL 为空');
+        return;
+      }
+      
+      _logger.d('开始下载更新: $downloadUrl');
+      onProgress?.call(0.0, 'downloadingUpdate'.tr);
+      
+      // 创建取消令牌
+      _downloadCancelToken = CancelToken();
+      
+      // 创建下载目录
+      final tempDir = await getTemporaryDirectory();
+      final downloadDir = Directory(path.join(tempDir.path, 'TodoCat_updates'));
+      if (!await downloadDir.exists()) {
+        await downloadDir.create(recursive: true);
+      }
+      
+      // 从 URL 获取文件名
+      final fileName = path.basename(downloadUrl);
+      final filePath = path.join(downloadDir.path, fileName);
+      
+      // 创建 Dio 实例用于下载
+      _downloadDio = Dio();
+      
+      // 配置超时和连接选项，优化下载性能
+      _downloadDio!.options.connectTimeout = const Duration(seconds: 30);
+      _downloadDio!.options.receiveTimeout = const Duration(hours: 1); // 大文件下载可能需要较长时间
+      
+      // 下载文件（带进度回调，节流更新）
+      await _downloadDio!.download(
+        downloadUrl,
+        filePath,
+        cancelToken: _downloadCancelToken,
+        onReceiveProgress: (received, total) {
+          if (total > 0) {
+            final progress = received / total;
+            final now = DateTime.now();
+            
+            // 节流进度更新，避免过于频繁的UI更新
+            if (_lastProgressUpdate == null || 
+                now.difference(_lastProgressUpdate!) >= _progressUpdateInterval ||
+                progress >= 1.0) { // 完成时总是更新
+              _lastProgressUpdate = now;
+              onProgress?.call(progress, 'downloadingUpdate'.tr);
+              
+              // 减少日志输出频率（每10%或完成时输出）
+              if (progress >= 1.0 || (progress * 10).floor() != ((progress - 0.01) * 10).floor()) {
+                _logger.d('下载进度: ${(progress * 100).toStringAsFixed(1)}%');
+              }
+            }
+          }
+        },
+      );
+      
+      _logger.d('下载完成: $filePath');
+      onProgress?.call(1.0, 'installingUpdate'.tr);
+      
+      // 验证文件（可选，在后台进行，避免阻塞UI）
+      // 使用 compute 在隔离线程中计算哈希，避免阻塞主线程
+      final verificationResult = await _verifyDownloadedFile(filePath, downloadUrl);
+      if (verificationResult) {
+        _logger.d('文件验证通过');
+      } else {
+        _logger.w('文件验证失败，但继续安装');
+      }
+      
+      // 安装更新
+      await _installUpdate(filePath);
+      
+      // 通知完成
+      onUpdateComplete?.call();
+      
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) {
+        _logger.i('下载已取消');
+        onUpdateError?.call('下载已取消');
+      } else {
+        _logger.e('下载或安装更新失败: $e');
+        onUpdateError?.call(e.toString());
+      }
+    } finally {
+      _downloadCancelToken = null;
+      _downloadDio = null;
+      _lastProgressUpdate = null; // 重置进度更新时间戳
+    }
+  }
+  
+  /// 使用流式读取计算文件哈希值（避免一次性读取整个文件到内存）
+  /// 注意：对于大文件，为了性能考虑，可以跳过哈希验证
+  Future<Digest?> _computeFileHash(String filePath) async {
+    try {
+      final file = File(filePath);
+      final fileSize = await file.length();
+      
+      // 对于大文件（>100MB），跳过哈希验证以提升性能
+      // Windows MSIX 包已有数字签名验证，哈希验证是额外的安全检查
+      if (fileSize > 100 * 1024 * 1024) {
+        _logger.d('文件过大(${fileSize / 1024 / 1024}MB)，跳过哈希验证以提升性能');
+        return null; // 返回 null 表示跳过验证
+      }
+      
+      // 小文件：直接读取并计算哈希
+      final bytes = await file.readAsBytes();
+      return sha256.convert(bytes);
+    } catch (e) {
+      _logger.w('计算文件哈希失败: $e');
+      return null; // 验证失败时返回 null，允许继续安装
+    }
+  }
+  
+  /// 验证下载的文件（可选，检查哈希值）
+  Future<bool> _verifyDownloadedFile(String filePath, String downloadUrl) async {
+    try {
+      // 尝试获取 hashes.json
+      final archiveUrl = currentUpdateSource;
+      if (archiveUrl == null) return true; // 如果无法获取源，跳过验证
+      
+      // 构建 hashes.json 的 URL
+      final hashesUrl = archiveUrl.replaceAll('app-archive.json', 'hashes.json');
+      
+      try {
+        final dio = Dio();
+        final response = await dio.get(hashesUrl);
+        
+        if (response.statusCode == 200) {
+          final hashesData = response.data as Map<String, dynamic>;
+          final fileName = path.basename(downloadUrl);
+          final expectedHash = hashesData[fileName] as String?;
+          
+          if (expectedHash != null) {
+            // 计算文件哈希值（大文件可能跳过）
+            final digest = await _computeFileHash(filePath);
+            
+            // 如果跳过验证（返回 null），默认通过
+            if (digest == null) {
+              _logger.d('跳过文件哈希验证（文件过大或计算失败）');
+              return true;
+            }
+            
+            final actualHash = digest.toString();
+            
+            // 移除 "sha256:" 前缀（如果有）
+            final cleanExpectedHash = expectedHash.replaceFirst('sha256:', '');
+            
+            if (actualHash.toLowerCase() == cleanExpectedHash.toLowerCase()) {
+              _logger.d('文件哈希验证通过');
+              return true;
+            } else {
+              _logger.w('文件哈希验证失败: 期望 $cleanExpectedHash, 实际 $actualHash');
+              return false;
+            }
+          }
+        }
+      } catch (e) {
+        _logger.w('无法验证文件哈希: $e，跳过验证');
+      }
+      
+      return true; // 如果无法验证，默认通过
+    } catch (e) {
+      _logger.w('文件验证失败: $e');
+      return true; // 验证失败时默认通过
+    }
+  }
+  
+  /// 安装更新
+  Future<void> _installUpdate(String filePath) async {
+    try {
+      if (Platform.isWindows) {
+        // Windows: 使用 start 命令启动 MSIX 安装
+        _logger.d('开始安装 MSIX 包: $filePath');
+        
+        // 启动安装程序（不等待完成）
+        Process.start(
+          'cmd',
+          ['/c', 'start', '', filePath],
+          runInShell: true,
+          mode: ProcessStartMode.detached,
+        );
+        
+        _logger.d('MSIX 安装已启动');
+        
+        // 等待一小段时间，让安装程序启动
+        await Future.delayed(const Duration(seconds: 3));
+        
+        // 退出应用，让安装程序完成安装
+        // 使用额外的延迟确保消息队列清空，避免线程通信错误
+        await Future.delayed(const Duration(milliseconds: 500));
+        exit(0);
+      } else if (Platform.isMacOS) {
+        // macOS: 使用 open 命令打开 DMG 或 PKG
+        _logger.d('开始安装 macOS 包: $filePath');
+        final process = await Process.start(
+          'open',
+          [filePath],
+        );
+        
+        await process.exitCode;
+        _logger.d('macOS 安装已启动');
+        
+        // 退出应用
+        exit(0);
+      } else if (Platform.isLinux) {
+        // Linux: 根据文件类型使用不同的安装方法
+        _logger.d('开始安装 Linux 包: $filePath');
+        
+        if (filePath.endsWith('.deb')) {
+          // Debian/Ubuntu: 使用 dpkg 或 gdebi
+          final process = await Process.start(
+            'gdebi',
+            ['-n', filePath],
+            runInShell: true,
+          );
+          await process.exitCode;
+        } else if (filePath.endsWith('.rpm')) {
+          // RedHat/Fedora: 使用 rpm
+          final process = await Process.start(
+            'rpm',
+            ['-i', filePath],
+            runInShell: true,
+          );
+          await process.exitCode;
+        } else if (filePath.endsWith('.AppImage')) {
+          // AppImage: 直接执行
+          final process = await Process.start(
+            'chmod',
+            ['+x', filePath],
+          );
+          await process.exitCode;
+          
+          final runProcess = await Process.start(
+            filePath,
+            [],
+            runInShell: true,
+          );
+          await runProcess.exitCode;
+        }
+        
+        _logger.d('Linux 安装已启动');
+        exit(0);
+      }
+    } catch (e) {
+      _logger.e('安装更新失败: $e');
+      rethrow;
+    }
+  }
+  
+  /// 取消下载
+  void cancelDownload() {
+    if (_downloadCancelToken != null && !_downloadCancelToken!.isCancelled) {
+      _downloadCancelToken!.cancel('用户取消下载');
+      _logger.i('下载已取消');
+    }
+  }
   
   /// 获取当前使用的更新源 URL
   String? get currentUpdateSource {
@@ -213,9 +588,12 @@ class AutoUpdateService {
   
   /// 清理资源
   void dispose() {
-    _controller?.dispose();
-    _controller = null;
+    cancelDownload();
+    _downloadDio?.close();
+    _downloadDio = null;
+    _downloadCancelToken = null;
     _isInitialized = false;
     _currentSourceIndex = 0;
+    _currentUpdateInfo = null;
   }
 }

@@ -37,11 +37,23 @@ class SettingsContent extends GetView<SettingsController> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'settings'.tr,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontFamily: 'SourceHanSans',
-                ),
+              Row(
+                children: [
+                  Text(
+                    'settings'.tr,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontFamily: 'SourceHanSans',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Obx(() => Text(
+                    'v${controller.appVersion.value}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 12,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: .6),
+                    ),
+                  )),
+                ],
               ),
               IconButton(
                 icon: Obx(() {
@@ -113,10 +125,84 @@ class SettingsContent extends GetView<SettingsController> {
       // 检查更新（仅桌面端显示）
       if (GetPlatform.isDesktop)
         SettingsTile(
-          onPressed: (_) => controller.checkForUpdates(),
-          leading: const Icon(Icons.system_update),
-          title: Text('checkForUpdates'.tr),
-          description: Text('checkForUpdatesDescription'.tr),
+          onPressed: (_) {
+            // 根据下载状态决定行为
+            if (controller.isDownloading.value) {
+              controller.cancelUpdate(); // 正在下载时，点击为取消
+            } else {
+              controller.checkForUpdates(); // 未下载时，点击为检查更新
+            }
+          },
+          leading: Obx(() => Icon(
+            controller.isDownloading.value ? Icons.cancel : Icons.system_update,
+          )),
+          title: Obx(() => Text(
+            controller.isDownloading.value ? 'downloadingUpdate'.tr : 'checkForUpdates'.tr,
+          )),
+          description: Obx(() {
+            final status = controller.updateStatus.value;
+            if (status.isNotEmpty) {
+              return Text(status);
+            }
+            if (controller.isDownloading.value) {
+              return Text('clickToCancelUpdate'.tr);
+            }
+            return Text('checkForUpdatesDescription'.tr);
+          }),
+          trailing: Obx(() {
+            final progress = controller.updateProgress.value;
+            final isDownloading = controller.isDownloading.value;
+            
+            // 正在下载时，显示取消按钮或进度
+            if (isDownloading && progress > 0.0 && progress < 1.0) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () => controller.cancelUpdate(),
+                    tooltip: 'cancelUpdate'.tr,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              );
+            }
+            
+            // 未开始或已完成/错误（已重置）
+            if (progress == 0.0) {
+              return const Icon(Icons.chevron_right);
+            }
+            
+            // 完成（progress == 1.0）
+            if (progress == 1.0) {
+              return const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 20,
+              );
+            }
+            
+            // 错误（progress == -1.0）
+            if (progress == -1.0) {
+              return const Icon(
+                Icons.error,
+                color: Colors.red,
+                size: 20,
+              );
+            }
+            
+            return const Icon(Icons.chevron_right);
+          }),
         ),
       SettingsTile(
         onPressed: (_) => _showResetSettingsToast(),
@@ -184,14 +270,15 @@ class SettingsContent extends GetView<SettingsController> {
         ),
       ),
       // 开机自启动开关（仅桌面端）
-      SettingsTile.switchTile(
-        onToggle: (_) => controller.toggleLaunchAtStartup(),
-        onPressed: (_) => controller.toggleLaunchAtStartup(),
-        initialValue: controller.launchAtStartupEnabled.value,
-        leading: const Icon(Icons.power_settings_new),
-        title: Text('launchAtStartup'.tr),
-        description: Text('launchAtStartupDescription'.tr),
-      ),
+      if (GetPlatform.isDesktop)
+        SettingsTile.switchTile(
+          onToggle: (_) => controller.toggleLaunchAtStartup(),
+          onPressed: (_) => controller.toggleLaunchAtStartup(),
+          initialValue: controller.launchAtStartupEnabled.value,
+          leading: const Icon(Icons.power_settings_new),
+          title: Text('launchAtStartup'.tr),
+          description: Text('launchAtStartupDescription'.tr),
+        ),
     ];
   }
 

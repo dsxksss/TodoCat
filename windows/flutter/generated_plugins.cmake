@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  desktop_updater
   local_notifier
   screen_retriever
   sqlite3_flutter_libs

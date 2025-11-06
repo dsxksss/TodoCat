@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:desktop_updater/updater_controller.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:get/get.dart';
@@ -13,17 +12,18 @@ import 'package:TodoCat/themes/theme_mode.dart';
 import 'package:TodoCat/services/auto_update_service.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:logger/logger.dart';
-import 'package:desktop_updater/updater_controller.dart' show DesktopUpdaterController;
 
 class AppController extends GetxController {
   static final _logger = Logger();
   late final LocalNotificationManager localNotificationManager;
   late final AppConfigRepository appConfigRepository;
   final _autoUpdateService = AutoUpdateService();
+  
+  /// 获取自动更新服务（供外部访问）
+  AutoUpdateService get autoUpdateService => _autoUpdateService;
   final appConfig = Rx<AppConfig>(defaultAppConfig);
   final isMaximize = false.obs;
   final isFullScreen = false.obs;
-  final updateControllerReady = false.obs;
 
   bool get _isMobilePlatform => Platform.isAndroid || Platform.isIOS;
 
@@ -52,11 +52,9 @@ class AppController extends GetxController {
     try {
       _logger.d('Initializing auto update service');
       await _autoUpdateService.initialize();
-      updateControllerReady.value = _autoUpdateService.controller != null;
       _logger.d('Auto update service initialized');
     } catch (e) {
       _logger.e('Failed to initialize auto update: $e');
-      updateControllerReady.value = false;
     }
   }
 
@@ -64,9 +62,6 @@ class AppController extends GetxController {
   Future<void> checkForUpdates({bool silent = false}) async {
     await _autoUpdateService.checkForUpdates(silent: silent);
   }
-  
-  /// 获取更新控制器（用于 UI 组件）
-  DesktopUpdaterController? get updateController => _autoUpdateService.controller;
 
   Future<void> initConfig() async {
     _logger.d('Initializing app configuration');
@@ -98,7 +93,30 @@ class AppController extends GetxController {
     changeSystemOverlayUI();
     initSmartDialogConfiguration();
     WidgetsBinding.instance.addObserver(AppLifecycleObserver());
+    
+    // 应用就绪后，延迟检查更新（静默模式，仅桌面端）
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      // 延迟3秒后静默检查更新，避免影响应用启动速度
+      Future.delayed(const Duration(seconds: 3), () {
+        _checkUpdatesOnStartup();
+      });
+    }
+    
     super.onReady();
+  }
+  
+  /// 应用启动时静默检查更新
+  Future<void> _checkUpdatesOnStartup() async {
+    try {
+      // 仅在更新服务已初始化时检查
+      if (_autoUpdateService.isInitialized) {
+        _logger.d('应用启动后静默检查更新');
+        await checkForUpdates(silent: true);
+      }
+    } catch (e) {
+      _logger.w('启动时检查更新失败: $e');
+      // 静默失败，不影响应用使用
+    }
   }
 
   void changeThemeMode(TodoCatThemeMode mode) {

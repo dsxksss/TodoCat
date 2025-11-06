@@ -14,7 +14,6 @@ import 'package:TodoCat/pages/unknown_page.dart';
 import 'package:TodoCat/routers/router_map.dart';
 import 'package:TodoCat/themes/dark_theme.dart';
 import 'package:TodoCat/themes/light_theme.dart';
-import 'package:desktop_updater/desktop_updater.dart';
 
 /// 键盘事件过滤器，用于防止重复的键盘事件
 class KeyboardEventFilter {
@@ -139,18 +138,6 @@ class _AppState extends State<App> {
                   initialBinding: AppBinding(),
                 ),
               ),
-              // 在桌面平台添加更新对话框监听器
-              Obx(() {
-                if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-                  if (_appController.updateControllerReady.value) {
-                  final updateController = _appController.updateController;
-                  if (updateController != null) {
-                    return UpdateDialogListener(controller: updateController);
-                    }
-                  }
-                }
-                return const SizedBox.shrink();
-              }),
               ],
             ),
           ),
