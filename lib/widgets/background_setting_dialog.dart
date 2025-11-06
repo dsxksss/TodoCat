@@ -99,43 +99,80 @@ class BackgroundSettingDialog extends StatelessWidget {
                         File(config.backgroundImagePath!).existsSync();
                     final hasBackground = isDefaultTemplate || isCustomImage;
 
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: context.theme.cardColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.theme.dividerColor,
-                          width: 0.5,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            hasBackground
-                                ? Icons.check_circle
-                                : Icons.info_outline,
-                            size: 18,
-                            color: hasBackground
-                                ? Colors.green
-                                : context.theme.textTheme.bodySmall?.color,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              hasBackground
-                                  ? (isDefaultTemplate
-                                      ? 'defaultTemplateApplied'.tr
-                                      : 'backgroundImageSet'.tr)
-                                  : 'backgroundImageNotSet'.tr,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: context.theme.textTheme.bodySmall?.color,
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 显示自定义图片缩略图（如果有）
+                        if (isCustomImage) ...[
+                          Container(
+                            height: 120,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: context.theme.dividerColor,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(7.5),
+                              child: Image.file(
+                                File(config.backgroundImagePath!),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey.shade200,
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      size: 40,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ),
+                          const SizedBox(height: 12),
                         ],
-                      ),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: context.theme.cardColor,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: context.theme.dividerColor,
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                hasBackground
+                                    ? Icons.check_circle
+                                    : Icons.info_outline,
+                                size: 18,
+                                color: hasBackground
+                                    ? Colors.green
+                                    : context.theme.textTheme.bodySmall?.color,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  hasBackground
+                                      ? (isDefaultTemplate
+                                          ? 'defaultTemplateApplied'.tr
+                                          : 'backgroundImageSet'.tr)
+                                      : 'backgroundImageNotSet'.tr,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: context.theme.textTheme.bodySmall?.color,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     );
                   }),
 

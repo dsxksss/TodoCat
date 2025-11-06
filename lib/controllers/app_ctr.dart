@@ -34,14 +34,14 @@ class AppController extends GetxController {
   void onInit() async {
     _logger.i('Initializing AppController');
     try {
-      await initConfig();
+    await initConfig();
     } catch (e, stack) {
       _logger.e('Failed to initialize config: $e', error: e, stackTrace: stack);
       // 配置初始化失败不应该阻止应用启动，使用默认配置
     }
     
     try {
-      await initLocalNotification();
+    await initLocalNotification();
     } catch (e, stack) {
       _logger.e('Failed to initialize local notification: $e', error: e, stackTrace: stack);
       // 通知服务初始化失败不应该阻止应用启动
@@ -49,7 +49,7 @@ class AppController extends GetxController {
     }
     
     try {
-      await initAutoUpdate();
+    await initAutoUpdate();
     } catch (e, stack) {
       _logger.e('Failed to initialize auto update: $e', error: e, stackTrace: stack);
       // 更新服务初始化失败不应该阻止应用启动
@@ -104,8 +104,8 @@ class AppController extends GetxController {
       appConfig,
       (value) async {
         try {
-          _logger.d('AppConfig changed, updating local storage');
-          await appConfigRepository.update(value.configName, value);
+        _logger.d('AppConfig changed, updating local storage');
+        await appConfigRepository.update(value.configName, value);
         } catch (e) {
           _logger.e('Error updating app config: $e');
           // 配置更新失败不应该导致应用崩溃

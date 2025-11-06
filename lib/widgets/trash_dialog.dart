@@ -10,6 +10,7 @@ import 'package:TodoCat/widgets/label_btn.dart';
 import 'package:TodoCat/widgets/dpd_menu_btn.dart';
 import 'package:TodoCat/controllers/home_ctr.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:TodoCat/core/utils/date_time.dart';
 
 /// 回收站对话框
 class TrashDialog extends StatefulWidget {
@@ -378,8 +379,19 @@ class _TrashDialogState extends State<TrashDialog> {
     );
   }
 
+  /// 获取显示标题（直接返回todo标题，因为已经有时间显示来区分了）
+  String _getDisplayTitle(Todo todo, List<Task> allTasks) {
+    return todo.title;
+  }
+
   Widget _buildDeletedTodoItem(BuildContext context, TrashController controller, Task task, Todo todo) {
-    final deletedTime = controller.formatDeletedAt(todo.deletedAt);
+    // 使用精确的删除时间（包含时分秒）
+    final deletedTime = todo.deletedAt > 0 
+        ? timestampToDateTime(todo.deletedAt)
+        : '';
+    
+    // 获取显示标题（如果有同名todo，加上创建时间）
+    final displayTitle = _getDisplayTitle(todo, controller.deletedTasks);
     
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -399,7 +411,7 @@ class _TrashDialogState extends State<TrashDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  todo.title,
+                  displayTitle,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -417,14 +429,26 @@ class _TrashDialogState extends State<TrashDialog> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 4),
-                Text(
-                  deletedTime,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.5),
+                if (deletedTime.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        FontAwesomeIcons.clock,
+                        size: 11,
+                        color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.5),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${'deletedAt'.tr}: $deletedTime',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.5),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                ],
               ],
             ),
           ),

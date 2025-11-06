@@ -454,24 +454,24 @@ void showNotification(
   // 只有需要保存到通知中心的通知才添加到通知中心
   // 成功类型的通知（如编辑成功）通常不需要保存到通知中心，只显示临时通知
   if (saveToNotificationCenter) {
-    try {
-      // 尝试获取通知中心管理器
-      final notificationCenter = Get.find<NotificationCenterManager>();
-      
+  try {
+    // 尝试获取通知中心管理器
+    final notificationCenter = Get.find<NotificationCenterManager>();
+    
       // 添加到通知中心（会自动去重）
-      notificationCenter.addNotification(
-        title: title ?? _getNotificationTitle(type),
-        message: message,
-        level: _mapToNotificationLevel(type),
-      ).then((_) {}).catchError((e) {
-        if (kDebugMode) {
-          print('Failed to save notification: $e');
-        }
-      });
-    } catch (e) {
-      // 如果通知中心未初始化，忽略错误
+    notificationCenter.addNotification(
+      title: title ?? _getNotificationTitle(type),
+      message: message,
+      level: _mapToNotificationLevel(type),
+    ).then((_) {}).catchError((e) {
       if (kDebugMode) {
-        print('NotificationCenterManager not initialized: $e');
+        print('Failed to save notification: $e');
+      }
+    });
+  } catch (e) {
+    // 如果通知中心未初始化，忽略错误
+    if (kDebugMode) {
+      print('NotificationCenterManager not initialized: $e');
       }
     }
   }

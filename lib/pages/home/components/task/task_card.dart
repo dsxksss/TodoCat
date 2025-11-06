@@ -390,7 +390,6 @@ class _TaskCardState extends State<TaskCard> {
         decoration: BoxDecoration(
           color: context.theme.cardColor,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(width: 0.4, color: context.theme.dividerColor),
           boxShadow: context.isDarkMode
               ? <BoxShadow>[
                   BoxShadow(

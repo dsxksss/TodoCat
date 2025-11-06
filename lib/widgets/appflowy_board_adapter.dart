@@ -279,7 +279,7 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
     
     const boardConfig = AppFlowyBoardConfig(
       groupCornerRadius: 10,
-      groupMargin: EdgeInsets.only(right: 16),
+      groupMargin: EdgeInsets.symmetric(horizontal: 8),
       groupBodyPadding: EdgeInsets.all(0),
       groupFooterPadding: EdgeInsets.all(0),
       groupHeaderPadding: EdgeInsets.all(0),

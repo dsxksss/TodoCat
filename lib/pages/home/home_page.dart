@@ -146,7 +146,11 @@ class HomePage extends GetView<HomeController> {
                 ],
               )
             : Obx(
-                () => _TaskHorizontalList(tasks: controller.reactiveTasks),
+                () {
+                  // 强制建立对 RxList 的依赖，避免 GetX 提示未使用可观察对象
+                  final _ = controller.reactiveTasks.length;
+                  return _TaskHorizontalList(tasks: controller.reactiveTasks);
+                },
               ),
       ),
     );
@@ -155,8 +159,13 @@ class HomePage extends GetView<HomeController> {
 
   /// 获取背景装饰
   Widget _getBackgroundWidget(String? backgroundPath) {
+    // 如果没有背景路径，返回空容器
+    if (backgroundPath == null || backgroundPath.isEmpty) {
+      return Container();
+    }
+    
     // 检查是否是默认模板
-    if (backgroundPath != null && backgroundPath.startsWith('default_template:')) {
+    if (backgroundPath.startsWith('default_template:')) {
       final templateId = backgroundPath.split(':').last;
       final imageUrl = _getTemplateImageUrl(templateId);
       
@@ -194,14 +203,20 @@ class HomePage extends GetView<HomeController> {
       }
     } else {
       // 自定义图片
-      return Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: FileImage(File(backgroundPath!)),
-            fit: BoxFit.cover,
+      // 检查文件是否存在
+      if (GetPlatform.isDesktop && File(backgroundPath).existsSync()) {
+        return Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: FileImage(File(backgroundPath)),
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        // 文件不存在，返回空容器
+        return Container();
+      }
     }
   }
 
@@ -254,7 +269,7 @@ class HomePage extends GetView<HomeController> {
   }
 
   /// 构建带背景的页面（仅内容区域，不影响导航栏）
-  Widget _buildWithBackgroundNavOnly(String imagePath, double opacity, double blur) {
+  Widget _buildWithBackgroundNavOnly(String? imagePath, double opacity, double blur) {
     // 直接构建，不包裹在TodoCatScaffold中，手动处理导航栏和内容区域
     return Scaffold(
       backgroundColor: Colors.transparent,

@@ -30,6 +30,11 @@ class TodoCard extends StatelessWidget {
   final EdgeInsets? outerMargin;
   final bool compact;
 
+  /// 获取显示标题（直接返回todo标题，因为左下角已经显示创建时间了）
+  String _getDisplayTitle() {
+    return todo.title;
+  }
+
   Color _getPriorityColor() {
     switch (todo.priority) {
       case TodoPriority.lowLevel:
@@ -163,7 +168,7 @@ class TodoCard extends StatelessWidget {
                               message: todo.title,
                               preferBelow: false,
                             child: Text(
-                              todo.title,
+                              _getDisplayTitle(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               ),
@@ -171,6 +176,42 @@ class TodoCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 过期标识（在更多按钮前面）
+                        if (_isOverdue())
+                          Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: Colors.red,
+                                width: 1,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  FontAwesomeIcons.clock,
+                                  size: 10,
+                                  color: Colors.red,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  '已过期',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                     ),
                     DPDMenuBtn(
                       tag: dropDownMenuBtnTag,
@@ -215,6 +256,8 @@ class TodoCard extends StatelessWidget {
                               },
                             )
                           },
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -283,32 +326,20 @@ class TodoCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           size: 15,
-                          todo.dueDate > 0
-                              ? (_isOverdue()
-                                  ? FontAwesomeIcons.triangleExclamation
-                                  : FontAwesomeIcons.calendarCheck)
-                              : FontAwesomeIcons.calendar,
-                          color: todo.dueDate > 0
-                              ? (_isOverdue() ? Colors.red : Colors.grey)
-                              : Colors.grey,
+                          FontAwesomeIcons.clock,
+                          color: Colors.grey,
                         ),
                         const SizedBox(
                           width: 3,
                         ),
                         Text(
-                          todo.dueDate > 0
-                              ? timestampToDate(todo.dueDate)
-                              : "未设置",
+                          timestampToDateTime(todo.createdAt),
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11.5,
-                            color: todo.dueDate > 0
-                                ? (_isOverdue()
-                                    ? Colors.red
-                                    : Colors.grey.shade600)
-                                : Colors.grey.shade600,
+                            color: Colors.grey.shade600,
                             fontWeight: FontWeight.bold,
                           ),
                         )

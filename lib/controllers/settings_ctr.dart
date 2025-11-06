@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:TodoCat/config/default_data.dart';
 import 'package:TodoCat/controllers/app_ctr.dart';
 import 'package:TodoCat/controllers/home_ctr.dart';
-import 'package:TodoCat/data/schemas/app_config.dart';
 import 'package:TodoCat/data/services/database.dart';
 import 'package:TodoCat/keys/dialog_keys.dart';
 import 'package:TodoCat/pages/settings/settings_page.dart';
@@ -464,21 +463,11 @@ class SettingsController extends GetxController {
   /// 清除背景图片
   Future<void> clearBackgroundImage() async {
     try {
-      // 清除配置，设置为空字符串以覆盖之前的值
+      // 直接设置backgroundImagePath为null，因为copyWith方法无法正确处理null值
       final currentConfig = appCtrl.appConfig.value;
-      appCtrl.appConfig.value = AppConfig()
-        ..configName = currentConfig.configName
-        ..isDarkMode = currentConfig.isDarkMode
-        ..languageCode = currentConfig.languageCode
-        ..countryCode = currentConfig.countryCode
-        ..emailReminderEnabled = currentConfig.emailReminderEnabled
-        ..isDebugMode = currentConfig.isDebugMode
-        ..backgroundImagePath = null  // 清除背景图片路径
-        ..primaryColorValue = currentConfig.primaryColorValue
-        ..backgroundImageOpacity = currentConfig.backgroundImageOpacity
-        ..backgroundImageBlur = currentConfig.backgroundImageBlur
-        ..backgroundAffectsNavBar = currentConfig.backgroundAffectsNavBar;
+      currentConfig.backgroundImagePath = null;  // 清除背景图片路径
       
+      // 触发更新，这会自动保存到数据库
       appCtrl.appConfig.refresh();
       
       showToast('backgroundImageCleared'.tr);

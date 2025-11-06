@@ -40,27 +40,27 @@ void main() async {
       };
 
       // 初始化 Isar 数据库
-      await Database.getInstance();
+        await Database.getInstance();
 
       if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        initWindow();
+          initWindow();
 
-        // 初始化桌面端开机自启动插件（Windows/Linux/macOS）
-        launchAtStartup.setup(
-          appName: 'TodoCat',
-          appPath: Platform.resolvedExecutable,
-        );
+          // 初始化桌面端开机自启动插件（Windows/Linux/macOS）
+          launchAtStartup.setup(
+            appName: 'TodoCat',
+            appPath: Platform.resolvedExecutable,
+          );
       }
 
       if (Platform.isAndroid || Platform.isIOS) {
-        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-        SystemChrome.setSystemUIOverlayStyle(
-          const SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            systemNavigationBarColor: Colors.transparent,
-          ),
-        );
-        FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+          await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          SystemChrome.setSystemUIOverlayStyle(
+            const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              systemNavigationBarColor: Colors.transparent,
+            ),
+          );
+          FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
       }
 
       runApp(

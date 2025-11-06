@@ -77,3 +77,20 @@ String getWeekName(DateTime date) {
 
 String getTimeString(DateTime date) =>
     "${date.hour}${"hour".tr} ${date.minute}${"minute".tr}";
+
+/// 将时间戳转换为完整的日期时间字符串（包含时分秒）
+String timestampToDateTime(int timestamp) {
+  if (timestamp.isLowerThan(_minTimestampLength)) {
+    return "unknownDate".tr;
+  }
+
+  // 将时间戳转换为 DateTime 对象
+  DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+
+  // 将 DateTime 对象格式化为完整的日期时间格式：年.月.日 时:分:秒
+  String formattedDateTime =
+      "${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')} "
+      "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}";
+
+  return formattedDateTime;
+}
