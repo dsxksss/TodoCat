@@ -32,9 +32,16 @@ class TodoDetailController extends BaseFormController {
 
   void _loadTodoDetail() {
     try {
-      final task = _homeController.tasks.firstWhere(
+      // 使用 firstWhereOrNull 避免找不到元素时抛出异常
+      final task = _homeController.tasks.firstWhereOrNull(
         (task) => task.uuid == taskId,
       );
+
+      if (task == null) {
+        BaseFormController.logger.w('Task not found: $taskId');
+        Get.back();
+        return;
+      }
 
       if (task.todos != null) {
         final foundTodo = task.todos!.firstWhereOrNull(
@@ -44,7 +51,7 @@ class TodoDetailController extends BaseFormController {
         if (foundTodo != null) {
           todo.value = foundTodo;
         } else {
-          BaseFormController.logger.w('Todo not found: $todoId');
+          BaseFormController.logger.w('Todo not found: $todoId in task $taskId');
           Get.back();
         }
       } else {
