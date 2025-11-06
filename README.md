@@ -39,7 +39,8 @@ flutter run -d linux
 
 ```bash
 # Windows desktop:
-fastforge package --platform windows --targets exe
+fastforge package --platform windows --targets msix
+# fastforge package --platform windows --targets exe
 
 ...more platforms will be supported later...
 ```
