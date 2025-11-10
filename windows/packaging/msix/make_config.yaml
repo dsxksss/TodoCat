@@ -4,3 +4,6 @@ identity_name: SayMiao.TodoCat
 msix_version: 1.0.9.0
 logo_path: windows\runner\resources\app_icon.ico
 capabilities: internetClient, location, microphone, webcam
+# 证书配置（用于签名 MSIX 包）
+certificate_path: windows\packaging\msix\TodoCat.pfx  # 证书文件路径（.pfx 格式）
+certificate_password: dsxk2546650292  # 证书密码（如果有）

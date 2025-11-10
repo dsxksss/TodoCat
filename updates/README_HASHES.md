@@ -36,3 +36,4 @@ sha256sum TodoCat-1.0.8-windows.msix
 - `desktop_updater` 会在 `app-archive.json` 的 URL 所在目录查找 `hashes.json`
 - 如果使用单个文件链接，`hashes.json` 应该放在与 `app-archive.json` 相同的目录
 
+

@@ -152,68 +152,36 @@ class TodoCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          FontAwesomeIcons.solidCircle,
-                          size: 11,
-                          color: _getPriorityColor(),
-                        ),
-                        const SizedBox(width: 5),
-                        SizedBox(
-                          width: 120, // 文字宽度限制
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 1.0),
-                            child: Tooltip(
-                              message: todo.title,
-                              preferBelow: false,
-                            child: Text(
-                              _getDisplayTitle(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                    Flexible(
+                      child: Row(
+                        children: [
+                          Icon(
+                            FontAwesomeIcons.solidCircle,
+                            size: 11,
+                            color: _getPriorityColor(),
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 1.0),
+                              child: Tooltip(
+                                message: todo.title,
+                                preferBelow: false,
+                                child: Text(
+                                  _getDisplayTitle(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // 过期标识（在更多按钮前面）
-                        if (_isOverdue())
-                          Container(
-                            margin: const EdgeInsets.only(right: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: Colors.red,
-                                width: 1,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  FontAwesomeIcons.clock,
-                                  size: 10,
-                                  color: Colors.red,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  '已过期',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                    DPDMenuBtn(
+                        DPDMenuBtn(
                       tag: dropDownMenuBtnTag,
                       menuItems: [
                         MenuItem(
@@ -324,26 +292,31 @@ class TodoCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          size: 15,
-                          FontAwesomeIcons.clock,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(
-                          width: 3,
-                        ),
-                        Text(
-                          timestampToDateTime(todo.createdAt),
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Row(
+                        children: [
+                          const Icon(
+                            size: 15,
+                            FontAwesomeIcons.clock,
+                            color: Colors.grey,
                           ),
-                        )
-                      ],
+                          const SizedBox(
+                            width: 3,
+                          ),
+                          Flexible(
+                            child: Text(
+                              timestampToDateTime(todo.createdAt),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
