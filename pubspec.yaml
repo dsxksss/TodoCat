@@ -79,6 +79,7 @@ dev_dependencies:
   flutter_launcher_icons: "^0.13.1"
   drift_dev: ^2.14.0
   analyzer: ^5.13.0
+  msix: ^3.16.12
 
 flutter:
   uses-material-design: true
@@ -135,3 +136,11 @@ flutter_native_splash:
   color: "#ffffff"
   image: "assets/imgs/logo-light-rounded.png"
   web: false
+
+msix_config:
+  display_name: TodoCat
+  publisher_display_name: SayMiao
+  identity_name: SayMiao.TodoCat
+  msix_version: 1.0.9.0
+  logo_path: windows\runner\resources\app_icon.ico
+  capabilities: internetClient, location, microphone, webcam

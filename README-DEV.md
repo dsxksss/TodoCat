@@ -20,10 +20,18 @@ Export-PfxCertificate -Cert $cert -FilePath ".\TodoCat.pfx" -Password $password
 ```
 
 2. **配置证书路径**：
-   编辑 `windows/packaging/msix/make_config.yaml`，取消注释并填写证书路径：
+   在 `pubspec.yaml` 文件的 `msix_config` 段中配置证书路径：
 ```yaml
-certificate_path: "D:\TodoCat\TodoCat.pfx"
-certificate_password: "你的证书密码"
+msix_config:
+  display_name: TodoCat
+  publisher_display_name: SayMiao
+  identity_name: SayMiao.TodoCat
+  msix_version: 1.0.9.0
+  logo_path: windows/runner/resources/app_icon.ico
+  capabilities: internetClient, location, microphone, webcam
+#   certificate_path: "path/to/TodoCat.pfx"  # 证书文件路径
+#   certificate_password: "你的证书密码"  # 证书密码
+  这里使用打包的自签名证书
 ```
 
 3. **安装证书到受信任的根证书颁发机构**（仅自签名证书需要）：
@@ -37,7 +45,7 @@ Import-PfxCertificate -FilePath ".\TodoCat.pfx" -CertStoreLocation "Cert:\LocalM
 
 1. 从受信任的证书颁发机构（如 DigiCert、Sectigo 等）购买代码签名证书
 2. 将证书导出为 `.pfx` 格式
-3. 在 `make_config.yaml` 中配置证书路径和密码
+3. 在 `pubspec.yaml` 的 `msix_config` 段中配置证书路径和密码
 
 **注意：**
 - 自签名证书仅适用于测试和开发环境

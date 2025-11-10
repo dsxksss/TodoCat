@@ -1,8 +1,0 @@
-app_id: 5B599538-42B1-4826-A479-AF079F21A65D
-publisher: SayMiao
-publisher_url: https://gitee.com/dsxksss/TodoCat
-display_name: TodoCat
-create_desktop_icon: true
-setup_icon_file: windows\runner\resources\app_icon.ico
-locales:
-  - en
