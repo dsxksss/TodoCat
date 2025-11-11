@@ -126,16 +126,13 @@ class SettingsContent extends GetView<SettingsController> {
       if (GetPlatform.isDesktop)
         SettingsTile(
           onPressed: (_) {
-            // 根据下载状态决定行为
+            // 下载中时禁用点击，只能通过关闭按钮取消
             if (controller.isDownloading.value) {
-              controller.cancelUpdate(); // 正在下载时，点击为取消
-            } else {
-              controller.checkForUpdates(); // 未下载时，点击为检查更新
+              return; // 下载中时，点击无效
             }
+            controller.checkForUpdates(); // 未下载时，点击为检查更新
           },
-          leading: Obx(() => Icon(
-            controller.isDownloading.value ? Icons.cancel : Icons.system_update,
-          )),
+          leading: const Icon(Icons.system_update), // 下载中时图标保持不变
           title: Obx(() => Text(
             controller.isDownloading.value ? 'downloadingUpdate'.tr : 'checkForUpdates'.tr,
           )),
@@ -145,7 +142,7 @@ class SettingsContent extends GetView<SettingsController> {
               return Text(status);
             }
             if (controller.isDownloading.value) {
-              return Text('clickToCancelUpdate'.tr);
+              return Text('downloadingUpdate'.tr);
             }
             return Text('checkForUpdatesDescription'.tr);
           }),
@@ -158,12 +155,23 @@ class SettingsContent extends GetView<SettingsController> {
               return Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(
+                  Container(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 2,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey.shade200,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 2,
+                        backgroundColor: Colors.grey.shade300,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Get.theme.primaryColor,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
