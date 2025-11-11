@@ -15,8 +15,12 @@ import 'package:TodoCat/widgets/reminder_picker_panel.dart';
 import 'package:TodoCat/widgets/status_picker_panel.dart';
 import 'package:intl/intl.dart';
 import 'package:TodoCat/data/schemas/todo.dart';
+import 'package:TodoCat/widgets/markdown_toolbar.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 
-class TodoDialog extends GetView<AddTodoDialogController> {
+class TodoDialog extends StatefulWidget {
   const TodoDialog({
     super.key,
     required this.dialogTag,
@@ -25,11 +29,62 @@ class TodoDialog extends GetView<AddTodoDialogController> {
   final String dialogTag;
 
   @override
-  String? get tag => dialogTag;
+  State<TodoDialog> createState() => _TodoDialogState();
+}
+
+class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late FocusNode _descriptionFocusNode;
+  bool _isPreviewVisible = false;
+  bool _shouldOffset = false; // 控制 dialog 是否应该偏移
 
   @override
+  void initState() {
+    super.initState();
+    _descriptionFocusNode = FocusNode();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    
+    _descriptionFocusNode.addListener(() {
+      if (_descriptionFocusNode.hasFocus) {
+        if (!_isPreviewVisible) {
+          setState(() {
+            _isPreviewVisible = true;
+            _shouldOffset = true; // 触发位置偏移
+          });
+          _animationController.forward();
+        }
+      }
+      // 移除失焦自动关闭的逻辑，改为通过关闭按钮控制
+    });
+  }
+
+  @override
+  void dispose() {
+    _descriptionFocusNode.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
   AddTodoDialogController get controller =>
-      Get.find<AddTodoDialogController>(tag: dialogTag);
+      Get.find<AddTodoDialogController>(tag: widget.dialogTag);
+
+  void _closePreview() {
+    if (_isPreviewVisible) {
+      setState(() {
+        _isPreviewVisible = false;
+        _shouldOffset = false; // 触发位置恢复
+      });
+      _animationController.reverse();
+    }
+  }
 
   void _handleSubmit() async {
     // 先获取编辑状态和标题，再提交表单
@@ -163,9 +218,68 @@ class TodoDialog extends GetView<AddTodoDialogController> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: context.isPhone ? 1.sw : 430,
-      height: context.isPhone ? 0.6.sh : 500,
+    return GetBuilder<AddTodoDialogController>(
+      tag: widget.dialogTag,
+      builder: (_) => AnimatedBuilder(
+        animation: _fadeAnimation,
+        builder: (context, child) {
+          // 确保 _shouldOffset 变化时也能触发重建
+          return _buildDialog(context);
+        },
+      ),
+    );
+  }
+
+  Widget _buildDialog(BuildContext context) {
+    final dialogWidth = context.isPhone ? 1.sw : 430.0;
+    final dialogHeight = context.isPhone ? 0.6.sh : 500.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // dialog 和预览窗口之间的间距
+    const spacing = 10.0;
+    
+    // 计算预览区域宽度：比 dialog 宽一点，但不超过屏幕宽度
+    // 确保预览窗口 + dialog + 间距不超过屏幕宽度
+    final previewWidth = (dialogWidth + 100).clamp(0.0, screenWidth - dialogWidth - spacing - 20);
+    
+    // 计算当预览窗口显示时的总宽度
+    final totalWidth = dialogWidth + spacing + previewWidth;
+    
+    // 计算 dialog 需要向左移动的距离（当预览窗口显示时）
+    // 如果总宽度超过屏幕宽度，需要向左移动以确保预览窗口完全可见
+    // 如果总宽度不超过屏幕，也需要移动一些，让预览窗口在 dialog 右侧显示
+    final maxDialogOffsetX = totalWidth > screenWidth
+        ? ((totalWidth - screenWidth) / 2 + 20).clamp(0.0, screenWidth / 2)
+        : (previewWidth + spacing) / 2; // 即使不超过屏幕，也移动一半预览窗口宽度，为预览窗口让出空间
+    
+    // dialog 的偏移量：根据 _shouldOffset 状态决定
+    final dialogOffsetX = _shouldOffset ? maxDialogOffsetX : 0.0;
+    
+    // Stack 的宽度：始终保持 totalWidth，避免宽度变化导致位置计算跳动
+    // 预览窗口隐藏时，通过 FadeTransition 的 opacity 和 IgnorePointer 来控制显示
+    final stackWidth = totalWidth;
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: stackWidth,
+      height: dialogHeight,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.centerLeft,
+        children: [
+        // 左侧编辑区域（dialog 使用 AnimatedContainer 的 transform 实现位置移动动画）
+        // 使用 AnimatedPositioned 同步 left 和 transform 的动画，避免先向右偏移的问题
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          left: (stackWidth - dialogWidth) / 2 - dialogOffsetX,
+          top: 0,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            width: dialogWidth,
+            height: dialogHeight,
       decoration: BoxDecoration(
         color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
@@ -175,13 +289,6 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                 topRight: Radius.circular(10),
               )
             : BorderRadius.circular(10),
-        // 移除阴影效果，避免亮主题下的亮光高亮
-        // boxShadow: <BoxShadow>[
-        //   BoxShadow(
-        //     color: context.theme.dividerColor,
-        //     blurRadius: context.isDarkMode ? 1 : 2,
-        //   ),
-        // ],
       ),
       child: Form(
         key: controller.formKey,
@@ -246,21 +353,25 @@ class TodoDialog extends GetView<AddTodoDialogController> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(15),
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 35,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const AlwaysScrollableScrollPhysics(
-                          parent: BouncingScrollPhysics(),
-                        ),
+              child: Column(
+                children: [
+                  // 顶部可滚动内容区域
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(15),
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      child: Column(
                         children: [
+                          SizedBox(
+                            height: 35,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const AlwaysScrollableScrollPhysics(
+                                parent: BouncingScrollPhysics(),
+                              ),
+                              children: [
                           // 日期选择器按钮
                           Obx(() => TagDialogBtn(
                                 tag: controller.selectedDate.value != null
@@ -409,26 +520,501 @@ class TodoDialog extends GetView<AddTodoDialogController> {
                       onAddTagWithColor: controller.addTagWithColor,
                     ),
                     const SizedBox(height: 5),
-                    TextFormFieldItem(
-                      textInputAction: TextInputAction.done,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 10,
-                      ),
-                      maxLength: 400,
-                      maxLines: 8,
-                      radius: 6,
-                      fieldTitle: "description".tr,
-                      validator: (_) => null,
-                      editingController: controller.descriptionController,
-                      onFieldSubmitted: (_) {},
+                    // Markdown 工具栏
+                    MarkdownToolbar(
+                      controller: controller.descriptionController,
                     ),
                   ],
                 ),
               ),
             ),
+                  // Description 输入框 - 占据剩余空间
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // 计算合适的行数：每行大约 20-25 像素（包括 padding）
+                        const lineHeight = 25.0;
+                        const minLines = 3;
+                        // 计算最大行数，确保不超过可用高度
+                        final calculatedMaxLines = ((constraints.maxHeight / lineHeight).floor()).clamp(minLines, 50);
+                        
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: TextFormFieldItem(
+                            textInputAction: null, // 设置为 null 以允许回车键换行
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 10,
+                            ),
+                            maxLength: 400,
+                            minLines: minLines, // 设置最小行数
+                            maxLines: calculatedMaxLines, // 使用计算出的最大行数，避免断行问题
+                            radius: 6,
+                            fieldTitle: "description".tr,
+                            validator: (_) => null,
+                            editingController: controller.descriptionController,
+                            focusNode: _descriptionFocusNode,
+                            onFieldSubmitted: (_) {},
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
+      ),
+    ),
+        ),
+        // 右侧预览区域（使用 AnimatedPositioned 处理位置移动，FadeTransition 处理透明度）
+        // 预览窗口在 dialog 右侧，间距为 spacing
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          left: (stackWidth - dialogWidth) / 2 + dialogWidth + spacing - dialogOffsetX,
+          top: 0,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: IgnorePointer(
+              ignoring: _fadeAnimation.value == 0,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                width: previewWidth,
+                height: dialogHeight,
+                decoration: BoxDecoration(
+                  color: context.theme.dialogTheme.backgroundColor,
+                  border: Border.all(width: 0.3, color: context.theme.dividerColor),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            width: 0.3,
+                            color: context.theme.dividerColor,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '预览',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            onPressed: _closePreview,
+                            tooltip: '关闭预览',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(15),
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: controller.descriptionController,
+                          builder: (context, value, child) {
+                            // 预处理 markdown 文本：将旧格式的 file:// 路径转换为标准格式
+                            String processedText = value.text;
+                            if (processedText.contains('file://')) {
+                              // 检查是否已经是标准格式（file:///），如果是则不需要处理
+                              if (!processedText.contains('file:///') || 
+                                  processedText.contains(RegExp(r'file://[^/]'))) {
+                                // 将 file://C:\path 格式转换为 file:///C:/path 格式
+                                // 匹配 ![](file://C:\path) 或 ![alt](file://C:\path) 格式
+                                processedText = processedText.replaceAllMapped(
+                                  RegExp(r'!\[([^\]]*)\]\(file://([^)]+)\)'),
+                                  (match) {
+                                    final alt = match.group(1) ?? '';
+                                    final path = match.group(2) ?? '';
+                                    // 将反斜杠转换为正斜杠，并确保使用 file:/// 格式
+                                    final normalizedPath = path.replaceAll('\\', '/');
+                                    final newPath = 'file:///$normalizedPath';
+                                    return '![$alt]($newPath)';
+                                  },
+                                );
+                              }
+                            }
+                            
+                            return MarkdownBody(
+                              data: processedText.isEmpty
+                                  ? '*暂无内容*'
+                                  : processedText,
+                              sizedImageBuilder: (config) {
+                                final uriString = config.uri.toString();
+                                
+                                // 检查是否是本地文件路径
+                                // 优先判断网络图片（http:// 或 https://）
+                                final isNetworkImage = uriString.startsWith('http://') || 
+                                                       uriString.startsWith('https://');
+                                // 判断是否是本地文件（file:// 协议，或者不是网络图片且包含路径分隔符或驱动器符）
+                                final isLocalFile = uriString.startsWith('file://') || 
+                                                   (!isNetworkImage && 
+                                                    (uriString.contains('/') || 
+                                                     uriString.contains('\\') || 
+                                                     (uriString.length > 1 && uriString[1] == ':')));
+                                
+                                if (isLocalFile) {
+                                  // 本地文件
+                                  String filePath;
+                                  try {
+                                    if (uriString.startsWith('file://')) {
+                                      // 处理 file:// 协议
+                                      // 支持多种格式：
+                                      // file:///C:/path -> C:/path (标准格式)
+                                      // file://C:/path -> C:/path
+                                      // file://C:\path -> C:\path (非标准，但可能存在于旧数据)
+                                      
+                                      // 先去掉 file:// 前缀（7个字符）
+                                      filePath = uriString.substring(7);
+                                      
+                                      // 如果是以 / 开头（file:/// 格式），去掉开头的 /
+                                      if (filePath.startsWith('/')) {
+                                        filePath = filePath.substring(1);
+                                      }
+                                      
+                                      // 如果路径中包含正斜杠，在 Windows 上可能需要转换为反斜杠
+                                      // 但先尝试保持原格式，因为 Dart 的 File 类可以处理正斜杠
+                                      // URL 解码（处理编码的路径，如空格被编码为 %20）
+                                      try {
+                                        filePath = Uri.decodeComponent(filePath);
+                                      } catch (e) {
+                                        // 如果解码失败，使用原路径
+                                      }
+                                    } else {
+                                      // 直接使用路径，尝试 URL 解码
+                                      try {
+                                        filePath = Uri.decodeComponent(uriString);
+                                      } catch (e) {
+                                        // 如果解码失败，直接使用原路径
+                                        filePath = uriString;
+                                      }
+                                    }
+                                    
+                                    // 验证路径不为空且有效
+                                    if (filePath.isEmpty || filePath == '\\' || filePath == '/') {
+                                      throw Exception('无效的路径: $uriString');
+                                    }
+                                    
+                                    // 尝试使用 File 类加载
+                                    // Dart 的 File 类在 Windows 上可以处理正斜杠和反斜杠
+                                    // 先尝试保持原路径格式
+                                    File file = File(filePath);
+                                    
+                                    // 如果文件不存在，尝试其他路径格式
+                                    if (!file.existsSync() && Platform.isWindows) {
+                                      // 如果路径包含正斜杠，尝试替换为反斜杠
+                                      if (filePath.contains('/') && !filePath.contains('\\')) {
+                                        final windowsPath = filePath.replaceAll('/', '\\');
+                                        file = File(windowsPath);
+                                        if (file.existsSync()) {
+                                          filePath = windowsPath;
+                                        }
+                                      }
+                                      // 如果路径包含反斜杠，尝试替换为正斜杠
+                                      else if (filePath.contains('\\') && !filePath.contains('/')) {
+                                        final unixPath = filePath.replaceAll('\\', '/');
+                                        file = File(unixPath);
+                                        if (file.existsSync()) {
+                                          filePath = unixPath;
+                                        }
+                                      }
+                                    }
+                                    
+                                    // 如果还是不存在，显示错误信息
+                                    if (!file.existsSync()) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade200,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Icon(
+                                                Icons.broken_image,
+                                                size: 48,
+                                                color: Colors.grey.shade400,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                '文件不存在',
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                '原始: ${uriString.length > 50 ? "${uriString.substring(0, 50)}..." : uriString}',
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade500,
+                                                  fontSize: 10,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                '解析: ${filePath.length > 50 ? "${filePath.substring(0, 50)}..." : filePath}',
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade500,
+                                                  fontSize: 10,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    
+                                    // 处理 width 和 height 为 null 的情况
+                                    final imageWidth = config.width;
+                                    final imageHeight = config.height;
+                                    
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: imageWidth != null && imageHeight != null
+                                            ? Image.file(
+                                                file,
+                                                fit: BoxFit.cover,
+                                                width: imageWidth,
+                                                height: imageHeight,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return Container(
+                                                    padding: const EdgeInsets.all(16),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.grey.shade200,
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: Column(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.broken_image,
+                                                          size: 48,
+                                                          color: Colors.grey.shade400,
+                                                        ),
+                                                        const SizedBox(height: 8),
+                                                        Text(
+                                                          config.alt ?? '图片加载失败',
+                                                          style: TextStyle(
+                                                            color: Colors.grey.shade600,
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            : Image.file(
+                                                file,
+                                                fit: BoxFit.contain,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return Container(
+                                                    padding: const EdgeInsets.all(16),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.grey.shade200,
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: Column(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.broken_image,
+                                                          size: 48,
+                                                          color: Colors.grey.shade400,
+                                                        ),
+                                                        const SizedBox(height: 8),
+                                                        Text(
+                                                          config.alt ?? '图片加载失败',
+                                                          style: TextStyle(
+                                                            color: Colors.grey.shade600,
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    // 路径解析错误
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Icon(
+                                              Icons.broken_image,
+                                              size: 48,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              '路径解析失败',
+                                              style: TextStyle(
+                                                color: Colors.grey.shade600,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '错误: ${e.toString().length > 50 ? "${e.toString().substring(0, 50)}..." : e.toString()}',
+                                              style: TextStyle(
+                                                color: Colors.grey.shade500,
+                                                fontSize: 10,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'URI: ${uriString.length > 50 ? "${uriString.substring(0, 50)}..." : uriString}',
+                                              style: TextStyle(
+                                                color: Colors.grey.shade500,
+                                                fontSize: 10,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  // 网络图片（使用缓存）
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CachedNetworkImage(
+                                        imageUrl: uriString,
+                                        fit: BoxFit.cover,
+                                        width: config.width,
+                                        height: config.height,
+                                        placeholder: (context, url) => Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) => Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade200,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Icon(
+                                                Icons.broken_image,
+                                                size: 48,
+                                                color: Colors.grey.shade400,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                config.alt ?? '图片加载失败',
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              styleSheet: MarkdownStyleSheet(
+                                p: const TextStyle(
+                                  fontSize: 16,
+                                  height: 1.5,
+                                ),
+                                h1: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.5,
+                                ),
+                                h2: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.5,
+                                ),
+                                h3: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.5,
+                                ),
+                                code: TextStyle(
+                                  fontSize: 14,
+                                  fontFamily: 'monospace',
+                                  backgroundColor: context.theme.dividerColor.withValues(alpha: 0.1),
+                                ),
+                                codeblockDecoration: BoxDecoration(
+                                  color: context.theme.dividerColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                blockquote: TextStyle(
+                                  fontSize: 16,
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.grey.shade600,
+                                  height: 1.5,
+                                ),
+                                listBullet: TextStyle(
+                                  fontSize: 16,
+                                  color: context.theme.colorScheme.primary,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      ],
       ),
     );
   }

@@ -5,6 +5,7 @@ class TextFormFieldItem extends StatelessWidget {
   const TextFormFieldItem({
     super.key,
     int? maxLines,
+    int? minLines,
     double radius = 10,
     bool obscureText = false,
     required int maxLength,
@@ -28,6 +29,7 @@ class TextFormFieldItem extends StatelessWidget {
         _editingController = editingController,
         _contentPadding = contentPadding,
         _maxLines = maxLines,
+        _minLines = minLines,
         _maxLength = maxLength,
         _fieldTitle = fieldTitle,
         _obscureText = obscureText,
@@ -45,6 +47,7 @@ class TextFormFieldItem extends StatelessWidget {
   final FocusNode? _focusNode;
   final int _maxLength;
   final int? _maxLines;
+  final int? _minLines;
   final double _radius;
   final bool _ghostStyle;
   final EdgeInsets _contentPadding;
@@ -65,15 +68,24 @@ class TextFormFieldItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(_radius),
           );
 
+    // 如果 maxLines > 1 或 maxLines 为 null，且 textInputAction 为 null，使用多行输入类型
+    final maxLinesValue = _maxLines;
+    final isMultiline = (maxLinesValue == null || maxLinesValue > 1) && _textInputAction == null;
+    final keyboardType = isMultiline ? TextInputType.multiline : _inputType;
+    
+    // 设置 minLines：如果指定了 _minLines 则使用它，否则根据 isMultiline 自动设置
+    final minLines = _minLines ?? (isMultiline ? 3 : null);
+    
     return TextFormField(
       textInputAction: _textInputAction,
       obscureText: _obscureText,
       controller: _editingController,
       maxLength: _maxLength,
       maxLines: _maxLines,
+      minLines: minLines,
       autofocus: _autofocus,
       focusNode: _focusNode,
-      keyboardType: _inputType,
+      keyboardType: keyboardType,
       cursorColor: Colors.blueGrey.shade400,
       buildCounter: (context,
               {required currentLength, required isFocused, maxLength}) =>

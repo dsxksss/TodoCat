@@ -72,7 +72,7 @@ class NotificationCenterManager extends GetxController {
       });
       
       if (hasDuplicate) {
-        _logger.d('Skipping duplicate notification: $title (within ${duplicateWindowMinutes} minutes)');
+        _logger.d('Skipping duplicate notification: $title (within $duplicateWindowMinutes minutes)');
         return;
       }
     }

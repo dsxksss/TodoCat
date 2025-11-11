@@ -10,6 +10,9 @@ import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class TodoDetailDialog extends StatelessWidget {
   final String todoId;
@@ -22,6 +25,31 @@ class TodoDetailDialog extends StatelessWidget {
   });
   
   String get _dialogTag => 'todo_detail_dialog_$todoId';
+
+  // 预处理 markdown 文本：将旧格式的 file:// 路径转换为标准格式
+  static String _preprocessMarkdown(String text) {
+    if (!text.contains('file://')) {
+      return text;
+    }
+    
+    // 检查是否已经是标准格式（file:///），如果是则不需要处理
+    if (text.contains('file:///') && !text.contains(RegExp(r'file://[^/]'))) {
+      return text;
+    }
+    
+    // 将 file://C:\path 格式转换为 file:///C:/path 格式
+    return text.replaceAllMapped(
+      RegExp(r'!\[([^\]]*)\]\(file://([^)]+)\)'),
+      (match) {
+        final alt = match.group(1) ?? '';
+        final path = match.group(2) ?? '';
+        // 将反斜杠转换为正斜杠，并确保使用 file:/// 格式
+        final normalizedPath = path.replaceAll('\\', '/');
+        final newPath = 'file:///$normalizedPath';
+        return '![$alt]($newPath)';
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -293,11 +321,285 @@ class TodoDetailDialog extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            todo.description,
-            style: const TextStyle(
-              fontSize: 16,
-              height: 1.5,
+          MarkdownBody(
+            data: _preprocessMarkdown(todo.description),
+            sizedImageBuilder: (config) {
+              final uriString = config.uri.toString();
+              // 检查是否是本地文件路径
+              // 优先判断网络图片（http:// 或 https://）
+              final isNetworkImage = uriString.startsWith('http://') || 
+                                     uriString.startsWith('https://');
+              // 判断是否是本地文件（file:// 协议，或者不是网络图片且包含路径分隔符或驱动器符）
+              final isLocalFile = uriString.startsWith('file://') || 
+                                 (!isNetworkImage && 
+                                  (uriString.contains('/') || 
+                                   uriString.contains('\\') || 
+                                   (uriString.length > 1 && uriString[1] == ':')));
+              
+              if (isLocalFile) {
+                // 本地文件
+                String filePath;
+                try {
+                  if (uriString.startsWith('file://')) {
+                    // 处理 file:// 协议
+                    filePath = uriString.substring(7);
+                    // 处理 Windows 路径的几种格式：
+                    // file:///C:/path -> C:/path
+                    // file://C:/path -> C:/path
+                    // file://C:\path -> C:\path
+                    if (filePath.startsWith('/') && filePath.length > 2 && filePath[2] == ':') {
+                      // file:///C:/path 格式，去掉开头的 /
+                      filePath = filePath.substring(1);
+                    }
+                    // URL 解码（处理编码的路径）
+                    try {
+                      filePath = Uri.decodeComponent(filePath);
+                    } catch (e) {
+                      // 如果解码失败，使用原路径
+                    }
+                  } else {
+                    // 直接使用路径，尝试 URL 解码
+                    try {
+                      filePath = Uri.decodeComponent(uriString);
+                    } catch (e) {
+                      // 如果解码失败，直接使用原路径
+                      filePath = uriString;
+                    }
+                  }
+                  
+                  // 尝试使用 File 类加载
+                  // Dart 的 File 类在 Windows 上可以处理正斜杠和反斜杠
+                  // 先尝试保持原路径格式
+                  File file = File(filePath);
+                  
+                  // 如果文件不存在，尝试其他路径格式
+                  if (!file.existsSync() && Platform.isWindows) {
+                    // 如果路径包含正斜杠，尝试替换为反斜杠
+                    if (filePath.contains('/') && !filePath.contains('\\')) {
+                      final windowsPath = filePath.replaceAll('/', '\\');
+                      file = File(windowsPath);
+                      if (file.existsSync()) {
+                        filePath = windowsPath;
+                      }
+                    }
+                    // 如果路径包含反斜杠，尝试替换为正斜杠
+                    else if (filePath.contains('\\') && !filePath.contains('/')) {
+                      final unixPath = filePath.replaceAll('\\', '/');
+                      file = File(unixPath);
+                      if (file.existsSync()) {
+                        filePath = unixPath;
+                      }
+                    }
+                  }
+                  
+                  // 如果还是不存在，显示调试信息
+                  if (!file.existsSync()) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              size: 48,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '文件不存在',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '原始: ${uriString.length > 50 ? "${uriString.substring(0, 50)}..." : uriString}',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 10,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '解析: ${filePath.length > 50 ? "${filePath.substring(0, 50)}..." : filePath}',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 10,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        file,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.broken_image,
+                                  size: 48,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  config.alt ?? '图片加载失败',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        width: config.width,
+                        height: config.height,
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  // 路径解析错误
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '路径解析失败',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                // 网络图片（使用缓存）
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: uriString,
+                      fit: BoxFit.cover,
+                      width: config.width,
+                      height: config.height,
+                      placeholder: (context, url) => Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              size: 48,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              config.alt ?? '图片加载失败',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+            },
+            styleSheet: MarkdownStyleSheet(
+              p: const TextStyle(
+                fontSize: 16,
+                height: 1.5,
+              ),
+              h1: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                height: 1.5,
+              ),
+              h2: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                height: 1.5,
+              ),
+              h3: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                height: 1.5,
+              ),
+              code: TextStyle(
+                fontSize: 14,
+                fontFamily: 'monospace',
+                backgroundColor: Get.theme.dividerColor.withValues(alpha: 0.1),
+              ),
+              codeblockDecoration: BoxDecoration(
+                color: Get.theme.dividerColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              blockquote: TextStyle(
+                fontSize: 16,
+                fontStyle: FontStyle.italic,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
+              listBullet: TextStyle(
+                fontSize: 16,
+                color: Get.theme.colorScheme.primary,
+              ),
             ),
           ),
         ],

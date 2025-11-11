@@ -12,6 +12,7 @@ import 'package:TodoCat/widgets/todocat_scaffold.dart';
 import 'package:TodoCat/controllers/app_ctr.dart';
 import 'package:TodoCat/widgets/nav_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:io';
 import 'dart:ui';
 
@@ -24,6 +25,31 @@ class TodoDetailPage extends StatelessWidget {
     required this.todoId,
     required this.taskId,
   });
+
+  // 预处理 markdown 文本：将旧格式的 file:// 路径转换为标准格式
+  static String _preprocessMarkdown(String text) {
+    if (!text.contains('file://')) {
+      return text;
+    }
+    
+    // 检查是否已经是标准格式（file:///），如果是则不需要处理
+    if (text.contains('file:///') && !text.contains(RegExp(r'file://[^/]'))) {
+      return text;
+    }
+    
+    // 将 file://C:\path 格式转换为 file:///C:/path 格式
+    return text.replaceAllMapped(
+      RegExp(r'!\[([^\]]*)\]\(file://([^)]+)\)'),
+      (match) {
+        final alt = match.group(1) ?? '';
+        final path = match.group(2) ?? '';
+        // 将反斜杠转换为正斜杠，并确保使用 file:/// 格式
+        final normalizedPath = path.replaceAll('\\', '/');
+        final newPath = 'file:///$normalizedPath';
+        return '![$alt]($newPath)';
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -298,11 +324,355 @@ class TodoDetailPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            todo.description,
-            style: const TextStyle(
+          MarkdownBody(
+            data: _preprocessMarkdown(todo.description),
+            sizedImageBuilder: (config) {
+              final uriString = config.uri.toString();
+              // 检查是否是本地文件路径
+              // 优先判断网络图片（http:// 或 https://）
+              final isNetworkImage = uriString.startsWith('http://') || 
+                                     uriString.startsWith('https://');
+              // 判断是否是本地文件（file:// 协议，或者不是网络图片且包含路径分隔符或驱动器符）
+              final isLocalFile = uriString.startsWith('file://') || 
+                                 (!isNetworkImage && 
+                                  (uriString.contains('/') || 
+                                   uriString.contains('\\') || 
+                                   (uriString.length > 1 && uriString[1] == ':')));
+              
+              if (isLocalFile) {
+                // 本地文件
+                String filePath;
+                try {
+                  if (uriString.startsWith('file://')) {
+                    // 处理 file:// 协议
+                    // 直接去掉 file:// 前缀（7个字符）
+                    filePath = uriString.substring(7);
+                    
+                    // 处理 Windows 路径的几种格式：
+                    // file:///C:/path -> C:/path (去掉开头的 /)
+                    // file://C:/path -> C:/path (保持不变)
+                    // file://C:\path -> C:\path (保持不变)
+                    if (filePath.startsWith('/') && filePath.length > 2 && filePath[2] == ':') {
+                      // file:///C:/path 格式，去掉开头的 /
+                      filePath = filePath.substring(1);
+                    }
+                    
+                    // URL 解码（处理编码的路径，如空格被编码为 %20）
+                    try {
+                      filePath = Uri.decodeComponent(filePath);
+                    } catch (e) {
+                      // 如果解码失败，使用原路径
+                    }
+                  } else {
+                    // 直接使用路径，尝试 URL 解码
+                    try {
+                      filePath = Uri.decodeComponent(uriString);
+                    } catch (e) {
+                      // 如果解码失败，直接使用原路径
+                      filePath = uriString;
+                    }
+                  }
+                  
+                  // 验证路径不为空且有效
+                  if (filePath.isEmpty || filePath == '\\' || filePath == '/') {
+                    throw Exception('无效的路径: $uriString');
+                  }
+                  
+                  // 尝试使用 File 类加载
+                  // Dart 的 File 类在 Windows 上可以处理正斜杠和反斜杠
+                  // 先尝试保持原路径格式
+                  File file = File(filePath);
+                  
+                  // 如果文件不存在，尝试其他路径格式
+                  if (!file.existsSync() && Platform.isWindows) {
+                    // 如果路径包含正斜杠，尝试替换为反斜杠
+                    if (filePath.contains('/') && !filePath.contains('\\')) {
+                      final windowsPath = filePath.replaceAll('/', '\\');
+                      file = File(windowsPath);
+                      if (file.existsSync()) {
+                        filePath = windowsPath;
+                      }
+                    }
+                    // 如果路径包含反斜杠，尝试替换为正斜杠
+                    else if (filePath.contains('\\') && !filePath.contains('/')) {
+                      final unixPath = filePath.replaceAll('\\', '/');
+                      file = File(unixPath);
+                      if (file.existsSync()) {
+                        filePath = unixPath;
+                      }
+                    }
+                  }
+                  
+                  // 如果文件存在，显示图片
+                  if (file.existsSync()) {
+                    // 处理 width 和 height 为 null 的情况
+                    final imageWidth = config.width;
+                    final imageHeight = config.height;
+                    
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: imageWidth != null && imageHeight != null
+                            ? Image.file(
+                                file,
+                                fit: BoxFit.cover,
+                                width: imageWidth,
+                                height: imageHeight,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.broken_image,
+                                          size: 48,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          config.alt ?? '图片加载失败',
+                                          style: TextStyle(
+                                            color: Colors.grey.shade600,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              )
+                            : Image.file(
+                                file,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.broken_image,
+                                          size: 48,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          config.alt ?? '图片加载失败',
+                                          style: TextStyle(
+                                            color: Colors.grey.shade600,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    );
+                  } else {
+                    // 如果文件不存在，显示错误信息
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              size: 48,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '文件不存在',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '原始URI: ${uriString.length > 50 ? "${uriString.substring(0, 50)}..." : uriString}',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 10,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '解析路径: ${filePath.length > 50 ? "${filePath.substring(0, 50)}..." : filePath}',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 10,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // 处理异常
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '图片加载错误',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '错误: ${e.toString().length > 50 ? "${e.toString().substring(0, 50)}..." : e.toString()}',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'URI: ${uriString.length > 50 ? "${uriString.substring(0, 50)}..." : uriString}',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                // 网络图片
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      uriString,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.broken_image,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                config.alt ?? '图片加载失败',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      width: config.width,
+                      height: config.height,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              }
+            },
+            styleSheet: MarkdownStyleSheet(
+              p: const TextStyle(
               fontSize: 16,
               height: 1.5,
+              ),
+              h1: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                height: 1.5,
+              ),
+              h2: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                height: 1.5,
+              ),
+              h3: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                height: 1.5,
+              ),
+              code: TextStyle(
+                fontSize: 14,
+                fontFamily: 'monospace',
+                backgroundColor: Get.theme.dividerColor.withValues(alpha: 0.1),
+              ),
+              codeblockDecoration: BoxDecoration(
+                color: Get.theme.dividerColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              blockquote: TextStyle(
+                fontSize: 16,
+                fontStyle: FontStyle.italic,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
+              listBullet: TextStyle(
+                fontSize: 16,
+                color: Get.theme.colorScheme.primary,
+              ),
             ),
           ),
         ],
