@@ -145,6 +145,10 @@ msix_config:
   display_name: TodoCat
   publisher_display_name: SayMiao
   identity_name: SayMiao.TodoCat
+  # 发布者证书主题名称（匹配当前使用的测试证书）
+  publisher: CN=E5209687-EA19-4223-83D7-A568796EACF9
   msix_version: 1.1.0.0
+  store: true
   logo_path: windows\runner\resources\app_icon.ico
-  capabilities: internetClient, location, microphone, webcam
+  # 仅保留实际需要的功能，移除不必要的权限以通过商店审核
+  capabilities: internetClient
