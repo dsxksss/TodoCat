@@ -6,7 +6,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:crypto/crypto.dart';
 import 'package:TodoCat/core/notification_center_manager.dart';
 import 'package:TodoCat/data/schemas/notification_history.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
@@ -385,14 +384,8 @@ class AutoUpdateService {
       _logger.d('下载完成: $filePath');
       onProgress?.call(1.0, 'installingUpdate'.tr);
       
-      // 验证文件（可选，在后台进行，避免阻塞UI）
-      // 使用 compute 在隔离线程中计算哈希，避免阻塞主线程
-      final verificationResult = await _verifyDownloadedFile(filePath, downloadUrl);
-      if (verificationResult) {
-        _logger.d('文件验证通过');
-      } else {
-        _logger.w('文件验证失败，但继续安装');
-      }
+      // 跳过哈希验证，直接安装更新
+      // 注意：Windows MSIX 包已有数字签名验证，哈希验证是额外的安全检查
       
       // 安装更新
       await _installUpdate(filePath);
@@ -412,83 +405,6 @@ class AutoUpdateService {
       _downloadCancelToken = null;
       _downloadDio = null;
       _lastProgressUpdate = null; // 重置进度更新时间戳
-    }
-  }
-  
-  /// 使用流式读取计算文件哈希值（避免一次性读取整个文件到内存）
-  /// 注意：对于大文件，为了性能考虑，可以跳过哈希验证
-  Future<Digest?> _computeFileHash(String filePath) async {
-    try {
-      final file = File(filePath);
-      final fileSize = await file.length();
-      
-      // 对于大文件（>100MB），跳过哈希验证以提升性能
-      // Windows MSIX 包已有数字签名验证，哈希验证是额外的安全检查
-      if (fileSize > 100 * 1024 * 1024) {
-        _logger.d('文件过大(${fileSize / 1024 / 1024}MB)，跳过哈希验证以提升性能');
-        return null; // 返回 null 表示跳过验证
-      }
-      
-      // 小文件：直接读取并计算哈希
-      final bytes = await file.readAsBytes();
-      return sha256.convert(bytes);
-    } catch (e) {
-      _logger.w('计算文件哈希失败: $e');
-      return null; // 验证失败时返回 null，允许继续安装
-    }
-  }
-  
-  /// 验证下载的文件（可选，检查哈希值）
-  Future<bool> _verifyDownloadedFile(String filePath, String downloadUrl) async {
-    try {
-      // 尝试获取 hashes.json
-      final archiveUrl = currentUpdateSource;
-      if (archiveUrl == null) return true; // 如果无法获取源，跳过验证
-      
-      // 构建 hashes.json 的 URL
-      final hashesUrl = archiveUrl.replaceAll('app-archive.json', 'hashes.json');
-      
-      try {
-        final dio = Dio();
-        final response = await dio.get(hashesUrl);
-        
-        if (response.statusCode == 200) {
-          final hashesData = response.data as Map<String, dynamic>;
-          final fileName = path.basename(downloadUrl);
-          final expectedHash = hashesData[fileName] as String?;
-          
-          if (expectedHash != null) {
-            // 计算文件哈希值（大文件可能跳过）
-            final digest = await _computeFileHash(filePath);
-            
-            // 如果跳过验证（返回 null），默认通过
-            if (digest == null) {
-              _logger.d('跳过文件哈希验证（文件过大或计算失败）');
-              return true;
-            }
-            
-            final actualHash = digest.toString();
-            
-            // 移除 "sha256:" 前缀（如果有）
-            final cleanExpectedHash = expectedHash.replaceFirst('sha256:', '');
-            
-            if (actualHash.toLowerCase() == cleanExpectedHash.toLowerCase()) {
-              _logger.d('文件哈希验证通过');
-              return true;
-            } else {
-              _logger.w('文件哈希验证失败: 期望 $cleanExpectedHash, 实际 $actualHash');
-              return false;
-            }
-          }
-        }
-      } catch (e) {
-        _logger.w('无法验证文件哈希: $e，跳过验证');
-      }
-      
-      return true; // 如果无法验证，默认通过
-    } catch (e) {
-      _logger.w('文件验证失败: $e');
-      return true; // 验证失败时默认通过
     }
   }
   
