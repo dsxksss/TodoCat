@@ -145,6 +145,6 @@ msix_config:
   display_name: TodoCat
   publisher_display_name: SayMiao
   identity_name: SayMiao.TodoCat
-  msix_version: 1.0.9.0
+  msix_version: 1.1.0.0
   logo_path: windows\runner\resources\app_icon.ico
   capabilities: internetClient, location, microphone, webcam
