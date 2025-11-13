@@ -71,6 +71,8 @@ dependencies:
   flutter_markdown: ^0.7.4
   # 网络图片缓存库
   cached_network_image: ^3.3.1
+  # FastForge 更新库
+  fastforge: ^0.0.1
 
 dev_dependencies:
   flutter_test:

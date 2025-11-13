@@ -313,6 +313,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.3.3"
+  fastforge:
+    dependency: "direct main"
+    description:
+      name: fastforge
+      sha256: "9d7df158f7206f4d59eba3f4fccb64d901cd0dff5ce637145d0d0683206885be"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.0.1"
   ffi:
     dependency: transitive
     description:

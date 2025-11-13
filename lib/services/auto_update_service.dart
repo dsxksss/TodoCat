@@ -81,7 +81,7 @@ class AutoUpdateService {
         if (i < _appArchiveUrls.length - 1) {
           _logger.d('尝试下一个更新源...');
         } else {
-          _logger.e('所有更新源都初始化失败');
+          _logger.e('allUpdateSourcesFailed'.tr);
         }
       }
     }
@@ -157,14 +157,14 @@ class AutoUpdateService {
     try {
       final currentVersion = await getCurrentVersion();
       if (currentVersion == null) {
-        _logger.w('无法获取当前版本');
+        _logger.w('unableToGetCurrentVersion'.tr);
         return;
       }
       
       // 从当前使用的更新源获取更新信息
       final archiveUrl = currentUpdateSource;
       if (archiveUrl == null) {
-        _logger.w('更新源未设置');
+        _logger.w('updateSourceNotSet'.tr);
         return;
       }
       
@@ -318,13 +318,14 @@ class AutoUpdateService {
   /// 下载并安装更新
   Future<void> downloadAndInstallUpdate() async {
     if (_currentUpdateInfo == null) {
-      _logger.e('没有可用的更新信息');
-      onUpdateError?.call('没有可用的更新信息');
+      _logger.e('noUpdateInformationAvailable'.tr);
+      onUpdateError?.call('noUpdateInformationAvailable'.tr);
       return;
     }
     
     try {
-      final downloadUrl = _currentUpdateInfo!['url'] as String?;
+      // 优先使用EXE格式下载链接，如果没有则使用MSIX格式
+      final downloadUrl = (_currentUpdateInfo!['exeUrl'] as String?) ?? (_currentUpdateInfo!['url'] as String?);
       if (downloadUrl == null || downloadUrl.isEmpty) {
         _logger.e('更新 URL 为空');
         onUpdateError?.call('更新 URL 为空');
@@ -395,8 +396,8 @@ class AutoUpdateService {
       
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) {
-        _logger.i('下载已取消');
-        onUpdateError?.call('下载已取消');
+        _logger.i('downloadCancelled'.tr);
+        onUpdateError?.call('downloadCancelled'.tr);
       } else {
         _logger.e('下载或安装更新失败: $e');
         onUpdateError?.call(e.toString());
@@ -493,7 +494,7 @@ class AutoUpdateService {
   /// 取消下载
   void cancelDownload() {
     if (_downloadCancelToken != null && !_downloadCancelToken!.isCancelled) {
-      _downloadCancelToken!.cancel('用户取消下载');
+      _downloadCancelToken!.cancel('userCancelledDownload'.tr);
       _logger.i('下载已取消');
     }
   }
@@ -517,7 +518,7 @@ class AutoUpdateService {
       }
       return '更新源 ${_currentSourceIndex + 1}';
     }
-    return '未知';
+    return 'unknown'.tr;
   }
   
   /// 清理资源

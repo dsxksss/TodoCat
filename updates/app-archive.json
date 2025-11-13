@@ -30,6 +30,7 @@
             "date": "2025-11-04",
             "mandatory": false,
             "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.8/TodoCat-1.0.8-windows.msix",
+            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.8/TodoCat-1.0.8-windows.exe",
             "platform": "windows"
         },
         {
@@ -48,6 +49,7 @@
             "date": "2025-11-05",
             "mandatory": false,
             "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.9/TodoCat-1.0.9-windows.msix",
+            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.9/TodoCat-1.0.9-windows.exe",
             "platform": "windows"
         },
         {
@@ -62,6 +64,7 @@
             "date": "2025-11-11",
             "mandatory": false,
             "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.1.0/TodoCat-1.1.0-windows.msix",
+            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.1.0/TodoCat-1.1.0-windows.exe",
             "platform": "windows"
         }
     ]

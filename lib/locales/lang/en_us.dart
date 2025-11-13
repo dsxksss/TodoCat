@@ -314,4 +314,11 @@ const Map<String, String> enUS = {
   'permanentDeleteFailed': 'Permanent delete failed',
   'trashEmptied': 'Trash emptied',
   'emptyTrashFailed': 'Empty trash failed',
+  'allUpdateSourcesFailed': 'All update sources failed to initialize',
+  'unableToGetCurrentVersion': 'Unable to get current version',
+  'updateSourceNotSet': 'Update source not set',
+  'noUpdateInformationAvailable': 'No update information available',
+  'downloadCancelled': 'Download cancelled',
+  'userCancelledDownload': 'User cancelled download',
+  'unknown': 'Unknown',
 };

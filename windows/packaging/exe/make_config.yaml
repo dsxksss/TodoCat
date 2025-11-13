@@ -1,0 +1,11 @@
+# The value of AppId uniquely identifies this application.
+# Do not use the same AppId value in installers for other applications.
+app_id: 1E4623A2-44D3-4C4B-8E1E-0F8E0A1D2E3F
+publisher: TodoCat
+publisher_url: https://github.com/dsxksss/TodoCat
+display_name: TodoCat
+create_desktop_icon: true
+# This path is relative to the root directory of your project; The format of icon file must be ico, can not be png or others
+setup_icon_file: windows\runner\resources\app_icon.ico
+locales:
+  - en

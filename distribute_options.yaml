@@ -1,0 +1,13 @@
+variables:
+output: dist/
+releases:
+  - name: prod
+    jobs:
+      # Build and package Windows EXE
+      - name: package-windows-exe
+        package:
+          platform: windows
+          target: exe
+          build_args:
+            dart-define:
+              APP_ENV: prod

@@ -314,4 +314,11 @@ const Map<String, String> zhCN = {
   'permanentDeleteFailed': '永久删除失败',
   'trashEmptied': '回收站已清空',
   'emptyTrashFailed': '清空回收站失败',
+  'allUpdateSourcesFailed': '所有更新源都初始化失败',
+  'unableToGetCurrentVersion': '无法获取当前版本',
+  'updateSourceNotSet': '更新源未设置',
+  'noUpdateInformationAvailable': '没有可用的更新信息',
+  'downloadCancelled': '下载已取消',
+  'userCancelledDownload': '用户取消下载',
+  'unknown': '未知',
 };
