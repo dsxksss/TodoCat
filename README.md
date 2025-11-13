@@ -1,5 +1,18 @@
 # Todo Cat <img src="readme_assets/imgs/logo-light-rounded.png" alt="Image Description" width="25" height="25" />
 
+## Download form Microsoft Store
+
+<script type="module" src="https://get.microsoft.com/badge/ms-store-badge.bundled.js"></script>
+<ms-store-badge
+	productid="9N52RL6BKRFX"
+	productname="TodoCat"
+	window-mode="direct"
+	theme="auto"
+	size="large"
+	language="en-us"
+	animation="on">
+</ms-store-badge>
+
 ### Desktop
 
 ![Dark theme][home-dark-screenshot]
