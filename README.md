@@ -2,16 +2,9 @@
 
 ## Download form Microsoft Store
 
-<script type="module" src="https://get.microsoft.com/badge/ms-store-badge.bundled.js"></script>
-<ms-store-badge
-	productid="9N52RL6BKRFX"
-	productname="TodoCat"
-	window-mode="direct"
-	theme="auto"
-	size="large"
-	language="en-us"
-	animation="on">
-</ms-store-badge>
+<a href="https://apps.microsoft.com/detail/9N52RL6BKRFX?referrer=appbadge&mode=direct">
+	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+</a>
 
 ### Desktop
 
