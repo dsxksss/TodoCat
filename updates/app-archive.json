@@ -107,7 +107,7 @@
             "date": "2025-01-20",
             "mandatory": false,
             "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows.msix",
-            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows.exe",
+            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows-setup.exe",
             "platform": "windows"
         }
     ]

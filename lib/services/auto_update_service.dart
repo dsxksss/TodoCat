@@ -349,7 +349,16 @@ class AutoUpdateService {
     
     try {
       // 优先使用EXE格式下载链接，如果没有则使用MSIX格式
-      final downloadUrl = (_currentUpdateInfo!['exeUrl'] as String?) ?? (_currentUpdateInfo!['url'] as String?);
+      String? downloadUrl = (_currentUpdateInfo!['exeUrl'] as String?);
+      final msixUrl = (_currentUpdateInfo!['url'] as String?);
+      
+      _logger.d('更新信息 - exeUrl: $downloadUrl, msixUrl: $msixUrl');
+      
+      if (downloadUrl == null || downloadUrl.isEmpty) {
+        downloadUrl = msixUrl;
+        _logger.d('exeUrl 为空，使用 msixUrl: $downloadUrl');
+      }
+      
       if (downloadUrl == null || downloadUrl.isEmpty) {
         _logger.e('更新 URL 为空');
         onUpdateError?.call('更新 URL 为空');
@@ -380,31 +389,96 @@ class AutoUpdateService {
       _downloadDio!.options.connectTimeout = const Duration(seconds: 30);
       _downloadDio!.options.receiveTimeout = const Duration(hours: 1); // 大文件下载可能需要较长时间
       
-      // 下载文件（带进度回调，节流更新）
-      await _downloadDio!.download(
-        downloadUrl,
-        filePath,
-        cancelToken: _downloadCancelToken,
-        onReceiveProgress: (received, total) {
-          if (total > 0) {
-            final progress = received / total;
-            final now = DateTime.now();
-            
-            // 节流进度更新，避免过于频繁的UI更新
-            if (_lastProgressUpdate == null || 
-                now.difference(_lastProgressUpdate!) >= _progressUpdateInterval ||
-                progress >= 1.0) { // 完成时总是更新
-              _lastProgressUpdate = now;
-              onProgress?.call(progress, 'downloadingUpdate'.tr);
+      // 尝试下载文件（带进度回调，节流更新）
+      try {
+        await _downloadDio!.download(
+          downloadUrl,
+          filePath,
+          cancelToken: _downloadCancelToken,
+          onReceiveProgress: (received, total) {
+            if (total > 0) {
+              final progress = received / total;
+              final now = DateTime.now();
               
-              // 减少日志输出频率（每10%或完成时输出）
-              if (progress >= 1.0 || (progress * 10).floor() != ((progress - 0.01) * 10).floor()) {
-                _logger.d('下载进度: ${(progress * 100).toStringAsFixed(1)}%');
+              // 节流进度更新，避免过于频繁的UI更新
+              if (_lastProgressUpdate == null || 
+                  now.difference(_lastProgressUpdate!) >= _progressUpdateInterval ||
+                  progress >= 1.0) { // 完成时总是更新
+                _lastProgressUpdate = now;
+                onProgress?.call(progress, 'downloadingUpdate'.tr);
+                
+                // 减少日志输出频率（每10%或完成时输出）
+                if (progress >= 1.0 || (progress * 10).floor() != ((progress - 0.01) * 10).floor()) {
+                  _logger.d('下载进度: ${(progress * 100).toStringAsFixed(1)}%');
+                }
               }
             }
+          },
+        );
+      } catch (downloadError) {
+        // 如果下载失败（如 404），且当前使用的是 EXE 链接，尝试回退到 MSIX 链接
+        if (downloadError is DioException) {
+          final statusCode = downloadError.response?.statusCode;
+          _logger.w('下载失败 - 状态码: $statusCode, URL: $downloadUrl');
+          
+          if (statusCode == 404 &&
+              downloadUrl != msixUrl && 
+              msixUrl != null && 
+              msixUrl.isNotEmpty) {
+            _logger.w('EXE 下载链接返回 404，尝试使用 MSIX 链接: $msixUrl');
+            downloadUrl = msixUrl;
+            
+            // 更新文件路径
+            final msixFileName = path.basename(msixUrl);
+            final msixFilePath = path.join(downloadDir.path, msixFileName);
+            
+            try {
+              // 重新下载
+              await _downloadDio!.download(
+                downloadUrl,
+                msixFilePath,
+                cancelToken: _downloadCancelToken,
+                onReceiveProgress: (received, total) {
+                  if (total > 0) {
+                    final progress = received / total;
+                    final now = DateTime.now();
+                    
+                    if (_lastProgressUpdate == null || 
+                        now.difference(_lastProgressUpdate!) >= _progressUpdateInterval ||
+                        progress >= 1.0) {
+                      _lastProgressUpdate = now;
+                      onProgress?.call(progress, 'downloadingUpdate'.tr);
+                      
+                      if (progress >= 1.0 || (progress * 10).floor() != ((progress - 0.01) * 10).floor()) {
+                        _logger.d('下载进度: ${(progress * 100).toStringAsFixed(1)}%');
+                      }
+                    }
+                  }
+                },
+              );
+              
+              // 更新文件路径为 MSIX 文件路径
+              final updatedFilePath = msixFilePath;
+              _logger.d('下载完成: $updatedFilePath');
+              onProgress?.call(1.0, 'installingUpdate'.tr);
+              await _installUpdate(updatedFilePath);
+              onUpdateComplete?.call();
+              return;
+            } catch (msixError) {
+              _logger.e('MSIX 下载也失败: $msixError');
+              // MSIX 也失败，继续抛出错误
+              rethrow;
+            }
+          } else {
+            // 如果不是 404 或没有备用链接，重新抛出错误
+            _logger.e('无法回退到 MSIX 链接，错误: $downloadError');
+            rethrow;
           }
-        },
-      );
+        } else {
+          // 如果不是 DioException，重新抛出错误
+          rethrow;
+        }
+      }
       
       _logger.d('下载完成: $filePath');
       onProgress?.call(1.0, 'installingUpdate'.tr);
