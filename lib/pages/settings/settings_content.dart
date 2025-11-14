@@ -176,43 +176,62 @@ class SettingsContent extends GetView<SettingsController> {
             final progress = controller.updateProgress.value;
             final isDownloading = controller.isDownloading.value;
 
-            // 正在下载时，显示取消按钮或进度
+            // 正在下载时，显示取消按钮或进度（参考 undo 的倒计时样式）
             if (isDownloading && progress > 0.0 && progress < 1.0) {
+              final theme = Get.theme;
+              final isDark = theme.brightness == Brightness.dark;
+              final progressColor = Colors.blueAccent;
+              final backgroundColor =
+                  isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+              final progressBgColor =
+                  isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+              final percentage = (progress * 100).toInt();
+
               return Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // 圆形进度条，中间显示百分比（参考 CountdownCircleProgress 样式）
                   Container(
-                    width: 20,
-                    height: 20,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Get.theme.brightness == Brightness.dark
-                          ? Colors.grey.shade800
-                          : Colors.grey.shade200,
+                      color: backgroundColor,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: TweenAnimationBuilder<double>(
-                        tween: Tween<double>(
-                          begin: 0.0,
-                          end: progress,
-                        ),
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOut,
-                        builder: (context, animatedProgress, child) {
-                          return CircularProgressIndicator(
-                            value: animatedProgress,
-                            strokeWidth: 2,
-                            backgroundColor:
-                                Get.theme.brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Get.theme.primaryColor,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // 圆圈进度条
+                        Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween<double>(
+                              begin: 0.0,
+                              end: progress,
                             ),
-                          );
-                        },
-                      ),
+                            duration: const Duration(milliseconds: 100),
+                            curve: Curves.easeOut,
+                            builder: (context, animatedProgress, child) {
+                              return CircularProgressIndicator(
+                                value: animatedProgress,
+                                strokeWidth: 2.5,
+                                backgroundColor: progressBgColor,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    progressColor),
+                              );
+                            },
+                          ),
+                        ),
+                        // 百分比数字显示在中心
+                        Text(
+                          '$percentage%',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: theme.textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
