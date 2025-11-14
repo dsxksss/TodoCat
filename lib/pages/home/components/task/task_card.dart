@@ -219,13 +219,32 @@ class _TaskCardState extends State<TaskCard> {
                                 onYesCallback: () async {
                                   final bool isDeleted =
                                       await _homeCtrl.deleteTask(widget._task.uuid);
-                                  // 只在删除失败时显示通知，成功时不添加消息到消息中心
+                                  // 只在删除失败时显示通知
                                   if (!isDeleted) {
                                     0.5.delay(() {
                                       showErrorNotification(
                                         "${"task".tr} '${widget._task.title.tr}' ${"deletionFailed".tr}",
                                       );
                                     });
+                                  } else {
+                                    // 删除成功，显示undo toast
+                                    showUndoToast(
+                                      "taskDeleted".tr,
+                                      () async {
+                                        final bool isUndone = await _homeCtrl.undoTask(widget._task.uuid);
+                                        if (isUndone) {
+                                          showSuccessNotification(
+                                            "${"task".tr} '${widget._task.title.tr}' ${"taskRestored".tr}",
+                                            saveToNotificationCenter: false,
+                                          );
+                                        } else {
+                                          showErrorNotification(
+                                            "${"task".tr} '${widget._task.title.tr}' ${"restoreFailed".tr}",
+                                          );
+                                        }
+                                      },
+                                      countdownSeconds: 5,
+                                    );
                                   }
                                 },
                               )
@@ -386,7 +405,7 @@ class _TaskCardState extends State<TaskCard> {
 
     if (showContainer) {
       return Container(
-        width: context.isPhone ? 0.9.sw : 260,
+        width: context.isPhone ? 0.9.sw : 270,
         decoration: BoxDecoration(
           color: context.theme.cardColor,
           borderRadius: BorderRadius.circular(10),
@@ -405,7 +424,7 @@ class _TaskCardState extends State<TaskCard> {
       // showTodos 为 false 时，只返回内容，不包裹 Container
       // Container decoration 由外部的 DragAndDropList 提供
       return SizedBox(
-        width: context.isPhone ? 0.9.sw : 260,
+        width: context.isPhone ? 0.9.sw : 270,
         child: content,
       );
     }

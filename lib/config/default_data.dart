@@ -493,7 +493,7 @@ final defaultAppConfig = AppConfig.create(
   emailReminderEnabled: false,
   isDebugMode: false,
   backgroundImagePath: 'default_template:background_1',
-  backgroundImageOpacity: 0.8,
+  backgroundImageOpacity: 1.0,
   backgroundImageBlur: 0.0,
   backgroundAffectsNavBar: true,
 );

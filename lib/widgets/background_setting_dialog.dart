@@ -51,11 +51,16 @@ class BackgroundSettingDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
+                LabelBtn(
+                  label: Icon(
+                    Icons.close,
+                    size: 20,
+                    color: context.theme.iconTheme.color,
+                  ),
                   onPressed: () =>
                       SmartDialog.dismiss(tag: 'background_setting_dialog'),
-                  color: context.theme.iconTheme.color,
+                  padding: EdgeInsets.zero,
+                  ghostStyle: true,
                 ),
               ],
             ),
@@ -294,7 +299,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.image, size: 18),
+                                const Icon(Icons.image, size: 18, color: Colors.white),
                                 const SizedBox(width: 8),
                                 Flexible(
                                     child: Text(

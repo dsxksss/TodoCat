@@ -110,7 +110,7 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
   void _handleClose() {
     if (controller.hasChanges) {
       showToast(
-        controller.isEditing.value ? "${"saveEditing".tr}?" : "是否保留输入?",
+        controller.isEditing.value ? "${"saveEditing".tr}?" : "keepInput".tr,
         tag: confirmDialogTag,
         alwaysShow: true,
         confirmMode: true,
@@ -232,7 +232,7 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
 
   Widget _buildDialog(BuildContext context) {
     final dialogWidth = context.isPhone ? 1.sw : 430.0;
-    final dialogHeight = context.isPhone ? 0.6.sh : 500.0;
+    final dialogHeight = context.isPhone ? 0.75.sh : 540.0;
     final screenWidth = MediaQuery.of(context).size.width;
     
     // dialog 和预览窗口之间的间距
@@ -519,47 +519,52 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
                       onDeleteTag: controller.removeTag,
                       onAddTagWithColor: controller.addTagWithColor,
                     ),
-                    const SizedBox(height: 5),
-                    // Markdown 工具栏
-                    MarkdownToolbar(
-                      controller: controller.descriptionController,
-                    ),
                   ],
                 ),
               ),
             ),
-                  // Description 输入框 - 占据剩余空间
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        // 计算合适的行数：每行大约 20-25 像素（包括 padding）
-                        const lineHeight = 25.0;
-                        const minLines = 3;
-                        // 计算最大行数，确保不超过可用高度
-                        final calculatedMaxLines = ((constraints.maxHeight / lineHeight).floor()).clamp(minLines, 50);
-                        
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          child: TextFormFieldItem(
-                            textInputAction: null, // 设置为 null 以允许回车键换行
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 10,
-                            ),
-                            maxLength: 400,
-                            minLines: minLines, // 设置最小行数
-                            maxLines: calculatedMaxLines, // 使用计算出的最大行数，避免断行问题
-                            radius: 6,
-                            fieldTitle: "description".tr,
-                            validator: (_) => null,
-                            editingController: controller.descriptionController,
-                            focusNode: _descriptionFocusNode,
-                            onFieldSubmitted: (_) {},
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+            // Markdown 工具栏 - 固定在tag下方，确保始终可见
+            MarkdownToolbar(
+              controller: controller.descriptionController,
+            ),
+            // Description 输入框 - 占据剩余空间
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // 计算合适的行数：每行大约 20-25 像素（包括 padding）
+                    // 减去底部边距15像素
+                    const lineHeight = 25.0;
+                    const minLines = 3;
+                    const bottomPadding = 15.0;
+                    // 计算最大行数，确保填充整个可用高度（减去底部边距）
+                    final availableHeight = constraints.maxHeight - bottomPadding;
+                    final calculatedMaxLines = ((availableHeight / lineHeight).floor()).clamp(minLines, 100);
+                    
+                    return SizedBox(
+                      height: availableHeight,
+                      child: TextFormFieldItem(
+                        textInputAction: null, // 设置为 null 以允许回车键换行
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 10,
+                        ),
+                        maxLength: 400,
+                        minLines: calculatedMaxLines, // 使用计算出的行数确保填充高度
+                        maxLines: calculatedMaxLines, // 使用计算出的最大行数
+                        radius: 6,
+                        fieldTitle: "description".tr,
+                        validator: (_) => null,
+                        editingController: controller.descriptionController,
+                        focusNode: _descriptionFocusNode,
+                        onFieldSubmitted: (_) {},
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
                 ],
               ),
             ),
@@ -607,19 +612,18 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            '预览',
-                            style: TextStyle(
+                          Text(
+                            'preview'.tr,
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 20),
+                          LabelBtn(
+                            label: const Icon(Icons.close, size: 20),
                             onPressed: _closePreview,
-                            tooltip: '关闭预览',
                             padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
+                            ghostStyle: true,
                           ),
                         ],
                       ),
@@ -630,9 +634,11 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
                         physics: const AlwaysScrollableScrollPhysics(
                           parent: BouncingScrollPhysics(),
                         ),
-                        child: ValueListenableBuilder<TextEditingValue>(
-                          valueListenable: controller.descriptionController,
-                          builder: (context, value, child) {
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: controller.descriptionController,
+                            builder: (context, value, child) {
                             // 预处理 markdown 文本：将旧格式的 file:// 路径转换为标准格式
                             String processedText = value.text;
                             if (processedText.contains('file://')) {
@@ -1004,6 +1010,7 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
                               ),
                             );
                           },
+                          ),
                         ),
                       ),
                     ),

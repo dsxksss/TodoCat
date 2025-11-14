@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:TodoCat/services/auto_update_service.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
 
 /// 更新进度对话框组件
 class UpdateProgressDialogWidget extends StatefulWidget {
@@ -97,9 +98,11 @@ class _UpdateProgressDialogWidgetState extends State<UpdateProgressDialogWidget>
                 ),
               ),
               if (!_isDownloading && !_isInstalling && _progress == 0.0)
-                IconButton(
-                  icon: const Icon(Icons.close),
+                LabelBtn(
+                  label: const Icon(Icons.close),
                   onPressed: () => Get.back(),
+                  padding: EdgeInsets.zero,
+                  ghostStyle: true,
                 ),
             ],
           ),

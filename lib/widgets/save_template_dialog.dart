@@ -9,6 +9,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:TodoCat/widgets/label_btn.dart';
 import 'package:TodoCat/services/dialog_service.dart';
 import 'package:TodoCat/keys/dialog_keys.dart';
+import 'package:TodoCat/pages/home/components/text_form_field_item.dart';
 
 /// 保存为模板对话框
 class SaveTemplateDialog extends StatefulWidget {
@@ -126,9 +127,11 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
+                  LabelBtn(
+                    label: const Icon(Icons.close, size: 20),
                     onPressed: () => SmartDialog.dismiss(tag: saveTemplateDialogTag),
+                    padding: EdgeInsets.zero,
+                    ghostStyle: true,
                   ),
                 ],
               ),
@@ -141,68 +144,33 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 模板名称
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'templateName'.tr,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            hintText: 'enterTemplateName'.tr,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'templateNameRequired'.tr;
-                            }
-                            return null;
-                          },
-                          enabled: !_isSaving,
-                        ),
-                      ],
+                    TextFormFieldItem(
+                      textInputAction: TextInputAction.next,
+                      maxLength: 50,
+                      maxLines: 1,
+                      radius: 6,
+                      fieldTitle: 'enterTemplateName'.tr,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'templateNameRequired'.tr;
+                        }
+                        return null;
+                      },
+                      editingController: _nameController,
+                      onFieldSubmitted: (_) {},
                     ),
                     const SizedBox(height: 20),
                     // 模板描述（可选）
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'description'.tr,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _descriptionController,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            hintText: 'optional'.tr,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                          ),
-                          enabled: !_isSaving,
-                        ),
-                      ],
+                    TextFormFieldItem(
+                      textInputAction: TextInputAction.done,
+                      maxLength: 200,
+                      maxLines: 3,
+                      minLines: 3,
+                      radius: 6,
+                      fieldTitle: 'description'.tr,
+                      validator: (_) => null,
+                      editingController: _descriptionController,
+                      onFieldSubmitted: (_) {},
                     ),
                     const SizedBox(height: 20),
                     // 任务列表预览

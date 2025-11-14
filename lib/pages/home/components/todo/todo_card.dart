@@ -35,6 +35,20 @@ class TodoCard extends StatelessWidget {
     return todo.title;
   }
 
+  /// 格式化日期时间（不显示年份）
+  String _formatDateTimeWithoutYear(int timestamp) {
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final now = DateTime.now();
+    
+    // 如果是今年，不显示年份
+    if (dateTime.year == now.year) {
+      return '${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } else {
+      // 如果不是今年，显示年份（但这种情况应该很少）
+      return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+  }
+
   Color _getPriorityColor() {
     switch (todo.priority) {
       case TodoPriority.lowLevel:
@@ -71,7 +85,7 @@ class TodoCard extends StatelessWidget {
 
   String _getStatusText() {
     if (_isOverdue()) {
-      return "已过期";
+      return "overdue".tr;
     }
     switch (todo.status) {
       case TodoStatus.todo:
@@ -213,13 +227,32 @@ class TodoCard extends StatelessWidget {
                               toastStyleType: TodoCatToastStyleType.error,
                               onYesCallback: () async {
                                 final bool isDeleted = await _handleDelete();
-                                // 只在删除失败时显示通知，成功时不添加消息到消息中心
+                                // 只在删除失败时显示通知
                                 if (!isDeleted) {
                                   0.5.delay(() {
                                     showErrorNotification(
                                       "${"todo".tr} '${todo.title}' ${"deletionFailed".tr}",
                                     );
                                   });
+                                } else {
+                                  // 删除成功，显示undo toast
+                                  showUndoToast(
+                                    "todoDeleted".tr,
+                                    () async {
+                                      final bool isUndone = await _homeCtrl.undoTodo(taskId, todo.uuid);
+                                      if (isUndone) {
+                                        showSuccessNotification(
+                                          "${"todo".tr} '${todo.title}' ${"todoRestored".tr}",
+                                          saveToNotificationCenter: false,
+                                        );
+                                      } else {
+                                        showErrorNotification(
+                                          "${"todo".tr} '${todo.title}' ${"restoreFailed".tr}",
+                                        );
+                                      }
+                                    },
+                                    countdownSeconds: 5,
+                                  );
                                 }
                               },
                             )
@@ -304,14 +337,18 @@ class TodoCard extends StatelessWidget {
                             width: 3,
                           ),
                           Flexible(
-                            child: Text(
-                              timestampToDateTime(todo.createdAt),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.bold,
+                            child: Tooltip(
+                              message: timestampToDateTime(todo.createdAt),
+                              preferBelow: false,
+                              child: Text(
+                                _formatDateTimeWithoutYear(todo.createdAt),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),

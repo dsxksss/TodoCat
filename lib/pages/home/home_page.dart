@@ -460,7 +460,7 @@ class HomePage extends GetView<HomeController> {
 
   /// 构建标题
   String _buildTitle(BuildContext context) {
-    return "myTasks".tr;
+    return "todoCat".tr;
   }
 
   /// 构建左侧控件列表
@@ -858,7 +858,7 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
             // 使用 AppFlowyBoard 的拖拽逻辑，保持原 Task/Todo UI
             return AppFlowyTodosBoard(
               tasks: widget.tasks,
-              listWidth: context.isPhone ? 0.9.sw : 260.0,
+              listWidth: context.isPhone ? 0.9.sw : 270.0,
             );
           }),
         ),

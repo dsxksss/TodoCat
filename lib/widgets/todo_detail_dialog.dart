@@ -123,11 +123,13 @@ class TodoDetailDialog extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
+                  LabelBtn(
+                    label: const Icon(Icons.close, size: 20),
                     onPressed: () {
                       SmartDialog.dismiss(tag: _dialogTag);
                     },
+                    padding: EdgeInsets.zero,
+                    ghostStyle: true,
                   ),
                 ],
               ),

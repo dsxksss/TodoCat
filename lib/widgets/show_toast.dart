@@ -10,6 +10,7 @@ import 'package:TodoCat/core/notification_stack_manager.dart';
 import 'package:TodoCat/core/notification_center_manager.dart';
 import 'package:TodoCat/data/schemas/notification_history.dart';
 import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:TodoCat/widgets/countdown_circle_progress.dart';
 
 /// Toast 样式类型枚举
 enum TodoCatToastStyleType {
@@ -237,7 +238,7 @@ void showToast(
   
   SmartDialog.show(
     displayTime: isBottomLeft 
-        ? (displayTime ?? 2500.ms) // 左下角通知显示时间稍短
+        ? (displayTime ?? 5000.ms) // 左下角通知默认5秒自动消失
         : (alwaysShow ? const Duration(days: 365) : displayTime ?? 3000.ms),
     animationTime: isBottomLeft 
         ? (animationTime ?? 400.ms) // 左下角动画更快
@@ -366,7 +367,12 @@ void showToast(
                       child: Row(
                         children: [
                           LabelBtn(
-                            label: Text("yes".tr),
+                            label: Text(
+                              "yes".tr,
+                              style: const TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
                             onPressed: () {
                               if (onYesCallback != null) {
                                 SmartDialog.dismiss(tag: tag);
@@ -413,7 +419,7 @@ void _showStackedNotification(
   if (notification == null) return;
   
   SmartDialog.show(
-    displayTime: null, // 移除自动显示时间，通知不会自动消失
+    displayTime: displayTime, // 使用传入的显示时间，默认5秒自动消失
     animationTime: 400.ms,
     tag: 'notification_$notificationId',
     useSystem: false, // 确保显示在最高层
@@ -476,7 +482,7 @@ void showNotification(
     }
   }
   
-  final duration = displayTime ?? const Duration(milliseconds: 2500);
+  final duration = displayTime ?? const Duration(milliseconds: 5000);
   
   // 将通知添加到栈中
   final notificationId = stackManager.addNotification(
@@ -556,4 +562,134 @@ void showErrorNotification(String message) {
 /// 信息通知默认保存到通知中心
 void showInfoNotification(String message) {
   showNotification(message, type: TodoCatToastStyleType.info, saveToNotificationCenter: true);
+}
+
+/// 显示带倒计时的撤销确认toast（左下角）
+/// [message] 提示消息
+/// [onUndo] 撤销回调
+/// [countdownSeconds] 倒计时秒数，默认5秒
+void showUndoToast(
+  String message,
+  VoidCallback onUndo, {
+  int countdownSeconds = 5,
+}) {
+  final stackManager = NotificationStackManager.instance;
+  final duration = Duration(seconds: countdownSeconds);
+  final notificationId = stackManager.addNotification(
+    message: message,
+    type: NotificationType.info,
+    displayDuration: duration,
+  );
+  
+  // 倒计时完成回调
+  void onCountdownComplete() {
+    // 倒计时结束，关闭toast
+    stackManager.removeNotification(notificationId, withAnimation: true);
+  }
+  
+  // 显示通知
+  SmartDialog.show(
+    displayTime: duration,
+    animationTime: 400.ms,
+    tag: 'undo_toast_$notificationId',
+    useSystem: false,
+    keepSingle: false,
+    alignment: Alignment.bottomLeft,
+    maskColor: Colors.transparent,
+    maskWidget: Container(),
+    clickMaskDismiss: false,
+    backType: SmartBackType.normal,
+    animationBuilder: (controller, child, _) => child.animate(
+      controller: controller,
+      effects: _getBottomLeftAnimationEffect(controller),
+    ),
+    builder: (context) => Obx(() {
+      final notification = stackManager.getNotification(notificationId);
+      if (notification == null) return const SizedBox.shrink();
+      
+      return Container(
+        margin: EdgeInsets.only(bottom: notification.currentBottomOffset.value),
+        child: Container(
+          constraints: const BoxConstraints(
+            maxWidth: 340,
+            minWidth: 260,
+            minHeight: 60,
+          ),
+          margin: const EdgeInsets.only(left: 20, bottom: 10),
+          decoration: BoxDecoration(
+            color: context.theme.dialogTheme.backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.blueAccent.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // 图标
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blueAccent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: const Icon(
+                    FontAwesomeIcons.circleInfo,
+                    color: Colors.blueAccent,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                // 消息内容
+                Expanded(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: context.theme.textTheme.bodyLarge?.color,
+                      height: 1.3,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // 撤销按钮（使用LabelBtn，倒计时圆圈在文字前面）
+                LabelBtn(
+                  label: Text(
+                    'undo'.tr,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                  icon: CountdownCircleProgress(
+                    totalSeconds: countdownSeconds,
+                    onComplete: onCountdownComplete,
+                    size: 20.0,
+                    progressColor: Colors.blueAccent,
+                  ),
+                  reverse: true, // 将icon放在label前面
+                  interval: 8,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.blueAccent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  onPressed: () {
+                    stackManager.removeNotification(notificationId, withAnimation: true);
+                    onUndo();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }),
+  );
 }

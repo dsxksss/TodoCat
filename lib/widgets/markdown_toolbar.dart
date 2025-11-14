@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:get/get.dart';
 
 /// Markdown 工具栏组件
 /// 提供常用的 Markdown 语法快捷插入功能
@@ -118,7 +119,7 @@ class MarkdownToolbar extends StatelessWidget {
       // 这里我们不做任何操作，让用户手动输入
     } catch (e) {
       // 如果选择失败，插入网络图片占位符
-      _wrapText('![', '](图片URL)');
+      _wrapText('![', '](${"imageUrl".tr})');
     }
   }
 
@@ -128,12 +129,6 @@ class MarkdownToolbar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).dividerColor,
-            width: 0.5,
-          ),
-        ),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -142,73 +137,67 @@ class MarkdownToolbar extends StatelessWidget {
           children: [
             _buildToolbarButton(
               icon: FontAwesomeIcons.bold,
-              tooltip: '粗体',
+              tooltip: 'markdownBold'.tr,
               onPressed: () => _wrapText('**', '**'),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.italic,
-              tooltip: '斜体',
+              tooltip: 'markdownItalic'.tr,
               onPressed: () => _wrapText('*', '*'),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.strikethrough,
-              tooltip: '删除线',
+              tooltip: 'markdownStrikethrough'.tr,
               onPressed: () => _wrapText('~~', '~~'),
             ),
             const SizedBox(width: 8),
             _buildToolbarButton(
               icon: FontAwesomeIcons.heading,
-              tooltip: '标题',
+              tooltip: 'markdownHeading'.tr,
               onPressed: () => _insertText('# '),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.list,
-              tooltip: '无序列表',
+              tooltip: 'markdownUnorderedList'.tr,
               onPressed: () => _insertText('- '),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.listOl,
-              tooltip: '有序列表',
+              tooltip: 'markdownOrderedList'.tr,
               onPressed: () => _insertText('1. '),
             ),
             const SizedBox(width: 8),
             _buildToolbarButton(
               icon: FontAwesomeIcons.link,
-              tooltip: '链接',
+              tooltip: 'markdownLink'.tr,
               onPressed: () => _wrapText('[', '](url)'),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.image,
-              tooltip: '图片',
+              tooltip: 'markdownImage'.tr,
               onPressed: () => _insertImage(),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.code,
-              tooltip: '行内代码',
-              onPressed: () => _wrapText('`', '`'),
-            ),
-            const SizedBox(width: 4),
-            _buildToolbarButton(
-              icon: FontAwesomeIcons.code,
-              tooltip: '代码块',
+              tooltip: 'markdownCodeBlock'.tr,
               onPressed: () => _insertText('```\n\n```'),
             ),
             const SizedBox(width: 8),
             _buildToolbarButton(
               icon: FontAwesomeIcons.quoteLeft,
-              tooltip: '引用',
+              tooltip: 'markdownQuote'.tr,
               onPressed: () => _insertText('> '),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.minus,
-              tooltip: '分隔线',
+              tooltip: 'markdownSeparator'.tr,
               onPressed: () => _insertText('\n---\n'),
             ),
           ],

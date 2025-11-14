@@ -7,6 +7,7 @@ import 'package:TodoCat/controllers/data_export_import_ctr.dart';
 import 'package:TodoCat/controllers/home_ctr.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:TodoCat/widgets/background_setting_dialog.dart';
+import 'package:TodoCat/widgets/data_import_export_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class SettingsContent extends GetView<SettingsController> {
@@ -46,11 +47,19 @@ class SettingsContent extends GetView<SettingsController> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Obx(() => Text(
-                    'v${controller.appVersion.value}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontSize: 12,
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: .6),
+                  Obx(() => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'v${controller.appVersion.value}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   )),
                 ],
@@ -160,17 +169,31 @@ class SettingsContent extends GetView<SettingsController> {
                     height: 20,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.grey.shade200,
+                      color: Get.theme.brightness == Brightness.dark
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade200,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(2.0),
-                      child: CircularProgressIndicator(
-                        value: progress,
-                        strokeWidth: 2,
-                        backgroundColor: Colors.grey.shade300,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Get.theme.primaryColor,
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(
+                          begin: 0.0,
+                          end: progress,
                         ),
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                        builder: (context, animatedProgress, child) {
+                          return CircularProgressIndicator(
+                            value: animatedProgress,
+                            strokeWidth: 2,
+                            backgroundColor: Get.theme.brightness == Brightness.dark
+                                ? Colors.grey.shade700
+                                : Colors.grey.shade300,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Get.theme.primaryColor,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -212,11 +235,7 @@ class SettingsContent extends GetView<SettingsController> {
             return const Icon(Icons.chevron_right);
           }),
         ),
-      SettingsTile(
-        onPressed: (_) => _showResetSettingsToast(),
-        leading: const Icon(Icons.restart_alt_rounded),
-        title: Text('resetSettings'.tr),
-      ),
+      // 重置设置选项移到数据管理部分
       SettingsTile(
         onPressed: (_) => controller.resetTasksTemplate(),
         leading: const Icon(Icons.featured_play_list_outlined),
@@ -307,45 +326,20 @@ class SettingsContent extends GetView<SettingsController> {
   /// 构建数据管理的设置项
   List<SettingsTile> _buildDataManagementTiles(BuildContext context) {
     return [
-      // 导出数据
+      // 数据导入导出（合并为一个选项）
       SettingsTile(
-        leading: const Icon(Icons.upload_rounded),
-        title: Text('exportData'.tr),
-        description: Obx(() {
-          final preview = dataController.exportPreview.value;
-          if (preview != null) {
-            return Text('${'tasks'.tr}: ${preview['tasksCount']}, Todo: ${preview['todosCount']}');
-          }
-          return Text('exportDataDescription'.tr);
-        }),
-        trailing: Obx(() {
-          if (dataController.isExporting.value) {
-            return const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            );
-          }
-          return const Icon(Icons.chevron_right);
-        }),
-        onPressed: (_) => _handleExportData(),
+        leading: const Icon(Icons.import_export),
+        title: Text('dataImportExport'.tr),
+        description: Text('dataImportExportDescription'.tr),
+        trailing: const Icon(Icons.chevron_right),
+        onPressed: (_) => _showDataImportExportDialog(),
       ),
-      // 导入数据
+      // 重置设置（红色，放在清除所有数据上面）
       SettingsTile(
-        leading: const Icon(Icons.download_rounded),
-        title: Text('importData'.tr),
-        description: Text('importDataDescription'.tr),
-        trailing: Obx(() {
-          if (dataController.isImporting.value) {
-            return const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            );
-          }
-          return const Icon(Icons.chevron_right);
-        }),
-        onPressed: (_) => _handleImportData(),
+        leading: const Icon(Icons.restart_alt_rounded, color: Colors.red),
+        title: Text('resetSettings'.tr, style: const TextStyle(color: Colors.red)),
+        description: Text('resetSettingsDescription'.tr),
+        onPressed: (_) => _showResetSettingsToast(),
       ),
       // 清除所有数据
       SettingsTile(
@@ -357,18 +351,27 @@ class SettingsContent extends GetView<SettingsController> {
     ];
   }
 
-  /// 处理导出数据
-  void _handleExportData() async {
-    if (!dataController.isExporting.value) {
-      await dataController.exportData();
-    }
-  }
-
-  /// 处理导入数据
-  void _handleImportData() async {
-    if (!dataController.isImporting.value) {
-      await dataController.importData();
-    }
+  /// 显示数据导入导出对话框
+  void _showDataImportExportDialog() {
+    SmartDialog.show(
+      tag: 'data_import_export_dialog',
+      alignment: Alignment.center,
+      maskColor: Colors.black.withValues(alpha:0.3),
+      clickMaskDismiss: true,
+      useAnimation: true,
+      animationTime: const Duration(milliseconds: 200),
+      builder: (_) => const DataImportExportDialog(),
+      animationBuilder: (controller, child, _) {
+        return child
+            .animate(controller: controller)
+            .fade(duration: controller.duration)
+            .scaleXY(
+              begin: 0.95,
+              duration: controller.duration,
+              curve: Curves.easeOut,
+            );
+      },
+    );
   }
 
   /// 显示背景图片对话框

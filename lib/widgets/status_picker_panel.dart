@@ -128,15 +128,15 @@ class StatusPickerPanel extends StatelessWidget {
                     color: context.theme.textTheme.bodyLarge?.color,
                   ),
                 ),
-                IconButton(
-                  onPressed: () => SmartDialog.dismiss(),
-                  icon: Icon(
+                LabelBtn(
+                  label: Icon(
                     Icons.close,
                     size: 20,
                     color: context.theme.textTheme.bodyMedium?.color,
                   ),
+                  onPressed: () => SmartDialog.dismiss(),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  ghostStyle: true,
                 ),
               ],
             ),

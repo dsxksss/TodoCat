@@ -167,11 +167,21 @@ class HomeController extends GetxController
 
   Future<bool> deleteTask(String uuid) async {
     try {
-      final task = _taskManager.tasks.firstWhere((task) => task.uuid == uuid);
-      _cleanupTaskNotifications(task);
-      await _taskManager.removeTask(uuid);
+      final taskIndex = _taskManager.tasks.indexWhere((task) => task.uuid == uuid);
+      if (taskIndex == -1) {
+        _logger.w('Task $uuid not found');
+        return false;
+      }
       
-      // removeTask 已经会自动刷新UI，无需额外调用 refresh()
+      final task = _taskManager.tasks[taskIndex];
+      _cleanupTaskNotifications(task);
+      
+      // 使用repository.delete标记task和所有todos为已删除
+      await _taskManager.repository.delete(uuid);
+      
+      // 从内存中移除（因为已标记为删除，readAll不会读取）
+      _taskManager.tasks.removeAt(taskIndex);
+      _taskManager.tasks.refresh();
       
       // 刷新导出预览数据
       _refreshExportPreview();
@@ -180,6 +190,50 @@ class HomeController extends GetxController
       return true;
     } catch (e) {
       _logger.e('Error deleting task: $e');
+      return false;
+    }
+  }
+
+  /// 恢复已删除的task（撤销删除）
+  Future<bool> undoTask(String uuid) async {
+    try {
+      _logger.d('Undoing task deletion: $uuid');
+
+      // 从数据库读取task（包括已删除的）
+      final task = await _taskManager.repository.readOne(uuid);
+      if (task == null) {
+        _logger.w('Task $uuid not found in database');
+        return false;
+      }
+
+      // 恢复task（将deletedAt设置为0）
+      task.deletedAt = 0;
+      
+      // 恢复所有相关的todos
+      if (task.todos != null && task.todos!.isNotEmpty) {
+        final newTodos = List<Todo>.from(task.todos!);
+        for (var todo in newTodos) {
+          todo.deletedAt = 0;
+        }
+        task.todos = newTodos;
+      }
+      
+      // 保存到数据库
+      await _taskManager.repository.update(uuid, task);
+      
+      // 重新加载所有任务（包括恢复的task）
+      await _taskManager.refresh();
+      
+      // 刷新导出预览数据
+      _refreshExportPreview();
+      
+      // 刷新回收站数据，更新badge
+      _refreshTrash();
+
+      _logger.d('Task undo successfully and UI refreshed');
+      return true;
+    } catch (e) {
+      _logger.e('Error undoing task: $e');
       return false;
     }
   }
@@ -297,6 +351,84 @@ class HomeController extends GetxController
       return true;
     } catch (e) {
       _logger.e('Error deleting todo: $e');
+      return false;
+    }
+  }
+
+  /// 恢复已删除的todo（撤销删除）
+  Future<bool> undoTodo(String taskUuid, String todoUuid) async {
+    if (!(await _taskManager.has(taskUuid))) {
+      _logger.w('Task $taskUuid not found for todo undo');
+      return false;
+    }
+
+    try {
+      _logger.d('Undoing todo deletion: $todoUuid from task $taskUuid');
+
+      final taskIndex = _taskManager.tasks.indexWhere((t) => t.uuid == taskUuid);
+      if (taskIndex == -1) {
+        _logger.w('Task $taskUuid not found');
+        return false;
+      }
+      
+      final task = _taskManager.tasks[taskIndex];
+
+      if (task.todos == null || task.todos!.isEmpty) {
+        _logger.w('Task todos is null or empty');
+        return false;
+      }
+
+      // 找到要恢复的todo
+      final todoIndex = task.todos!.indexWhere((todo) => todo.uuid == todoUuid);
+      if (todoIndex == -1) {
+        _logger.w('Todo $todoUuid not found in task');
+        return false;
+      }
+
+      // 恢复todo（将deletedAt设置为0）
+      final newTodos = List<Todo>.from(task.todos!);
+      final updatedTodo = newTodos[todoIndex];
+      updatedTodo.deletedAt = 0;
+      task.todos = newTodos;
+      
+      // 保存到数据库
+      await _taskManager.repository.update(taskUuid, task);
+      
+      // 触发内存更新
+      final updatedTask = Task()
+        ..uuid = task.uuid
+        ..title = task.title
+        ..description = task.description
+        ..createdAt = task.createdAt
+        ..order = task.order
+        ..deletedAt = task.deletedAt
+        ..tagsWithColor = task.tagsWithColor
+        ..status = task.status
+        ..progress = task.progress
+        ..reminders = task.reminders
+        ..todos = task.todos;
+      
+      _taskManager.tasks[taskIndex] = updatedTask;
+      
+      // 延迟刷新UI
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_taskManager.tasks.isNotEmpty || _taskManager.tasks.isEmpty) {
+            _taskManager.tasks.refresh();
+          }
+        });
+      });
+
+      // 刷新导出预览数据
+      _refreshExportPreview();
+      
+      // 刷新回收站数据，更新badge
+      _refreshTrash();
+
+      _logger.d('Todo undo successfully and UI refreshed');
+      return true;
+    } catch (e) {
+      _logger.e('Error undoing todo: $e');
       return false;
     }
   }
