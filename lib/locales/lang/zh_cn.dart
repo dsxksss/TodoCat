@@ -214,6 +214,7 @@ const Map<String, String> zhCN = {
   'tasks': '任务',
   'saving': '保存中',
   'save': '保存',
+  'creating': '创建中',
   'noTasksToSave': '没有可保存的任务',
   'saveCurrentAsTemplate': '保存当前任务为模板',
   'saveCurrentAsTemplateDescription': '将当前所有任务保存为自定义模板',
@@ -345,4 +346,12 @@ const Map<String, String> zhCN = {
   'keepInput': '是否保留输入?',
   'preview': '预览',
   'closePreview': '关闭预览',
+  // 工作空间
+  'workspace': '工作空间',
+  'workspaceName': '工作空间名称',
+  'createWorkspace': '创建工作空间',
+  'enterWorkspaceName': '请输入工作空间名称',
+  'workspaceNameRequired': '工作空间名称不能为空',
+  'workspaceCreated': '工作空间创建成功',
+  'workspaceCreateFailed': '工作空间创建失败',
 };

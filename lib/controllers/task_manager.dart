@@ -45,11 +45,11 @@ class TaskManager {
     }
   }
 
-  /// 刷新任务列表的UI并保存到存储
-  Future<void> refresh() async {
+  /// 刷新任务列表的UI并保存到存储（可选的按工作空间过滤）
+  Future<void> refresh({String? workspaceId}) async {
     try {
-      _logger.d('Refreshing tasks');
-      final localTasks = await repository.readAll();
+      _logger.d('Refreshing tasks${workspaceId != null ? " for workspace: $workspaceId" : ""}');
+      final localTasks = await repository.readAll(workspaceId: workspaceId);
 
       // 去重复处理，确保任务唯一性
       final uniqueTasks = _removeDuplicateTasks(localTasks);

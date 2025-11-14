@@ -3,6 +3,334 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class $WorkspacesTable extends Workspaces
+    with TableInfo<$WorkspacesTable, Workspace> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WorkspacesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+      'uuid', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 255),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name =
+      GeneratedColumn<String>('name', aliasedName, false,
+          additionalChecks: GeneratedColumn.checkTextLength(
+            minTextLength: 1,
+          ),
+          type: DriftSqlType.string,
+          requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _orderMeta = const VerificationMeta('order');
+  @override
+  late final GeneratedColumn<int> order = GeneratedColumn<int>(
+      'order', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<int> deletedAt = GeneratedColumn<int>(
+      'deleted_at', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, uuid, name, createdAt, order, deletedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'workspaces';
+  @override
+  VerificationContext validateIntegrity(Insertable<Workspace> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('uuid')) {
+      context.handle(
+          _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('order')) {
+      context.handle(
+          _orderMeta, order.isAcceptableOrUnknown(data['order']!, _orderMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Workspace map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Workspace(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      uuid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+      order: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}order'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}deleted_at'])!,
+    );
+  }
+
+  @override
+  $WorkspacesTable createAlias(String alias) {
+    return $WorkspacesTable(attachedDatabase, alias);
+  }
+}
+
+class Workspace extends DataClass implements Insertable<Workspace> {
+  final int id;
+  final String uuid;
+  final String name;
+  final int createdAt;
+  final int order;
+  final int deletedAt;
+  const Workspace(
+      {required this.id,
+      required this.uuid,
+      required this.name,
+      required this.createdAt,
+      required this.order,
+      required this.deletedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['uuid'] = Variable<String>(uuid);
+    map['name'] = Variable<String>(name);
+    map['created_at'] = Variable<int>(createdAt);
+    map['order'] = Variable<int>(order);
+    map['deleted_at'] = Variable<int>(deletedAt);
+    return map;
+  }
+
+  WorkspacesCompanion toCompanion(bool nullToAbsent) {
+    return WorkspacesCompanion(
+      id: Value(id),
+      uuid: Value(uuid),
+      name: Value(name),
+      createdAt: Value(createdAt),
+      order: Value(order),
+      deletedAt: Value(deletedAt),
+    );
+  }
+
+  factory Workspace.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Workspace(
+      id: serializer.fromJson<int>(json['id']),
+      uuid: serializer.fromJson<String>(json['uuid']),
+      name: serializer.fromJson<String>(json['name']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      order: serializer.fromJson<int>(json['order']),
+      deletedAt: serializer.fromJson<int>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'uuid': serializer.toJson<String>(uuid),
+      'name': serializer.toJson<String>(name),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'order': serializer.toJson<int>(order),
+      'deletedAt': serializer.toJson<int>(deletedAt),
+    };
+  }
+
+  Workspace copyWith(
+          {int? id,
+          String? uuid,
+          String? name,
+          int? createdAt,
+          int? order,
+          int? deletedAt}) =>
+      Workspace(
+        id: id ?? this.id,
+        uuid: uuid ?? this.uuid,
+        name: name ?? this.name,
+        createdAt: createdAt ?? this.createdAt,
+        order: order ?? this.order,
+        deletedAt: deletedAt ?? this.deletedAt,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('Workspace(')
+          ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('order: $order, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, uuid, name, createdAt, order, deletedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Workspace &&
+          other.id == this.id &&
+          other.uuid == this.uuid &&
+          other.name == this.name &&
+          other.createdAt == this.createdAt &&
+          other.order == this.order &&
+          other.deletedAt == this.deletedAt);
+}
+
+class WorkspacesCompanion extends UpdateCompanion<Workspace> {
+  final Value<int> id;
+  final Value<String> uuid;
+  final Value<String> name;
+  final Value<int> createdAt;
+  final Value<int> order;
+  final Value<int> deletedAt;
+  const WorkspacesCompanion({
+    this.id = const Value.absent(),
+    this.uuid = const Value.absent(),
+    this.name = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.order = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  });
+  WorkspacesCompanion.insert({
+    this.id = const Value.absent(),
+    required String uuid,
+    required String name,
+    required int createdAt,
+    this.order = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  })  : uuid = Value(uuid),
+        name = Value(name),
+        createdAt = Value(createdAt);
+  static Insertable<Workspace> custom({
+    Expression<int>? id,
+    Expression<String>? uuid,
+    Expression<String>? name,
+    Expression<int>? createdAt,
+    Expression<int>? order,
+    Expression<int>? deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (uuid != null) 'uuid': uuid,
+      if (name != null) 'name': name,
+      if (createdAt != null) 'created_at': createdAt,
+      if (order != null) 'order': order,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+    });
+  }
+
+  WorkspacesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? uuid,
+      Value<String>? name,
+      Value<int>? createdAt,
+      Value<int>? order,
+      Value<int>? deletedAt}) {
+    return WorkspacesCompanion(
+      id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+      order: order ?? this.order,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (order.present) {
+      map['order'] = Variable<int>(order.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<int>(deletedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WorkspacesCompanion(')
+          ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('order: $order, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -26,6 +354,16 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _workspaceIdMeta =
+      const VerificationMeta('workspaceId');
+  @override
+  late final GeneratedColumn<String> workspaceId = GeneratedColumn<String>(
+      'workspace_id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 255),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('default'));
   static const VerificationMeta _orderMeta = const VerificationMeta('order');
   @override
   late final GeneratedColumn<int> order = GeneratedColumn<int>(
@@ -114,6 +452,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   List<GeneratedColumn> get $columns => [
         id,
         uuid,
+        workspaceId,
         order,
         title,
         createdAt,
@@ -144,6 +483,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           _uuidMeta, uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta));
     } else if (isInserting) {
       context.missing(_uuidMeta);
+    }
+    if (data.containsKey('workspace_id')) {
+      context.handle(
+          _workspaceIdMeta,
+          workspaceId.isAcceptableOrUnknown(
+              data['workspace_id']!, _workspaceIdMeta));
     }
     if (data.containsKey('order')) {
       context.handle(
@@ -213,6 +558,8 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       uuid: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}uuid'])!,
+      workspaceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}workspace_id'])!,
       order: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}order'])!,
       title: attachedDatabase.typeMapping
@@ -248,6 +595,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
 class Task extends DataClass implements Insertable<Task> {
   final int id;
   final String uuid;
+  final String workspaceId;
   final int order;
   final String title;
   final int createdAt;
@@ -262,6 +610,7 @@ class Task extends DataClass implements Insertable<Task> {
   const Task(
       {required this.id,
       required this.uuid,
+      required this.workspaceId,
       required this.order,
       required this.title,
       required this.createdAt,
@@ -278,6 +627,7 @@ class Task extends DataClass implements Insertable<Task> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['uuid'] = Variable<String>(uuid);
+    map['workspace_id'] = Variable<String>(workspaceId);
     map['order'] = Variable<int>(order);
     map['title'] = Variable<String>(title);
     map['created_at'] = Variable<int>(createdAt);
@@ -297,6 +647,7 @@ class Task extends DataClass implements Insertable<Task> {
     return TasksCompanion(
       id: Value(id),
       uuid: Value(uuid),
+      workspaceId: Value(workspaceId),
       order: Value(order),
       title: Value(title),
       createdAt: Value(createdAt),
@@ -317,6 +668,7 @@ class Task extends DataClass implements Insertable<Task> {
     return Task(
       id: serializer.fromJson<int>(json['id']),
       uuid: serializer.fromJson<String>(json['uuid']),
+      workspaceId: serializer.fromJson<String>(json['workspaceId']),
       order: serializer.fromJson<int>(json['order']),
       title: serializer.fromJson<String>(json['title']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
@@ -337,6 +689,7 @@ class Task extends DataClass implements Insertable<Task> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'uuid': serializer.toJson<String>(uuid),
+      'workspaceId': serializer.toJson<String>(workspaceId),
       'order': serializer.toJson<int>(order),
       'title': serializer.toJson<String>(title),
       'createdAt': serializer.toJson<int>(createdAt),
@@ -355,6 +708,7 @@ class Task extends DataClass implements Insertable<Task> {
   Task copyWith(
           {int? id,
           String? uuid,
+          String? workspaceId,
           int? order,
           String? title,
           int? createdAt,
@@ -369,6 +723,7 @@ class Task extends DataClass implements Insertable<Task> {
       Task(
         id: id ?? this.id,
         uuid: uuid ?? this.uuid,
+        workspaceId: workspaceId ?? this.workspaceId,
         order: order ?? this.order,
         title: title ?? this.title,
         createdAt: createdAt ?? this.createdAt,
@@ -387,6 +742,7 @@ class Task extends DataClass implements Insertable<Task> {
     return (StringBuffer('Task(')
           ..write('id: $id, ')
           ..write('uuid: $uuid, ')
+          ..write('workspaceId: $workspaceId, ')
           ..write('order: $order, ')
           ..write('title: $title, ')
           ..write('createdAt: $createdAt, ')
@@ -406,6 +762,7 @@ class Task extends DataClass implements Insertable<Task> {
   int get hashCode => Object.hash(
       id,
       uuid,
+      workspaceId,
       order,
       title,
       createdAt,
@@ -423,6 +780,7 @@ class Task extends DataClass implements Insertable<Task> {
       (other is Task &&
           other.id == this.id &&
           other.uuid == this.uuid &&
+          other.workspaceId == this.workspaceId &&
           other.order == this.order &&
           other.title == this.title &&
           other.createdAt == this.createdAt &&
@@ -439,6 +797,7 @@ class Task extends DataClass implements Insertable<Task> {
 class TasksCompanion extends UpdateCompanion<Task> {
   final Value<int> id;
   final Value<String> uuid;
+  final Value<String> workspaceId;
   final Value<int> order;
   final Value<String> title;
   final Value<int> createdAt;
@@ -453,6 +812,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   const TasksCompanion({
     this.id = const Value.absent(),
     this.uuid = const Value.absent(),
+    this.workspaceId = const Value.absent(),
     this.order = const Value.absent(),
     this.title = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -468,6 +828,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   TasksCompanion.insert({
     this.id = const Value.absent(),
     required String uuid,
+    this.workspaceId = const Value.absent(),
     this.order = const Value.absent(),
     required String title,
     required int createdAt,
@@ -485,6 +846,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   static Insertable<Task> custom({
     Expression<int>? id,
     Expression<String>? uuid,
+    Expression<String>? workspaceId,
     Expression<int>? order,
     Expression<String>? title,
     Expression<int>? createdAt,
@@ -500,6 +862,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (uuid != null) 'uuid': uuid,
+      if (workspaceId != null) 'workspace_id': workspaceId,
       if (order != null) 'order': order,
       if (title != null) 'title': title,
       if (createdAt != null) 'created_at': createdAt,
@@ -518,6 +881,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   TasksCompanion copyWith(
       {Value<int>? id,
       Value<String>? uuid,
+      Value<String>? workspaceId,
       Value<int>? order,
       Value<String>? title,
       Value<int>? createdAt,
@@ -532,6 +896,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     return TasksCompanion(
       id: id ?? this.id,
       uuid: uuid ?? this.uuid,
+      workspaceId: workspaceId ?? this.workspaceId,
       order: order ?? this.order,
       title: title ?? this.title,
       createdAt: createdAt ?? this.createdAt,
@@ -555,6 +920,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     }
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (workspaceId.present) {
+      map['workspace_id'] = Variable<String>(workspaceId.value);
     }
     if (order.present) {
       map['order'] = Variable<int>(order.value);
@@ -598,6 +966,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     return (StringBuffer('TasksCompanion(')
           ..write('id: $id, ')
           ..write('uuid: $uuid, ')
+          ..write('workspaceId: $workspaceId, ')
           ..write('order: $order, ')
           ..write('title: $title, ')
           ..write('createdAt: $createdAt, ')
@@ -3100,6 +3469,7 @@ class CustomTemplatesCompanion extends UpdateCompanion<CustomTemplate> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   _$AppDatabaseManager get managers => _$AppDatabaseManager(this);
+  late final $WorkspacesTable workspaces = $WorkspacesTable(this);
   late final $TasksTable tasks = $TasksTable(this);
   late final $TodosTable todos = $TodosTable(this);
   late final $AppConfigsTable appConfigs = $AppConfigsTable(this);
@@ -3113,6 +3483,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+        workspaces,
         tasks,
         todos,
         appConfigs,
@@ -3122,9 +3493,161 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ];
 }
 
+typedef $$WorkspacesTableInsertCompanionBuilder = WorkspacesCompanion Function({
+  Value<int> id,
+  required String uuid,
+  required String name,
+  required int createdAt,
+  Value<int> order,
+  Value<int> deletedAt,
+});
+typedef $$WorkspacesTableUpdateCompanionBuilder = WorkspacesCompanion Function({
+  Value<int> id,
+  Value<String> uuid,
+  Value<String> name,
+  Value<int> createdAt,
+  Value<int> order,
+  Value<int> deletedAt,
+});
+
+class $$WorkspacesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $WorkspacesTable,
+    Workspace,
+    $$WorkspacesTableFilterComposer,
+    $$WorkspacesTableOrderingComposer,
+    $$WorkspacesTableProcessedTableManager,
+    $$WorkspacesTableInsertCompanionBuilder,
+    $$WorkspacesTableUpdateCompanionBuilder> {
+  $$WorkspacesTableTableManager(_$AppDatabase db, $WorkspacesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$WorkspacesTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$WorkspacesTableOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $$WorkspacesTableProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            Value<String> uuid = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+            Value<int> order = const Value.absent(),
+            Value<int> deletedAt = const Value.absent(),
+          }) =>
+              WorkspacesCompanion(
+            id: id,
+            uuid: uuid,
+            name: name,
+            createdAt: createdAt,
+            order: order,
+            deletedAt: deletedAt,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<int> id = const Value.absent(),
+            required String uuid,
+            required String name,
+            required int createdAt,
+            Value<int> order = const Value.absent(),
+            Value<int> deletedAt = const Value.absent(),
+          }) =>
+              WorkspacesCompanion.insert(
+            id: id,
+            uuid: uuid,
+            name: name,
+            createdAt: createdAt,
+            order: order,
+            deletedAt: deletedAt,
+          ),
+        ));
+}
+
+class $$WorkspacesTableProcessedTableManager extends ProcessedTableManager<
+    _$AppDatabase,
+    $WorkspacesTable,
+    Workspace,
+    $$WorkspacesTableFilterComposer,
+    $$WorkspacesTableOrderingComposer,
+    $$WorkspacesTableProcessedTableManager,
+    $$WorkspacesTableInsertCompanionBuilder,
+    $$WorkspacesTableUpdateCompanionBuilder> {
+  $$WorkspacesTableProcessedTableManager(super.$state);
+}
+
+class $$WorkspacesTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $WorkspacesTable> {
+  $$WorkspacesTableFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get uuid => $state.composableBuilder(
+      column: $state.table.uuid,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get createdAt => $state.composableBuilder(
+      column: $state.table.createdAt,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get order => $state.composableBuilder(
+      column: $state.table.order,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get deletedAt => $state.composableBuilder(
+      column: $state.table.deletedAt,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$WorkspacesTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $WorkspacesTable> {
+  $$WorkspacesTableOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get uuid => $state.composableBuilder(
+      column: $state.table.uuid,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get createdAt => $state.composableBuilder(
+      column: $state.table.createdAt,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get order => $state.composableBuilder(
+      column: $state.table.order,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get deletedAt => $state.composableBuilder(
+      column: $state.table.deletedAt,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
 typedef $$TasksTableInsertCompanionBuilder = TasksCompanion Function({
   Value<int> id,
   required String uuid,
+  Value<String> workspaceId,
   Value<int> order,
   required String title,
   required int createdAt,
@@ -3140,6 +3663,7 @@ typedef $$TasksTableInsertCompanionBuilder = TasksCompanion Function({
 typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
   Value<int> id,
   Value<String> uuid,
+  Value<String> workspaceId,
   Value<int> order,
   Value<String> title,
   Value<int> createdAt,
@@ -3174,6 +3698,7 @@ class $$TasksTableTableManager extends RootTableManager<
           getUpdateCompanionBuilder: ({
             Value<int> id = const Value.absent(),
             Value<String> uuid = const Value.absent(),
+            Value<String> workspaceId = const Value.absent(),
             Value<int> order = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
@@ -3189,6 +3714,7 @@ class $$TasksTableTableManager extends RootTableManager<
               TasksCompanion(
             id: id,
             uuid: uuid,
+            workspaceId: workspaceId,
             order: order,
             title: title,
             createdAt: createdAt,
@@ -3204,6 +3730,7 @@ class $$TasksTableTableManager extends RootTableManager<
           getInsertCompanionBuilder: ({
             Value<int> id = const Value.absent(),
             required String uuid,
+            Value<String> workspaceId = const Value.absent(),
             Value<int> order = const Value.absent(),
             required String title,
             required int createdAt,
@@ -3219,6 +3746,7 @@ class $$TasksTableTableManager extends RootTableManager<
               TasksCompanion.insert(
             id: id,
             uuid: uuid,
+            workspaceId: workspaceId,
             order: order,
             title: title,
             createdAt: createdAt,
@@ -3256,6 +3784,11 @@ class $$TasksTableFilterComposer
 
   ColumnFilters<String> get uuid => $state.composableBuilder(
       column: $state.table.uuid,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get workspaceId => $state.composableBuilder(
+      column: $state.table.workspaceId,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -3325,6 +3858,11 @@ class $$TasksTableOrderingComposer
 
   ColumnOrderings<String> get uuid => $state.composableBuilder(
       column: $state.table.uuid,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get workspaceId => $state.composableBuilder(
+      column: $state.table.workspaceId,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -4457,6 +4995,8 @@ class $$CustomTemplatesTableOrderingComposer
 class _$AppDatabaseManager {
   final _$AppDatabase _db;
   _$AppDatabaseManager(this._db);
+  $$WorkspacesTableTableManager get workspaces =>
+      $$WorkspacesTableTableManager(_db, _db.workspaces);
   $$TasksTableTableManager get tasks =>
       $$TasksTableTableManager(_db, _db.tasks);
   $$TodosTableTableManager get todos =>

@@ -5,6 +5,7 @@ import 'package:TodoCat/data/schemas/app_config.dart' as app_config_models;
 import 'package:TodoCat/data/schemas/local_notice.dart' as local_notice_models;
 import 'package:TodoCat/data/schemas/notification_history.dart' as notification_models;
 import 'package:TodoCat/data/schemas/custom_template.dart' as template_models;
+import 'package:TodoCat/data/schemas/workspace.dart' as workspace_models;
 import 'package:TodoCat/data/database/database.dart';
 import 'package:TodoCat/data/database/database.dart' as db;
 import 'dart:convert';
@@ -12,11 +13,39 @@ import 'dart:convert';
 /// 数据转换辅助类
 /// 用于在 Drift 行和模型类之间转换
 class DbConverters {
+  // Workspace 转换
+  static workspace_models.Workspace workspaceFromRow(db.Workspace row) {
+    final workspace = workspace_models.Workspace()
+      ..id = row.id
+      ..uuid = row.uuid
+      ..name = row.name
+      ..createdAt = row.createdAt
+      ..order = row.order
+      ..deletedAt = row.deletedAt;
+    return workspace;
+  }
+
+  static WorkspacesCompanion workspaceToCompanion(workspace_models.Workspace workspace, {bool isUpdate = false}) {
+    final companion = WorkspacesCompanion(
+      uuid: Value(workspace.uuid),
+      name: Value(workspace.name),
+      createdAt: Value(workspace.createdAt),
+      order: Value(workspace.order),
+      deletedAt: Value(workspace.deletedAt),
+    );
+    
+    if (isUpdate && workspace.id != null) {
+      return companion.copyWith(id: Value(workspace.id!));
+    }
+    return companion;
+  }
+
   // Task 转换
   static task_models.Task taskFromRow(db.Task row, List<todo_models.Todo> todos) {
     final task = task_models.Task()
       ..id = row.id
       ..uuid = row.uuid
+      ..workspaceId = row.workspaceId
       ..order = row.order
       ..title = row.title
       ..createdAt = row.createdAt
@@ -35,6 +64,7 @@ class DbConverters {
   static TasksCompanion taskToCompanion(task_models.Task task, {bool isUpdate = false}) {
     final companion = TasksCompanion(
       uuid: Value(task.uuid),
+      workspaceId: Value(task.workspaceId),
       order: Value(task.order),
       title: Value(task.title),
       createdAt: Value(task.createdAt),

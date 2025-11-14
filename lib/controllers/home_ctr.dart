@@ -9,6 +9,7 @@ import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:TodoCat/widgets/save_template_dialog.dart';
 import 'package:logger/logger.dart';
 import 'package:TodoCat/controllers/task_manager.dart';
+import 'package:TodoCat/controllers/workspace_ctr.dart';
 import 'package:TodoCat/controllers/mixins/scroll_controller_mixin.dart';
 import 'package:TodoCat/controllers/mixins/task_state_mixin.dart';
 
@@ -51,6 +52,13 @@ class HomeController extends GetxController
 
   Future<void> _initializeTasks() async {
     await _taskManager.initialize();
+    
+    // 初始化工作空间控制器并刷新任务
+    if (Get.isRegistered<WorkspaceController>()) {
+      await refreshData();
+    } else {
+      await _taskManager.refresh();
+    }
 
     if (_taskManager.tasks.isEmpty) {
       await _showEmptyTaskToast();
@@ -67,8 +75,14 @@ class HomeController extends GetxController
   Future<void> refreshData() async {
     _logger.i('刷新主页数据...');
     try {
+      // 获取当前工作空间ID
+      String? workspaceId;
+      if (Get.isRegistered<WorkspaceController>()) {
+        final workspaceCtrl = Get.find<WorkspaceController>();
+        workspaceId = workspaceCtrl.currentWorkspaceId.value;
+      }
       // 直接刷新TaskManager，从数据库加载最新数据
-      await _taskManager.refresh();
+      await _taskManager.refresh(workspaceId: workspaceId);
       _logger.i('主页数据刷新成功');
     } catch (e) {
       _logger.e('刷新主页数据失败: $e');
@@ -160,6 +174,11 @@ class HomeController extends GetxController
   }
 
   Future<void> addTask(Task task) async {
+    // 设置工作空间ID
+    if (Get.isRegistered<WorkspaceController>()) {
+      final workspaceCtrl = Get.find<WorkspaceController>();
+      task.workspaceId = workspaceCtrl.currentWorkspaceId.value;
+    }
     await _taskManager.addTask(task);
     // 刷新导出预览数据
     _refreshExportPreview();

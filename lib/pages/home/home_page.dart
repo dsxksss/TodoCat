@@ -6,6 +6,10 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:TodoCat/controllers/home_ctr.dart';
 import 'package:TodoCat/controllers/settings_ctr.dart';
+import 'package:TodoCat/controllers/workspace_ctr.dart';
+import 'package:TodoCat/widgets/dpd_menu_btn.dart';
+import 'package:TodoCat/widgets/dropdown_menu_btn.dart';
+import 'package:TodoCat/widgets/create_workspace_dialog.dart';
 import 'package:TodoCat/keys/dialog_keys.dart';
 import 'package:TodoCat/pages/home/components/task/task_card.dart';
 import 'package:TodoCat/widgets/animation_btn.dart';
@@ -475,7 +479,93 @@ class HomePage extends GetView<HomeController> {
       const SizedBox(
         width: 20,
       ),
+      // 工作空间选择器
+      _buildWorkspaceSelector(),
+      const SizedBox(
+        width: 20,
+      ),
     ];
+  }
+
+  /// 构建工作空间选择器
+  Widget _buildWorkspaceSelector() {
+    if (!Get.isRegistered<WorkspaceController>()) {
+      return const SizedBox.shrink();
+    }
+    
+    final workspaceCtrl = Get.find<WorkspaceController>();
+    
+    return Obx(() {
+      final workspaces = workspaceCtrl.workspaces;
+      final currentWorkspace = workspaceCtrl.currentWorkspace;
+      
+      if (workspaces.isEmpty) {
+        return const SizedBox.shrink();
+      }
+      
+      final menuItems = <MenuItem>[];
+      
+      // 添加工作空间选项
+      for (var workspace in workspaces) {
+        final isCurrent = workspace.uuid == workspaceCtrl.currentWorkspaceId.value;
+        menuItems.add(
+          MenuItem(
+            title: workspace.name,
+            iconData: isCurrent ? Icons.check : null,
+            callback: () {
+              workspaceCtrl.switchWorkspace(workspace.uuid);
+            },
+          ),
+        );
+      }
+      
+      // 添加分隔线
+      menuItems.add(
+        MenuItem(
+          title: '---',
+          callback: () {},
+          isDisabled: true,
+        ),
+      );
+      
+      // 添加管理选项
+      menuItems.add(
+        MenuItem(
+          title: 'createWorkspace',
+          iconData: Icons.add,
+          callback: () {
+            showCreateWorkspaceDialog();
+          },
+        ),
+      );
+      
+      return Builder(
+        builder: (context) => DropdownManuBtn(
+          id: 'workspace_selector',
+          content: DPDMenuContent(menuItems: menuItems),
+          alignment: Alignment.bottomRight,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                currentWorkspace?.name ?? 'Default',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: context.theme.textTheme.bodyLarge?.color,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.arrow_drop_down,
+                size: 20,
+                color: context.theme.iconTheme.color,
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   /// 构建右侧控件列表

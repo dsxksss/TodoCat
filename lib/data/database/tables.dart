@@ -1,9 +1,20 @@
 import 'package:drift/drift.dart';
 
+// Workspaces 表
+class Workspaces extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get uuid => text().withLength(min: 1, max: 255).unique()();
+  TextColumn get name => text().withLength(min: 1)();
+  IntColumn get createdAt => integer()();
+  IntColumn get order => integer().withDefault(const Constant(0))();
+  IntColumn get deletedAt => integer().withDefault(const Constant(0))();
+}
+
 // Tasks 表
 class Tasks extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get uuid => text().withLength(min: 1, max: 255).unique()();
+  TextColumn get workspaceId => text().withLength(min: 1, max: 255).withDefault(const Constant('default'))(); // 关联到 Workspace
   IntColumn get order => integer().withDefault(const Constant(0))();
   TextColumn get title => text().withLength(min: 1)();
   IntColumn get createdAt => integer()();

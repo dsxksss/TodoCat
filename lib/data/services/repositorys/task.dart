@@ -209,12 +209,16 @@ class TaskRepository {
     await write(uuid, task);
   }
 
-  /// 读取所有未删除的任务
-  Future<List<Task>> readAll() async {
-    final rows = await (db.select(db.tasks)
-          ..where((t) => t.deletedAt.equals(0))
-          ..orderBy([(t) => OrderingTerm(expression: t.order)]))
-        .get();
+  /// 读取所有未删除的任务（可选的按工作空间过滤）
+  Future<List<Task>> readAll({String? workspaceId}) async {
+    var query = db.select(db.tasks)
+      ..where((t) => t.deletedAt.equals(0));
+    
+    if (workspaceId != null) {
+      query = query..where((t) => t.workspaceId.equals(workspaceId));
+    }
+    
+    final rows = await (query..orderBy([(t) => OrderingTerm(expression: t.order)])).get();
 
     final tasks = <Task>[];
     for (var row in rows) {

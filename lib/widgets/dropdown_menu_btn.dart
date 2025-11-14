@@ -13,12 +13,14 @@ class DropdownManuBtn extends StatelessWidget {
     required String id,
     void Function()? onDismiss,
     bool disable = false,
+    Alignment alignment = Alignment.bottomRight,
   })  : _onDismiss = onDismiss,
         _controller = controller,
         _disable = disable,
         _content = content,
         _child = child,
-        _id = id;
+        _id = id,
+        _alignment = alignment;
 
   final String _id; // 下拉菜单的唯一标识符
   final Widget _child; // 按钮的子组件
@@ -26,6 +28,7 @@ class DropdownManuBtn extends StatelessWidget {
   final bool _disable; // 按钮是否禁用
   final SmartDialogController? _controller; // SmartDialog 控制器
   final void Function()? _onDismiss; // 下拉菜单关闭时的回调函数
+  final Alignment _alignment; // 对齐方式
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +48,7 @@ class DropdownManuBtn extends StatelessWidget {
           usePenetrate: true, // 允许点击穿透
           animationTime: 100.ms, // 动画持续时间
           controller: _controller, // SmartDialog 控制器
-          alignment: Alignment.bottomRight, // 对齐方式
+          alignment: _alignment, // 对齐方式
           animationBuilder: (controller, child, animationParam) => child
               .animate(controller: controller)
               .fade(duration: controller.duration)

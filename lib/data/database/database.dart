@@ -9,7 +9,7 @@ import 'tables.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [Tasks, Todos, AppConfigs, LocalNotices, NotificationHistorys, CustomTemplates])
+@DriftDatabase(tables: [Workspaces, Tasks, Todos, AppConfigs, LocalNotices, NotificationHistorys, CustomTemplates])
 class AppDatabase extends _$AppDatabase {
   static final _logger = Logger();
   static AppDatabase? _instance;
@@ -22,7 +22,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -34,8 +34,43 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         // 处理数据库迁移
         _logger.d('Database upgraded from $from to $to');
+        if (from < 2) {
+          // 迁移到版本2：添加工作空间支持
+          await m.createTable(workspaces);
+          // 为现有Tasks添加workspaceId字段（默认为'default'）
+          await m.addColumn(tasks, tasks.workspaceId);
+        }
+      },
+      beforeOpen: (details) async {
+        // 在数据库打开后，确保默认工作空间存在
+        if (details.wasCreated || details.versionNow >= 2) {
+          await _ensureDefaultWorkspace();
+        }
       },
     );
+  }
+
+  /// 确保默认工作空间存在
+  Future<void> _ensureDefaultWorkspace() async {
+    try {
+      final existing = await (select(workspaces)
+            ..where((w) => w.uuid.equals('default')))
+          .getSingleOrNull();
+      
+      if (existing == null) {
+        final createdAt = DateTime.now().millisecondsSinceEpoch;
+        await into(workspaces).insert(WorkspacesCompanion.insert(
+          uuid: 'default',
+          name: 'Default',
+          createdAt: createdAt,
+          order: const Value(0),
+          deletedAt: const Value(0),
+        ));
+        _logger.d('Default workspace created');
+      }
+    } catch (e) {
+      _logger.e('Error ensuring default workspace: $e');
+    }
   }
 
   static LazyDatabase _openConnection() {
@@ -51,6 +86,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> clearAllData() async {
     _logger.w('Clearing all data from database...');
     await transaction(() async {
+      await delete(workspaces).go();
       await delete(tasks).go();
       await delete(todos).go();
       await delete(appConfigs).go();

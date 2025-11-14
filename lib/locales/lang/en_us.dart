@@ -214,6 +214,7 @@ const Map<String, String> enUS = {
   'tasks': 'Tasks',
   'saving': 'Saving',
   'save': 'Save',
+  'creating': 'Creating',
   'noTasksToSave': 'No tasks to save',
   'saveCurrentAsTemplate': 'Save Current as Template',
   'saveCurrentAsTemplateDescription': 'Save all current tasks as a custom template',
@@ -345,4 +346,12 @@ const Map<String, String> enUS = {
   'keepInput': 'Keep input?',
   'preview': 'Preview',
   'closePreview': 'Close Preview',
+  // Workspace
+  'workspace': 'Workspace',
+  'workspaceName': 'Workspace name',
+  'createWorkspace': 'Create workspace',
+  'enterWorkspaceName': 'Please enter workspace name',
+  'workspaceNameRequired': 'Workspace name cannot be empty',
+  'workspaceCreated': 'Workspace created successfully',
+  'workspaceCreateFailed': 'Failed to create workspace',
 };

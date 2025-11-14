@@ -8,6 +8,7 @@ class Task {
   int? id;
 
   late String uuid;
+  String workspaceId = 'default'; // 工作空间ID，默认为'default'
   int order = 0;
   late String title;
   late int createdAt;
@@ -33,6 +34,7 @@ class Task {
   Map<String, dynamic> toJson() {
     return {
       'uuid': uuid,
+      'workspaceId': workspaceId,
       'order': order,
       'title': title,
       'createdAt': createdAt,
@@ -52,6 +54,7 @@ class Task {
   factory Task.fromJson(Map<String, dynamic> json) {
     final task = Task()
       ..uuid = json['uuid'] as String
+      ..workspaceId = json['workspaceId'] as String? ?? 'default'
       ..order = json['order'] as int
       ..title = json['title'] as String
       ..createdAt = json['createdAt'] as int

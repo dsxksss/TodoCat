@@ -8,6 +8,7 @@ import 'package:TodoCat/controllers/task_dialog_ctr.dart';
 import 'package:TodoCat/controllers/timepicker_ctr.dart';
 import 'package:TodoCat/controllers/data_export_import_ctr.dart';
 import 'package:TodoCat/controllers/trash_ctr.dart';
+import 'package:TodoCat/controllers/workspace_ctr.dart';
 import 'package:TodoCat/core/notification_stack_manager.dart';
 import 'package:TodoCat/core/notification_center_manager.dart';
 
@@ -20,6 +21,7 @@ class AppBinding implements Bindings {
 
     // 主控制器
     Get.put(AppController(), permanent: true);
+    Get.put(WorkspaceController(), permanent: true);
     Get.put(HomeController(), permanent: true);
     Get.put(TrashController(), permanent: true);
 
