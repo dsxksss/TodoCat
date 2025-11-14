@@ -46,10 +46,12 @@ flutter run -d linux
 ```bash
 # Windows desktop (MSIX):
 flutter pub run msix:create
-# 或者
+# or
 dart run msix:create
 
-# 生成的 MSIX 文件位于 build/windows/x64/runner/Release/ 目录下
+# Windows desktop (EXE):
+dart pub global activate fastforge # install fastforge
+fastforge package --platform windows --targets exe # start build
 
 ...more platforms will be supported later...
 ```

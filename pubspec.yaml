@@ -1,7 +1,7 @@
 name: TodoCat
 description: Todo Cat - A beautiful and simple Todo application built with Flutter | 事项猫 一个简洁UI风格的看板应用.
 publish_to: "https://github.com/dsxksss/TodoCat"
-version: 1.1.0
+version: 1.2.0
 license: GPL-3.0
 
 environment:
@@ -73,6 +73,8 @@ dependencies:
   cached_network_image: ^3.3.1
   # FastForge 更新库
   fastforge: ^0.0.1
+  # URL启动器，用于打开外部链接
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:
@@ -149,7 +151,7 @@ msix_config:
   identity_name: SayMiao.TodoCat
   # 发布者证书主题名称（匹配当前使用的测试证书）
   publisher: CN=E5209687-EA19-4223-83D7-A568796EACF9
-  msix_version: 1.1.0.0
+  msix_version: 1.2.0.0
   store: true
   logo_path: windows\runner\resources\app_icon.ico
   # 仅保留实际需要的功能，移除不必要的权限以通过商店审核

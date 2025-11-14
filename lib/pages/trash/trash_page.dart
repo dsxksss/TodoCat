@@ -320,7 +320,7 @@ class TrashPage extends GetView<TrashController> {
 
   void _restoreTask(BuildContext context, Task task) {
     showToast(
-      'sureRestoreTask'.tr.replaceAll('{title}', task.title),
+      '${'sureRestoreTask'.tr}「${task.title}」',
       alwaysShow: true,
       confirmMode: true,
       onYesCallback: () async {
@@ -343,7 +343,7 @@ class TrashPage extends GetView<TrashController> {
 
   void _permanentDeleteTask(BuildContext context, Task task) {
     showToast(
-      'surePermanentDeleteTask'.tr.replaceAll('{title}', task.title),
+      '${'surePermanentDeleteTask'.tr}「${task.title}」',
       alwaysShow: true,
       confirmMode: true,
       toastStyleType: TodoCatToastStyleType.error,
@@ -360,7 +360,7 @@ class TrashPage extends GetView<TrashController> {
 
   void _restoreTodo(BuildContext context, Task task, Todo todo) {
     showToast(
-      'sureRestoreTodo'.tr.replaceAll('{title}', todo.title),
+      '${'sureRestoreTodo'.tr}「${todo.title}」',
       alwaysShow: true,
       confirmMode: true,
       onYesCallback: () async {
@@ -383,7 +383,7 @@ class TrashPage extends GetView<TrashController> {
 
   void _permanentDeleteTodo(BuildContext context, Task task, Todo todo) {
     showToast(
-      'surePermanentDeleteTodo'.tr.replaceAll('{title}', todo.title),
+      '${'surePermanentDeleteTodo'.tr}「${todo.title}」',
       alwaysShow: true,
       confirmMode: true,
       toastStyleType: TodoCatToastStyleType.error,

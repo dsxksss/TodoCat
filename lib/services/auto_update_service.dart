@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:TodoCat/core/notification_center_manager.dart';
 import 'package:TodoCat/data/schemas/notification_history.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
@@ -218,8 +219,8 @@ class AutoUpdateService {
               // 发现新版本，保存更新信息
               _currentUpdateInfo = latestItem;
               
-              // 发现新版本
-              final changelog = changes?.map((c) => c['message'] as String).join('\n');
+              // 发现新版本，根据当前语言选择对应的更新日志
+              final changelog = _getLocalizedChangelog(changes);
               onUpdateAvailable?.call(newVersion, changelog);
               
               // 发送通知到通知中心
@@ -239,6 +240,29 @@ class AutoUpdateService {
       _logger.e('检查更新失败: $e');
       onUpdateError?.call(e.toString());
     }
+  }
+  
+  /// 获取本地化的更新日志
+  /// 根据当前语言选择对应的消息（message_zh 或 message_en）
+  /// 如果不存在本地化消息，则回退到 message 字段
+  String? _getLocalizedChangelog(List<dynamic>? changes) {
+    if (changes == null || changes.isEmpty) {
+      return null;
+    }
+    
+    // 获取当前语言代码
+    final currentLocale = Get.locale;
+    final languageCode = currentLocale?.languageCode ?? 'en';
+    
+    // 根据语言代码选择对应的消息字段
+    final messageKey = languageCode == 'zh' ? 'message_zh' : 'message_en';
+    
+    return changes.map((c) {
+      final change = c as Map<String, dynamic>;
+      // 优先使用本地化消息，如果不存在则使用 message 字段
+      final message = change[messageKey] as String? ?? change['message'] as String?;
+      return message ?? '';
+    }).where((msg) => msg.isNotEmpty).join('\n');
   }
   
   /// 比较版本号
@@ -519,6 +543,51 @@ class AutoUpdateService {
       return '更新源 ${_currentSourceIndex + 1}';
     }
     return 'unknown'.tr;
+  }
+  
+  /// 打开微软商店进行更新
+  /// 仅在 Windows 平台可用
+  /// 优先使用 ms-windows-store 协议，如果失败则使用 HTTP 链接
+  Future<bool> openMicrosoftStore() async {
+    if (!Platform.isWindows) {
+      _logger.w('打开微软商店仅在 Windows 平台可用');
+      return false;
+    }
+    
+    try {
+      // 优先使用 ms-windows-store 协议打开微软商店（更直接）
+      final storeProtocolUrl = Uri.parse('ms-windows-store://pdp/?ProductId=9N52RL6BKRFX');
+      
+      final launched = await launchUrl(
+        storeProtocolUrl,
+        mode: LaunchMode.externalApplication,
+      );
+      
+      if (launched) {
+        _logger.i('已通过协议打开微软商店');
+        return true;
+      }
+      
+      // 如果协议方式失败，尝试使用 HTTP 链接
+      _logger.d('协议方式失败，尝试使用 HTTP 链接');
+      final storeHttpUrl = Uri.parse('https://apps.microsoft.com/detail/9N52RL6BKRFX');
+      
+      final httpLaunched = await launchUrl(
+        storeHttpUrl,
+        mode: LaunchMode.externalApplication,
+      );
+      
+      if (httpLaunched) {
+        _logger.i('已通过 HTTP 链接打开微软商店');
+        return true;
+      } else {
+        _logger.w('无法打开微软商店');
+        return false;
+      }
+    } catch (e) {
+      _logger.e('打开微软商店失败: $e');
+      return false;
+    }
   }
   
   /// 清理资源

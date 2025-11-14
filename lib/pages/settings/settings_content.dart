@@ -9,12 +9,14 @@ import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:TodoCat/widgets/background_setting_dialog.dart';
 import 'package:TodoCat/widgets/data_import_export_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:TodoCat/keys/dialog_keys.dart';
 
 class SettingsContent extends GetView<SettingsController> {
   const SettingsContent({super.key});
 
   // 获取数据导出导入控制器
-  DataExportImportController get dataController => Get.find<DataExportImportController>();
+  DataExportImportController get dataController =>
+      Get.find<DataExportImportController>();
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,7 @@ class SettingsContent extends GetView<SettingsController> {
             color: Theme.of(context).scaffoldBackgroundColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               ),
@@ -43,25 +45,26 @@ class SettingsContent extends GetView<SettingsController> {
                   Text(
                     'settings'.tr,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontFamily: 'SourceHanSans',
-                    ),
+                          fontFamily: 'SourceHanSans',
+                        ),
                   ),
                   const SizedBox(width: 12),
                   Obx(() => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'v${controller.appVersion.value}',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'v${controller.appVersion.value}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )),
                 ],
               ),
               IconButton(
@@ -85,23 +88,35 @@ class SettingsContent extends GetView<SettingsController> {
         ),
         // 设置列表
         Expanded(
-          child: Obx(
-            () => SettingsList(
-              lightTheme: theme,
-              darkTheme: theme,
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              // 当检测到任何滚动事件时，关闭所有下拉菜单
+              if (notification is ScrollUpdateNotification ||
+                  notification is ScrollStartNotification) {
+                // 关闭所有可能的下拉菜单
+                SmartDialog.dismiss(tag: dropDownMenuBtnTag);
+                SmartDialog.dismiss(tag: settingsDropDownMenuBtnTag);
+              }
+              return false; // 允许通知继续传播
+            },
+            child: Obx(
+              () => SettingsList(
+                lightTheme: theme,
+                darkTheme: theme,
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                sections: [
+                  SettingsSection(
+                    title: Text('common'.tr),
+                    tiles: _buildSettingsTiles(context),
+                  ),
+                  SettingsSection(
+                    title: Text('dataManagement'.tr),
+                    tiles: _buildDataManagementTiles(context),
+                  ),
+                ],
               ),
-              sections: [
-                SettingsSection(
-                  title: Text('common'.tr),
-                  tiles: _buildSettingsTiles(context),
-                ),
-                SettingsSection(
-                  title: Text('dataManagement'.tr),
-                  tiles: _buildDataManagementTiles(context),
-                ),
-              ],
             ),
           ),
         ),
@@ -143,8 +158,10 @@ class SettingsContent extends GetView<SettingsController> {
           },
           leading: const Icon(Icons.system_update), // 下载中时图标保持不变
           title: Obx(() => Text(
-            controller.isDownloading.value ? 'downloadingUpdate'.tr : 'checkForUpdates'.tr,
-          )),
+                controller.isDownloading.value
+                    ? 'downloadingUpdate'.tr
+                    : 'checkForUpdates'.tr,
+              )),
           description: Obx(() {
             final status = controller.updateStatus.value;
             if (status.isNotEmpty) {
@@ -158,7 +175,7 @@ class SettingsContent extends GetView<SettingsController> {
           trailing: Obx(() {
             final progress = controller.updateProgress.value;
             final isDownloading = controller.isDownloading.value;
-            
+
             // 正在下载时，显示取消按钮或进度
             if (isDownloading && progress > 0.0 && progress < 1.0) {
               return Row(
@@ -186,9 +203,10 @@ class SettingsContent extends GetView<SettingsController> {
                           return CircularProgressIndicator(
                             value: animatedProgress,
                             strokeWidth: 2,
-                            backgroundColor: Get.theme.brightness == Brightness.dark
-                                ? Colors.grey.shade700
-                                : Colors.grey.shade300,
+                            backgroundColor:
+                                Get.theme.brightness == Brightness.dark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               Get.theme.primaryColor,
                             ),
@@ -208,12 +226,12 @@ class SettingsContent extends GetView<SettingsController> {
                 ],
               );
             }
-            
+
             // 未开始或已完成/错误（已重置）
             if (progress == 0.0) {
               return const Icon(Icons.chevron_right);
             }
-            
+
             // 完成（progress == 1.0）
             if (progress == 1.0) {
               return const Icon(
@@ -222,7 +240,7 @@ class SettingsContent extends GetView<SettingsController> {
                 size: 20,
               );
             }
-            
+
             // 错误（progress == -1.0）
             if (progress == -1.0) {
               return const Icon(
@@ -231,7 +249,7 @@ class SettingsContent extends GetView<SettingsController> {
                 size: 20,
               );
             }
-            
+
             return const Icon(Icons.chevron_right);
           }),
         ),
@@ -257,10 +275,14 @@ class SettingsContent extends GetView<SettingsController> {
         leading: const Icon(Icons.image_outlined),
         title: Text('backgroundImage'.tr),
         description: Obx(() {
-          final hasBackground = controller.appCtrl.appConfig.value.backgroundImagePath != null &&
-              GetPlatform.isDesktop &&
-              controller.appCtrl.appConfig.value.backgroundImagePath!.isNotEmpty;
-          return Text(hasBackground ? 'backgroundImageSet'.tr : 'backgroundImageNotSet'.tr);
+          final hasBackground =
+              controller.appCtrl.appConfig.value.backgroundImagePath != null &&
+                  GetPlatform.isDesktop &&
+                  controller
+                      .appCtrl.appConfig.value.backgroundImagePath!.isNotEmpty;
+          return Text(hasBackground
+              ? 'backgroundImageSet'.tr
+              : 'backgroundImageNotSet'.tr);
         }),
       ),
       SettingsTile.switchTile(
@@ -322,7 +344,6 @@ class SettingsContent extends GetView<SettingsController> {
     );
   }
 
-
   /// 构建数据管理的设置项
   List<SettingsTile> _buildDataManagementTiles(BuildContext context) {
     return [
@@ -337,14 +358,16 @@ class SettingsContent extends GetView<SettingsController> {
       // 重置设置（红色，放在清除所有数据上面）
       SettingsTile(
         leading: const Icon(Icons.restart_alt_rounded, color: Colors.red),
-        title: Text('resetSettings'.tr, style: const TextStyle(color: Colors.red)),
+        title:
+            Text('resetSettings'.tr, style: const TextStyle(color: Colors.red)),
         description: Text('resetSettingsDescription'.tr),
         onPressed: (_) => _showResetSettingsToast(),
       ),
       // 清除所有数据
       SettingsTile(
         leading: const Icon(Icons.delete_forever_rounded, color: Colors.red),
-        title: Text('clearAllData'.tr, style: const TextStyle(color: Colors.red)),
+        title:
+            Text('clearAllData'.tr, style: const TextStyle(color: Colors.red)),
         description: Text('clearAllDataDescription'.tr),
         onPressed: (_) => _showClearAllDataDialog(),
       ),
@@ -356,7 +379,7 @@ class SettingsContent extends GetView<SettingsController> {
     SmartDialog.show(
       tag: 'data_import_export_dialog',
       alignment: Alignment.center,
-      maskColor: Colors.black.withValues(alpha:0.3),
+      maskColor: Colors.black.withValues(alpha: 0.3),
       clickMaskDismiss: true,
       useAnimation: true,
       animationTime: const Duration(milliseconds: 200),
@@ -380,11 +403,11 @@ class SettingsContent extends GetView<SettingsController> {
       showToast('desktopOnlyFeature'.tr);
       return;
     }
-    
+
     SmartDialog.show(
       tag: 'background_setting_dialog',
       alignment: Alignment.center,
-      maskColor: Colors.black.withValues(alpha:0.3),
+      maskColor: Colors.black.withValues(alpha: 0.3),
       clickMaskDismiss: true,
       useAnimation: true,
       animationTime: const Duration(milliseconds: 200),
@@ -412,11 +435,11 @@ class SettingsContent extends GetView<SettingsController> {
       onYesCallback: () async {
         // 显示加载提示
         SmartDialog.showLoading(msg: 'clearingData'.tr);
-        
+
         try {
           final success = await controller.clearAllData();
           SmartDialog.dismiss();
-          
+
           if (success) {
             showSuccessNotification('clearAllDataSuccess'.tr);
             // 关闭设置页面

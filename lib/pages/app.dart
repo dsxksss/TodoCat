@@ -14,6 +14,7 @@ import 'package:TodoCat/pages/unknown_page.dart';
 import 'package:TodoCat/routers/router_map.dart';
 import 'package:TodoCat/themes/dark_theme.dart';
 import 'package:TodoCat/themes/light_theme.dart';
+import 'package:TodoCat/keys/dialog_keys.dart';
 
 /// 键盘事件过滤器，用于防止重复的键盘事件
 class KeyboardEventFilter {
@@ -116,9 +117,24 @@ class _AppState extends State<App> {
                       }
                     };
                     
-                    return FlutterSmartDialog.init()(
-                      context,
-                      widget ?? const SizedBox.shrink(),
+                    // 添加全局滚动监听，关闭下拉菜单
+                    return NotificationListener<ScrollNotification>(
+                      onNotification: (notification) {
+                        // 当检测到任何滚动事件时，关闭所有下拉菜单
+                        if (notification is ScrollUpdateNotification ||
+                            notification is ScrollStartNotification) {
+                          // 关闭所有可能的下拉菜单
+                          SmartDialog.dismiss(tag: dropDownMenuBtnTag);
+                          SmartDialog.dismiss(tag: settingsDropDownMenuBtnTag);
+                          // 也尝试关闭其他可能的菜单（通过常见的 tag 模式）
+                          // 这里可以根据实际情况添加更多 tag
+                        }
+                        return false; // 允许通知继续传播
+                      },
+                      child: FlutterSmartDialog.init()(
+                        context,
+                        widget ?? const SizedBox.shrink(),
+                      ),
                     );
                   },
                   navigatorObservers: [FlutterSmartDialog.observer],

@@ -219,25 +219,34 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
             ),
           ],
         ),
-        const SizedBox(height: 10),
         Obx(() {
-          return Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: List.generate(
-              widget.selectedTags.length,
-              (index) => TagDialogBtn(
-                tag: widget.selectedTags[index].name,
-                tagColor: widget.selectedTags[index].color,
-                dialogTag: 'tag_${widget.selectedTags[index].name}',
-                showDelete: true,
-                onDelete: () => widget.onDeleteTag(index),
-                openDialog: const SizedBox.shrink(),
-                onDialogClose: () {
-                  // 处理对话框关闭事件
-                },
+          // 只有当有标签时才显示间距和标签列表
+          if (widget.selectedTags.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: List.generate(
+                  widget.selectedTags.length,
+                  (index) => TagDialogBtn(
+                    tag: widget.selectedTags[index].name,
+                    tagColor: widget.selectedTags[index].color,
+                    dialogTag: 'tag_${widget.selectedTags[index].name}',
+                    showDelete: true,
+                    onDelete: () => widget.onDeleteTag(index),
+                    openDialog: const SizedBox.shrink(),
+                    onDialogClose: () {
+                      // 处理对话框关闭事件
+                    },
+                  ),
+                ),
               ),
-            ),
+            ],
           );
         }),
       ],

@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import 'package:TodoCat/data/schemas/workspace.dart';
 import 'package:TodoCat/data/services/repositorys/workspace.dart';
 import 'package:TodoCat/controllers/home_ctr.dart';
+import 'package:TodoCat/data/database/converters.dart';
+import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import 'package:logger/logger.dart';
 
@@ -52,6 +54,15 @@ class WorkspaceController extends GetxController {
     try {
       final list = await _repository!.readAll();
       workspaces.assignAll(list);
+      
+      // 更新默认工作空间的本地化名称
+      final defaultWorkspace = workspaces.firstWhereOrNull((w) => w.uuid == 'default');
+      if (defaultWorkspace != null && defaultWorkspace.name == 'Default') {
+        defaultWorkspace.name = 'defaultWorkspace'.tr;
+        await _repository!.update('default', defaultWorkspace);
+        workspaces.refresh();
+      }
+      
       _logger.d('加载了 ${list.length} 个工作空间');
     } catch (e) {
       _logger.e('加载工作空间失败: $e');
@@ -63,7 +74,7 @@ class WorkspaceController extends GetxController {
     try {
       final workspace = Workspace()
         ..uuid = 'default'
-        ..name = 'Default'
+        ..name = 'defaultWorkspace'.tr
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..order = 0
         ..deletedAt = 0;
@@ -77,11 +88,12 @@ class WorkspaceController extends GetxController {
   }
 
   /// 创建工作空间
-  Future<bool> createWorkspace(String name) async {
+  /// 返回新创建的工作空间UUID，如果创建失败则返回null
+  Future<String?> createWorkspace(String name) async {
     try {
       if (name.trim().isEmpty) {
         _logger.w('工作空间名称不能为空');
-        return false;
+        return null;
       }
 
       final workspace = Workspace()
@@ -94,10 +106,14 @@ class WorkspaceController extends GetxController {
       await _repository!.write(workspace.uuid, workspace);
       workspaces.add(workspace);
       _logger.d('创建工作空间成功: ${workspace.name}');
-      return true;
+      
+      // 创建成功后立即切换到新工作空间
+      await switchWorkspace(workspace.uuid);
+      
+      return workspace.uuid;
     } catch (e) {
       _logger.e('创建工作空间失败: $e');
-      return false;
+      return null;
     }
   }
 
@@ -126,7 +142,7 @@ class WorkspaceController extends GetxController {
     }
   }
 
-  /// 删除工作空间
+  /// 删除工作空间（标记为已删除，移到回收站）
   Future<bool> deleteWorkspace(String uuid) async {
     try {
       // 不能删除默认工作空间
@@ -135,11 +151,14 @@ class WorkspaceController extends GetxController {
         return false;
       }
 
-      // 如果删除的是当前工作空间，切换到默认工作空间
+      // 如果删除的是当前工作空间，先切换到默认工作空间（带动画）
       if (uuid == currentWorkspaceId.value) {
-        currentWorkspaceId.value = 'default';
+        // 先触发切换动画，切换到默认工作空间
+        await switchWorkspace('default');
+        // 等待动画完成（switchWorkspace 内部已经处理了动画时序）
       }
 
+      // 标记为已删除（移到回收站）
       await _repository!.delete(uuid);
       workspaces.removeWhere((w) => w.uuid == uuid);
       _logger.d('删除工作空间成功: $uuid');
@@ -147,6 +166,37 @@ class WorkspaceController extends GetxController {
     } catch (e) {
       _logger.e('删除工作空间失败: $e');
       return false;
+    }
+  }
+
+  /// 恢复已删除的工作空间
+  Future<bool> restoreWorkspace(String uuid) async {
+    try {
+      await _repository!.restore(uuid);
+      await loadWorkspaces();
+      _logger.d('恢复工作空间成功: $uuid');
+      
+      // 恢复后切换到恢复的工作空间（带动画）
+      await switchWorkspace(uuid);
+      
+      return true;
+    } catch (e) {
+      _logger.e('恢复工作空间失败: $e');
+      return false;
+    }
+  }
+
+  /// 读取所有已删除的工作空间
+  Future<List<Workspace>> readDeleted() async {
+    try {
+      final rows = await (_repository!.db.select(_repository!.db.workspaces)
+            ..where((w) => w.deletedAt.isBiggerThanValue(0))
+            ..orderBy([(w) => OrderingTerm(expression: w.deletedAt, mode: OrderingMode.desc)]))
+          .get();
+      return rows.map((row) => DbConverters.workspaceFromRow(row)).toList();
+    } catch (e) {
+      _logger.e('读取已删除工作空间失败: $e');
+      return [];
     }
   }
 
@@ -161,13 +211,27 @@ class WorkspaceController extends GetxController {
       currentWorkspaceId.value = workspaceId;
       _logger.d('切换到工作空间: $workspaceId');
       
-      // 刷新任务列表（通过TaskManager）
+      // 刷新任务列表（通过TaskManager），带动画效果
       if (Get.isRegistered<HomeController>()) {
         final homeCtrl = Get.find<HomeController>();
+        // 触发切换动画（淡出旧任务）
+        homeCtrl.isSwitchingWorkspace.value = true;
+        // 等待完整的淡出动画时间（300ms），确保旧任务完全消失
+        await Future.delayed(const Duration(milliseconds: 300));
+        // 刷新数据，加载新工作空间的任务
         await homeCtrl.refreshData();
+        // 再等待一小段时间，确保数据已更新到UI
+        await Future.delayed(const Duration(milliseconds: 50));
+        // 触发淡入动画（显示新任务）
+        homeCtrl.isSwitchingWorkspace.value = false;
       }
     } catch (e) {
       _logger.e('切换工作空间失败: $e');
+      // 确保即使出错也重置动画状态
+      if (Get.isRegistered<HomeController>()) {
+        final homeCtrl = Get.find<HomeController>();
+        homeCtrl.isSwitchingWorkspace.value = false;
+      }
     }
   }
 }

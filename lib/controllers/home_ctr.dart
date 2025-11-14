@@ -19,6 +19,7 @@ class HomeController extends GetxController
   final TaskManager _taskManager = TaskManager();
   final AppController appCtrl = Get.find();
   final shouldAnimate = true.obs;
+  final isSwitchingWorkspace = false.obs; // 标记是否正在切换工作空间
 
   // 实现TaskStateMixin需要的allTasks getter
   @override

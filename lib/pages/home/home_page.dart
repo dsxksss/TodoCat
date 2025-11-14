@@ -29,6 +29,7 @@ import 'package:TodoCat/config/default_backgrounds.dart';
 import 'package:TodoCat/widgets/appflowy_board_adapter.dart';
 import 'package:TodoCat/controllers/trash_ctr.dart';
 import 'package:TodoCat/widgets/trash_dialog.dart';
+import 'package:TodoCat/widgets/show_toast.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -153,7 +154,38 @@ class HomePage extends GetView<HomeController> {
                 () {
                   // 强制建立对 RxList 的依赖，避免 GetX 提示未使用可观察对象
                   final _ = controller.reactiveTasks.length;
-                  return _TaskHorizontalList(tasks: controller.reactiveTasks);
+                  final isSwitching = controller.isSwitchingWorkspace.value;
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchOutCurve: Curves.easeIn,
+                    switchInCurve: Curves.easeOut,
+                    transitionBuilder: (child, animation) {
+                      // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
+                      final fadeAnimation = animation.status == AnimationStatus.reverse
+                          ? animation
+                          : animation;
+                      return FadeTransition(
+                        opacity: fadeAnimation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0.1, 0),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: fadeAnimation,
+                            curve: fadeAnimation.status == AnimationStatus.reverse
+                                ? Curves.easeIn
+                                : Curves.easeOut,
+                          )),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: isSwitching
+                        ? const SizedBox.shrink(key: ValueKey('switching'))
+                        : _TaskHorizontalList(
+                            tasks: controller.reactiveTasks,
+                          ),
+                  );
                 },
               ),
       ),
@@ -411,28 +443,61 @@ class HomePage extends GetView<HomeController> {
             ],
           )
         : Obx(
-            () => Animate(
-              target: controller.tasks.isEmpty ? 1 : 0,
-              effects: [
-                SwapEffect(
-                  builder: (_, __) => SizedBox(
-                    height: 0.7.sh,
-                    child: Center(
-                      child: Text(
-                        "Do It Now !",
-                        style: GoogleFonts.getFont(
-                          'Ubuntu',
-                          textStyle: const TextStyle(
-                            fontSize: 60,
+            () {
+              final isSwitching = controller.isSwitchingWorkspace.value;
+              return Animate(
+                target: controller.tasks.isEmpty ? 1 : 0,
+                effects: [
+                  SwapEffect(
+                    builder: (_, __) => SizedBox(
+                      height: 0.7.sh,
+                      child: Center(
+                        child: Text(
+                          "Do It Now !",
+                          style: GoogleFonts.getFont(
+                            'Ubuntu',
+                            textStyle: const TextStyle(
+                              fontSize: 60,
+                            ),
                           ),
                         ),
-                      ),
-                    ).animate().fade(),
+                      ).animate().fade(),
+                    ),
                   ),
+                ],
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchOutCurve: Curves.easeIn,
+                  switchInCurve: Curves.easeOut,
+                  transitionBuilder: (child, animation) {
+                    // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
+                    final fadeAnimation = animation.status == AnimationStatus.reverse
+                        ? animation
+                        : animation;
+                    return FadeTransition(
+                      opacity: fadeAnimation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.1, 0),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: fadeAnimation,
+                          curve: fadeAnimation.status == AnimationStatus.reverse
+                              ? Curves.easeIn
+                              : Curves.easeOut,
+                        )),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: isSwitching
+                      ? const SizedBox.shrink(key: ValueKey('switching'))
+                      : _TaskHorizontalList(
+                          tasks: controller.reactiveTasks,
+                        ),
                 ),
-              ],
-              child: _TaskHorizontalList(tasks: controller.reactiveTasks),
-            ),
+              );
+            },
           );
   }
 
@@ -515,6 +580,42 @@ class HomePage extends GetView<HomeController> {
             callback: () {
               workspaceCtrl.switchWorkspace(workspace.uuid);
             },
+            // 如果这是当前工作空间且不是默认工作空间，在同一行显示删除按钮
+            trailingIcon: (isCurrent && workspace.uuid != 'default')
+                ? Icons.delete_outline
+                : null,
+            trailingCallback: (isCurrent && workspace.uuid != 'default')
+                ? () {
+                    showToast(
+                      '${'sureDeleteWorkspace'.tr}「${workspace.name}」',
+                      alwaysShow: true,
+                      confirmMode: true,
+                      toastStyleType: TodoCatToastStyleType.error,
+                      onYesCallback: () async {
+                        final deleted = await workspaceCtrl.deleteWorkspace(workspace.uuid);
+                        if (deleted) {
+                          // 刷新回收站数据
+                          if (Get.isRegistered<TrashController>()) {
+                            final trashCtrl = Get.find<TrashController>();
+                            await trashCtrl.refresh();
+                          }
+                          // 显示撤销通知
+                          showUndoToast(
+                            '${'workspaceDeleted'.tr}「${workspace.name}」',
+                            () async {
+                              await workspaceCtrl.restoreWorkspace(workspace.uuid);
+                              // 刷新回收站数据
+                              if (Get.isRegistered<TrashController>()) {
+                                final trashCtrl = Get.find<TrashController>();
+                                await trashCtrl.refresh();
+                              }
+                            },
+                          );
+                        }
+                      },
+                    );
+                  }
+                : null,
           ),
         );
       }
@@ -542,13 +643,14 @@ class HomePage extends GetView<HomeController> {
       return Builder(
         builder: (context) => DropdownManuBtn(
           id: 'workspace_selector',
-          content: DPDMenuContent(menuItems: menuItems),
+          content: DPDMenuContent(menuItems: menuItems, tag: 'workspace_selector'),
           alignment: Alignment.bottomRight,
+          attachAlignmentType: SmartAttachAlignmentType.outside,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                currentWorkspace?.name ?? 'Default',
+                currentWorkspace?.name ?? 'defaultWorkspace'.tr,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -601,7 +703,7 @@ class HomePage extends GetView<HomeController> {
       init: Get.isRegistered<TrashController>() ? Get.find<TrashController>() : TrashController(),
       builder: (trashCtrl) {
         return Obx(() {
-          final deletedCount = trashCtrl.deletedTasks.length;
+          final deletedCount = trashCtrl.deletedTasks.length + trashCtrl.deletedWorkspaces.length;
           return badges.Badge(
             showBadge: deletedCount > 0,
             badgeContent: Text(

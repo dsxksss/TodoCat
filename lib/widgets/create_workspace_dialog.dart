@@ -40,12 +40,14 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
     try {
       if (Get.isRegistered<WorkspaceController>()) {
         final workspaceCtrl = Get.find<WorkspaceController>();
-        final success = await workspaceCtrl.createWorkspace(_nameController.text.trim());
+        final workspaceId = await workspaceCtrl.createWorkspace(_nameController.text.trim());
         
         if (mounted) {
-          if (success) {
+          if (workspaceId != null) {
             showSuccessNotification('workspaceCreated'.tr);
             SmartDialog.dismiss(tag: createWorkspaceDialogTag);
+            // 关闭工作空间选择器的下拉菜单
+            SmartDialog.dismiss(tag: 'workspace_selector');
           } else {
             showErrorNotification('workspaceCreateFailed'.tr);
             setState(() {

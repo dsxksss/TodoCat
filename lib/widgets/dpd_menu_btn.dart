@@ -11,38 +11,58 @@ class MenuItem {
   IconData? iconData;
   VoidCallback callback;
   bool isDisabled;
+  // 可选的尾部操作按钮（显示在同一行右侧）
+  IconData? trailingIcon;
+  VoidCallback? trailingCallback;
 
   MenuItem({
     this.iconData,
     required this.title,
     required this.callback,
     this.isDisabled = false,
+    this.trailingIcon,
+    this.trailingCallback,
   });
 }
 
 /// 菜单内容组件，显示菜单项
 class DPDMenuContent extends StatelessWidget {
-  const DPDMenuContent({super.key, required List<MenuItem> menuItems})
-      : _menuItems = menuItems;
+  const DPDMenuContent({
+    super.key,
+    required List<MenuItem> menuItems,
+    String? tag,
+  })  : _menuItems = menuItems,
+        _tag = tag;
   final List<MenuItem> _menuItems;
+  final String? _tag;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(
-        minWidth: 120, // 最小宽度
-        maxWidth: 300, // 最大宽度，防止过长文本撑破布局
-      ),
-      decoration: BoxDecoration(
-        color: context.theme.cardColor,
-        border: Border.all(width: 0.5, color: context.theme.dividerColor),
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: IntrinsicWidth(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children:
-              _menuItems.map((item) => _buildMenuItem(context, item)).toList(),
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        // 当检测到任何滚动事件时，关闭下拉菜单
+        if (notification is ScrollUpdateNotification ||
+            notification is ScrollStartNotification) {
+          SmartDialog.dismiss(tag: _tag ?? dropDownMenuBtnTag);
+        }
+        return false; // 允许通知继续传播
+      },
+      child: Container(
+        constraints: const BoxConstraints(
+          minWidth: 120, // 最小宽度
+          maxWidth: 300, // 最大宽度，防止过长文本撑破布局
+        ),
+        decoration: BoxDecoration(
+          color: context.theme.cardColor,
+          border: Border.all(width: 0.5, color: context.theme.dividerColor),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: IntrinsicWidth(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children:
+                _menuItems.map((item) => _buildMenuItem(context, item)).toList(),
+          ),
         ),
       ),
     );
@@ -51,7 +71,21 @@ class DPDMenuContent extends StatelessWidget {
   /// 构建单个菜单项
   Widget _buildMenuItem(BuildContext context, MenuItem item) {
     final bool isDelete = item.title == 'delete';
+    final bool isPermanentDelete = item.title == 'permanentDelete';
+    final bool isRestore = item.title == 'restore';
+    final bool isRedAction = isDelete || isPermanentDelete;
     final bool isDisabled = item.isDisabled;
+
+    // 确定颜色
+    Color? iconColor;
+    Color? textColor;
+    if (isRedAction) {
+      iconColor = Colors.redAccent.shade200;
+      textColor = Colors.redAccent.shade200;
+    } else if (isRestore) {
+      iconColor = Colors.greenAccent.shade700;
+      textColor = Colors.greenAccent.shade700;
+    }
 
     return Material(
       type: MaterialType.transparency,
@@ -65,7 +99,7 @@ class DPDMenuContent extends StatelessWidget {
             ? null
             : Icon(
                 item.iconData,
-                color: isDelete ? Colors.redAccent.shade200 : null,
+                color: iconColor,
                 size: 18,
               ),
         title: Text(
@@ -73,17 +107,37 @@ class DPDMenuContent extends StatelessWidget {
           style: TextStyle(
             color: isDisabled
                 ? Colors.grey
-                : (isDelete ? Colors.redAccent.shade200 : null),
+                : textColor,
             fontSize: 14.5,
             fontWeight: FontWeight.w500,
           ),
           overflow: TextOverflow.visible, // 允许文本完整显示
         ),
+        trailing: item.trailingIcon != null && item.trailingCallback != null
+            ? Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: () {
+                    item.trailingCallback!();
+                    SmartDialog.dismiss(tag: _tag ?? dropDownMenuBtnTag);
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      item.trailingIcon,
+                      size: 18,
+                      color: Colors.redAccent.shade200,
+                    ),
+                  ),
+                ),
+              )
+            : null,
         onTap: isDisabled
             ? null
             : () {
                 item.callback();
-                SmartDialog.dismiss(tag: dropDownMenuBtnTag);
+                SmartDialog.dismiss(tag: _tag ?? dropDownMenuBtnTag);
               },
       ),
     );
@@ -104,7 +158,7 @@ class DPDMenuBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropdownManuBtn(
       id: _tag,
-      content: DPDMenuContent(menuItems: _menuItems),
+      content: DPDMenuContent(menuItems: _menuItems, tag: _tag),
       child: const Center(
         child: Icon(
           Icons.more_horiz,
@@ -143,6 +197,6 @@ void showDpdMenu({
           curve: Curves.easeInOut,
           duration: controller.duration,
         ),
-    builder: (context) => DPDMenuContent(menuItems: menuItems),
+    builder: (context) => DPDMenuContent(menuItems: menuItems, tag: tag),
   );
 }

@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:TodoCat/data/schemas/task.dart';
 import 'package:TodoCat/data/services/repositorys/task.dart';
 import 'package:TodoCat/widgets/template_selector_dialog.dart';
+import 'package:TodoCat/controllers/workspace_ctr.dart';
 
 /// 管理任务数据的类，处理任务的CRUD操作和持久化
 class TaskManager {
@@ -96,21 +97,36 @@ class TaskManager {
     try {
       _logger.i('应用自定义模板: ${customTemplate.name}');
       
-      // 1. 清空内存中的任务列表
+      // 1. 获取当前工作空间ID（在应用模板前获取，避免切换工作空间导致的问题）
+      String? workspaceId;
+      if (Get.isRegistered<WorkspaceController>()) {
+        final workspaceCtrl = Get.find<WorkspaceController>();
+        workspaceId = workspaceCtrl.currentWorkspaceId.value;
+      }
+      workspaceId ??= 'default';
+      
+      _logger.d('应用模板到工作空间: $workspaceId');
+      
+      // 2. 清空内存中的任务列表
       tasks.clear();
       tasks.refresh(); // 立即刷新UI
 
-      // 2. 清空数据库中的所有任务
-      await _clearAllTasks();
+      // 3. 清空当前工作空间的所有任务
+      await _clearAllTasks(workspaceId: workspaceId);
       
-      // 3. 从自定义模板获取任务列表
+      // 4. 从自定义模板获取任务列表
       final List<Task> templateTasks = customTemplate.getTasks();
       _logger.d('Created ${templateTasks.length} template tasks from custom template');
       
-      // 4. 添加到内存和数据库
+      // 5. 设置所有任务的工作空间ID
+      for (var task in templateTasks) {
+        task.workspaceId = workspaceId;
+      }
+      
+      // 6. 添加到内存和数据库
       await assignAll(templateTasks);
       
-      // 5. 确保UI完全刷新
+      // 7. 确保UI完全刷新
       tasks.refresh();
       
       _logger.i('自定义模板应用成功, final count: ${tasks.length}');
@@ -125,21 +141,36 @@ class TaskManager {
     try {
       _logger.d('Starting tasks template reset with type: $type');
 
-      // 1. 清空内存中的任务列表
+      // 1. 获取当前工作空间ID（在应用模板前获取，避免切换工作空间导致的问题）
+      String? workspaceId;
+      if (Get.isRegistered<WorkspaceController>()) {
+        final workspaceCtrl = Get.find<WorkspaceController>();
+        workspaceId = workspaceCtrl.currentWorkspaceId.value;
+      }
+      workspaceId ??= 'default';
+      
+      _logger.d('应用模板到工作空间: $workspaceId');
+
+      // 2. 清空内存中的任务列表
       tasks.clear();
       tasks.refresh(); // 立即刷新UI
 
-      // 2. 清空数据库中的所有任务
-      await _clearAllTasks();
+      // 3. 清空当前工作空间的所有任务
+      await _clearAllTasks(workspaceId: workspaceId);
 
-      // 3. 创建新的默认任务（确保每次都是全新的UUID）
+      // 4. 创建新的默认任务（确保每次都是全新的UUID）
       final freshDefaultTasks = createTaskTemplate(type);
       _logger.d('Created ${freshDefaultTasks.length} template tasks');
 
-      // 4. 添加到内存和数据库
+      // 5. 设置所有任务的工作空间ID
+      for (var task in freshDefaultTasks) {
+        task.workspaceId = workspaceId;
+      }
+
+      // 6. 添加到内存和数据库
       await assignAll(freshDefaultTasks);
 
-      // 5. 确保UI完全刷新
+      // 7. 确保UI完全刷新
       tasks.refresh();
       
       _logger.d('Tasks template reset completed successfully with type: $type, final count: ${tasks.length}');
@@ -149,15 +180,24 @@ class TaskManager {
     }
   }
 
-  /// 清空数据库中的所有任务（应用模板时永久删除，不移动到回收站）
-  Future<void> _clearAllTasks() async {
+  /// 清空指定工作空间的所有任务（应用模板时永久删除，不移动到回收站）
+  Future<void> _clearAllTasks({String? workspaceId}) async {
     try {
-      _logger.d('Clearing all tasks from database (permanently)');
+      if (workspaceId != null) {
+        _logger.d('Clearing all tasks from workspace: $workspaceId (permanently)');
+      } else {
+        _logger.d('Clearing all tasks from database (permanently)');
+      }
 
-      // 永久删除所有任务（包括回收站中的）- 直接清空表
-      await repository.updateMany([], (task) => task.uuid);
+      // 获取当前工作空间的所有任务
+      final tasksToDelete = await repository.readAll(workspaceId: workspaceId);
+      
+      // 永久删除这些任务
+      for (var task in tasksToDelete) {
+        await repository.permanentDelete(task.uuid);
+      }
 
-      _logger.d('All tasks permanently deleted from database');
+      _logger.d('All tasks${workspaceId != null ? " from workspace $workspaceId" : ""} permanently deleted from database');
     } catch (e) {
       _logger.e('Error clearing all tasks: $e');
       throw Exception('Failed to clear all tasks: $e');

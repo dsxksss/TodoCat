@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import 'package:TodoCat/config/default_data.dart';
 import 'package:TodoCat/controllers/app_ctr.dart';
 import 'package:TodoCat/controllers/home_ctr.dart';
+import 'package:TodoCat/controllers/workspace_ctr.dart';
+import 'package:TodoCat/controllers/trash_ctr.dart';
 import 'package:TodoCat/data/services/database.dart';
 import 'package:TodoCat/keys/dialog_keys.dart';
 import 'package:TodoCat/pages/settings/settings_page.dart';
@@ -13,6 +15,7 @@ import 'package:TodoCat/widgets/dpd_menu_btn.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/label_btn.dart';
 import 'package:TodoCat/services/auto_update_service.dart';
 import 'package:logger/logger.dart';
 
@@ -302,36 +305,8 @@ class SettingsController extends GetxController {
       updateProgress.value = 1.0;
       updateStatus.value = '${'newVersionAvailable'.tr}: $version';
       
-      // 显示确认对话框，让用户选择是否下载
-      // toast 不显示更新内容，只显示版本号
-      showToast(
-        '${'newVersionAvailable'.tr}: $version',
-        confirmMode: true,
-        alwaysShow: true,
-        toastStyleType: TodoCatToastStyleType.info,
-        tag: 'update_confirm_toast',
-        onYesCallback: () {
-          // 用户确认下载，关闭确认 toast
-          SmartDialog.dismiss(tag: 'update_confirm_toast');
-          
-          // 更新状态为"更新新版本中"，显示下载进度
-          isDownloading.value = true; // 标记为正在下载
-          updateProgress.value = 0.1; // 初始进度
-          updateStatus.value = 'downloadingUpdate'.tr;
-          
-          // 触发 desktop_updater 的下载流程
-          _logger.i('用户确认下载更新: $version');
-          _triggerDesktopUpdaterDownload();
-        },
-        onNoCallback: () {
-          // 用户取消下载，关闭确认 toast
-          SmartDialog.dismiss(tag: 'update_confirm_toast');
-          
-          _logger.i('用户取消下载更新');
-          updateProgress.value = 0.0;
-          updateStatus.value = '';
-        },
-      );
+      // 显示更新方式选择对话框
+      _showUpdateMethodDialog(version);
     };
     
     updateService.onUpdateComplete = () {
@@ -385,6 +360,198 @@ class SettingsController extends GetxController {
         }
       });
     };
+  }
+
+  /// 显示更新方式选择对话框
+  void _showUpdateMethodDialog(String version) {
+    SmartDialog.show(
+      tag: 'update_method_dialog',
+      alignment: Alignment.center,
+      maskColor: Colors.black.withValues(alpha: 0.5),
+      clickMaskDismiss: true,
+      useAnimation: true,
+      animationTime: const Duration(milliseconds: 300),
+      builder: (context) => Container(
+        width: 500,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: context.theme.dialogTheme.backgroundColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 标题
+            Text(
+              'selectUpdateMethod'.tr,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: context.theme.textTheme.titleLarge?.color,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'selectUpdateMethodDesc'.tr,
+              style: TextStyle(
+                fontSize: 14,
+                color: context.theme.textTheme.bodyMedium?.color,
+              ),
+            ),
+            const SizedBox(height: 24),
+            // 直接下载更新选项
+            _buildUpdateMethodOption(
+              context: context,
+              title: 'updateViaDownload'.tr,
+              description: 'updateViaDownloadDesc'.tr,
+              icon: Icons.download,
+              onTap: () {
+                SmartDialog.dismiss(tag: 'update_method_dialog');
+                // 更新状态为"更新新版本中"，显示下载进度
+                isDownloading.value = true;
+                updateProgress.value = 0.1;
+                updateStatus.value = 'downloadingUpdate'.tr;
+                _logger.i('用户选择直接下载更新: $version');
+                _triggerDesktopUpdaterDownload();
+              },
+            ),
+            const SizedBox(height: 16),
+            // 通过微软商店更新选项
+            if (Platform.isWindows)
+              _buildUpdateMethodOption(
+                context: context,
+                title: 'updateViaStore'.tr,
+                description: 'updateViaStoreDesc'.tr,
+                icon: Icons.store,
+                onTap: () async {
+                  SmartDialog.dismiss(tag: 'update_method_dialog');
+                  _logger.i('用户选择通过微软商店更新: $version');
+                  final success = await appCtrl.autoUpdateService.openMicrosoftStore();
+                  if (success) {
+                    showToast(
+                      'openMicrosoftStore'.tr,
+                      toastStyleType: TodoCatToastStyleType.success,
+                      position: TodoCatToastPosition.bottomLeft,
+                    );
+                    // 重置状态
+                    updateProgress.value = 0.0;
+                    updateStatus.value = '';
+                  } else {
+                    showToast(
+                      'failedToOpenStore'.tr,
+                      toastStyleType: TodoCatToastStyleType.error,
+                      position: TodoCatToastPosition.bottomLeft,
+                    );
+                  }
+                },
+              ),
+            const SizedBox(height: 24),
+            // 取消按钮
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                LabelBtn(
+                  label: Text('cancel'.tr),
+                  ghostStyle: true,
+                  onPressed: () {
+                    SmartDialog.dismiss(tag: 'update_method_dialog');
+                    updateProgress.value = 0.0;
+                    updateStatus.value = '';
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      animationBuilder: (controller, child, animationParam) {
+        return ScaleTransition(
+          scale: Tween<double>(
+            begin: 0.8,
+            end: 1.0,
+          ).animate(CurvedAnimation(
+            parent: controller,
+            curve: Curves.easeOutCubic,
+          )),
+          child: FadeTransition(
+            opacity: controller,
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  /// 构建更新方式选项
+  Widget _buildUpdateMethodOption({
+    required BuildContext context,
+    required String title,
+    required String description,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: context.theme.dividerColor,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: context.theme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: context.theme.primaryColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: context.theme.textTheme.titleMedium?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: context.theme.textTheme.bodySmall?.color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: context.theme.textTheme.bodySmall?.color,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// 触发下载和安装更新
@@ -491,7 +658,36 @@ class SettingsController extends GetxController {
       appCtrl.appConfig.value = defaultAppConfig.copyWith();
       appCtrl.appConfig.refresh();
       
-      // 3. 刷新主页数据
+      // 3. 重新初始化工作空间（会创建默认工作空间）
+      try {
+        if (Get.isRegistered<WorkspaceController>()) {
+          final workspaceCtrl = Get.find<WorkspaceController>();
+          // 清空内存中的工作空间列表
+          workspaceCtrl.workspaces.clear();
+          // 重新加载工作空间（会触发创建默认工作空间）
+          await workspaceCtrl.loadWorkspaces();
+          // 如果没有工作空间，创建默认工作空间
+          if (workspaceCtrl.workspaces.isEmpty) {
+            await workspaceCtrl.createDefaultWorkspace();
+          }
+          // 确保当前工作空间是默认工作空间
+          workspaceCtrl.currentWorkspaceId.value = 'default';
+        }
+      } catch (e) {
+        _logger.e('重新初始化工作空间失败: $e');
+      }
+      
+      // 4. 刷新回收站数据（清空回收站显示）
+      try {
+        if (Get.isRegistered<TrashController>()) {
+          final trashCtrl = Get.find<TrashController>();
+          await trashCtrl.refresh();
+        }
+      } catch (e) {
+        _logger.e('刷新回收站数据失败: $e');
+      }
+      
+      // 5. 刷新主页数据
       try {
         await homeCtrl.refreshData();
       } catch (e) {

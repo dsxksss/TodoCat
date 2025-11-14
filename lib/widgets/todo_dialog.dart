@@ -356,13 +356,14 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
               child: Column(
                 children: [
                   // 顶部可滚动内容区域
-                  Expanded(
+                  Flexible(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(15),
+                      padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
                       physics: const AlwaysScrollableScrollPhysics(
                         parent: BouncingScrollPhysics(),
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           SizedBox(
                             height: 35,
@@ -524,8 +525,11 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
               ),
             ),
             // Markdown 工具栏 - 固定在tag下方，确保始终可见
-            MarkdownToolbar(
-              controller: controller.descriptionController,
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: MarkdownToolbar(
+                controller: controller.descriptionController,
+              ),
             ),
             // Description 输入框 - 占据剩余空间
             Expanded(

@@ -229,7 +229,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
   
   void _showConfirmDialogForCustom(BuildContext context, CustomTemplate template, bool shouldClosePreview) {
     showToast(
-      "confirmApplyTemplate".tr.replaceAll('{title}', template.name),
+      "${'confirmApplyTemplate'.tr}「${template.name}」",
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
@@ -266,7 +266,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
 
   void _showConfirmDialog(BuildContext context, TaskTemplateType type, String title, bool shouldClosePreview) {
     showToast(
-      "confirmApplyTemplate".tr.replaceAll('{title}', title),
+      "${'confirmApplyTemplate'.tr}「$title」",
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
