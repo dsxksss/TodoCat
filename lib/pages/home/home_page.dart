@@ -649,12 +649,16 @@ class HomePage extends GetView<HomeController> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                currentWorkspace?.name ?? 'defaultWorkspace'.tr,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: context.theme.textTheme.bodyLarge?.color,
+              Flexible(
+                child: Text(
+                  currentWorkspace?.name ?? 'defaultWorkspace'.tr,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: context.theme.textTheme.bodyLarge?.color,
+                  ),
+                  overflow: TextOverflow.ellipsis, // 防止文字换行，超长时显示省略号
+                  maxLines: 1,
                 ),
               ),
               const SizedBox(width: 4),

@@ -48,21 +48,16 @@ class DPDMenuContent extends StatelessWidget {
         return false; // 允许通知继续传播
       },
       child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 120, // 最小宽度
-          maxWidth: 300, // 最大宽度，防止过长文本撑破布局
-        ),
+        width: 180, // 固定宽度，确保下拉框位置稳定
         decoration: BoxDecoration(
           color: context.theme.cardColor,
           border: Border.all(width: 0.5, color: context.theme.dividerColor),
           borderRadius: BorderRadius.circular(5),
         ),
-        child: IntrinsicWidth(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children:
-                _menuItems.map((item) => _buildMenuItem(context, item)).toList(),
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children:
+              _menuItems.map((item) => _buildMenuItem(context, item)).toList(),
         ),
       ),
     );
@@ -102,16 +97,21 @@ class DPDMenuContent extends StatelessWidget {
                 color: iconColor,
                 size: 18,
               ),
-        title: Text(
-          item.title.tr,
-          style: TextStyle(
-            color: isDisabled
-                ? Colors.grey
-                : textColor,
-            fontSize: 14.5,
-            fontWeight: FontWeight.w500,
+        title: Tooltip(
+          message: item.title.tr, // hover时显示完整内容
+          waitDuration: const Duration(milliseconds: 500), // hover延迟时间
+          child: Text(
+            item.title.tr,
+            style: TextStyle(
+              color: isDisabled
+                  ? Colors.grey
+                  : textColor,
+              fontSize: 14.5,
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis, // 防止文字换行，超长时显示省略号
+            maxLines: 1,
           ),
-          overflow: TextOverflow.visible, // 允许文本完整显示
         ),
         trailing: item.trailingIcon != null && item.trailingCallback != null
             ? Material(
