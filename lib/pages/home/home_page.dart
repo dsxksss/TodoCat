@@ -30,6 +30,8 @@ import 'package:TodoCat/widgets/appflowy_board_adapter.dart';
 import 'package:TodoCat/controllers/trash_ctr.dart';
 import 'package:TodoCat/widgets/trash_dialog.dart';
 import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:TodoCat/widgets/video_background.dart';
+import 'package:TodoCat/services/video_download_service.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -200,30 +202,94 @@ class HomePage extends GetView<HomeController> {
       return Container();
     }
     
+    // 获取背景设置
+    final appCtrl = Get.find<AppController>();
+    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
+    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    
     // 检查是否是默认模板
     if (backgroundPath.startsWith('default_template:')) {
       final templateId = backgroundPath.split(':').last;
-      final imageUrl = _getTemplateImageUrl(templateId);
+      final template = DefaultBackgrounds.getById(templateId);
       
-      if (imageUrl != null) {
-        // 使用本地图片
-        return Image.asset(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            // 回退到渐变占位符
-            final colors = _getGradientColors(templateId);
-            return Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: colors,
-                ),
-              ),
+      if (template != null) {
+        // 检查是否为视频模板
+        if (template.isVideo) {
+          // 如果有downloadUrl，尝试使用缓存的视频路径
+          if (template.downloadUrl != null) {
+            return FutureBuilder<String?>(
+              future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(color: Colors.black);
+                }
+                // 如果已缓存，使用缓存路径；否则使用原路径（可能不存在，但VideoBackground会处理）
+                final videoPath = snapshot.data ?? template.imageUrl;
+                return VideoBackground(
+                  videoPath: videoPath,
+                  opacity: opacity,
+                  blur: blur,
+                );
+              },
             );
-          },
-        );
+          } else {
+            // 对于 assets 中的视频，直接使用 assets 路径
+            // VideoBackground 会处理 assets 路径
+            return VideoBackground(
+              videoPath: template.imageUrl,
+              opacity: opacity,
+              blur: blur,
+            );
+          }
+        } else {
+          // 使用本地图片
+          return Opacity(
+            opacity: opacity,
+            child: ClipRect(
+              child: blur > 0
+                  ? ImageFiltered(
+                      imageFilter: ImageFilter.blur(
+                        sigmaX: blur,
+                        sigmaY: blur,
+                      ),
+                      child: Image.asset(
+                        template.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // 回退到渐变占位符
+                          final colors = _getGradientColors(templateId);
+                          return Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: colors,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Image.asset(
+                      template.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // 回退到渐变占位符
+                        final colors = _getGradientColors(templateId);
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: colors,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          );
+        }
       } else {
         // 回退到渐变
         final colors = _getGradientColors(templateId);
@@ -238,17 +304,54 @@ class HomePage extends GetView<HomeController> {
         );
       }
     } else {
-      // 自定义图片
+      // 自定义图片或视频
       // 检查文件是否存在
       if (GetPlatform.isDesktop && File(backgroundPath).existsSync()) {
-        return Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: FileImage(File(backgroundPath)),
-              fit: BoxFit.cover,
+        // 检查是否是视频文件
+        final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
+                       backgroundPath.toLowerCase().endsWith('.mov') ||
+                       backgroundPath.toLowerCase().endsWith('.avi') ||
+                       backgroundPath.toLowerCase().endsWith('.mkv') ||
+                       backgroundPath.toLowerCase().endsWith('.webm');
+        
+        if (isVideo) {
+          // 使用视频背景
+          return VideoBackground(
+            videoPath: backgroundPath,
+            opacity: opacity,
+            blur: blur,
+          );
+        } else {
+          // 使用图片背景
+          return Opacity(
+            opacity: opacity,
+            child: ClipRect(
+              child: blur > 0
+                  ? ImageFiltered(
+                      imageFilter: ImageFilter.blur(
+                        sigmaX: blur,
+                        sigmaY: blur,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: FileImage(File(backgroundPath)),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: FileImage(File(backgroundPath)),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
             ),
-          ),
-        );
+          );
+        }
       } else {
         // 文件不存在，返回空容器
         return Container();
@@ -261,26 +364,30 @@ class HomePage extends GetView<HomeController> {
     // 简单的灰色渐变占位符
     return [Colors.grey.shade300, Colors.grey.shade400];
   }
-  
-  /// 获取模板图片URL
-  String? _getTemplateImageUrl(String templateId) {
-    try {
-      return DefaultBackgrounds.templates.firstWhere((bg) => bg.id == templateId).imageUrl;
-    } catch (e) {
-      return null;
-    }
-  }
 
   /// 构建带背景的页面（影响导航栏）
   Widget _buildWithBackground(String imagePath, double opacity, double blur) {
+    // 检查是否是视频
+    final isVideo = !imagePath.startsWith('default_template:') && 
+                   (imagePath.toLowerCase().endsWith('.mp4') ||
+                    imagePath.toLowerCase().endsWith('.mov') ||
+                    imagePath.toLowerCase().endsWith('.avi') ||
+                    imagePath.toLowerCase().endsWith('.mkv') ||
+                    imagePath.toLowerCase().endsWith('.webm')) ||
+                   (imagePath.startsWith('default_template:') && 
+                    DefaultBackgrounds.getById(imagePath.split(':').last)?.isVideo == true);
+    
     return Stack(
       children: [
         // 背景图片/渐变层
+        // 注意：VideoBackground 内部已经处理了 opacity，但图片背景需要外层 opacity
         Positioned.fill(
-          child: Opacity(
-            opacity: opacity,
-            child: _getBackgroundWidget(imagePath),
-          ),
+          child: isVideo 
+              ? _getBackgroundWidget(imagePath) 
+              : Opacity(
+                  opacity: opacity,
+                  child: _getBackgroundWidget(imagePath),
+                ),
         ),
         // 模糊层（毛玻璃效果）
         if (blur > 0)
@@ -620,30 +727,39 @@ class HomePage extends GetView<HomeController> {
         );
       }
       
-      // 添加分隔线
-      menuItems.add(
-        MenuItem(
-          title: '---',
-          callback: () {},
-          isDisabled: true,
-        ),
-      );
-      
-      // 添加管理选项
-      menuItems.add(
-        MenuItem(
-          title: 'createWorkspace',
-          iconData: Icons.add,
-          callback: () {
-            showCreateWorkspaceDialog();
-          },
-        ),
-      );
-      
       return Builder(
-        builder: (context) => DropdownManuBtn(
-          id: 'workspace_selector',
-          content: DPDMenuContent(menuItems: menuItems, tag: 'workspace_selector'),
+        builder: (context) {
+          // 构建管理选项
+          final createWorkspaceItem = MenuItem(
+            title: 'createWorkspace',
+            iconData: Icons.add,
+            callback: () {
+              showCreateWorkspaceDialog();
+            },
+          );
+          
+          return DropdownManuBtn(
+            id: 'workspace_selector',
+            content: DPDMenuContent(
+              menuItems: menuItems,
+              tag: 'workspace_selector',
+              width: 195, // 仅为工作空间选择器设置固定宽度
+              additionalWidgets: [
+                // 在工作空间列表和管理选项之间添加分割线
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Divider(
+                    height: 1,
+                    thickness: 0.5,
+                    indent: 16,
+                    endIndent: 16,
+                    color: context.theme.dividerColor,
+                  ),
+                ),
+                // 添加管理选项
+                DPDMenuContent.buildMenuItem(context, createWorkspaceItem, 'workspace_selector'),
+              ],
+            ),
           alignment: Alignment.bottomRight,
           attachAlignmentType: SmartAttachAlignmentType.outside,
           child: Row(
@@ -669,7 +785,8 @@ class HomePage extends GetView<HomeController> {
               ),
             ],
           ),
-        ),
+          );
+        },
       );
     });
   }

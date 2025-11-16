@@ -15,6 +15,10 @@ import 'package:TodoCat/widgets/show_toast.dart';
 import 'package:TodoCat/controllers/task_dialog_ctr.dart';
 import 'package:TodoCat/widgets/task_dialog.dart';
 import 'package:TodoCat/services/dialog_service.dart';
+import 'package:TodoCat/widgets/select_workspace_dialog.dart';
+import 'package:TodoCat/controllers/workspace_ctr.dart';
+import 'package:TodoCat/widgets/duplicate_name_dialog.dart';
+import 'package:TodoCat/data/services/repositorys/task.dart';
 import 'dart:async';
 
 class TaskCard extends StatefulWidget {
@@ -204,6 +208,170 @@ class _TaskCardState extends State<TaskCard> {
                               DialogService.showFormDialog(
                                 tag: addTaskDialogTag,
                                 dialog: const TaskDialog(),
+                              );
+                            },
+                          ),
+                          MenuItem(
+                            title: 'moveToWorkspace',
+                            iconData: FontAwesomeIcons.folderOpen,
+                            callback: () {
+                              // 获取当前工作空间ID
+                              String currentWorkspaceId = 'default';
+                              if (Get.isRegistered<WorkspaceController>()) {
+                                final workspaceCtrl = Get.find<WorkspaceController>();
+                                currentWorkspaceId = workspaceCtrl.currentWorkspaceId.value;
+                              }
+                              
+                              // 显示选择工作空间对话框
+                              showSelectWorkspaceDialog(
+                                currentWorkspaceId: currentWorkspaceId,
+                                onWorkspaceSelected: (targetWorkspaceId) async {
+                                  // 获取源工作空间和目标工作空间名称
+                                  String sourceWorkspaceName = 'defaultWorkspace'.tr;
+                                  String targetWorkspaceName = 'defaultWorkspace'.tr;
+                                  
+                                  if (Get.isRegistered<WorkspaceController>()) {
+                                    final workspaceCtrl = Get.find<WorkspaceController>();
+                                    
+                                    // 获取源工作空间名称
+                                    final sourceWorkspace = workspaceCtrl.workspaces.firstWhereOrNull(
+                                      (w) => w.uuid == widget._task.workspaceId,
+                                    );
+                                    if (sourceWorkspace != null) {
+                                      sourceWorkspaceName = sourceWorkspace.uuid == 'default'
+                                          ? 'defaultWorkspace'.tr
+                                          : sourceWorkspace.name;
+                                    }
+                                    
+                                    // 获取目标工作空间名称
+                                    final targetWorkspace = workspaceCtrl.workspaces.firstWhereOrNull(
+                                      (w) => w.uuid == targetWorkspaceId,
+                                    );
+                                    if (targetWorkspace != null) {
+                                      targetWorkspaceName = targetWorkspace.uuid == 'default'
+                                          ? 'defaultWorkspace'.tr
+                                          : targetWorkspace.name;
+                                    }
+                                  }
+                                  
+                                  // 保存原始工作空间ID用于撤销
+                                  final originalWorkspaceId = widget._task.workspaceId;
+                                  
+                                  // 先尝试移动，检查是否有同名任务
+                                  final hasDuplicate = await _homeCtrl.moveTaskToWorkspace(
+                                    widget._task.uuid,
+                                    targetWorkspaceId,
+                                  );
+                                  
+                                  // 如果返回false，可能是存在同名任务，需要显示对话框
+                                  if (!hasDuplicate) {
+                                    // 检查是否真的存在同名任务
+                                    try {
+                                      final taskRepository = await TaskRepository.getInstance();
+                                      final targetTasks = await taskRepository.readAll(workspaceId: targetWorkspaceId);
+                                      final duplicateTask = targetTasks.firstWhereOrNull(
+                                        (t) => t.title == widget._task.title && t.uuid != widget._task.uuid,
+                                      );
+                                      
+                                      if (duplicateTask != null) {
+                                        // 显示同名处理对话框
+                                        showDuplicateNameDialog(
+                                          itemName: widget._task.title,
+                                          itemType: 'task',
+                                          sourceWorkspaceName: sourceWorkspaceName,
+                                          targetWorkspaceName: targetWorkspaceName,
+                                          onActionSelected: (action) async {
+                                            if (action == DuplicateNameAction.cancel) {
+                                              return;
+                                            }
+                                            
+                                            final success = await _homeCtrl.moveTaskToWorkspace(
+                                              widget._task.uuid,
+                                              targetWorkspaceId,
+                                              duplicateAction: action,
+                                            );
+                                            
+                                            if (success) {
+                                              // 显示带撤销功能的通知
+                                              final taskTitle = widget._task.title;
+                                              String message;
+                                              if (sourceWorkspaceName != targetWorkspaceName) {
+                                                message = '「$taskTitle」${'taskMovedToWorkspace'.tr}「$sourceWorkspaceName」→「$targetWorkspaceName」';
+                                              } else {
+                                                message = '「$taskTitle」${'taskMovedToWorkspace'.tr}「$targetWorkspaceName」';
+                                              }
+                                              
+                                              showUndoToast(
+                                                message,
+                                                () async {
+                                                  final isUndone = await _homeCtrl.undoMoveTaskToWorkspace(
+                                                    widget._task.uuid,
+                                                    originalWorkspaceId,
+                                                  );
+                                                  if (isUndone) {
+                                                    showSuccessNotification(
+                                                      '「$taskTitle」${'taskRestored'.tr}',
+                                                      saveToNotificationCenter: false,
+                                                    );
+                                                  } else {
+                                                    showErrorNotification(
+                                                      '「$taskTitle」${'restoreFailed'.tr}',
+                                                    );
+                                                  }
+                                                },
+                                                countdownSeconds: 5,
+                                              );
+                                            } else {
+                                              showErrorNotification('taskMoveFailed'.tr);
+                                            }
+                                          },
+                                        );
+                                        return;
+                                      }
+                                    } catch (e) {
+                                      // 忽略错误，继续执行
+                                    }
+                                    
+                                    // 不是同名问题，是其他错误
+                                    showErrorNotification('taskMoveFailed'.tr);
+                                    return;
+                                  }
+                                  
+                                  // 移动成功
+                                  if (hasDuplicate) {
+                                    // 显示带撤销功能的通知
+                                    final taskTitle = widget._task.title;
+                                    String message;
+                                    if (sourceWorkspaceName != targetWorkspaceName) {
+                                      message = '「$taskTitle」${'taskMovedToWorkspace'.tr}「$sourceWorkspaceName」→「$targetWorkspaceName」';
+                                    } else {
+                                      message = '「$taskTitle」${'taskMovedToWorkspace'.tr}「$targetWorkspaceName」';
+                                    }
+                                    
+                                    showUndoToast(
+                                      message,
+                                      () async {
+                                        final isUndone = await _homeCtrl.undoMoveTaskToWorkspace(
+                                          widget._task.uuid,
+                                          originalWorkspaceId,
+                                        );
+                                        if (isUndone) {
+                                          showSuccessNotification(
+                                            '「$taskTitle」${'taskRestored'.tr}',
+                                            saveToNotificationCenter: false,
+                                          );
+                                        } else {
+                                          showErrorNotification(
+                                            '「$taskTitle」${'restoreFailed'.tr}',
+                                          );
+                                        }
+                                      },
+                                      countdownSeconds: 5,
+                                    );
+                                  } else {
+                                    showErrorNotification('taskMoveFailed'.tr);
+                                  }
+                                },
                               );
                             },
                           ),

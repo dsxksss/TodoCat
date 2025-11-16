@@ -14,6 +14,8 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:TodoCat/controllers/app_ctr.dart';
 import 'package:TodoCat/config/default_backgrounds.dart';
+import 'package:TodoCat/widgets/video_background.dart';
+import 'package:TodoCat/services/video_download_service.dart';
 
 enum TaskTemplateType {
   empty,    // 空模板
@@ -593,30 +595,94 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
 
   /// 获取背景装饰
   Widget _getBackgroundWidget(String? backgroundPath) {
+    // 获取背景设置
+    final appCtrl = Get.find<AppController>();
+    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
+    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    
     // 检查是否是默认模板
     if (backgroundPath != null && backgroundPath.startsWith('default_template:')) {
       final templateId = backgroundPath.split(':').last;
-      final imageUrl = _getTemplateImageUrl(templateId);
+      final template = DefaultBackgrounds.getById(templateId);
       
-      if (imageUrl != null) {
-        // 使用本地图片
-        return Image.asset(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            // 回退到渐变占位符
-            final colors = _getGradientColors(templateId);
-            return Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: colors,
-                ),
-              ),
+      if (template != null) {
+        // 检查是否为视频模板
+        if (template.isVideo) {
+          // 如果有downloadUrl，优先使用缓存路径，否则使用URL
+          if (template.downloadUrl != null) {
+            return FutureBuilder<String?>(
+              future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(color: Colors.black);
+                }
+                // 如果已缓存，使用缓存路径；否则使用URL（VideoBackground现在支持网络URL）
+                final videoPath = snapshot.data ?? template.downloadUrl!;
+                return VideoBackground(
+                  videoPath: videoPath,
+                  opacity: opacity,
+                  blur: blur,
+                );
+              },
             );
-          },
-        );
+          } else {
+            // 没有downloadUrl，使用原路径（assets中的视频）
+            return VideoBackground(
+              videoPath: template.imageUrl,
+              opacity: opacity,
+              blur: blur,
+            );
+          }
+        } else {
+          // 使用本地图片
+          final imageUrl = template.imageUrl;
+          return Opacity(
+            opacity: opacity,
+            child: ClipRect(
+              child: blur > 0
+                  ? ImageFiltered(
+                      imageFilter: ImageFilter.blur(
+                        sigmaX: blur,
+                        sigmaY: blur,
+                      ),
+                      child: Image.asset(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // 回退到渐变占位符
+                          final colors = _getGradientColors(templateId);
+                          return Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: colors,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Image.asset(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // 回退到渐变占位符
+                        final colors = _getGradientColors(templateId);
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: colors,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          );
+        }
       } else {
         // 回退到渐变
         final colors = _getGradientColors(templateId);
@@ -631,15 +697,35 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
         );
       }
     } else {
-      // 自定义图片
-      return Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: FileImage(File(backgroundPath!)),
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
+      // 自定义图片或视频
+      if (backgroundPath != null && GetPlatform.isDesktop && File(backgroundPath).existsSync()) {
+        final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
+                       backgroundPath.toLowerCase().endsWith('.mov') ||
+                       backgroundPath.toLowerCase().endsWith('.avi') ||
+                       backgroundPath.toLowerCase().endsWith('.mkv') ||
+                       backgroundPath.toLowerCase().endsWith('.webm');
+        
+        if (isVideo) {
+          // 使用视频背景播放
+          return VideoBackground(
+            videoPath: backgroundPath,
+            opacity: opacity,
+            blur: blur,
+          );
+        } else {
+          // 自定义图片
+          return Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: FileImage(File(backgroundPath)),
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        }
+      } else {
+        return Container();
+      }
     }
   }
 
@@ -648,14 +734,6 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
     return [Colors.grey.shade300, Colors.grey.shade400];
   }
   
-  /// 获取模板图片URL
-  String? _getTemplateImageUrl(String templateId) {
-    try {
-      return DefaultBackgrounds.templates.firstWhere((bg) => bg.id == templateId).imageUrl;
-    } catch (e) {
-      return null;
-    }
-  }
 
   Widget _buildPreviewTaskCard(Task task) {
     return IgnorePointer(
@@ -994,30 +1072,94 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
 
   /// 获取背景装饰
   Widget _getBackgroundWidget(String? backgroundPath) {
+    // 获取背景设置
+    final appCtrl = Get.find<AppController>();
+    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
+    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    
     // 检查是否是默认模板
     if (backgroundPath != null && backgroundPath.startsWith('default_template:')) {
       final templateId = backgroundPath.split(':').last;
-      final imageUrl = _getTemplateImageUrl(templateId);
+      final template = DefaultBackgrounds.getById(templateId);
       
-      if (imageUrl != null) {
-        // 使用本地图片
-        return Image.asset(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            // 回退到渐变占位符
-            final colors = _getGradientColors(templateId);
-            return Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: colors,
-                ),
-              ),
+      if (template != null) {
+        // 检查是否为视频模板
+        if (template.isVideo) {
+          // 如果有downloadUrl，优先使用缓存路径，否则使用URL
+          if (template.downloadUrl != null) {
+            return FutureBuilder<String?>(
+              future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(color: Colors.black);
+                }
+                // 如果已缓存，使用缓存路径；否则使用URL（VideoBackground现在支持网络URL）
+                final videoPath = snapshot.data ?? template.downloadUrl!;
+                return VideoBackground(
+                  videoPath: videoPath,
+                  opacity: opacity,
+                  blur: blur,
+                );
+              },
             );
-          },
-        );
+          } else {
+            // 没有downloadUrl，使用原路径（assets中的视频）
+            return VideoBackground(
+              videoPath: template.imageUrl,
+              opacity: opacity,
+              blur: blur,
+            );
+          }
+        } else {
+          // 使用本地图片
+          final imageUrl = template.imageUrl;
+          return Opacity(
+            opacity: opacity,
+            child: ClipRect(
+              child: blur > 0
+                  ? ImageFiltered(
+                      imageFilter: ImageFilter.blur(
+                        sigmaX: blur,
+                        sigmaY: blur,
+                      ),
+                      child: Image.asset(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // 回退到渐变占位符
+                          final colors = _getGradientColors(templateId);
+                          return Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: colors,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Image.asset(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // 回退到渐变占位符
+                        final colors = _getGradientColors(templateId);
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: colors,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          );
+        }
       } else {
         // 回退到渐变
         final colors = _getGradientColors(templateId);
@@ -1032,15 +1174,35 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
         );
       }
     } else {
-      // 自定义图片
-      return Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: FileImage(File(backgroundPath!)),
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
+      // 自定义图片或视频
+      if (backgroundPath != null && GetPlatform.isDesktop && File(backgroundPath).existsSync()) {
+        final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
+                       backgroundPath.toLowerCase().endsWith('.mov') ||
+                       backgroundPath.toLowerCase().endsWith('.avi') ||
+                       backgroundPath.toLowerCase().endsWith('.mkv') ||
+                       backgroundPath.toLowerCase().endsWith('.webm');
+        
+        if (isVideo) {
+          // 使用视频背景播放
+          return VideoBackground(
+            videoPath: backgroundPath,
+            opacity: opacity,
+            blur: blur,
+          );
+        } else {
+          // 自定义图片
+          return Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: FileImage(File(backgroundPath)),
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        }
+      } else {
+        return Container();
+      }
     }
   }
 
@@ -1049,14 +1211,6 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
     return [Colors.grey.shade300, Colors.grey.shade400];
   }
   
-  /// 获取模板图片URL
-  String? _getTemplateImageUrl(String templateId) {
-    try {
-      return DefaultBackgrounds.templates.firstWhere((bg) => bg.id == templateId).imageUrl;
-    } catch (e) {
-      return null;
-    }
-  }
 
   Widget _buildPreviewTaskCard(Task task) {
     return IgnorePointer(

@@ -75,6 +75,10 @@ dependencies:
   fastforge: ^0.0.1
   # URL启动器，用于打开外部链接
   url_launcher: ^6.2.5
+  # 视频播放器
+  video_player: ^2.8.2
+  # Windows 视频播放器（更好的性能和硬件加速）
+  video_player_win: ^3.2.1
 
 dev_dependencies:
   flutter_test:
@@ -122,6 +126,7 @@ flutter:
   assets:
     - assets/
     - assets/imgs/
+    - assets/videos/
     - assets/fonts/
 
 flutter_launcher_icons:

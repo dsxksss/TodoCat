@@ -285,18 +285,18 @@ packages:
     dependency: "direct main"
     description:
       name: drift
-      sha256: "6acedc562ffeed308049f78fb1906abad3d65714580b6745441ee6d50ec564cd"
+      sha256: b50a8342c6ddf05be53bda1d246404cbad101b64dc73e8d6d1ac1090d119b4e2
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.18.0"
+    version: "2.15.0"
   drift_dev:
     dependency: "direct dev"
     description:
       name: drift_dev
-      sha256: d9b020736ea85fff1568699ce18b89fabb3f0f042e8a7a05e84a3ec20d39acde
+      sha256: c037d9431b6f8dc633652b1469e5f53aaec6e4eb405ed29dd232fa888ef10d88
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.18.0"
+    version: "2.15.0"
   equatable:
     dependency: transitive
     description:
@@ -628,10 +628,10 @@ packages:
     dependency: transitive
     description:
       name: js
-      sha256: "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc"
+      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.7.2"
+    version: "0.6.7"
   json_annotation:
     dependency: "direct main"
     description:
@@ -1057,10 +1057,10 @@ packages:
     dependency: transitive
     description:
       name: sqlite3
-      sha256: fde692580bee3379374af1f624eb3e113ab2865ecb161dbe2d8ac2de9735dbdb
+      sha256: "3145bd74dcdb4fd6f5c6dda4d4e4490a8087d7f286a14dee5d37087290f0f8a2"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.4.5"
+    version: "2.9.4"
   sqlite3_flutter_libs:
     dependency: "direct main"
     description:
@@ -1073,10 +1073,10 @@ packages:
     dependency: transitive
     description:
       name: sqlparser
-      sha256: ade9a67fd70d0369329ed3373208de7ebd8662470e8c396fc8d0d60f9acdfc9f
+      sha256: "7b20045d1ccfb7bc1df7e8f9fee5ae58673fce6ff62cefbb0e0fd7214e90e5a0"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.36.0"
+    version: "0.34.1"
   stack_trace:
     dependency: transitive
     description:
@@ -1285,6 +1285,54 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.2.0"
+  video_player:
+    dependency: "direct main"
+    description:
+      name: video_player
+      sha256: "096bc28ce10d131be80dfb00c223024eb0fba301315a406728ab43dd99c45bdf"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.10.1"
+  video_player_android:
+    dependency: transitive
+    description:
+      name: video_player_android
+      sha256: cf768d02924b91e333e2bc1ff928528f57d686445874f383bafab12d0bdfc340
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.8.17"
+  video_player_avfoundation:
+    dependency: transitive
+    description:
+      name: video_player_avfoundation
+      sha256: "03fc6d07dba2499588d30887329b399c1fe2d68ce4b7fcff0db79f44a2603f69"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.8.6"
+  video_player_platform_interface:
+    dependency: transitive
+    description:
+      name: video_player_platform_interface
+      sha256: "57c5d73173f76d801129d0531c2774052c5a7c11ccb962f1830630decd9f24ec"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "6.6.0"
+  video_player_web:
+    dependency: transitive
+    description:
+      name: video_player_web
+      sha256: "9f3c00be2ef9b76a95d94ac5119fb843dca6f2c69e6c9968f6f2b6c9e7afbdeb"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.4.0"
+  video_player_win:
+    dependency: "direct main"
+    description:
+      name: video_player_win
+      sha256: "7697687e0959db3643b6425289c37a07bf179866eb48f8b6ac69d4de212ead12"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "3.2.1"
   vm_service:
     dependency: transitive
     description:
@@ -1305,10 +1353,10 @@ packages:
     dependency: transitive
     description:
       name: web
-      sha256: "97da13628db363c635202ad97068d47c5b8aa555808e7a9411963c533b449b27"
+      sha256: "868d88a33d8a87b18ffc05f9f030ba328ffefba92d6c127917a2ba740f9cfe4a"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.5.1"
+    version: "1.1.1"
   web_socket:
     dependency: transitive
     description:

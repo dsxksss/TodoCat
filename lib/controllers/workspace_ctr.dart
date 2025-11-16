@@ -218,8 +218,9 @@ class WorkspaceController extends GetxController {
         homeCtrl.isSwitchingWorkspace.value = true;
         // 等待完整的淡出动画时间（300ms），确保旧任务完全消失
         await Future.delayed(const Duration(milliseconds: 300));
-        // 刷新数据，加载新工作空间的任务
-        await homeCtrl.refreshData();
+        // 刷新数据，加载新工作空间的任务（在旧任务淡出后再加载新任务）
+        // 使用 clearBeforeRefresh: true 确保在刷新前清空列表，避免显示旧任务
+        await homeCtrl.refreshData(showEmptyPrompt: true, clearBeforeRefresh: true);
         // 再等待一小段时间，确保数据已更新到UI
         await Future.delayed(const Duration(milliseconds: 50));
         // 触发淡入动画（显示新任务）

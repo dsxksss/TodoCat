@@ -268,14 +268,15 @@ class TaskManager {
 
         // 刷新UI，确保变化立即显示
         tasks.refresh();
-
-        // 更新数据库
-        await repository.update(uuid, task);
-
-        _logger.d('Task $uuid updated successfully');
       } else {
-        _logger.w('Task $uuid not found for update');
+        _logger.d('Task $uuid not in memory, will update database only');
       }
+
+      // 无论task是否在内存中，都要更新数据库
+      // 这对于移动task到其他工作空间很重要
+      await repository.update(uuid, task);
+
+      _logger.d('Task $uuid updated successfully');
     } catch (e) {
       _logger.e('Error updating task $uuid: $e');
       throw Exception('Failed to update task: $e');

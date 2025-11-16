@@ -6,3 +6,6 @@ const addTodoTagDialogBtnTag = "AddTodoTagDialogBtnTag";
 const addTaskDialogTag = "AddTaskDialogTag";
 const saveTemplateDialogTag = "SaveTemplateDialogTag";
 const createWorkspaceDialogTag = "CreateWorkspaceDialogTag";
+const selectWorkspaceDialogTag = "SelectWorkspaceDialogTag";
+const selectWorkspaceAndTaskDialogTag = "SelectWorkspaceAndTaskDialogTag";
+const duplicateNameDialogTag = "DuplicateNameDialogTag";

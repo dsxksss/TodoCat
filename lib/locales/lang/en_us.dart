@@ -72,7 +72,8 @@ const Map<String, String> enUS = {
   'enable': 'Enable',
   'disable': 'Disable',
   'launchAtStartup': 'Launch at startup',
-  'launchAtStartupDescription': 'Automatically run TodoCat after system startup/login (desktop only)',
+  'launchAtStartupDescription':
+      'Automatically run TodoCat after system startup/login (desktop only)',
   'emailReminder': 'Email reminder',
   'language': 'Language',
   'common': 'Common',
@@ -90,8 +91,10 @@ const Map<String, String> enUS = {
   'tagDuplicate': 'Tag already exists',
   'confirm': 'Confirm',
   'noDateTime': 'Clear',
-  'isResetTasksTemplate': 'The task is empty, do you want to add a task example template?',
-  'areYouSureResetTasksTemplate': 'Are you sure you want to reset the tasks template?',
+  'isResetTasksTemplate':
+      'The task is empty, do you want to add a task example template?',
+  'areYouSureResetTasksTemplate':
+      'Are you sure you want to reset the tasks template?',
   'tasksTemplateResetSuccess': 'Tasks template reset successfully',
   'tasksTemplate': 'Task Template',
   'todoDetail': 'Todo Detail',
@@ -145,29 +148,34 @@ const Map<String, String> enUS = {
   'unreadMessages': 'unread messages',
   'allMessagesRead': 'All messages read',
   'confirmClearAllNotifications': 'Confirm Clear All Notifications',
-  'confirmClearAllNotificationsDesc': 'Are you sure you want to clear all notifications? This action cannot be undone.',
+  'confirmClearAllNotificationsDesc':
+      'Are you sure you want to clear all notifications? This action cannot be undone.',
   // Notification Clear Operation Results
   'notificationsCleared': 'All notifications cleared',
   'clearAllNotifications': 'Clear All Notifications',
   // Import Conflict Handling
   'importConflictTitle': 'Import Conflict Handling',
-  'conflictTasksDetected': 'The following tasks already exist (including system default tasks):',
+  'conflictTasksDetected':
+      'The following tasks already exist (including system default tasks):',
   'selectHandlingMethod': 'Please select handling method:',
   'skipDuplicateTasks': 'Skip Duplicate Tasks',
   'skipDuplicateTasksDesc': 'Keep existing tasks, import only new tasks',
   'replaceExistingTasks': 'Replace Existing Tasks',
-  'replaceExistingTasksDesc': 'Replace existing tasks with imported tasks of the same name',
+  'replaceExistingTasksDesc':
+      'Replace existing tasks with imported tasks of the same name',
   // Import Confirmation
   'confirmImport': 'Confirm Import',
   'importDataWill': 'Importing data will:',
   'addNewTasksAndTodos': 'Add new tasks and todos',
   'replaceAppSettings': 'Replace app configuration settings',
   'keepExistingData': 'Keep existing data without deletion',
-  'importWarning': 'Note: If imported data contains tasks with the same UUID, existing tasks will be overwritten.',
+  'importWarning':
+      'Note: If imported data contains tasks with the same UUID, existing tasks will be overwritten.',
   // Import Result Messages
   'userCancelledImport': 'User cancelled import operation',
   'userCancelledOperation': 'User cancelled operation',
-  'invalidFileFormat': 'Invalid file format, please select a valid TodoCat data file',
+  'invalidFileFormat':
+      'Invalid file format, please select a valid TodoCat data file',
   'importFailed': 'Import failed',
   'noNewDataToImport': 'No new data to import',
   'importedNewTasks': 'Imported',
@@ -190,11 +198,13 @@ const Map<String, String> enUS = {
   'todosCount': 'Todos Count',
   'appConfig': 'App Configuration',
   'estimatedSize': 'Estimated Size',
-  'exportDataNotice': 'The exported file contains all your data. Please keep it safe.',
+  'exportDataNotice':
+      'The exported file contains all your data. Please keep it safe.',
   // Clear data
   'clearAllData': 'Clear All Data',
   'clearAllDataDescription': 'Delete all tasks, config and notification data',
-  'confirmClearAllData': 'Are you sure you want to clear all data? This cannot be undone!',
+  'confirmClearAllData':
+      'Are you sure you want to clear all data? This cannot be undone!',
   'clearingData': 'Clearing data...',
   'clearAllDataSuccess': 'All data cleared',
   'clearAllDataFailed': 'Failed to clear data',
@@ -218,7 +228,8 @@ const Map<String, String> enUS = {
   'creating': 'Creating',
   'noTasksToSave': 'No tasks to save',
   'saveCurrentAsTemplate': 'Save Current as Template',
-  'saveCurrentAsTemplateDescription': 'Save all current tasks as a custom template',
+  'saveCurrentAsTemplateDescription':
+      'Save all current tasks as a custom template',
   // Month Names
   'january': 'January',
   'february': 'February',
@@ -240,17 +251,24 @@ const Map<String, String> enUS = {
   'selectTaskTemplate': 'Select Task Template',
   'selectTemplateType': 'Please select the task template type to use:',
   'emptyTemplate': 'Empty Template',
-  'emptyTemplateDescription': 'Create empty todo, inProgress, done, another tasks',
+  'emptyTemplateDescription':
+      'Create empty todo, inProgress, done, another tasks',
   'studentScheduleTemplate': 'Student Schedule Template',
-  'studentScheduleTemplateDescription': 'Contains specific todo items for study, programming, music, and life tasks',
+  'studentScheduleTemplateDescription':
+      'Contains specific todo items for study, programming, music, and life tasks',
   'workManagementTemplate': 'Work Management Template',
-  'workManagementTemplateDescription': 'Project management, team collaboration, work progress tracking',
+  'workManagementTemplateDescription':
+      'Project management, team collaboration, work progress tracking',
   'fitnessTrainingTemplate': 'Fitness Training Template',
-  'fitnessTrainingTemplateDescription': 'Create fitness plans and track training progress',
+  'fitnessTrainingTemplateDescription':
+      'Create fitness plans and track training progress',
   'travelPlanTemplate': 'Travel Plan Template',
-  'travelPlanTemplateDescription': 'Plan travel itinerary, book hotels and flights',
+  'travelPlanTemplateDescription':
+      'Plan travel itinerary, book hotels and flights',
   // Background image settings
+  'backgroundSetting': 'Background Setting',
   'backgroundImage': 'Background Image',
+  'backgroundVideo': 'Background Video',
   'backgroundImageSet': 'Background image set',
   'backgroundImageNotSet': 'No background image',
   'selectBackground': 'Select Background',
@@ -262,15 +280,19 @@ const Map<String, String> enUS = {
   'affectsNavBar': 'Affect Navigation Bar',
   'apply': 'Apply',
   'defaultBackgrounds': 'Default Background Templates',
+  'defaultBackgroundImages': 'Default Background Images',
+  'defaultBackgroundVideos': 'Default Background Videos',
   'defaultTemplateApplied': 'Default template applied',
   'desktopOnlyFeature': 'This feature is only available on desktop',
   'backgroundImageSetSuccess': 'Background image set',
+  'backgroundVideoSetSuccess': 'Background video set',
   'backgroundImageCleared': 'Background image cleared',
   'backgroundImageClearFailed': 'Failed to clear background image',
   'backgroundTemplateApplied': 'Background template applied',
   'applyDefaultTemplateFailed': 'Failed to apply default background template',
   'selectBackgroundImageFailed': 'Failed to select background image',
-  'confirmApplyTemplate': 'Are you sure you want to apply template? This will clear all existing tasks.',
+  'confirmApplyTemplate':
+      'Are you sure you want to apply template? This will clear all existing tasks.',
   'taskTemplateApplied': 'Task template has been applied',
   'templatePreview': 'Template Preview',
   'moreItems': 'more items',
@@ -317,9 +339,12 @@ const Map<String, String> enUS = {
   'permanentDelete': 'Permanent Delete',
   'sureRestoreTask': 'Are you sure you want to restore task?',
   'sureRestoreTodo': 'Are you sure you want to restore todo?',
-  'surePermanentDeleteTask': 'Are you sure you want to permanently delete task? This action cannot be undone!',
-  'surePermanentDeleteTodo': 'Are you sure you want to permanently delete todo? This action cannot be undone!',
-  'sureEmptyTrash': 'Are you sure you want to empty the trash? This will permanently delete all deleted items and cannot be undone!',
+  'surePermanentDeleteTask':
+      'Are you sure you want to permanently delete task? This action cannot be undone!',
+  'surePermanentDeleteTodo':
+      'Are you sure you want to permanently delete todo? This action cannot be undone!',
+  'sureEmptyTrash':
+      'Are you sure you want to empty the trash? This will permanently delete all deleted items and cannot be undone!',
   'undo': 'Undo',
   'todoDeleted': 'Todo deleted',
   'taskDeleted': 'Task deleted',
@@ -337,6 +362,8 @@ const Map<String, String> enUS = {
   'noUpdateInformationAvailable': 'No update information available',
   'downloadCancelled': 'Download cancelled',
   'userCancelledDownload': 'User cancelled download',
+  'download': 'Download',
+  'downloadFailed': 'Download failed',
   'unknown': 'Unknown',
   // Markdown toolbar
   'markdownBold': 'Bold',
@@ -371,6 +398,31 @@ const Map<String, String> enUS = {
   'deletedWorkspaces': 'Deleted Workspaces',
   'deletedTasks': 'Deleted Tasks',
   'sureRestoreWorkspace': 'Are you sure you want to restore workspace?',
-  'surePermanentDeleteWorkspace': 'Are you sure you want to permanently delete workspace? This action cannot be undone!',
+  'surePermanentDeleteWorkspace':
+      'Are you sure you want to permanently delete workspace? This action cannot be undone!',
   'workspacePermanentlyDeleted': 'Workspace permanently deleted',
+  'moveToWorkspace': 'Move to workspace',
+  'selectTargetWorkspace': 'Select target workspace',
+  'taskMovedToWorkspace': 'Task moved to workspace',
+  'taskMoveFailed': 'Failed to move task',
+  'noWorkspaces': 'No workspaces available',
+  'currentWorkspace': 'Current workspace',
+  'moveTodoToWorkspace': 'Move to workspace',
+  'selectTargetTask': 'Select target task',
+  'todoMovedToWorkspace': 'Todo moved to workspace',
+  'todoMoveFailed': 'Failed to move todo',
+  'noTasksInWorkspace': 'No tasks in this workspace',
+  'currentTask': 'Current task',
+  // Duplicate name handling
+  'duplicateNameTitle': 'Duplicate Name Found',
+  'duplicateNameMessage':
+      'The target workspace "{target}" already contains a {itemType} named "{itemName}" (from workspace "{source}"). Please choose how to handle this:',
+  'duplicateNameMerge': 'Merge',
+  'duplicateNameMergeDesc':
+      'Merge content into existing item and delete source item',
+  'duplicateNameRename': 'Rename',
+  'duplicateNameRenameDesc': 'Rename to "{itemName} - {source}"',
+  'duplicateNameAllow': 'Allow Duplicate',
+  'duplicateNameAllowDesc':
+      'Move directly, allow multiple items with the same name',
 };

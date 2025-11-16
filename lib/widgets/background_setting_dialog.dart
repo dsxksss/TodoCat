@@ -6,6 +6,8 @@ import 'package:TodoCat/widgets/label_btn.dart';
 import 'package:TodoCat/controllers/settings_ctr.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:TodoCat/config/default_backgrounds.dart';
+import 'package:TodoCat/widgets/video_thumbnail.dart';
+import 'package:TodoCat/services/video_download_service.dart';
 import 'dart:io';
 
 /// 背景设置对话框
@@ -37,13 +39,13 @@ class BackgroundSettingDialog extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      Icons.image,
+                      Icons.settings,
                       size: 20,
                       color: context.theme.iconTheme.color,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'backgroundImage'.tr,
+                      'backgroundSetting'.tr,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -72,9 +74,9 @@ class BackgroundSettingDialog extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 默认模板选择区域
+                  // 默认背景图片模板
                   Text(
-                    'defaultBackgrounds'.tr,
+                    'defaultBackgroundImages'.tr,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -82,7 +84,20 @@ class BackgroundSettingDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const DefaultBackgroundGrid(),
+                  const DefaultBackgroundImageGrid(),
+                  const SizedBox(height: 24),
+                  
+                  // 默认背景视频模板
+                  Text(
+                    'defaultBackgroundVideos'.tr,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: context.theme.textTheme.titleMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const DefaultBackgroundVideoGrid(),
                   const SizedBox(height: 24),
 
                   // 分隔线
@@ -102,12 +117,21 @@ class BackgroundSettingDialog extends StatelessWidget {
                         !isDefaultTemplate &&
                         GetPlatform.isDesktop &&
                         File(config.backgroundImagePath!).existsSync();
+                    final isCustomVideo = isCustomImage &&
+                        (config.backgroundImagePath!.toLowerCase().endsWith('.mp4') ||
+                         config.backgroundImagePath!.toLowerCase().endsWith('.mov') ||
+                         config.backgroundImagePath!.toLowerCase().endsWith('.avi') ||
+                         config.backgroundImagePath!.toLowerCase().endsWith('.mkv') ||
+                         config.backgroundImagePath!.toLowerCase().endsWith('.webm'));
+                    final isDefaultVideo = isDefaultTemplate &&
+                        DefaultBackgrounds.getById(config.backgroundImagePath!.split(':').last)?.isVideo == true;
                     final hasBackground = isDefaultTemplate || isCustomImage;
+                    final isVideo = isCustomVideo || isDefaultVideo;
 
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // 显示自定义图片缩略图（如果有）
+                        // 显示自定义图片或视频缩略图（如果有）
                         if (isCustomImage) ...[
                           Container(
                             height: 120,
@@ -121,19 +145,31 @@ class BackgroundSettingDialog extends StatelessWidget {
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(7.5),
-                              child: Image.file(
-                                File(config.backgroundImagePath!),
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.grey.shade200,
-                                    child: Icon(
-                                      Icons.image_not_supported,
-                                      size: 40,
-                                      color: Colors.grey.shade400,
-                                    ),
-                                  );
-                                },
+                              child: _buildCustomBackgroundPreview(
+                                context,
+                                config.backgroundImagePath!,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        // 显示默认模板预览（如果是默认模板）
+                        if (isDefaultTemplate) ...[
+                          Container(
+                            height: 120,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: context.theme.dividerColor,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(7.5),
+                              child: _buildDefaultTemplatePreview(
+                                context,
+                                config.backgroundImagePath!.split(':').last,
                               ),
                             ),
                           ),
@@ -166,7 +202,9 @@ class BackgroundSettingDialog extends StatelessWidget {
                                   hasBackground
                                       ? (isDefaultTemplate
                                           ? 'defaultTemplateApplied'.tr
-                                          : 'backgroundImageSet'.tr)
+                                          : (isVideo
+                                              ? 'backgroundVideoSet'.tr
+                                              : 'backgroundImageSet'.tr))
                                       : 'backgroundImageNotSet'.tr,
                                   style: TextStyle(
                                     fontSize: 14,
@@ -364,11 +402,168 @@ class BackgroundSettingDialog extends StatelessWidget {
       ),
     );
   }
+  
+  /// 构建自定义背景预览（支持图片和视频）
+  Widget _buildCustomBackgroundPreview(BuildContext context, String path) {
+    final isVideo = path.toLowerCase().endsWith('.mp4') ||
+                   path.toLowerCase().endsWith('.mov') ||
+                   path.toLowerCase().endsWith('.avi') ||
+                   path.toLowerCase().endsWith('.mkv') ||
+                   path.toLowerCase().endsWith('.webm');
+    
+    if (isVideo) {
+      return VideoThumbnail(
+        videoPath: path,
+        fit: BoxFit.cover,
+        placeholder: Container(
+          color: Colors.black,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.videocam,
+                  size: 40,
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '视频文件',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      return Image.file(
+        File(path),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade200,
+            child: Icon(
+              Icons.image_not_supported,
+              size: 40,
+              color: Colors.grey.shade400,
+            ),
+          );
+        },
+      );
+    }
+  }
+  
+  /// 构建默认模板预览
+  Widget _buildDefaultTemplatePreview(BuildContext context, String templateId) {
+    final template = DefaultBackgrounds.getById(templateId);
+    if (template == null) {
+      return Container(
+        color: Colors.grey.shade200,
+        child: Icon(
+          Icons.image_not_supported,
+          size: 40,
+          color: Colors.grey.shade400,
+        ),
+      );
+    }
+    
+    // 如果是视频，显示视频缩略图
+    if (template.isVideo) {
+      // 如果有downloadUrl，优先使用缓存路径，否则使用URL
+      if (template.downloadUrl != null) {
+        return FutureBuilder<String?>(
+          future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
+          builder: (context, snapshot) {
+            // 无论是否已缓存，都先尝试从URL获取缩略图（如果缓存路径不存在）
+            final cachedPath = snapshot.data;
+            final videoPath = cachedPath ?? template.downloadUrl!;
+            
+            return VideoThumbnail(
+              videoPath: videoPath,
+              fit: BoxFit.cover,
+              placeholder: Container(
+                color: Colors.black,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.videocam,
+                        size: 40,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '视频',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      } else {
+        // 没有downloadUrl，使用原路径（assets中的视频）
+        return VideoThumbnail(
+          videoPath: template.imageUrl,
+          fit: BoxFit.cover,
+          placeholder: Container(
+            color: Colors.black,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.videocam,
+                    size: 40,
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '视频',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    
+    // 加载本地图片
+    return Image.asset(
+      template.imageUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey.shade200,
+          child: Icon(
+            Icons.image_not_supported,
+            size: 40,
+            color: Colors.grey.shade400,
+          ),
+        );
+      },
+    );
+  }
 }
 
-/// 默认背景模板网格
-class DefaultBackgroundGrid extends StatelessWidget {
-  const DefaultBackgroundGrid({super.key});
+/// 默认背景图片模板网格
+class DefaultBackgroundImageGrid extends StatelessWidget {
+  const DefaultBackgroundImageGrid({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -380,6 +575,15 @@ class DefaultBackgroundGrid extends StatelessWidget {
               ? config.backgroundImagePath!.split(':').last
               : null;
 
+      // 过滤出图片模板
+      final imageTemplates = DefaultBackgrounds.templates
+          .where((template) => !template.isVideo)
+          .toList();
+
+      if (imageTemplates.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
       return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -389,9 +593,9 @@ class DefaultBackgroundGrid extends StatelessWidget {
           mainAxisSpacing: 12,
           childAspectRatio: 1.2,
         ),
-        itemCount: DefaultBackgrounds.templates.length,
+        itemCount: imageTemplates.length,
         itemBuilder: (context, index) {
-          final template = DefaultBackgrounds.templates[index];
+          final template = imageTemplates[index];
           final isSelected = currentTemplateId == template.id;
 
           return GestureDetector(
@@ -476,6 +680,355 @@ class DefaultBackgroundGrid extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// 默认背景视频模板网格
+class DefaultBackgroundVideoGrid extends StatefulWidget {
+  const DefaultBackgroundVideoGrid({super.key});
+
+  @override
+  State<DefaultBackgroundVideoGrid> createState() => _DefaultBackgroundVideoGridState();
+}
+
+class _DefaultBackgroundVideoGridState extends State<DefaultBackgroundVideoGrid> {
+  final VideoDownloadService _downloadService = VideoDownloadService();
+  final Map<String, double> _downloadProgress = {};
+  final Map<String, bool> _isDownloading = {};
+  final Map<String, bool> _isCached = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCachedVideos();
+  }
+
+  Future<void> _checkCachedVideos() async {
+    final videoTemplates = DefaultBackgrounds.templates
+        .where((template) => template.isVideo && template.downloadUrl != null)
+        .toList();
+
+    for (final template in videoTemplates) {
+      if (template.downloadUrl != null) {
+        final cached = await _downloadService.isVideoCached(template.downloadUrl!);
+        if (mounted) {
+          setState(() {
+            _isCached[template.id] = cached;
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _downloadVideo(DefaultBackground template) async {
+    if (template.downloadUrl == null) return;
+
+    setState(() {
+      _isDownloading[template.id] = true;
+      _downloadProgress[template.id] = 0.0;
+    });
+
+    await _downloadService.downloadVideo(
+      template.downloadUrl!,
+      onProgress: (progress) {
+        if (mounted) {
+          setState(() {
+            _downloadProgress[template.id] = progress;
+          });
+        }
+      },
+      onComplete: (filePath) {
+        if (mounted) {
+          setState(() {
+            _isDownloading[template.id] = false;
+            _isCached[template.id] = true;
+            _downloadProgress[template.id] = 1.0;
+          });
+        }
+      },
+      onError: (error) {
+        if (mounted) {
+          setState(() {
+            _isDownloading[template.id] = false;
+            _downloadProgress[template.id] = 0.0;
+          });
+          Get.snackbar(
+            'downloadFailed'.tr,
+            error,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        }
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final settingsCtrl = Get.find<SettingsController>();
+      final config = settingsCtrl.appCtrl.appConfig.value;
+      final currentTemplateId =
+          config.backgroundImagePath?.startsWith('default_template:') ?? false
+              ? config.backgroundImagePath!.split(':').last
+              : null;
+
+      // 过滤出视频模板
+      final videoTemplates = DefaultBackgrounds.templates
+          .where((template) => template.isVideo)
+          .toList();
+
+      if (videoTemplates.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.2,
+        ),
+        itemCount: videoTemplates.length,
+        itemBuilder: (context, index) {
+          final template = videoTemplates[index];
+          final isSelected = currentTemplateId == template.id;
+          final needsDownload = template.downloadUrl != null && 
+              (_isCached[template.id] != true);
+          final isDownloading = _isDownloading[template.id] == true;
+          final progress = _downloadProgress[template.id] ?? 0.0;
+
+          return GestureDetector(
+            onTap: needsDownload && !isDownloading
+                ? null
+                : () async {
+                    // 如果有downloadUrl，需要先检查是否已缓存
+                    if (template.downloadUrl != null) {
+                      final cached = await _downloadService.isVideoCached(template.downloadUrl!);
+                      if (!cached) {
+                        // 未缓存，不能应用
+                        return;
+                      }
+                    }
+                    // 应用模板
+                    await settingsCtrl.selectDefaultBackground(template.id);
+                  },
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isSelected
+                      ? context.theme.primaryColor
+                      : Colors.transparent,
+                  width: isSelected ? 2 : 0,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // 视频背景或缩略图
+                    _buildVideoPlaceholder(template),
+                    // 下载按钮或进度条
+                    if (needsDownload)
+                      Container(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        child: Center(
+                          child: isDownloading
+                              ? _buildDownloadProgress(context, progress)
+                              : _buildDownloadButton(context, template),
+                        ),
+                      ),
+                    // 选中指示器
+                    if (isSelected && !needsDownload)
+                      Container(
+                        alignment: Alignment.topRight,
+                        padding: const EdgeInsets.all(6),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: context.theme.primaryColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            size: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildVideoPlaceholder(DefaultBackground template) {
+    // 如果有downloadUrl，需要检查是否已缓存
+    if (template.downloadUrl != null) {
+      // 如果已缓存，使用缓存路径显示缩略图
+      if (_isCached[template.id] == true) {
+        // 异步获取缓存路径
+        return FutureBuilder<String?>(
+          future: _downloadService.getCachedVideoPath(template.downloadUrl!),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _buildPlaceholder();
+            }
+            final cachedPath = snapshot.data;
+            if (cachedPath != null) {
+              return VideoThumbnail(
+                videoPath: cachedPath,
+                fit: BoxFit.cover,
+                placeholder: _buildPlaceholder(),
+              );
+            }
+            // 如果缓存路径获取失败，尝试使用URL获取缩略图
+            return VideoThumbnail(
+              videoPath: template.downloadUrl!,
+              fit: BoxFit.cover,
+              placeholder: _buildPlaceholder(),
+            );
+          },
+        );
+      } else {
+        // 未下载，直接从URL获取缩略图
+        return VideoThumbnail(
+          videoPath: template.downloadUrl!,
+          fit: BoxFit.cover,
+          placeholder: _buildPlaceholder(),
+        );
+      }
+    }
+
+    // 没有downloadUrl，使用原路径（assets中的视频）
+    return VideoThumbnail(
+      videoPath: template.imageUrl,
+      fit: BoxFit.cover,
+      placeholder: _buildPlaceholder(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.black,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.videocam,
+              size: 40,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '视频',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloadButton(BuildContext context, DefaultBackground template) {
+    return GestureDetector(
+      onTap: () => _downloadVideo(template),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.theme.primaryColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.download,
+              size: 18,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'download'.tr,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloadProgress(BuildContext context, double progress) {
+    final theme = Get.theme;
+    final isDark = theme.brightness == Brightness.dark;
+    const progressColor = Colors.blueAccent;
+    final backgroundColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+    final progressBgColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+    final percentage = (progress * 100).toInt();
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: backgroundColor,
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // 圆圈进度条
+          Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(
+                begin: 0.0,
+                end: progress,
+              ),
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.easeOut,
+              builder: (context, animatedProgress, child) {
+                return CircularProgressIndicator(
+                  value: animatedProgress,
+                  strokeWidth: 3.0,
+                  backgroundColor: progressBgColor,
+                  valueColor: const AlwaysStoppedAnimation<Color>(progressColor),
+                );
+              },
+            ),
+          ),
+          // 百分比数字显示在中心
+          Text(
+            '$percentage%',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: theme.textTheme.bodyLarge?.color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -31,10 +31,16 @@ class DPDMenuContent extends StatelessWidget {
     super.key,
     required List<MenuItem> menuItems,
     String? tag,
+    double? width, // 可选的固定宽度
+    List<Widget>? additionalWidgets, // 可选的额外 Widget（如分割线）
   })  : _menuItems = menuItems,
-        _tag = tag;
+        _tag = tag,
+        _width = width,
+        _additionalWidgets = additionalWidgets;
   final List<MenuItem> _menuItems;
   final String? _tag;
+  final double? _width; // 可选的固定宽度
+  final List<Widget>? _additionalWidgets; // 可选的额外 Widget
 
   @override
   Widget build(BuildContext context) {
@@ -48,23 +54,43 @@ class DPDMenuContent extends StatelessWidget {
         return false; // 允许通知继续传播
       },
       child: Container(
-        width: 180, // 固定宽度，确保下拉框位置稳定
+        width: _width, // 如果指定了宽度，使用固定宽度；否则使用 IntrinsicWidth
         decoration: BoxDecoration(
           color: context.theme.cardColor,
           border: Border.all(width: 0.5, color: context.theme.dividerColor),
           borderRadius: BorderRadius.circular(5),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children:
-              _menuItems.map((item) => _buildMenuItem(context, item)).toList(),
-        ),
+        child: _width != null
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: _buildMenuItems(context),
+              )
+            : IntrinsicWidth(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _buildMenuItems(context),
+                ),
+              ),
       ),
     );
   }
 
-  /// 构建单个菜单项
-  Widget _buildMenuItem(BuildContext context, MenuItem item) {
+  /// 构建菜单项列表
+  List<Widget> _buildMenuItems(BuildContext context) {
+    final List<Widget> widgets = [];
+    // 添加菜单项
+    for (final item in _menuItems) {
+      widgets.add(_buildMenuItem(context, item));
+    }
+    // 添加额外的 Widget（如分割线）
+    if (_additionalWidgets != null) {
+      widgets.addAll(_additionalWidgets);
+    }
+    return widgets;
+  }
+
+  /// 构建单个菜单项（静态方法，供外部调用）
+  static Widget buildMenuItem(BuildContext context, MenuItem item, [String? tag]) {
     final bool isDelete = item.title == 'delete';
     final bool isPermanentDelete = item.title == 'permanentDelete';
     final bool isRestore = item.title == 'restore';
@@ -119,7 +145,7 @@ class DPDMenuContent extends StatelessWidget {
                 child: InkWell(
                   onTap: () {
                     item.trailingCallback!();
-                    SmartDialog.dismiss(tag: _tag ?? dropDownMenuBtnTag);
+                    SmartDialog.dismiss(tag: tag ?? dropDownMenuBtnTag);
                   },
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
@@ -137,10 +163,15 @@ class DPDMenuContent extends StatelessWidget {
             ? null
             : () {
                 item.callback();
-                SmartDialog.dismiss(tag: _tag ?? dropDownMenuBtnTag);
+                SmartDialog.dismiss(tag: tag ?? dropDownMenuBtnTag);
               },
       ),
     );
+  }
+
+  /// 构建单个菜单项
+  Widget _buildMenuItem(BuildContext context, MenuItem item) {
+    return buildMenuItem(context, item, _tag);
   }
 }
 

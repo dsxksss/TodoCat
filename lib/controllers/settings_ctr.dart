@@ -589,31 +589,44 @@ class SettingsController extends GetxController {
     }
   }
 
-  /// 选择背景图片
+  /// 选择背景图片或视频
   Future<void> selectBackgroundImage() async {
     try {
-      // 先选择图片文件
+      // 选择图片或视频文件
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'mp4', 'mov', 'avi', 'mkv', 'webm'],
         allowMultiple: false,
       );
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
         if (file.path != null) {
-          // 直接使用选择的图片（桌面端暂不支持裁剪）
+          // 直接使用选择的图片或视频（桌面端暂不支持裁剪）
           // 更新应用配置
           appCtrl.appConfig.value = appCtrl.appConfig.value.copyWith(
             backgroundImagePath: file.path,
           );
           appCtrl.appConfig.refresh();
 
-          showToast('backgroundImageSetSuccess'.tr);
-          _logger.i('背景图片已设置: ${file.path}');
+          // 检查是否为视频文件
+          final isVideo = file.path!.toLowerCase().endsWith('.mp4') ||
+                         file.path!.toLowerCase().endsWith('.mov') ||
+                         file.path!.toLowerCase().endsWith('.avi') ||
+                         file.path!.toLowerCase().endsWith('.mkv') ||
+                         file.path!.toLowerCase().endsWith('.webm');
+          
+          if (isVideo) {
+            showToast('backgroundVideoSetSuccess'.tr);
+            _logger.i('背景视频已设置: ${file.path}');
+          } else {
+            showToast('backgroundImageSetSuccess'.tr);
+            _logger.i('背景图片已设置: ${file.path}');
+          }
         }
       }
     } catch (e) {
-      _logger.e('选择背景图片失败: $e');
+      _logger.e('选择背景文件失败: $e');
       showToast('selectBackgroundImageFailed'.tr);
     }
   }

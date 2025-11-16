@@ -180,7 +180,7 @@ class SettingsContent extends GetView<SettingsController> {
             if (isDownloading && progress > 0.0 && progress < 1.0) {
               final theme = Get.theme;
               final isDark = theme.brightness == Brightness.dark;
-              final progressColor = Colors.blueAccent;
+              const progressColor = Colors.blueAccent;
               final backgroundColor =
                   isDark ? Colors.grey.shade800 : Colors.grey.shade200;
               final progressBgColor =
@@ -216,7 +216,7 @@ class SettingsContent extends GetView<SettingsController> {
                                 value: animatedProgress,
                                 strokeWidth: 2.5,
                                 backgroundColor: progressBgColor,
-                                valueColor: AlwaysStoppedAnimation<Color>(
+                                valueColor: const AlwaysStoppedAnimation<Color>(
                                     progressColor),
                               );
                             },
@@ -288,11 +288,11 @@ class SettingsContent extends GetView<SettingsController> {
         title: Text('saveCurrentAsTemplate'.tr),
         description: Text('saveCurrentAsTemplateDescription'.tr),
       ),
-      // 背景图片设置
+      // 背景设置
       SettingsTile(
         onPressed: (_) => _showBackgroundImageDialog(),
         leading: const Icon(Icons.image_outlined),
-        title: Text('backgroundImage'.tr),
+        title: Text('backgroundSetting'.tr),
         description: Obx(() {
           final hasBackground =
               controller.appCtrl.appConfig.value.backgroundImagePath != null &&
