@@ -32,12 +32,16 @@ class TodoDialog extends StatefulWidget {
   State<TodoDialog> createState() => _TodoDialogState();
 }
 
-class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateMixin {
+class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late AnimationController _hintAnimationController; // 提示动画控制器
+  late Animation<double> _hintBounceAnimation; // 提示上下浮动动画
   late FocusNode _descriptionFocusNode;
   bool _isPreviewVisible = false;
   bool _shouldOffset = false; // 控制 dialog 是否应该偏移
+  bool _showArrowHint = true; // 控制是否显示箭头提示
+  final GlobalKey _toolbarKey = GlobalKey(); // 用于获取工具栏位置
 
   @override
   void initState() {
@@ -51,6 +55,40 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
       parent: _animationController,
       curve: Curves.easeInOut,
     );
+    
+    // 初始化提示动画控制器
+    _hintAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _hintBounceAnimation = Tween<double>(
+      begin: 0.0,
+      end: 8.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _hintAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    _hintAnimationController.repeat(reverse: true); // 重复播放，来回浮动
+    
+    // 监听描述输入框内容变化，当有内容时隐藏箭头提示
+    controller.descriptionController.addListener(() {
+      if (controller.descriptionController.text.isNotEmpty && _showArrowHint) {
+        setState(() {
+          _showArrowHint = false;
+        });
+      }
+    });
+    
+    // 10秒后自动隐藏提示
+    Future.delayed(const Duration(seconds: 10), () {
+      if (mounted && _showArrowHint) {
+        setState(() {
+          _showArrowHint = false;
+        });
+      }
+    });
     
     _descriptionFocusNode.addListener(() {
       if (_descriptionFocusNode.hasFocus) {
@@ -70,6 +108,7 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
   void dispose() {
     _descriptionFocusNode.dispose();
     _animationController.dispose();
+    _hintAnimationController.dispose(); // 释放提示动画控制器
     super.dispose();
   }
 
@@ -528,45 +567,54 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
             Padding(
               padding: const EdgeInsets.only(top: 10),
               child: MarkdownToolbar(
+                key: _toolbarKey,
                 controller: controller.descriptionController,
               ),
             ),
             // Description 输入框 - 占据剩余空间
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // 计算合适的行数：每行大约 20-25 像素（包括 padding）
-                    // 减去底部边距15像素
-                    const lineHeight = 25.0;
-                    const minLines = 3;
-                    const bottomPadding = 15.0;
-                    // 计算最大行数，确保填充整个可用高度（减去底部边距）
-                    final availableHeight = constraints.maxHeight - bottomPadding;
-                    final calculatedMaxLines = ((availableHeight / lineHeight).floor()).clamp(minLines, 100);
-                    
-                    return SizedBox(
-                      height: availableHeight,
-                      child: TextFormFieldItem(
-                        textInputAction: null, // 设置为 null 以允许回车键换行
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 10,
-                        ),
-                        maxLength: 400,
-                        minLines: calculatedMaxLines, // 使用计算出的行数确保填充高度
-                        maxLines: calculatedMaxLines, // 使用计算出的最大行数
-                        radius: 6,
-                        fieldTitle: "description".tr,
-                        validator: (_) => null,
-                        editingController: controller.descriptionController,
-                        focusNode: _descriptionFocusNode,
-                        onFieldSubmitted: (_) {},
-                      ),
-                    );
-                  },
-                ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // 计算合适的行数：每行大约 20-25 像素（包括 padding）
+                        // 减去底部边距15像素
+                        const lineHeight = 25.0;
+                        const minLines = 3;
+                        const bottomPadding = 15.0;
+                        // 计算最大行数，确保填充整个可用高度（减去底部边距）
+                        final availableHeight = constraints.maxHeight - bottomPadding;
+                        final calculatedMaxLines = ((availableHeight / lineHeight).floor()).clamp(minLines, 100);
+                        
+                        return SizedBox(
+                          height: availableHeight,
+                          child: TextFormFieldItem(
+                            textInputAction: null, // 设置为 null 以允许回车键换行
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 10,
+                            ),
+                            maxLength: 400,
+                            minLines: calculatedMaxLines, // 使用计算出的行数确保填充高度
+                            maxLines: calculatedMaxLines, // 使用计算出的最大行数
+                            radius: 6,
+                            fieldTitle: "description".tr,
+                            validator: (_) => null,
+                            editingController: controller.descriptionController,
+                            focusNode: _descriptionFocusNode,
+                            onFieldSubmitted: (_) {},
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // 箭头提示 - 显示在描述输入框上方，指向工具栏的图片按钮
+                  if (_showArrowHint && controller.descriptionController.text.isEmpty)
+                    _buildArrowHint(context),
+                ],
               ),
             ),
                 ],
@@ -1026,6 +1074,68 @@ class _TodoDialogState extends State<TodoDialog> with SingleTickerProviderStateM
         ),
       ),
       ],
+      ),
+    );
+  }
+
+  /// 构建箭头提示动画
+  Widget _buildArrowHint(BuildContext context) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 5, // 在描述输入框正下方显示
+      child: AnimatedBuilder(
+        animation: _hintBounceAnimation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, -_hintBounceAnimation.value), // 上下浮动
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  // 点击提示时隐藏
+                  if (mounted) {
+                    setState(() {
+                      _showArrowHint = false;
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.95),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.arrow_upward,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '点击描述输入框打开浏览窗口',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
