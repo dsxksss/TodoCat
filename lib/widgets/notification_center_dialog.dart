@@ -268,7 +268,7 @@ class NotificationCenterDialog extends StatelessWidget {
                 child: Center(
                   child: Icon(
                     notification.level.icon,
-                    color: Color(notification.level.colorValue),
+                      color: Color(notification.level.colorValue),
                     size: 16,
                   ),
                 ),

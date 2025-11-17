@@ -144,7 +144,7 @@ class LabelBtn extends StatelessWidget {
               )
             : decoration ??
                 BoxDecoration(
-                  color: bgColor ?? Colors.lightBlue,
+                  color: bgColor ?? Colors.blue.shade700, // 统一使用蓝色，与指示气泡一致
                   borderRadius: BorderRadius.circular(5),
                 ),
         child: Flex(

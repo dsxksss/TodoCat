@@ -579,8 +579,8 @@ class TodoCard extends StatelessWidget {
                   }
                   
                   // 根据 compact 模式调整图片高度
-                  // 用户要求图片高度设置为 180px
-                  final imageHeight = compact ? 180.0 : 180.0;
+                  // 降低图片高度，使其更扁平
+                  final imageHeight = compact ? 145.0 : 145.0;
                   
                   return Column(
                     mainAxisSize: MainAxisSize.min,

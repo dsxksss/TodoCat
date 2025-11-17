@@ -1076,7 +1076,8 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.95),
+                  // 统一使用蓝色背景，无论主题
+                  color: Colors.blue.shade700,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(

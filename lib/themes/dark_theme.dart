@@ -14,6 +14,16 @@ final darkTheme = ThemeData(
     fillColor: Color.fromRGBO(29, 35, 42, 1),
   ),
   scaffoldBackgroundColor: const Color.fromRGBO(29, 35, 42, 1),
+  // 统一按钮颜色为蓝色
+  colorScheme: ColorScheme.dark(
+    primary: Colors.blue.shade700,
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.blue.shade700,
+      foregroundColor: Colors.white,
+    ),
+  ),
   textTheme: const TextTheme(
     bodyLarge: TextStyle(
       color: Colors.white,

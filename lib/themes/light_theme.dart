@@ -14,6 +14,16 @@ final lightTheme = ThemeData(
     fillColor: Colors.white,
   ),
   scaffoldBackgroundColor: Colors.white,
+  // 统一按钮颜色为蓝色
+  colorScheme: ColorScheme.light(
+    primary: Colors.blue.shade700,
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.blue.shade700,
+      foregroundColor: Colors.white,
+    ),
+  ),
   textTheme: const TextTheme(
     bodyLarge: TextStyle(
       color: Colors.black,

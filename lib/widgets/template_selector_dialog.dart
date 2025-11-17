@@ -250,6 +250,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       if (shouldClosePreview) {
         SmartDialog.dismiss(tag: 'custom_template_preview_${template.id}');
       }
+      // 关闭空任务提示 toast
+      SmartDialog.dismiss(tag: 'empty_task_prompt');
       showSuccessNotification("taskTemplateApplied".tr);
       return;
     }
@@ -267,6 +269,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
         if (shouldClosePreview) {
           SmartDialog.dismiss(tag: 'custom_template_preview_${template.id}');
         }
+        // 关闭空任务提示 toast
+        SmartDialog.dismiss(tag: 'empty_task_prompt');
         showSuccessNotification("taskTemplateApplied".tr);
       },
     );
@@ -312,6 +316,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       if (shouldClosePreview) {
         SmartDialog.dismiss(tag: 'template_preview_$type');
       }
+      // 关闭空任务提示 toast
+      SmartDialog.dismiss(tag: 'empty_task_prompt');
       showSuccessNotification("taskTemplateApplied".tr);
       return;
     }
@@ -329,6 +335,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
         if (shouldClosePreview) {
           SmartDialog.dismiss(tag: 'template_preview_$type');
         }
+        // 关闭空任务提示 toast
+        SmartDialog.dismiss(tag: 'empty_task_prompt');
         showSuccessNotification("taskTemplateApplied".tr);
       },
     );

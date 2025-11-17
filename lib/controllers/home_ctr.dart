@@ -156,6 +156,7 @@ class HomeController extends GetxController
       "isResetTasksTemplate".tr,
       alwaysShow: true,
       confirmMode: true,
+      tag: 'empty_task_prompt', // 添加唯一 tag，方便后续关闭
       onYesCallback: () async {
         await resetTasksTemplate();
       },
