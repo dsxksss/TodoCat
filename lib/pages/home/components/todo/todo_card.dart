@@ -216,11 +216,11 @@ class TodoCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: 5),
             child: ClipRect(
               // 使用 ClipRect 裁剪溢出内容
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 mainAxisSize: MainAxisSize.min, // 使用 min 以避免溢出
-                children: [
+              children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

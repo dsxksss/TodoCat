@@ -147,6 +147,7 @@ const Map<String, String> zhCN = {
   'unreadMessages': '条未读消息',
   'allMessagesRead': '所有消息已读',
   'confirmClearAllNotifications': '确认清空所有通知',
+  'clickDescriptionInputToOpenBrowseWindow': '点击描述输入框打开浏览窗口',
   'confirmClearAllNotificationsDesc': '确定要清空所有通知吗？此操作不可撤销。',
   // 通知清空操作结果
   'notificationsCleared': '已清空所有通知',

@@ -151,6 +151,7 @@ const Map<String, String> enUS = {
   'unreadMessages': 'unread messages',
   'allMessagesRead': 'All messages read',
   'confirmClearAllNotifications': 'Confirm Clear All Notifications',
+  'clickDescriptionInputToOpenBrowseWindow': 'Click description input to open browse window',
   'confirmClearAllNotificationsDesc':
       'Are you sure you want to clear all notifications? This action cannot be undone.',
   // Notification Clear Operation Results

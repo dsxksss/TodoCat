@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// NotificationHistory 数据模型
 /// 注意：已迁移到 Drift，不再使用 Isar 注解
@@ -111,16 +113,16 @@ class NotificationHistoryItem {
 
 /// 获取通知级别对应的颜色和图标
 extension NotificationLevelExtension on NotificationLevel {
-  String get icon {
+  IconData get icon {
     switch (this) {
       case NotificationLevel.success:
-        return '✓';
+        return FontAwesomeIcons.circleCheck;
       case NotificationLevel.info:
-        return 'ℹ';
+        return FontAwesomeIcons.circleInfo;
       case NotificationLevel.warning:
-        return '⚠';
+        return FontAwesomeIcons.triangleExclamation;
       case NotificationLevel.error:
-        return '✗';
+        return FontAwesomeIcons.circleExclamation;
     }
   }
   

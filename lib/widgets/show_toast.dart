@@ -290,7 +290,7 @@ void showToast(
                     : const EdgeInsets.only(bottom: 100)),
             decoration: BoxDecoration(
               color: context.theme.dialogTheme.backgroundColor,
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(12), // 改为完全圆角，与左下角通知样式一致
               // 移除阴影效果，避免亮主题下的亮光高亮
               // boxShadow: [
               //   BoxShadow(

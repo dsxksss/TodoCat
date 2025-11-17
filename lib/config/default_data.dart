@@ -496,4 +496,5 @@ final defaultAppConfig = AppConfig.create(
   backgroundImageOpacity: 1.0,
   backgroundImageBlur: 0.0,
   backgroundAffectsNavBar: true,
+  showTodoImage: true, // 默认开启显示待办图片封面
 );

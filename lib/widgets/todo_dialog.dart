@@ -72,35 +72,17 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
     );
     _hintAnimationController.repeat(reverse: true); // 重复播放，来回浮动
     
-    // 监听描述输入框内容变化，当有内容时隐藏箭头提示
-    controller.descriptionController.addListener(() {
-      if (controller.descriptionController.text.isNotEmpty && _showArrowHint) {
-        setState(() {
-          _showArrowHint = false;
-        });
-      }
-    });
-    
-    // 10秒后自动隐藏提示
-    Future.delayed(const Duration(seconds: 10), () {
-      if (mounted && _showArrowHint) {
-        setState(() {
-          _showArrowHint = false;
-        });
-      }
-    });
-    
     _descriptionFocusNode.addListener(() {
       if (_descriptionFocusNode.hasFocus) {
         if (!_isPreviewVisible) {
           setState(() {
             _isPreviewVisible = true;
             _shouldOffset = true; // 触发位置偏移
+            _showArrowHint = false; // 预览窗口打开时隐藏提示
           });
           _animationController.forward();
         }
       }
-      // 移除失焦自动关闭的逻辑，改为通过关闭按钮控制
     });
   }
 
@@ -119,6 +101,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
     if (_isPreviewVisible) {
       setState(() {
         _isPreviewVisible = false;
+        _showArrowHint = true; // 预览窗口关闭时显示提示
         _shouldOffset = false; // 触发位置恢复
       });
       _animationController.reverse();
@@ -611,8 +594,8 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                       },
                     ),
                   ),
-                  // 箭头提示 - 显示在描述输入框上方，指向工具栏的图片按钮
-                  if (_showArrowHint && controller.descriptionController.text.isEmpty)
+                  // 箭头提示 - 显示在描述输入框下方，永远显示除非获得焦点
+                  if (_showArrowHint)
                     _buildArrowHint(context),
                 ],
               ),
@@ -1083,54 +1066,44 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
     return Positioned(
       left: 0,
       right: 0,
-      bottom: 5, // 在描述输入框正下方显示
+      bottom: -20, // 进一步降低位置，避免挡住描述输入框的边框
       child: AnimatedBuilder(
         animation: _hintBounceAnimation,
         builder: (context, child) {
           return Transform.translate(
             offset: Offset(0, -_hintBounceAnimation.value), // 上下浮动
             child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  // 点击提示时隐藏
-                  if (mounted) {
-                    setState(() {
-                      _showArrowHint = false;
-                    });
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.95),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_upward,
-                        size: 18,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.arrow_upward,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'clickDescriptionInputToOpenBrowseWindow'.tr,
+                      style: TextStyle(
                         color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '点击描述输入框打开浏览窗口',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -17,7 +17,7 @@ class AppConfig {
   double backgroundImageOpacity = 0.15; // 背景图片透明度 (0.0-1.0)
   double backgroundImageBlur = 0.0; // 背景图片模糊度
   bool backgroundAffectsNavBar = false; // 背景是否影响导航栏
-  bool showTodoImage = false; // 是否在 TodoCard 中显示图片封面
+  bool showTodoImage = true; // 是否在 TodoCard 中显示图片封面
 
   // 默认构造函数
   AppConfig();
@@ -34,7 +34,7 @@ class AppConfig {
     double backgroundImageOpacity = 0.15,
     double backgroundImageBlur = 0.0,
     bool backgroundAffectsNavBar = false,
-    bool showTodoImage = false,
+    bool showTodoImage = true,
   }) {
     return AppConfig()
       ..configName = configName
@@ -126,6 +126,6 @@ class AppConfig {
       ..backgroundImageOpacity = json['backgroundImageOpacity'] as double? ?? 0.15
       ..backgroundImageBlur = json['backgroundImageBlur'] as double? ?? 0.0
       ..backgroundAffectsNavBar = json['backgroundAffectsNavBar'] as bool? ?? false
-      ..showTodoImage = json['showTodoImage'] as bool? ?? false;
+      ..showTodoImage = json['showTodoImage'] as bool? ?? true;
   }
 }

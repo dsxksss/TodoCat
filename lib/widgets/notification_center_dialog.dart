@@ -262,17 +262,14 @@ class NotificationCenterDialog extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
                   color: Color(notification.level.colorValue)
-                      .withValues(alpha:0.5),
+                      .withValues(alpha:0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
-                  child: Text(
+                  child: Icon(
                     notification.level.icon,
-                    style: TextStyle(
-                      color: Color(notification.level.colorValue),
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    color: Color(notification.level.colorValue),
+                    size: 16,
                   ),
                 ),
               ),
