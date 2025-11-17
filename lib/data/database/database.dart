@@ -22,7 +22,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -39,6 +39,10 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(workspaces);
           // 为现有Tasks添加workspaceId字段（默认为'default'）
           await m.addColumn(tasks, tasks.workspaceId);
+        }
+        if (from < 3) {
+          // 迁移到版本3：添加 showTodoImage 字段
+          await m.addColumn(appConfigs, appConfigs.showTodoImage);
         }
       },
       beforeOpen: (details) async {

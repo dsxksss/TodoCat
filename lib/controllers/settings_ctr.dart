@@ -27,6 +27,8 @@ class SettingsController extends GetxController {
   var isAnimating = false.obs;
   // 开机自启动状态（仅桌面端）
   final RxBool launchAtStartupEnabled = false.obs;
+  // 显示 Todo 图片封面状态
+  final RxBool showTodoImageEnabled = false.obs;
   // 当前应用版本号
   final RxString appVersion = 'Loading...'.obs;
   // 更新检查状态
@@ -47,6 +49,12 @@ class SettingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // 初始化显示 Todo 图片状态
+    showTodoImageEnabled.value = appCtrl.appConfig.value.showTodoImage;
+    // 监听配置变化
+    ever(appCtrl.appConfig, (config) {
+      showTodoImageEnabled.value = config.showTodoImage;
+    });
     // 监听语言变化
     ever(appCtrl.appConfig, (_) {
       currentLanguage.value = _getLanguageTitle(
@@ -217,6 +225,15 @@ class SettingsController extends GetxController {
     } catch (e) {
       // ignore errors silently or log if needed
     }
+  }
+
+  void toggleShowTodoImage() {
+    final newConfig = appCtrl.appConfig.value.copyWith(
+      showTodoImage: !appCtrl.appConfig.value.showTodoImage,
+    );
+    appCtrl.appConfig.value = newConfig;
+    appCtrl.appConfig.refresh();
+    // AppController 的 ever 监听器会自动保存配置
   }
 
   void resetConfig() {

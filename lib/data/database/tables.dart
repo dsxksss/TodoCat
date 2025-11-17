@@ -62,6 +62,7 @@ class AppConfigs extends Table {
   RealColumn get backgroundImageOpacity => real().withDefault(const Constant(0.15))();
   RealColumn get backgroundImageBlur => real().withDefault(const Constant(0.0))();
   BoolColumn get backgroundAffectsNavBar => boolean().withDefault(const Constant(false))();
+  BoolColumn get showTodoImage => boolean().withDefault(const Constant(false))();
 }
 
 // LocalNotices 表

@@ -18,6 +18,9 @@ import 'package:TodoCat/controllers/workspace_ctr.dart';
 import 'package:TodoCat/data/services/repositorys/task.dart';
 import 'package:TodoCat/widgets/duplicate_name_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'dart:io';
+import 'package:TodoCat/controllers/app_ctr.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class TodoCard extends StatelessWidget {
   TodoCard({
@@ -105,6 +108,54 @@ class TodoCard extends StatelessWidget {
     return await _homeCtrl.deleteTodo(taskId, todo.uuid);
   }
 
+  /// 从 markdown 描述中提取第一张图片路径
+  String? _extractFirstImageFromMarkdown(String markdown) {
+    if (markdown.isEmpty) {
+      return null;
+    }
+    
+    // 匹配 markdown 图片格式：![alt](path) 或 ![alt](path "title")
+    final imagePattern = RegExp(r'!\[([^\]]*)\]\(([^)]+)\)');
+    final match = imagePattern.firstMatch(markdown);
+    
+    if (match != null) {
+      final imagePath = match.group(2);
+      if (imagePath != null && imagePath.isNotEmpty) {
+        // 移除可能的引号和标题
+        final cleanPath = imagePath.split('"').first.trim();
+        return cleanPath;
+      }
+    }
+    
+    return null;
+  }
+
+  /// 规范化图片路径（处理 file:// 协议等）
+  String? _normalizeImagePath(String path) {
+    if (path.isEmpty) {
+      return null;
+    }
+    
+    // 处理 file:// 协议
+    if (path.startsWith('file://')) {
+      // 移除 file:// 或 file:/// 前缀
+      String filePath = path.replaceFirst(RegExp(r'^file:///+'), '');
+      // 将正斜杠转换为系统路径分隔符（Windows 使用反斜杠）
+      if (Platform.isWindows) {
+        filePath = filePath.replaceAll('/', '\\');
+      }
+      return filePath;
+    }
+    
+    // 网络图片直接返回
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    
+    // 普通路径直接返回
+    return path;
+  }
+
   @override
   Widget build(BuildContext context) {
     return buildTodoContent(context);
@@ -163,10 +214,13 @@ class TodoCard extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.only(top: 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+            child: ClipRect(
+              // 使用 ClipRect 裁剪溢出内容
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min, // 使用 min 以避免溢出
+                children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -470,9 +524,114 @@ class TodoCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                // 显示 Todo 图片封面（如果启用且存在图片）
+                Obx(() {
+                  final appCtrl = Get.find<AppController>();
+                  final showImage = appCtrl.appConfig.value.showTodoImage;
+                  if (!showImage) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  // 从 HomeController 的响应式列表获取最新的 todo 数据，确保响应式更新
+                  // 访问 reactiveTasks 会触发 Obx 重新构建
+                  Todo? currentTodo;
+                  try {
+                    final task = _homeCtrl.reactiveTasks.firstWhereOrNull(
+                      (task) => task.uuid == taskId,
+                    );
+                    if (task != null && task.todos != null) {
+                      currentTodo = task.todos!.firstWhereOrNull(
+                        (t) => t.uuid == todo.uuid,
+                      );
+                    }
+                  } catch (e) {
+                    // 如果获取失败，使用原始的 todo
+                  }
+                  final todoToUse = currentTodo ?? todo;
+                  
+                  // 从 markdown 描述中提取第一张图片
+                  String? imagePath = _extractFirstImageFromMarkdown(todoToUse.description);
+                  
+                  // 如果 markdown 中没有图片，尝试从 images 字段获取
+                  if (imagePath == null && todoToUse.images.isNotEmpty) {
+                    imagePath = todoToUse.images.first;
+                  }
+                  
+                  if (imagePath == null) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  // 处理不同的图片路径格式
+                  final normalizedPath = _normalizeImagePath(imagePath);
+                  if (normalizedPath == null) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  // 检查是否是网络图片
+                  final isNetworkImage = normalizedPath.startsWith('http://') || 
+                                       normalizedPath.startsWith('https://');
+                  
+                  // 检查是否是本地文件
+                  final isLocalFile = !isNetworkImage && File(normalizedPath).existsSync();
+                  
+                  if (!isLocalFile && !isNetworkImage) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  // 根据 compact 模式调整图片高度
+                  // 用户要求图片高度设置为 180px
+                  final imageHeight = compact ? 180.0 : 180.0;
+                  
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: compact ? 6 : 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: imageHeight,
+                          child: isNetworkImage
+                              ? CachedNetworkImage(
+                                  imageUrl: normalizedPath,
+                                  width: double.infinity,
+                                  height: imageHeight,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (context, url, error) {
+                                    return const SizedBox.shrink();
+                                  },
+                                  placeholder: (context, url) {
+                                    return Container(
+                                      width: double.infinity,
+                                      height: imageHeight,
+                                      color: Colors.grey.withValues(alpha: 0.1),
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 14,
+                                          height: 14,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Image.file(
+                                  File(normalizedPath),
+                                  width: double.infinity,
+                                  height: imageHeight,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
                 if (todo.tagsWithColor.isNotEmpty)
-                  const SizedBox(
-                    height: 10,
+                  SizedBox(
+                    height: compact ? 6 : 10,
                   ),
                 if (todo.tagsWithColor.isNotEmpty)
                   SizedBox(
@@ -585,6 +744,7 @@ class TodoCard extends StatelessWidget {
                 ),
                 SizedBox(height: compact ? 6 : 15)
               ],
+            ),
             ),
           ),
         ),

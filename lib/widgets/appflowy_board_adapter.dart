@@ -351,11 +351,14 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 0),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 150),
-                    child: TodoCard(
-                      taskId: data.taskId,
-                      todo: data.todo,
-                      compact: true,
+                    constraints: const BoxConstraints(maxHeight: 350), // 增加最大高度以容纳 180px 的图片封面和其他内容
+                    child: ClipRect(
+                      // 使用 ClipRect 裁剪溢出内容
+                      child: TodoCard(
+                        taskId: data.taskId,
+                        todo: data.todo,
+                        compact: true,
+                      ),
                     ),
                   ),
                 ),

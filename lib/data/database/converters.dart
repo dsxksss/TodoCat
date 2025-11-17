@@ -137,7 +137,8 @@ class DbConverters {
       ..primaryColorValue = row.primaryColorValue
       ..backgroundImageOpacity = row.backgroundImageOpacity
       ..backgroundImageBlur = row.backgroundImageBlur
-      ..backgroundAffectsNavBar = row.backgroundAffectsNavBar;
+      ..backgroundAffectsNavBar = row.backgroundAffectsNavBar
+      ..showTodoImage = row.showTodoImage;
   }
 
   static AppConfigsCompanion appConfigToCompanion(app_config_models.AppConfig config, {bool isUpdate = false}) {
@@ -153,6 +154,7 @@ class DbConverters {
       backgroundImageOpacity: Value(config.backgroundImageOpacity),
       backgroundImageBlur: Value(config.backgroundImageBlur),
       backgroundAffectsNavBar: Value(config.backgroundAffectsNavBar),
+      showTodoImage: Value(config.showTodoImage),
     );
     
     if (isUpdate && config.id != null) {

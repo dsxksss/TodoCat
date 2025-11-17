@@ -74,6 +74,9 @@ const Map<String, String> enUS = {
   'launchAtStartup': 'Launch at startup',
   'launchAtStartupDescription':
       'Automatically run TodoCat after system startup/login (desktop only)',
+  'showTodoImage': 'Show Todo Image Cover',
+  'showTodoImageDescription':
+      'Display the first image of todo items as a cover in the todo card on the home page (between title and tags)',
   'emailReminder': 'Email reminder',
   'language': 'Language',
   'common': 'Common',

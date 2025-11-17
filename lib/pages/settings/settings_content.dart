@@ -337,6 +337,15 @@ class SettingsContent extends GetView<SettingsController> {
           ),
         ),
       ),
+      // 显示 Todo 图片封面开关
+      SettingsTile.switchTile(
+        onToggle: (_) => controller.toggleShowTodoImage(),
+        onPressed: (_) => controller.toggleShowTodoImage(),
+        initialValue: controller.showTodoImageEnabled.value,
+        leading: const Icon(Icons.image_outlined),
+        title: Text('showTodoImage'.tr),
+        description: Text('showTodoImageDescription'.tr),
+      ),
       // 开机自启动开关（仅桌面端）
       if (GetPlatform.isDesktop)
         SettingsTile.switchTile(

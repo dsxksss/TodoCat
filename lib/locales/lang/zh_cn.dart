@@ -73,6 +73,8 @@ const Map<String, String> zhCN = {
   'disable': '禁用',
   'launchAtStartup': '开机自启动',
   'launchAtStartupDescription': '在系统启动/登录后自动运行 TodoCat（仅桌面端）',
+  'showTodoImage': '显示待办图片封面',
+  'showTodoImageDescription': '在主页的待办卡片中显示待办事项的第一张图片作为封面（位于标题和标签之间）',
   'emailReminder': '邮箱提醒',
   'language': '语言',
   'common': '通用',

@@ -1821,6 +1821,16 @@ class $AppConfigsTable extends AppConfigs
           defaultConstraints: GeneratedColumn.constraintIsAlways(
               'CHECK ("background_affects_nav_bar" IN (0, 1))'),
           defaultValue: const Constant(false));
+  static const VerificationMeta _showTodoImageMeta =
+      const VerificationMeta('showTodoImage');
+  @override
+  late final GeneratedColumn<bool> showTodoImage = GeneratedColumn<bool>(
+      'show_todo_image', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("show_todo_image" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1834,7 +1844,8 @@ class $AppConfigsTable extends AppConfigs
         primaryColorValue,
         backgroundImageOpacity,
         backgroundImageBlur,
-        backgroundAffectsNavBar
+        backgroundAffectsNavBar,
+        showTodoImage
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1920,6 +1931,12 @@ class $AppConfigsTable extends AppConfigs
               data['background_affects_nav_bar']!,
               _backgroundAffectsNavBarMeta));
     }
+    if (data.containsKey('show_todo_image')) {
+      context.handle(
+          _showTodoImageMeta,
+          showTodoImage.isAcceptableOrUnknown(
+              data['show_todo_image']!, _showTodoImageMeta));
+    }
     return context;
   }
 
@@ -1956,6 +1973,8 @@ class $AppConfigsTable extends AppConfigs
       backgroundAffectsNavBar: attachedDatabase.typeMapping.read(
           DriftSqlType.bool,
           data['${effectivePrefix}background_affects_nav_bar'])!,
+      showTodoImage: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}show_todo_image'])!,
     );
   }
 
@@ -1978,6 +1997,7 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
   final double backgroundImageOpacity;
   final double backgroundImageBlur;
   final bool backgroundAffectsNavBar;
+  final bool showTodoImage;
   const AppConfig(
       {required this.id,
       required this.configName,
@@ -1990,7 +2010,8 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
       this.primaryColorValue,
       required this.backgroundImageOpacity,
       required this.backgroundImageBlur,
-      required this.backgroundAffectsNavBar});
+      required this.backgroundAffectsNavBar,
+      required this.showTodoImage});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2010,6 +2031,7 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
     map['background_image_opacity'] = Variable<double>(backgroundImageOpacity);
     map['background_image_blur'] = Variable<double>(backgroundImageBlur);
     map['background_affects_nav_bar'] = Variable<bool>(backgroundAffectsNavBar);
+    map['show_todo_image'] = Variable<bool>(showTodoImage);
     return map;
   }
 
@@ -2031,6 +2053,7 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
       backgroundImageOpacity: Value(backgroundImageOpacity),
       backgroundImageBlur: Value(backgroundImageBlur),
       backgroundAffectsNavBar: Value(backgroundAffectsNavBar),
+      showTodoImage: Value(showTodoImage),
     );
   }
 
@@ -2055,6 +2078,7 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
           serializer.fromJson<double>(json['backgroundImageBlur']),
       backgroundAffectsNavBar:
           serializer.fromJson<bool>(json['backgroundAffectsNavBar']),
+      showTodoImage: serializer.fromJson<bool>(json['showTodoImage']),
     );
   }
   @override
@@ -2075,6 +2099,7 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
       'backgroundImageBlur': serializer.toJson<double>(backgroundImageBlur),
       'backgroundAffectsNavBar':
           serializer.toJson<bool>(backgroundAffectsNavBar),
+      'showTodoImage': serializer.toJson<bool>(showTodoImage),
     };
   }
 
@@ -2090,7 +2115,8 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
           Value<int?> primaryColorValue = const Value.absent(),
           double? backgroundImageOpacity,
           double? backgroundImageBlur,
-          bool? backgroundAffectsNavBar}) =>
+          bool? backgroundAffectsNavBar,
+          bool? showTodoImage}) =>
       AppConfig(
         id: id ?? this.id,
         configName: configName ?? this.configName,
@@ -2110,6 +2136,7 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
         backgroundImageBlur: backgroundImageBlur ?? this.backgroundImageBlur,
         backgroundAffectsNavBar:
             backgroundAffectsNavBar ?? this.backgroundAffectsNavBar,
+        showTodoImage: showTodoImage ?? this.showTodoImage,
       );
   @override
   String toString() {
@@ -2125,7 +2152,8 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
           ..write('primaryColorValue: $primaryColorValue, ')
           ..write('backgroundImageOpacity: $backgroundImageOpacity, ')
           ..write('backgroundImageBlur: $backgroundImageBlur, ')
-          ..write('backgroundAffectsNavBar: $backgroundAffectsNavBar')
+          ..write('backgroundAffectsNavBar: $backgroundAffectsNavBar, ')
+          ..write('showTodoImage: $showTodoImage')
           ..write(')'))
         .toString();
   }
@@ -2143,7 +2171,8 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
       primaryColorValue,
       backgroundImageOpacity,
       backgroundImageBlur,
-      backgroundAffectsNavBar);
+      backgroundAffectsNavBar,
+      showTodoImage);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2159,7 +2188,8 @@ class AppConfig extends DataClass implements Insertable<AppConfig> {
           other.primaryColorValue == this.primaryColorValue &&
           other.backgroundImageOpacity == this.backgroundImageOpacity &&
           other.backgroundImageBlur == this.backgroundImageBlur &&
-          other.backgroundAffectsNavBar == this.backgroundAffectsNavBar);
+          other.backgroundAffectsNavBar == this.backgroundAffectsNavBar &&
+          other.showTodoImage == this.showTodoImage);
 }
 
 class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
@@ -2175,6 +2205,7 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
   final Value<double> backgroundImageOpacity;
   final Value<double> backgroundImageBlur;
   final Value<bool> backgroundAffectsNavBar;
+  final Value<bool> showTodoImage;
   const AppConfigsCompanion({
     this.id = const Value.absent(),
     this.configName = const Value.absent(),
@@ -2188,6 +2219,7 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
     this.backgroundImageOpacity = const Value.absent(),
     this.backgroundImageBlur = const Value.absent(),
     this.backgroundAffectsNavBar = const Value.absent(),
+    this.showTodoImage = const Value.absent(),
   });
   AppConfigsCompanion.insert({
     this.id = const Value.absent(),
@@ -2202,6 +2234,7 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
     this.backgroundImageOpacity = const Value.absent(),
     this.backgroundImageBlur = const Value.absent(),
     this.backgroundAffectsNavBar = const Value.absent(),
+    this.showTodoImage = const Value.absent(),
   })  : configName = Value(configName),
         languageCode = Value(languageCode);
   static Insertable<AppConfig> custom({
@@ -2217,6 +2250,7 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
     Expression<double>? backgroundImageOpacity,
     Expression<double>? backgroundImageBlur,
     Expression<bool>? backgroundAffectsNavBar,
+    Expression<bool>? showTodoImage,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2236,6 +2270,7 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
         'background_image_blur': backgroundImageBlur,
       if (backgroundAffectsNavBar != null)
         'background_affects_nav_bar': backgroundAffectsNavBar,
+      if (showTodoImage != null) 'show_todo_image': showTodoImage,
     });
   }
 
@@ -2251,7 +2286,8 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
       Value<int?>? primaryColorValue,
       Value<double>? backgroundImageOpacity,
       Value<double>? backgroundImageBlur,
-      Value<bool>? backgroundAffectsNavBar}) {
+      Value<bool>? backgroundAffectsNavBar,
+      Value<bool>? showTodoImage}) {
     return AppConfigsCompanion(
       id: id ?? this.id,
       configName: configName ?? this.configName,
@@ -2267,6 +2303,7 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
       backgroundImageBlur: backgroundImageBlur ?? this.backgroundImageBlur,
       backgroundAffectsNavBar:
           backgroundAffectsNavBar ?? this.backgroundAffectsNavBar,
+      showTodoImage: showTodoImage ?? this.showTodoImage,
     );
   }
 
@@ -2314,6 +2351,9 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
       map['background_affects_nav_bar'] =
           Variable<bool>(backgroundAffectsNavBar.value);
     }
+    if (showTodoImage.present) {
+      map['show_todo_image'] = Variable<bool>(showTodoImage.value);
+    }
     return map;
   }
 
@@ -2331,7 +2371,8 @@ class AppConfigsCompanion extends UpdateCompanion<AppConfig> {
           ..write('primaryColorValue: $primaryColorValue, ')
           ..write('backgroundImageOpacity: $backgroundImageOpacity, ')
           ..write('backgroundImageBlur: $backgroundImageBlur, ')
-          ..write('backgroundAffectsNavBar: $backgroundAffectsNavBar')
+          ..write('backgroundAffectsNavBar: $backgroundAffectsNavBar, ')
+          ..write('showTodoImage: $showTodoImage')
           ..write(')'))
         .toString();
   }
