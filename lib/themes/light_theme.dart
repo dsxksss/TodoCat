@@ -7,7 +7,7 @@ final lightTheme = ThemeData(
   cardColor: Colors.white,
   primaryColor: Colors.grey[100],
   hoverColor: Colors.grey.withValues(alpha:0.1),
-  hintColor: Colors.blue,
+  hintColor: Colors.blue.shade700,
   dividerColor: Colors.grey.shade300,
   fontFamily: 'SourceHanSans', // 使用思源黑体
   inputDecorationTheme: const InputDecorationTheme(

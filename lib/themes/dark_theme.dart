@@ -7,7 +7,7 @@ final darkTheme = ThemeData(
   cardColor: const Color.fromRGBO(29, 35, 42, 1),
   primaryColor: Colors.black,
   hoverColor: Colors.grey.withValues(alpha:0.1),
-  hintColor: Colors.blue,
+  hintColor: Colors.blue.shade700,
   dividerColor: Colors.grey.shade800,
   fontFamily: 'SourceHanSans', // 使用思源黑体
   inputDecorationTheme: const InputDecorationTheme(
