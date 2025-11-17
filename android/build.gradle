@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.9.10'
+    ext.kotlin_version = '2.1.0'
     repositories {
         maven { url 'https://maven.aliyun.com/repository/google' }
         maven { url 'https://maven.aliyun.com/repository/public' }
@@ -36,11 +36,26 @@ subprojects {
     afterEvaluate {project ->
         if (project.hasProperty('android')) {
             android {
-                compileSdkVersion 34
+                compileSdkVersion 35
+                
+                // 为缺少 namespace 的插件设置 namespace
+                if (project.name == 'flutter_statusbarcolor_ns') {
+                    namespace = 'com.sameer.flutterstatusbarcolor.flutterstatusbarcolor'
+                } else {
+                    // 尝试从 AndroidManifest.xml 读取包名作为 namespace
+                    def manifestFile = project.file('src/main/AndroidManifest.xml')
+                    if (manifestFile.exists()) {
+                        def manifestContent = manifestFile.text
+                        def packageMatch = manifestContent =~ /package="([^"]+)"/
+                        if (packageMatch) {
+                            namespace = packageMatch[0][1]
+                        }
+                    }
+                }
                 
                 defaultConfig {
-                    targetSdkVersion 34
-                    minSdkVersion 21
+                    targetSdkVersion 35
+                    minSdkVersion 23
                 }
 
                 lintOptions {
