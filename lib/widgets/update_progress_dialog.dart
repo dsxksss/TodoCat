@@ -176,19 +176,37 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
             
             const SizedBox(height: 24),
             
-            // 取消按钮（仅在检查阶段或下载阶段显示）
+            // 停止/取消按钮（仅在检查阶段或下载阶段显示）
             if ((!_isDownloading && !_isInstalling && _progress == 0.0) || _isDownloading)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
                     if (_isDownloading) {
-                      // 取消下载
+                      // 停止下载
                       widget.updateService.cancelDownload();
+                      setState(() {
+                        _isDownloading = false;
+                        _status = 'downloadCancelled'.tr;
+                      });
+                    } else {
+                      Navigator.of(context).pop();
                     }
-                    Navigator.of(context).pop();
                   },
-                  child: Text('cancel'.tr),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isDownloading ? Colors.red : null,
+                    foregroundColor: _isDownloading ? Colors.white : null,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_isDownloading) ...[
+                        const Icon(Icons.stop, size: 18),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(_isDownloading ? 'stop'.tr : 'cancel'.tr),
+                    ],
+                  ),
                 ),
               ),
           ],

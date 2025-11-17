@@ -13,6 +13,7 @@ import 'package:TodoCat/pages/home/components/task/task_card.dart';
 import 'dart:io';
 import 'dart:ui';
 import 'package:TodoCat/controllers/app_ctr.dart';
+import 'package:TodoCat/controllers/home_ctr.dart';
 import 'package:TodoCat/config/default_backgrounds.dart';
 import 'package:TodoCat/widgets/video_background.dart';
 import 'package:TodoCat/services/video_download_service.dart';
@@ -230,11 +231,36 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
   }
   
   void _showConfirmDialogForCustom(BuildContext context, CustomTemplate template, bool shouldClosePreview) {
+    // 检查当前工作空间是否有任务
+    bool hasTasks = false;
+    if (Get.isRegistered<HomeController>()) {
+      try {
+        final homeCtrl = Get.find<HomeController>();
+        hasTasks = homeCtrl.tasks.isNotEmpty;
+      } catch (e) {
+        // 如果获取失败，默认显示确认对话框
+        hasTasks = true;
+      }
+    }
+    
+    // 如果没有任务，直接应用模板，不显示确认提示
+    if (!hasTasks) {
+      widget.onCustomTemplateSelected?.call(template);
+      SmartDialog.dismiss(tag: 'template_selector');
+      if (shouldClosePreview) {
+        SmartDialog.dismiss(tag: 'custom_template_preview_${template.id}');
+      }
+      showSuccessNotification("taskTemplateApplied".tr);
+      return;
+    }
+    
+    // 如果有任务，显示确认对话框
     showToast(
       "${'confirmApplyTemplate'.tr}「${template.name}」",
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
+      tag: 'template_confirm_custom_${template.id}', // 使用唯一的 tag
       onYesCallback: () {
         widget.onCustomTemplateSelected?.call(template);
         SmartDialog.dismiss(tag: 'template_selector');
@@ -267,11 +293,36 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
   }
 
   void _showConfirmDialog(BuildContext context, TaskTemplateType type, String title, bool shouldClosePreview) {
+    // 检查当前工作空间是否有任务
+    bool hasTasks = false;
+    if (Get.isRegistered<HomeController>()) {
+      try {
+        final homeCtrl = Get.find<HomeController>();
+        hasTasks = homeCtrl.tasks.isNotEmpty;
+      } catch (e) {
+        // 如果获取失败，默认显示确认对话框
+        hasTasks = true;
+      }
+    }
+    
+    // 如果没有任务，直接应用模板，不显示确认提示
+    if (!hasTasks) {
+      widget.onTemplateSelected(type);
+      SmartDialog.dismiss(tag: 'template_selector');
+      if (shouldClosePreview) {
+        SmartDialog.dismiss(tag: 'template_preview_$type');
+      }
+      showSuccessNotification("taskTemplateApplied".tr);
+      return;
+    }
+    
+    // 如果有任务，显示确认对话框
     showToast(
       "${'confirmApplyTemplate'.tr}「$title」",
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
+      tag: 'template_confirm_$type', // 使用唯一的 tag
       onYesCallback: () {
         widget.onTemplateSelected(type);
         SmartDialog.dismiss(tag: 'template_selector');

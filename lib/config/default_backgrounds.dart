@@ -64,7 +64,7 @@ class DefaultBackgrounds {
       description: '',
       imageUrl: 'assets/videos/video_background_1.mp4',
       isVideo: true,
-      downloadUrl: 'https://www.pexels.com/zh-cn/download/video/4174024/',
+      downloadUrl: 'https://cdn.pixabay.com/video/2025/11/07/314643_small.mp4',
     ),
     DefaultBackground(
       id: 'video_background_2',
@@ -72,7 +72,7 @@ class DefaultBackgrounds {
       description: '',
       imageUrl: 'assets/videos/video_background_2.mp4',
       isVideo: true,
-      downloadUrl: 'https://www.pexels.com/zh-cn/download/video/2386935/',
+      downloadUrl: 'https://cdn.pixabay.com/video/2025/09/22/305657_tiny.mp4',
     ),
   ];
   

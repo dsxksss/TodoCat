@@ -344,6 +344,7 @@ const Map<String, String> zhCN = {
   'userCancelledDownload': '用户取消下载',
   'download': '下载',
   'downloadFailed': '下载失败',
+  'stop': '停止',
   'unknown': '未知',
   // Markdown工具栏
   'markdownBold': '粗体',

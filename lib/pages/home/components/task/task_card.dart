@@ -479,24 +479,26 @@ class _TaskCardState extends State<TaskCard> {
                       onPointerUp: (event) {
                         _stopAutoScroll();
                       },
-                      child: Obx(
-                        () {
-                          // 安全地获取最新的任务状态
-                          final currentTask = _homeCtrl.allTasks.firstWhere(
-                            (task) => task.uuid == widget._task.uuid,
-                            orElse: () => widget._task,
-                          );
-                          // 过滤已删除的todos
-                          final todos = (currentTask.todos ?? []).where((todo) => todo.deletedAt == 0).toList();
-                          
-                          // 使用 DragAndDropLists 显示 todo 列表（用于向后兼容，如果 showTodos 为 true）
-                          if (todos.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-                          
-                          // 使用 ReorderableListView 支持拖拽，但需要与外部的 DragAndDropLists 配合
-                          // 使用 ClampingScrollPhysics 防止滚动影响父级
-                          return ReorderableListView(
+                      child: ExcludeSemantics(
+                        // 在拖拽时排除语义，减少可访问性树更新
+                        child: Obx(
+                          () {
+                            // 安全地获取最新的任务状态
+                            final currentTask = _homeCtrl.allTasks.firstWhere(
+                              (task) => task.uuid == widget._task.uuid,
+                              orElse: () => widget._task,
+                            );
+                            // 过滤已删除的todos
+                            final todos = (currentTask.todos ?? []).where((todo) => todo.deletedAt == 0).toList();
+                            
+                            // 使用 DragAndDropLists 显示 todo 列表（用于向后兼容，如果 showTodos 为 true）
+                            if (todos.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            
+                            // 使用 ReorderableListView 支持拖拽，但需要与外部的 DragAndDropLists 配合
+                            // 使用 ClampingScrollPhysics 防止滚动影响父级
+                            return ReorderableListView(
                             shrinkWrap: true,
                             buildDefaultDragHandles: false, // 移除默认拖拽手柄
                             scrollController: _scrollController,
@@ -565,6 +567,7 @@ class _TaskCardState extends State<TaskCard> {
                             }).toList(),
                           );
                         },
+                      ),
                       ),
                     ),
                   ),

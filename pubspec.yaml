@@ -126,7 +126,6 @@ flutter:
   assets:
     - assets/
     - assets/imgs/
-    - assets/videos/
     - assets/fonts/
 
 flutter_launcher_icons:

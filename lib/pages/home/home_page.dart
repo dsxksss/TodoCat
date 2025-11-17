@@ -217,7 +217,9 @@ class HomePage extends GetView<HomeController> {
         if (template.isVideo) {
           // 如果有downloadUrl，尝试使用缓存的视频路径
           if (template.downloadUrl != null) {
+            // 使用稳定的 key 确保 Widget 不会被频繁重建
             return FutureBuilder<String?>(
+              key: ValueKey('video_bg_future_$templateId'),
               future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -225,20 +227,28 @@ class HomePage extends GetView<HomeController> {
                 }
                 // 如果已缓存，使用缓存路径；否则使用原路径（可能不存在，但VideoBackground会处理）
                 final videoPath = snapshot.data ?? template.imageUrl;
-                return VideoBackground(
-                  videoPath: videoPath,
-                  opacity: opacity,
-                  blur: blur,
+                // 使用 ExcludeSemantics 和稳定的 key 减少可访问性树更新
+                return ExcludeSemantics(
+                  child: VideoBackground(
+                    key: ValueKey('video_bg_$templateId'),
+                    videoPath: videoPath,
+                    opacity: opacity,
+                    blur: blur,
+                  ),
                 );
               },
             );
           } else {
             // 对于 assets 中的视频，直接使用 assets 路径
             // VideoBackground 会处理 assets 路径
-            return VideoBackground(
-              videoPath: template.imageUrl,
-              opacity: opacity,
-              blur: blur,
+            // 使用 ExcludeSemantics 和稳定的 key 减少可访问性树更新
+            return ExcludeSemantics(
+              child: VideoBackground(
+                key: ValueKey('video_bg_$templateId'),
+                videoPath: template.imageUrl,
+                opacity: opacity,
+                blur: blur,
+              ),
             );
           }
         } else {
@@ -316,10 +326,14 @@ class HomePage extends GetView<HomeController> {
         
         if (isVideo) {
           // 使用视频背景
-          return VideoBackground(
-            videoPath: backgroundPath,
-            opacity: opacity,
-            blur: blur,
+          // 使用 ExcludeSemantics 和稳定的 key 减少可访问性树更新
+          return ExcludeSemantics(
+            child: VideoBackground(
+              key: ValueKey('video_bg_custom_$backgroundPath'),
+              videoPath: backgroundPath,
+              opacity: opacity,
+              blur: blur,
+            ),
           );
         } else {
           // 使用图片背景
@@ -762,28 +776,32 @@ class HomePage extends GetView<HomeController> {
             ),
           alignment: Alignment.bottomRight,
           attachAlignmentType: SmartAttachAlignmentType.outside,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  currentWorkspace?.name ?? 'defaultWorkspace'.tr,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: context.theme.textTheme.bodyLarge?.color,
+          child: Padding(
+            // 添加内边距以扩大可点击区域，特别是左右边缘
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    currentWorkspace?.name ?? 'defaultWorkspace'.tr,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: context.theme.textTheme.bodyLarge?.color,
+                    ),
+                    overflow: TextOverflow.ellipsis, // 防止文字换行，超长时显示省略号
+                    maxLines: 1,
                   ),
-                  overflow: TextOverflow.ellipsis, // 防止文字换行，超长时显示省略号
-                  maxLines: 1,
                 ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.arrow_drop_down,
-                size: 20,
-                color: context.theme.iconTheme.color,
-              ),
-            ],
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 20,
+                  color: context.theme.iconTheme.color,
+                ),
+              ],
+            ),
           ),
           );
         },

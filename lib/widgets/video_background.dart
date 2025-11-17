@@ -32,6 +32,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
   bool _isInitialized = false;
   bool _hasError = false;
   String? _errorMessage;
+  bool _isDisposed = false; // 标记是否已销毁
 
   @override
   void initState() {
@@ -52,6 +53,10 @@ class _VideoBackgroundState extends State<VideoBackground> {
             final assetPath = widget.videoPath.replaceFirst('assets/', '');
             _logger.d('尝试加载 assets 视频: $assetPath');
             final byteData = await rootBundle.load(assetPath);
+            
+            // 检查是否已销毁
+            if (_isDisposed || !mounted) return;
+            
             final tempDir = await getTemporaryDirectory();
             final tempFile =
                 File('${tempDir.path}/${assetPath.split('/').last}');
@@ -60,6 +65,9 @@ class _VideoBackgroundState extends State<VideoBackground> {
             tempController = VideoPlayerController.file(tempFile);
           } catch (e) {
             _logger.e('加载 assets 视频失败: $e');
+            // 检查是否已销毁
+            if (_isDisposed || !mounted) return;
+            
             // 尝试使用完整路径作为文件路径（开发环境可能直接使用文件路径）
             final fullPath = widget.videoPath;
             final projectRoot = Directory.current.path;
@@ -71,7 +79,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
               _logger.d('使用完整文件路径: $fullPath');
               tempController = VideoPlayerController.file(File(fullPath));
             } else {
-              if (mounted) {
+              if (!_isDisposed && mounted) {
                 setState(() {
                   _hasError = true;
                   _errorMessage = '加载 assets 视频失败: $e';
@@ -96,7 +104,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
           // 检查文件是否存在
           if (!File(widget.videoPath).existsSync()) {
             _logger.e('视频文件不存在: ${widget.videoPath}');
-            if (mounted) {
+            if (!_isDisposed && mounted) {
               setState(() {
                 _hasError = true;
                 _errorMessage = '视频文件不存在: ${widget.videoPath}';
@@ -111,29 +119,52 @@ class _VideoBackgroundState extends State<VideoBackground> {
         }
       }
 
+      // 检查是否已销毁
+      if (_isDisposed || !mounted) {
+        // 如果已销毁，清理可能已创建的控制器
+        // 注意：tempController 可能为 null（如果前面的代码路径没有创建它）
+        if (tempController != null) {
+          try {
+            tempController.dispose();
+          } catch (e) {
+            // 忽略销毁错误
+          }
+        }
+        return;
+      }
+
+      // 此时 tempController 应该已经被赋值（根据代码路径分析）
       _controller = tempController;
 
       // 初始化视频
       await _controller!.initialize();
 
-      if (mounted) {
-        // 添加监听器，监听播放状态变化
-        _controller!.addListener(_videoListener);
+      // 再次检查是否已销毁（在异步操作后）
+      if (_isDisposed || !mounted) {
+        _controller?.dispose();
+        _controller = null;
+        return;
+      }
 
-        // 设置循环播放
-        _controller!.setLooping(true);
-        // 静音播放
-        _controller!.setVolume(0.0);
-        // 开始播放
-        await _controller!.play();
+      // 添加监听器，监听播放状态变化
+      _controller!.addListener(_videoListener);
 
+      // 设置循环播放
+      _controller!.setLooping(true);
+      // 静音播放
+      _controller!.setVolume(0.0);
+      // 开始播放
+      await _controller!.play();
+
+      // 最后一次检查是否已销毁（在异步操作后）
+      if (!_isDisposed && mounted) {
         setState(() {
           _isInitialized = true;
         });
       }
     } catch (e, stackTrace) {
       _logger.e('初始化视频失败: $e', error: e, stackTrace: stackTrace);
-      if (mounted) {
+      if (!_isDisposed && mounted) {
         setState(() {
           _hasError = true;
           _errorMessage = '初始化视频失败: $e';
@@ -175,10 +206,16 @@ class _VideoBackgroundState extends State<VideoBackground> {
   }
 
   void _disposeController() {
-    _controller?.removeListener(_videoListener);
-    _controller?.pause();
-    _controller?.dispose();
-    _controller = null;
+    _isDisposed = true; // 标记为已销毁
+    final controller = _controller;
+    _controller = null; // 先清空引用，避免后续访问
+    controller?.removeListener(_videoListener);
+    controller?.pause();
+    // 延迟销毁，避免在拖拽等操作时触发可访问性树更新错误
+    // 这样可以避免在 Widget 树重建时立即销毁导致的冲突
+    Future.microtask(() {
+      controller?.dispose();
+    });
     _isInitialized = false;
   }
 
@@ -228,6 +265,13 @@ class _VideoBackgroundState extends State<VideoBackground> {
   }
 
   Widget _buildVideoPlayer() {
+    // 使用 ExcludeSemantics 减少可访问性树更新
+    return ExcludeSemantics(
+      child: _buildVideoPlayerContent(),
+    );
+  }
+
+  Widget _buildVideoPlayerContent() {
     // 使用 ValueListenableBuilder 确保视频状态变化时 UI 更新
     return ValueListenableBuilder<VideoPlayerValue>(
       valueListenable: _controller!,

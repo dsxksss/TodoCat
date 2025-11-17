@@ -753,11 +753,14 @@ class _DefaultBackgroundVideoGridState extends State<DefaultBackgroundVideoGrid>
             _isDownloading[template.id] = false;
             _downloadProgress[template.id] = 0.0;
           });
-          Get.snackbar(
-            'downloadFailed'.tr,
-            error,
-            snackPosition: SnackPosition.BOTTOM,
-          );
+          // 如果是取消操作，不显示错误提示
+          if (error != '下载已取消') {
+            Get.snackbar(
+              'downloadFailed'.tr,
+              error,
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          }
         }
       },
     );
@@ -765,272 +768,40 @@ class _DefaultBackgroundVideoGridState extends State<DefaultBackgroundVideoGrid>
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final settingsCtrl = Get.find<SettingsController>();
-      final config = settingsCtrl.appCtrl.appConfig.value;
-      final currentTemplateId =
-          config.backgroundImagePath?.startsWith('default_template:') ?? false
-              ? config.backgroundImagePath!.split(':').last
-              : null;
+    // 过滤出视频模板（在 build 外部，避免每次重建）
+    final videoTemplates = DefaultBackgrounds.templates
+        .where((template) => template.isVideo)
+        .toList();
 
-      // 过滤出视频模板
-      final videoTemplates = DefaultBackgrounds.templates
-          .where((template) => template.isVideo)
-          .toList();
-
-      if (videoTemplates.isEmpty) {
-        return const SizedBox.shrink();
-      }
-
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.2,
-        ),
-        itemCount: videoTemplates.length,
-        itemBuilder: (context, index) {
-          final template = videoTemplates[index];
-          final isSelected = currentTemplateId == template.id;
-          final needsDownload = template.downloadUrl != null && 
-              (_isCached[template.id] != true);
-          final isDownloading = _isDownloading[template.id] == true;
-          final progress = _downloadProgress[template.id] ?? 0.0;
-
-          return GestureDetector(
-            onTap: needsDownload && !isDownloading
-                ? null
-                : () async {
-                    // 如果有downloadUrl，需要先检查是否已缓存
-                    if (template.downloadUrl != null) {
-                      final cached = await _downloadService.isVideoCached(template.downloadUrl!);
-                      if (!cached) {
-                        // 未缓存，不能应用
-                        return;
-                      }
-                    }
-                    // 应用模板
-                    await settingsCtrl.selectDefaultBackground(template.id);
-                  },
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isSelected
-                      ? context.theme.primaryColor
-                      : Colors.transparent,
-                  width: isSelected ? 2 : 0,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(7),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // 视频背景或缩略图
-                    _buildVideoPlaceholder(template),
-                    // 下载按钮或进度条
-                    if (needsDownload)
-                      Container(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        child: Center(
-                          child: isDownloading
-                              ? _buildDownloadProgress(context, progress)
-                              : _buildDownloadButton(context, template),
-                        ),
-                      ),
-                    // 选中指示器
-                    if (isSelected && !needsDownload)
-                      Container(
-                        alignment: Alignment.topRight,
-                        padding: const EdgeInsets.all(6),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: context.theme.primaryColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            size: 14,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    });
-  }
-
-  Widget _buildVideoPlaceholder(DefaultBackground template) {
-    // 如果有downloadUrl，需要检查是否已缓存
-    if (template.downloadUrl != null) {
-      // 如果已缓存，使用缓存路径显示缩略图
-      if (_isCached[template.id] == true) {
-        // 异步获取缓存路径
-        return FutureBuilder<String?>(
-          future: _downloadService.getCachedVideoPath(template.downloadUrl!),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _buildPlaceholder();
-            }
-            final cachedPath = snapshot.data;
-            if (cachedPath != null) {
-              return VideoThumbnail(
-                videoPath: cachedPath,
-                fit: BoxFit.cover,
-                placeholder: _buildPlaceholder(),
-              );
-            }
-            // 如果缓存路径获取失败，尝试使用URL获取缩略图
-            return VideoThumbnail(
-              videoPath: template.downloadUrl!,
-              fit: BoxFit.cover,
-              placeholder: _buildPlaceholder(),
-            );
-          },
-        );
-      } else {
-        // 未下载，直接从URL获取缩略图
-        return VideoThumbnail(
-          videoPath: template.downloadUrl!,
-          fit: BoxFit.cover,
-          placeholder: _buildPlaceholder(),
-        );
-      }
+    if (videoTemplates.isEmpty) {
+      return const SizedBox.shrink();
     }
 
-    // 没有downloadUrl，使用原路径（assets中的视频）
-    return VideoThumbnail(
-      videoPath: template.imageUrl,
-      fit: BoxFit.cover,
-      placeholder: _buildPlaceholder(),
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: videoTemplates.length,
+      itemBuilder: (context, index) {
+        final template = videoTemplates[index];
+        return _VideoGridItem(
+          key: ValueKey(template.id),
+          template: template,
+          downloadService: _downloadService,
+          isCached: _isCached[template.id] == true,
+          isDownloading: _isDownloading[template.id] == true,
+          downloadProgress: _downloadProgress[template.id] ?? 0.0,
+          onDownload: () => _downloadVideo(template),
+        );
+      },
     );
   }
 
-  Widget _buildPlaceholder() {
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.videocam,
-              size: 40,
-              color: Colors.white.withValues(alpha: 0.7),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '视频',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDownloadButton(BuildContext context, DefaultBackground template) {
-    return GestureDetector(
-      onTap: () => _downloadVideo(template),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: context.theme.primaryColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.download,
-              size: 18,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'download'.tr,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDownloadProgress(BuildContext context, double progress) {
-    final theme = Get.theme;
-    final isDark = theme.brightness == Brightness.dark;
-    const progressColor = Colors.blueAccent;
-    final backgroundColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
-    final progressBgColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
-    final percentage = (progress * 100).toInt();
-
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: backgroundColor,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // 圆圈进度条
-          Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween<double>(
-                begin: 0.0,
-                end: progress,
-              ),
-              duration: const Duration(milliseconds: 100),
-              curve: Curves.easeOut,
-              builder: (context, animatedProgress, child) {
-                return CircularProgressIndicator(
-                  value: animatedProgress,
-                  strokeWidth: 3.0,
-                  backgroundColor: progressBgColor,
-                  valueColor: const AlwaysStoppedAnimation<Color>(progressColor),
-                );
-              },
-            ),
-          ),
-          // 百分比数字显示在中心
-          Text(
-            '$percentage%',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: theme.textTheme.bodyLarge?.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// 带防抖的透明度滑块
@@ -1189,6 +960,320 @@ class _BlurSliderState extends State<BlurSlider> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// 视频网格项组件（独立组件，避免整个 GridView 重建）
+class _VideoGridItem extends StatelessWidget {
+  final DefaultBackground template;
+  final VideoDownloadService downloadService;
+  final bool isCached;
+  final bool isDownloading;
+  final double downloadProgress;
+  final VoidCallback onDownload;
+
+  const _VideoGridItem({
+    super.key,
+    required this.template,
+    required this.downloadService,
+    required this.isCached,
+    required this.isDownloading,
+    required this.downloadProgress,
+    required this.onDownload,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 只监听当前选中的模板ID，而不是整个 appConfig
+    return Obx(() {
+      final settingsCtrl = Get.find<SettingsController>();
+      final config = settingsCtrl.appCtrl.appConfig.value;
+      final currentTemplateId =
+          config.backgroundImagePath?.startsWith('default_template:') ?? false
+              ? config.backgroundImagePath!.split(':').last
+              : null;
+      final isSelected = currentTemplateId == template.id;
+      final needsDownload = template.downloadUrl != null && !isCached;
+
+      return GestureDetector(
+        onTap: needsDownload && !isDownloading
+            ? null
+            : () async {
+                // 如果有downloadUrl，需要先检查是否已缓存
+                if (template.downloadUrl != null) {
+                  final cached = await downloadService.isVideoCached(template.downloadUrl!);
+                  if (!cached) {
+                    // 未缓存，不能应用
+                    return;
+                  }
+                }
+                // 应用模板
+                await settingsCtrl.selectDefaultBackground(template.id);
+              },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected
+                  ? context.theme.primaryColor
+                  : Colors.transparent,
+              width: isSelected ? 2 : 0,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(7),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // 视频背景或缩略图
+                _buildVideoPlaceholder(),
+                // 下载按钮或进度条
+                if (needsDownload)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    child: Center(
+                      child: isDownloading
+                          ? _buildDownloadProgressWithCancel(context, downloadProgress)
+                          : _buildDownloadButton(context),
+                    ),
+                  ),
+                // 选中指示器
+                if (isSelected && !needsDownload)
+                  Container(
+                    alignment: Alignment.topRight,
+                    padding: const EdgeInsets.all(6),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: context.theme.primaryColor,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildVideoPlaceholder() {
+    // 使用稳定的 key，避免频繁重建
+    final stableKey = ValueKey('${template.id}_${isCached ? 'cached' : 'url'}');
+    
+    // 如果有downloadUrl，需要检查是否已缓存
+    if (template.downloadUrl != null) {
+      // 如果已缓存，使用缓存路径显示缩略图
+      if (isCached) {
+        // 使用 FutureBuilder 但缓存 future，避免每次重建都创建新的 future
+        return FutureBuilder<String?>(
+          key: stableKey,
+          future: downloadService.getCachedVideoPath(template.downloadUrl!),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _buildPlaceholder();
+            }
+            final cachedPath = snapshot.data;
+            if (cachedPath != null) {
+              return VideoThumbnail(
+                key: ValueKey('${template.id}_cached'),
+                videoPath: cachedPath,
+                fit: BoxFit.cover,
+                placeholder: _buildPlaceholder(),
+              );
+            }
+            // 如果缓存路径获取失败，尝试使用URL获取缩略图
+            return VideoThumbnail(
+              key: ValueKey('${template.id}_url'),
+              videoPath: template.downloadUrl!,
+              fit: BoxFit.cover,
+              placeholder: _buildPlaceholder(),
+            );
+          },
+        );
+      } else {
+        // 未下载，直接从URL获取缩略图
+        return VideoThumbnail(
+          key: stableKey,
+          videoPath: template.downloadUrl!,
+          fit: BoxFit.cover,
+          placeholder: _buildPlaceholder(),
+        );
+      }
+    }
+
+    // 没有downloadUrl，使用原路径（assets中的视频）
+    return VideoThumbnail(
+      key: stableKey,
+      videoPath: template.imageUrl,
+      fit: BoxFit.cover,
+      placeholder: _buildPlaceholder(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.black,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.videocam,
+              size: 40,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '视频',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloadProgress(BuildContext context, double progress) {
+    final theme = Get.theme;
+    final isDark = theme.brightness == Brightness.dark;
+    const progressColor = Colors.blueAccent;
+    final backgroundColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+    final progressBgColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+    final percentage = (progress * 100).toInt();
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: backgroundColor,
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // 圆圈进度条
+          Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(
+                begin: 0.0,
+                end: progress,
+              ),
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.easeOut,
+              builder: (context, animatedProgress, child) {
+                return CircularProgressIndicator(
+                  value: animatedProgress,
+                  strokeWidth: 3.0,
+                  backgroundColor: progressBgColor,
+                  valueColor: const AlwaysStoppedAnimation<Color>(progressColor),
+                );
+              },
+            ),
+          ),
+          // 百分比数字显示在中心
+          Text(
+            '$percentage%',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: theme.textTheme.bodyLarge?.color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDownloadProgressWithCancel(BuildContext context, double progress) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildDownloadProgress(context, progress),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () {
+            if (template.downloadUrl != null) {
+              downloadService.cancelDownload(template.downloadUrl!);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.stop,
+                  size: 14,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'stop'.tr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDownloadButton(BuildContext context) {
+    return GestureDetector(
+      onTap: onDownload,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.theme.primaryColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.download,
+              size: 18,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'download'.tr,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

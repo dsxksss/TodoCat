@@ -94,6 +94,8 @@ class AnimationBtn extends StatelessWidget {
       onEnter: (_) => _playHoverAnimation(),
       onExit: (_) => _closeAllAnimation(),
       child: GestureDetector(
+        // 使用 opaque 行为，确保整个区域（包括边缘）都可以响应点击
+        behavior: HitTestBehavior.opaque,
         onTap: () async {
           if (!disable) {
             _playClickAnimation();

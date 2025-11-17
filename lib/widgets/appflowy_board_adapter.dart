@@ -286,15 +286,17 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
       stretchGroupHeight: true,
     );
 
-    return Scrollbar(
-      controller: _scrollController,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        child: AppFlowyBoard(
-          controller: _boardController,
-          groupConstraints: BoxConstraints.tightFor(width: widget.listWidth),
-          config: boardConfig,
-          scrollController: _scrollController,
+    return ExcludeSemantics(
+      // 在拖拽时排除语义，减少可访问性树更新
+      child: Scrollbar(
+        controller: _scrollController,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          child: AppFlowyBoard(
+            controller: _boardController,
+            groupConstraints: BoxConstraints.tightFor(width: widget.listWidth),
+            config: boardConfig,
+            scrollController: _scrollController,
           headerBuilder: (_, groupData) {
             final task = widget.tasks.firstWhereOrNull((t) => t.uuid == groupData.id);
             if (task == null) {
@@ -361,6 +363,7 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
             );
           },
         ),
+      ),
       ),
     );
   }

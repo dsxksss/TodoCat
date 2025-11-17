@@ -364,6 +364,7 @@ const Map<String, String> enUS = {
   'userCancelledDownload': 'User cancelled download',
   'download': 'Download',
   'downloadFailed': 'Download failed',
+  'stop': 'Stop',
   'unknown': 'Unknown',
   // Markdown toolbar
   'markdownBold': 'Bold',
