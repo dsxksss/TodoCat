@@ -9,6 +9,9 @@ import 'package:TodoCat/controllers/home_ctr.dart';
 import 'package:TodoCat/controllers/workspace_ctr.dart';
 import 'package:TodoCat/controllers/trash_ctr.dart';
 import 'package:TodoCat/data/services/database.dart';
+import 'package:TodoCat/data/services/repositorys/workspace.dart';
+import 'package:TodoCat/data/services/repositorys/task.dart';
+import 'package:TodoCat/data/services/repositorys/app_config.dart';
 import 'package:TodoCat/keys/dialog_keys.dart';
 import 'package:TodoCat/pages/settings/settings_page.dart';
 import 'package:TodoCat/widgets/dpd_menu_btn.dart';
@@ -691,20 +694,37 @@ class SettingsController extends GetxController {
     try {
       _logger.w('开始清除所有应用数据...');
 
-      // 1. 清除数据库中的所有数据
+      // 1. 重置数据库（删除数据库文件并重新创建，清除所有残留数据）
       final db = await Database.getInstance();
-      await db.clearAllData();
+      await db.resetDatabase();
+      
+      // 确保数据库已重新初始化（重新获取实例）
+      await Database.getInstance();
 
-      // 2. 重置应用配置为默认值
+      // 2. 强制重新初始化所有 Repository
+      // 这很重要，因为 resetDatabase() 会重置所有 Repository，需要重新获取实例
+      // 等待一小段时间，确保数据库连接已完全建立
+      await Future.delayed(const Duration(milliseconds: 200));
+      
+      try {
+        // 重新初始化所有 Repository 实例
+        await WorkspaceRepository.getInstance();
+        await TaskRepository.getInstance();
+        await AppConfigRepository.getInstance();
+        _logger.d('所有 Repository 已重新初始化');
+      } catch (e) {
+        _logger.e('重新初始化 Repository 失败: $e');
+        // 即使失败也继续，因为 Controller 会在使用时重新获取
+      }
+
+      // 3. 重置应用配置为默认值
       appCtrl.appConfig.value = defaultAppConfig.copyWith();
       appCtrl.appConfig.refresh();
 
-      // 3. 重新初始化工作空间（会创建默认工作空间）
+      // 4. 重新初始化工作空间（会创建默认工作空间）
       try {
         if (Get.isRegistered<WorkspaceController>()) {
           final workspaceCtrl = Get.find<WorkspaceController>();
-          // 清空内存中的工作空间列表
-          workspaceCtrl.workspaces.clear();
           // 重新加载工作空间（会触发创建默认工作空间）
           await workspaceCtrl.loadWorkspaces();
           // 如果没有工作空间，创建默认工作空间
@@ -718,7 +738,7 @@ class SettingsController extends GetxController {
         _logger.e('重新初始化工作空间失败: $e');
       }
 
-      // 4. 刷新回收站数据（清空回收站显示）
+      // 5. 刷新回收站数据（清空回收站显示）
       try {
         if (Get.isRegistered<TrashController>()) {
           final trashCtrl = Get.find<TrashController>();
@@ -728,9 +748,32 @@ class SettingsController extends GetxController {
         _logger.e('刷新回收站数据失败: $e');
       }
 
-      // 5. 刷新主页数据
+      // 6. 清空主页任务列表（确保不显示旧数据）
       try {
-        await homeCtrl.refreshData();
+        // 先清空内存中的任务列表
+        homeCtrl.tasks.clear();
+        homeCtrl.reactiveTasks.refresh();
+        
+        // 验证数据库是否真的被清空（检查任务数量）
+        final taskRepo = await TaskRepository.getInstance();
+        final allTasks = await taskRepo.readAll();
+        if (allTasks.isNotEmpty) {
+          _logger.w('数据库重置后仍有 ${allTasks.length} 个任务，强制清除...');
+          // 如果还有任务，强制清除
+          for (var task in allTasks) {
+            await taskRepo.permanentDelete(task.uuid);
+          }
+        }
+        
+        // 然后刷新数据（不显示空任务提示，因为这是清除操作）
+        await homeCtrl.refreshData(showEmptyPrompt: false, clearBeforeRefresh: true);
+        
+        // 再次验证任务列表是否为空
+        if (homeCtrl.tasks.isNotEmpty) {
+          _logger.w('刷新后仍有 ${homeCtrl.tasks.length} 个任务，强制清空...');
+          homeCtrl.tasks.clear();
+          homeCtrl.reactiveTasks.refresh();
+        }
       } catch (e) {
         _logger.e('刷新主页数据失败: $e');
       }

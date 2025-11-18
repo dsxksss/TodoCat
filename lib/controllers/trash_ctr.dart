@@ -51,6 +51,12 @@ class TrashController extends GetxController {
       isLoading.value = true;
       _logger.d('Refreshing deleted tasks and workspaces');
 
+      // 确保 Repository 已初始化（在数据库重置后可能需要重新获取）
+      if (_repository == null || !_isInitialized) {
+        _repository = await TaskRepository.getInstance();
+        _isInitialized = true;
+      }
+
       // 刷新已删除的任务
       final tasks = await _repository!.readDeleted();
 

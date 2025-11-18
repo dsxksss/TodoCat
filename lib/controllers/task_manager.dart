@@ -50,6 +50,13 @@ class TaskManager {
   Future<void> refresh({String? workspaceId}) async {
     try {
       _logger.d('Refreshing tasks${workspaceId != null ? " for workspace: $workspaceId" : ""}');
+      
+      // 确保 Repository 已初始化（在数据库重置后可能需要重新获取）
+      if (_repository == null || !_isInitialized) {
+        _repository = await TaskRepository.getInstance();
+        _isInitialized = true;
+      }
+      
       final localTasks = await repository.readAll(workspaceId: workspaceId);
 
       // 去重复处理，确保任务唯一性

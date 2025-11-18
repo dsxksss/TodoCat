@@ -13,17 +13,36 @@ class WorkspaceRepository {
 
   static Future<WorkspaceRepository> getInstance() async {
     _instance ??= WorkspaceRepository._();
-    if (!_instance!._isInitialized) {
-      await _instance!._init();
-    }
+    // 总是调用 _init() 来检查数据库连接是否有效
+    await _instance!._init();
     return _instance!;
   }
 
   Future<void> _init() async {
-    if (_isInitialized) return;
+    if (_isInitialized && _db != null) {
+      // 检查数据库是否仍然有效
+      try {
+        // 尝试执行一个简单的查询来检查数据库连接
+        await _db!.customSelect('SELECT 1').get();
+        return; // 数据库连接有效，不需要重新初始化
+      } catch (e) {
+        // 数据库连接已关闭，需要重新初始化
+        _isInitialized = false;
+        _db = null;
+      }
+    }
+    
     final dbService = await Database.getInstance();
     _db = dbService.appDatabase;
     _isInitialized = true;
+  }
+
+  /// 强制重置 Repository（用于数据库重置后）
+  static void reset() {
+    if (_instance != null) {
+      _instance!._isInitialized = false;
+      _instance!._db = null;
+    }
   }
 
   drift_db.AppDatabase get db {

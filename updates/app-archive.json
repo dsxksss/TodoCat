@@ -29,8 +29,10 @@
             ],
             "date": "2025-11-04",
             "mandatory": false,
-            "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.8/TodoCat-1.0.8-windows.msix",
-            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.8/TodoCat-1.0.8-windows.exe",
+            "giteeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.8/TodoCat-1.0.8-windows.msix",
+            "giteeExeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.8/TodoCat-1.0.8-windows.exe",
+            "githubUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.0.8/TodoCat-1.0.8-windows.msix",
+            "githubExeUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.0.8/TodoCat-1.0.8-windows.exe",
             "platform": "windows"
         },
         {
@@ -48,8 +50,10 @@
             ],
             "date": "2025-11-05",
             "mandatory": false,
-            "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.9/TodoCat-1.0.9-windows.msix",
-            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.9/TodoCat-1.0.9-windows.exe",
+            "giteeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.9/TodoCat-1.0.9-windows.msix",
+            "giteeExeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.0.9/TodoCat-1.0.9-windows.exe",
+            "githubUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.0.9/TodoCat-1.0.9-windows.msix",
+            "githubExeUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.0.9/TodoCat-1.0.9-windows.exe",
             "platform": "windows"
         },
         {
@@ -58,15 +62,16 @@
             "changes": [
                 {
                     "type": "feat",
-                    "message": "支持markdown编写、浏览，支持本地图片显示，支持网络图片显示",
                     "message_zh": "支持markdown编写、浏览，支持本地图片显示，支持网络图片显示",
                     "message_en": "Support markdown editing and viewing, support local image display, support network image display"
                 }
             ],
             "date": "2025-11-11",
             "mandatory": false,
-            "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.1.0/TodoCat-1.1.0-windows.msix",
-            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.1.0/TodoCat-1.1.0-windows.exe",
+            "giteeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.1.0/TodoCat-1.1.0-windows.msix",
+            "giteeExeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.1.0/TodoCat-1.1.0-windows.exe",
+            "githubUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.1.0/TodoCat-1.1.0-windows.msix",
+            "githubExeUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.1.0/TodoCat-1.1.0-windows.exe",
             "platform": "windows"
         },
         {
@@ -75,39 +80,89 @@
             "changes": [
                 {
                     "type": "feat",
-                    "message": "实现了工作空间功能，支持创建和管理多个工作空间",
                     "message_zh": "实现了工作空间功能，支持创建和管理多个工作空间",
                     "message_en": "Implemented workspace feature, supports creating and managing multiple workspaces"
                 },
                 {
                     "type": "feat",
-                    "message": "调整了设置页面样式，优化用户界面和交互体验",
                     "message_zh": "调整了设置页面样式，优化用户界面和交互体验",
                     "message_en": "Redesigned settings page style, optimized user interface and interaction experience"
                 },
                 {
                     "type": "feat",
-                    "message": "实现了撤销(Undo)功能，支持撤销删除操作",
                     "message_zh": "实现了撤销(Undo)功能，支持撤销删除操作",
                     "message_en": "Implemented undo feature, supports undoing delete operations"
                 },
                 {
                     "type": "feat",
-                    "message": "更新通知内容支持本地化，支持中英文切换",
                     "message_zh": "更新通知内容支持本地化，支持中英文切换",
                     "message_en": "Update notifications now support localization with Chinese and English switching"
                 },
                 {
                     "type": "feat",
-                    "message": "优化更新日志显示，根据用户语言自动选择对应语言版本",
                     "message_zh": "优化更新日志显示，根据用户语言自动选择对应语言版本",
                     "message_en": "Optimized changelog display, automatically selects language version based on user language"
                 }
             ],
             "date": "2025-01-20",
             "mandatory": false,
-            "url": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows.msix",
-            "exeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows-setup.exe",
+            "giteeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows.msix",
+            "giteeExeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows-setup.exe",
+            "githubUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows.msix",
+            "githubExeUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.2.0/TodoCat-1.2.0-windows-setup.exe",
+            "platform": "windows"
+        },
+        {
+            "version": "1.2.1",
+            "shortVersion": 12,
+            "changes": [
+                {
+                    "type": "feat",
+                    "message_zh": "支持设置视频背景",
+                    "message_en": "Support setting video background"
+                },
+                {
+                    "type": "feat",
+                    "message_zh": "支持设置是否启用todo图片封面，默认开启",
+                    "message_en": "Support enabling/disabling todo image cover, enabled by default"
+                },
+                {
+                    "type": "feat",
+                    "message_zh": "添加描述输入框提示动画，引导用户操作",
+                    "message_en": "Added description input hint animation to guide user operations"
+                },
+                {
+                    "type": "feat",
+                    "message_zh": "统一按钮和提示气泡颜色为蓝色，提升视觉一致性",
+                    "message_en": "Unified button and hint bubble colors to blue for better visual consistency"
+                },
+                {
+                    "type": "fix",
+                    "message_zh": "修复通知中心和消息中心图标显示问题，统一使用真实icon替代emoji",
+                    "message_en": "Fixed icon display issues in notification center and message center, unified to use real icons instead of emojis"
+                },
+                {
+                    "type": "fix",
+                    "message_zh": "修复了工作空间默认工作空间创建异常问题",
+                    "message_en": "Fixed default workspace creation exception issue"
+                },
+                {
+                    "type": "fix",
+                    "message_zh": "优化toast样式，改为完全圆角设计",
+                    "message_en": "Optimized toast style with fully rounded corners"
+                },
+                {
+                    "type": "fix",
+                    "message_zh": "修复创建模板后提示toast不消失的问题",
+                    "message_en": "Fixed issue where prompt toast did not disappear after creating template"
+                }
+            ],
+            "date": "2025-11-17",
+            "mandatory": false,
+            "giteeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.1/TodoCat-1.2.1-windows.msix",
+            "giteeExeUrl": "https://gitee.com/dsxksss/TodoCat/releases/download/v1.2.1/TodoCat-1.2.1-windows-setup.exe",
+            "githubUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.2.1/TodoCat-1.2.1-windows.msix",
+            "githubExeUrl": "https://github.com/dsxksss/TodoCat/releases/download/v1.2.1/TodoCat-1.2.1-windows-setup.exe",
             "platform": "windows"
         }
     ]

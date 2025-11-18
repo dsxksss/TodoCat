@@ -52,6 +52,11 @@ class WorkspaceController extends GetxController {
   /// 加载所有工作空间
   Future<void> loadWorkspaces() async {
     try {
+      // 确保 Repository 已初始化（在数据库重置后可能需要重新获取）
+      if (_repository == null || !_isInitialized) {
+        _repository = await WorkspaceRepository.getInstance();
+        _isInitialized = true;
+      }
       final list = await _repository!.readAll();
       workspaces.assignAll(list);
       
@@ -72,6 +77,11 @@ class WorkspaceController extends GetxController {
   /// 创建默认工作空间
   Future<void> createDefaultWorkspace() async {
     try {
+      // 确保 Repository 已初始化（在数据库重置后可能需要重新获取）
+      if (_repository == null || !_isInitialized) {
+        _repository = await WorkspaceRepository.getInstance();
+        _isInitialized = true;
+      }
       final workspace = Workspace()
         ..uuid = 'default'
         ..name = 'defaultWorkspace'.tr

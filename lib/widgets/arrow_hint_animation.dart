@@ -120,7 +120,7 @@ class _ArrowPainter extends CustomPainter {
 
     // 绘制箭头（指向右侧）
     final centerY = size.height / 2;
-    final arrowHeadSize = 12.0;
+    const arrowHeadSize = 12.0;
     
     // 箭头主体（水平线）
     canvas.drawLine(

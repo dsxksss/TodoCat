@@ -348,11 +348,28 @@ class AutoUpdateService {
     }
     
     try {
-      // 优先使用EXE格式下载链接，如果没有则使用MSIX格式
-      String? downloadUrl = (_currentUpdateInfo!['exeUrl'] as String?);
-      final msixUrl = (_currentUpdateInfo!['url'] as String?);
+      // 根据当前使用的更新源选择对应的下载链接
+      final isGiteeSource = _isGiteeSource();
       
-      _logger.d('更新信息 - exeUrl: $downloadUrl, msixUrl: $msixUrl');
+      // 优先使用EXE格式下载链接，如果没有则使用MSIX格式
+      String? downloadUrl;
+      String? msixUrl;
+      
+      if (isGiteeSource) {
+        // 使用 Gitee 下载链接
+        downloadUrl = (_currentUpdateInfo!['giteeExeUrl'] as String?) ?? 
+                      (_currentUpdateInfo!['exeUrl'] as String?); // 兼容旧格式
+        msixUrl = (_currentUpdateInfo!['giteeUrl'] as String?) ?? 
+                  (_currentUpdateInfo!['url'] as String?); // 兼容旧格式
+      } else {
+        // 使用 GitHub 下载链接
+        downloadUrl = (_currentUpdateInfo!['githubExeUrl'] as String?) ?? 
+                      (_currentUpdateInfo!['exeUrl'] as String?); // 兼容旧格式
+        msixUrl = (_currentUpdateInfo!['githubUrl'] as String?) ?? 
+                  (_currentUpdateInfo!['url'] as String?); // 兼容旧格式
+      }
+      
+      _logger.d('更新信息 - 使用源: ${isGiteeSource ? "Gitee" : "GitHub"}, exeUrl: $downloadUrl, msixUrl: $msixUrl');
       
       if (downloadUrl == null || downloadUrl.isEmpty) {
         downloadUrl = msixUrl;
@@ -595,6 +612,15 @@ class AutoUpdateService {
       _downloadCancelToken!.cancel('userCancelledDownload'.tr);
       _logger.i('下载已取消');
     }
+  }
+  
+  /// 判断当前是否使用 Gitee 源
+  bool _isGiteeSource() {
+    if (_currentSourceIndex >= 0 && _currentSourceIndex < _appArchiveUrls.length) {
+      final url = _appArchiveUrls[_currentSourceIndex];
+      return url.contains('gitee.com');
+    }
+    return false; // 默认使用 GitHub
   }
   
   /// 获取当前使用的更新源 URL

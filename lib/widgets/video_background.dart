@@ -123,14 +123,12 @@ class _VideoBackgroundState extends State<VideoBackground> {
       if (_isDisposed || !mounted) {
         // 如果已销毁，清理可能已创建的控制器
         // 注意：tempController 可能为 null（如果前面的代码路径没有创建它）
-        if (tempController != null) {
-          try {
-            tempController.dispose();
-          } catch (e) {
-            // 忽略销毁错误
-          }
+        try {
+          tempController.dispose();
+        } catch (e) {
+          // 忽略销毁错误
         }
-        return;
+              return;
       }
 
       // 此时 tempController 应该已经被赋值（根据代码路径分析）

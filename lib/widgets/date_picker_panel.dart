@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:TodoCat/controllers/datepicker_ctr.dart';
 import 'package:TodoCat/widgets/date_panel.dart';
 import 'package:TodoCat/widgets/label_btn.dart';
@@ -74,7 +75,7 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
             TimeOfDay(hour: targetDate.hour, minute: targetDate.minute),
           );
         }
-        widget.onDateSelected(targetDate);
+        // 不再立即调用 onDateSelected，等待确认按钮
       },
     );
   }
@@ -106,35 +107,54 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // 左侧：显示日期
                   Text(
                     currentDate != null
                         ? currentDate.toString().split(".")[0]
                         : "unknownDate".tr,
                   ),
+                  // 右上角：取消和确定按钮
                   Row(
                     children: [
                       LabelBtn(
                         ghostStyle: true,
                         label: Text(
-                          'now'.tr,
+                          'cancel'.tr,
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
+                          horizontal: 12,
                           vertical: 2,
                         ),
                         onPressed: () {
-                          final now = DateTime.now();
-                          if (_timeKey.currentState != null) {
-                            _timeKey.currentState!.updateToTime(
-                              TimeOfDay(hour: now.hour, minute: now.minute),
-                            );
+                          // 取消按钮关闭对话框
+                          SmartDialog.dismiss(tag: widget.dialogTag);
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      LabelBtn(
+                        label: Text(
+                          'confirm'.tr,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 2,
+                        ),
+                        onPressed: () {
+                          final currentDate = _datePickerController.currentDate.value;
+                          if (currentDate != null) {
+                            widget.onDateSelected(currentDate);
                           }
-                          _datePickerController.setCurrentDate(now);
-                          widget.onDateSelected(now);
+                          // 确认按钮关闭对话框
+                          SmartDialog.dismiss(tag: widget.dialogTag);
                         },
                       ),
                     ],
@@ -164,6 +184,31 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
                       runSpacing: 8,
                       alignment: WrapAlignment.start, // 确保Wrap内部也start对齐
                       children: [
+                        // "现在"按钮放在最左边
+                        LabelBtn(
+                          ghostStyle: true,
+                          label: Text(
+                            'now'.tr,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          onPressed: () {
+                            final now = DateTime.now();
+                            if (_timeKey.currentState != null) {
+                              _timeKey.currentState!.updateToTime(
+                                TimeOfDay(hour: now.hour, minute: now.minute),
+                              );
+                            }
+                            _datePickerController.setCurrentDate(now);
+                            // 不再立即调用 onDateSelected，等待确认按钮
+                          },
+                        ),
                         _buildQuickDateButton("today".tr, 0),
                         _buildQuickDateButton("tomorrow".tr, 1),
                         _buildQuickDateButton("threeDays".tr, 3),
@@ -220,7 +265,7 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
                 }
                 
                 _datePickerController.setCurrentDate(newDate);
-                widget.onDateSelected(newDate);
+                // 不再立即调用 onDateSelected，等待确认按钮
               },
             ),
             Padding(
@@ -262,7 +307,7 @@ class _DatePickerPanelState extends State<DatePickerPanel> {
                   }
                   
                   _datePickerController.setCurrentDate(newDateTime);
-                  widget.onDateSelected(newDateTime);
+                  // 不再立即调用 onDateSelected，等待确认按钮
                 },
               ),
             ),

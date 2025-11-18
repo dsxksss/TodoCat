@@ -13,6 +13,8 @@ class TodoDetailController extends BaseFormController {
 
   final todo = Rx<Todo?>(null);
   final HomeController _homeController = Get.find();
+  bool _isDisposed = false;
+  bool _isNavigatingBack = false;
 
   TodoDetailController({
     required this.todoId,
@@ -26,11 +28,23 @@ class TodoDetailController extends BaseFormController {
 
     // 监听HomeController的响应式任务列表变化，自动刷新详情
     ever(_homeController.reactiveTasks, (_) {
-      _loadTodoDetail();
+      if (!_isDisposed && !_isNavigatingBack) {
+        _loadTodoDetail();
+      }
     });
   }
 
+  @override
+  void onClose() {
+    _isDisposed = true;
+    super.onClose();
+  }
+
   void _loadTodoDetail() {
+    if (_isDisposed || _isNavigatingBack) {
+      return;
+    }
+
     try {
       // 使用 firstWhereOrNull 避免找不到元素时抛出异常
       final task = _homeController.tasks.firstWhereOrNull(
@@ -38,8 +52,11 @@ class TodoDetailController extends BaseFormController {
       );
 
       if (task == null) {
-        BaseFormController.logger.w('Task not found: $taskId');
-        Get.back();
+        if (!_isNavigatingBack) {
+          BaseFormController.logger.w('Task not found: $taskId');
+          _isNavigatingBack = true;
+          Get.back();
+        }
         return;
       }
 
@@ -51,16 +68,25 @@ class TodoDetailController extends BaseFormController {
         if (foundTodo != null) {
           todo.value = foundTodo;
         } else {
-          BaseFormController.logger.w('Todo not found: $todoId in task $taskId');
-          Get.back();
+          if (!_isNavigatingBack) {
+            BaseFormController.logger.w('Todo not found: $todoId in task $taskId');
+            _isNavigatingBack = true;
+            Get.back();
+          }
         }
       } else {
-        BaseFormController.logger.w('Task todos is null: $taskId');
-        Get.back();
+        if (!_isNavigatingBack) {
+          BaseFormController.logger.w('Task todos is null: $taskId');
+          _isNavigatingBack = true;
+          Get.back();
+        }
       }
     } catch (e) {
-      BaseFormController.logger.e('Error loading todo detail: $e');
-      Get.back();
+      if (!_isNavigatingBack) {
+        BaseFormController.logger.e('Error loading todo detail: $e');
+        _isNavigatingBack = true;
+        Get.back();
+      }
     }
   }
 

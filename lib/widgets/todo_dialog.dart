@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -19,6 +20,12 @@ import 'package:TodoCat/widgets/markdown_toolbar.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:TodoCat/services/image_paste_service.dart';
+
+/// 图片粘贴意图
+class _PasteImageIntent extends Intent {
+  const _PasteImageIntent();
+}
 
 class TodoDialog extends StatefulWidget {
   const TodoDialog({
@@ -96,6 +103,52 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
 
   AddTodoDialogController get controller =>
       Get.find<AddTodoDialogController>(tag: widget.dialogTag);
+
+  /// 处理图片粘贴
+  Future<void> _handleImagePaste() async {
+    if (!Platform.isWindows) {
+      return; // 目前仅支持 Windows
+    }
+
+    try {
+      final imagePasteService = ImagePasteService();
+      final imagePath = await imagePasteService.pasteImageFromClipboard();
+      
+      if (imagePath != null) {
+        // 插入图片的 markdown 格式
+        final controller = this.controller.descriptionController;
+        final selection = controller.selection;
+        
+        // 将 Windows 路径转换为 file:// 格式
+        String normalizedPath = imagePath.replaceAll('\\', '/');
+        final imageMarkdown = '![image](file:///$normalizedPath)';
+        
+        if (selection.isValid) {
+          // 在光标位置插入
+          final newText = controller.text.replaceRange(
+            selection.start,
+            selection.end,
+            imageMarkdown,
+          );
+          final newSelection = TextSelection.collapsed(
+            offset: selection.start + imageMarkdown.length,
+          );
+          controller.value = TextEditingValue(
+            text: newText,
+            selection: newSelection,
+          );
+        } else {
+          // 在末尾插入
+          controller.text += imageMarkdown;
+          controller.selection = TextSelection.collapsed(
+            offset: controller.text.length,
+          );
+        }
+      }
+    } catch (e) {
+      // 静默失败，不影响正常粘贴文本
+    }
+  }
 
   void _closePreview() {
     if (_isPreviewVisible) {
@@ -377,24 +430,17 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
             Expanded(
               child: Column(
                 children: [
-                  // 顶部可滚动内容区域
-                  Flexible(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
-                      physics: const AlwaysScrollableScrollPhysics(
-                        parent: BouncingScrollPhysics(),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                  // 功能按钮区域（水平滚动，独立于垂直滚动）
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+                    child: SizedBox(
+                      height: 35,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
                         children: [
-                          SizedBox(
-                            height: 35,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const AlwaysScrollableScrollPhysics(
-                                parent: BouncingScrollPhysics(),
-                              ),
-                              children: [
                           // 日期选择器按钮
                           Obx(() => TagDialogBtn(
                                 tag: controller.selectedDate.value != null
@@ -407,7 +453,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                 dialogTag: 'todo_date',
                                 showDelete: false,
                                 openDialog: DatePickerPanel(
-                                  dialogTag: addTodoTagDialogBtnTag,
+                                  dialogTag: 'todo_date', // 使用与 TagDialogBtn 相同的 tag
                                   initialSelectedDate: controller.selectedDate.value, // 传递当前选中的日期
                                   onDateSelected: (date) {
                                     controller.selectedDate.value = date;
@@ -515,35 +561,48 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-                    10.verticalSpace,
-                    TextFormFieldItem(
-                      textInputAction: TextInputAction.next,
-                      autofocus: true,
-                      focusNode: FocusNode(),
-                      maxLength: 20,
-                      maxLines: 1,
-                      radius: 6,
-                      fieldTitle: "title".tr,
-                      validator: controller.validateTitle,
-                      editingController: controller.titleController,
-                      onFieldSubmitted: (_) {},
+                  ),
+                  // 顶部可滚动内容区域
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormFieldItem(
+                            textInputAction: TextInputAction.next,
+                            autofocus: true,
+                            focusNode: FocusNode(),
+                            maxLength: 20,
+                            maxLines: 1,
+                            radius: 6,
+                            fieldTitle: "title".tr,
+                            validator: controller.validateTitle,
+                            editingController: controller.titleController,
+                            onFieldSubmitted: (_) {},
+                          ),
+                          const SizedBox(height: 10),
+                          AddTagWithColorPicker(
+                            textInputAction: TextInputAction.next,
+                            maxLength: 50,
+                            maxLines: 1,
+                            radius: 6,
+                            fieldTitle: "tag".tr,
+                            validator: (_) => null,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+                            editingController: controller.tagController,
+                            selectedTags: controller.selectedTags,
+                            onDeleteTag: controller.removeTag,
+                            onAddTagWithColor: controller.addTagWithColor,
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    AddTagWithColorPicker(
-                      textInputAction: TextInputAction.next,
-                      maxLength: 50,
-                      maxLines: 1,
-                      radius: 6,
-                      fieldTitle: "tag".tr,
-                      validator: (_) => null,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 5),
-                      editingController: controller.tagController,
-                      selectedTags: controller.selectedTags,
-                      onDeleteTag: controller.removeTag,
-                      onAddTagWithColor: controller.addTagWithColor,
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             // Markdown 工具栏 - 固定在tag下方，确保始终可见
@@ -574,21 +633,39 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                         
                         return SizedBox(
                           height: availableHeight,
-                          child: TextFormFieldItem(
-                            textInputAction: null, // 设置为 null 以允许回车键换行
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 10,
+                          child: Shortcuts(
+                            shortcuts: const {
+                              // 监听 Ctrl+V
+                              SingleActivator(LogicalKeyboardKey.keyV, control: true): _PasteImageIntent(),
+                            },
+                            child: Actions(
+                              actions: <Type, Action<Intent>>{
+                                _PasteImageIntent: CallbackAction<_PasteImageIntent>(
+                                  onInvoke: (_) async {
+                                    // 尝试粘贴图片
+                                    await _handleImagePaste();
+                                    // 不阻止默认的文本粘贴行为，如果图片粘贴失败，文本粘贴仍然可以工作
+                                    return null;
+                                  },
+                                ),
+                              },
+                              child: TextFormFieldItem(
+                                textInputAction: null, // 设置为 null 以允许回车键换行
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 10,
+                                ),
+                                maxLength: 400,
+                                minLines: calculatedMaxLines, // 使用计算出的行数确保填充高度
+                                maxLines: calculatedMaxLines, // 使用计算出的最大行数
+                                radius: 6,
+                                fieldTitle: "description".tr,
+                                validator: (_) => null,
+                                editingController: controller.descriptionController,
+                                focusNode: _descriptionFocusNode,
+                                onFieldSubmitted: (_) {},
+                              ),
                             ),
-                            maxLength: 400,
-                            minLines: calculatedMaxLines, // 使用计算出的行数确保填充高度
-                            maxLines: calculatedMaxLines, // 使用计算出的最大行数
-                            radius: 6,
-                            fieldTitle: "description".tr,
-                            validator: (_) => null,
-                            editingController: controller.descriptionController,
-                            focusNode: _descriptionFocusNode,
-                            onFieldSubmitted: (_) {},
                           ),
                         );
                       },
@@ -597,9 +674,6 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                   // 箭头提示 - 显示在描述输入框下方，永远显示除非获得焦点
                   if (_showArrowHint)
                     _buildArrowHint(context),
-                ],
-              ),
-            ),
                 ],
               ),
             ),
@@ -1081,7 +1155,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -1090,7 +1164,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.arrow_upward,
                       size: 18,
                       color: Colors.white,
@@ -1098,7 +1172,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                     const SizedBox(width: 6),
                     Text(
                       'clickDescriptionInputToOpenBrowseWindow'.tr,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
