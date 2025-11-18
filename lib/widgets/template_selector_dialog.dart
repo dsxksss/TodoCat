@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/config/template_generator.dart';
-import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/data/schemas/custom_template.dart';
-import 'package:TodoCat/data/services/repositorys/custom_template.dart';
-import 'package:TodoCat/widgets/show_toast.dart';
-import 'package:TodoCat/widgets/label_btn.dart';
-import 'package:TodoCat/utils/font_utils.dart';
+import 'package:todo_cat/config/template_generator.dart';
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/schemas/custom_template.dart';
+import 'package:todo_cat/data/services/repositorys/custom_template.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/utils/font_utils.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:TodoCat/pages/home/components/task/task_card.dart';
+import 'package:todo_cat/pages/home/components/task/task_card.dart';
 import 'dart:io';
 import 'dart:ui';
-import 'package:TodoCat/controllers/app_ctr.dart';
-import 'package:TodoCat/controllers/home_ctr.dart';
-import 'package:TodoCat/config/default_backgrounds.dart';
-import 'package:TodoCat/widgets/video_background.dart';
-import 'package:TodoCat/services/video_download_service.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/config/default_backgrounds.dart';
+import 'package:todo_cat/widgets/video_background.dart';
+import 'package:todo_cat/services/video_download_service.dart';
 
 enum TaskTemplateType {
   empty,    // 空模板

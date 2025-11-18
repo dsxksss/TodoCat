@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/controllers/task_dialog_ctr.dart';
-import 'package:TodoCat/keys/dialog_keys.dart';
-import 'package:TodoCat/pages/home/components/add_tag_with_color_screen.dart';
-import 'package:TodoCat/pages/home/components/text_form_field_item.dart';
-import 'package:TodoCat/widgets/label_btn.dart';
-import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:todo_cat/controllers/task_dialog_ctr.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
+import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
+import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 
 class TaskDialog extends GetView<TaskDialogController> {
   const TaskDialog({super.key});

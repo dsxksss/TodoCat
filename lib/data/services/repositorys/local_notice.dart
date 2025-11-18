@@ -1,7 +1,7 @@
-import 'package:TodoCat/data/schemas/local_notice.dart';
-import 'package:TodoCat/data/services/database.dart';
-import 'package:TodoCat/data/database/database.dart' as drift_db;
-import 'package:TodoCat/data/database/converters.dart';
+import 'package:todo_cat/data/schemas/local_notice.dart';
+import 'package:todo_cat/data/services/database.dart';
+import 'package:todo_cat/data/database/database.dart' as drift_db;
+import 'package:todo_cat/data/database/converters.dart';
 
 class LocalNoticeRepository {
   static LocalNoticeRepository? _instance;

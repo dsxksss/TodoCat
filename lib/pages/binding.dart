@@ -1,16 +1,16 @@
 import 'package:get/get.dart';
-import 'package:TodoCat/controllers/app_ctr.dart';
-import 'package:TodoCat/controllers/datepicker_ctr.dart';
-import 'package:TodoCat/controllers/home_ctr.dart';
-import 'package:TodoCat/controllers/todo_dialog_ctr.dart';
-import 'package:TodoCat/controllers/settings_ctr.dart';
-import 'package:TodoCat/controllers/task_dialog_ctr.dart';
-import 'package:TodoCat/controllers/timepicker_ctr.dart';
-import 'package:TodoCat/controllers/data_export_import_ctr.dart';
-import 'package:TodoCat/controllers/trash_ctr.dart';
-import 'package:TodoCat/controllers/workspace_ctr.dart';
-import 'package:TodoCat/core/notification_stack_manager.dart';
-import 'package:TodoCat/core/notification_center_manager.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/controllers/datepicker_ctr.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
+import 'package:todo_cat/controllers/settings_ctr.dart';
+import 'package:todo_cat/controllers/task_dialog_ctr.dart';
+import 'package:todo_cat/controllers/timepicker_ctr.dart';
+import 'package:todo_cat/controllers/data_export_import_ctr.dart';
+import 'package:todo_cat/controllers/trash_ctr.dart';
+import 'package:todo_cat/controllers/workspace_ctr.dart';
+import 'package:todo_cat/core/notification_stack_manager.dart';
+import 'package:todo_cat/core/notification_center_manager.dart';
 
 class AppBinding implements Bindings {
   @override

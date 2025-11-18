@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/data/schemas/custom_template.dart';
-import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/data/services/repositorys/custom_template.dart';
-import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:todo_cat/data/schemas/custom_template.dart';
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/services/repositorys/custom_template.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:TodoCat/widgets/label_btn.dart';
-import 'package:TodoCat/services/dialog_service.dart';
-import 'package:TodoCat/keys/dialog_keys.dart';
-import 'package:TodoCat/pages/home/components/text_form_field_item.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/services/dialog_service.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
+import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 
 /// 保存为模板对话框
 class SaveTemplateDialog extends StatefulWidget {

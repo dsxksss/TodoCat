@@ -1,12 +1,12 @@
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/controllers/home_ctr.dart';
-import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/data/schemas/tag_with_color.dart';
-import 'package:TodoCat/keys/dialog_keys.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/schemas/tag_with_color.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:uuid/uuid.dart';
-import 'package:TodoCat/controllers/base/base_form_controller.dart';
-import 'package:TodoCat/controllers/mixins/edit_state_mixin.dart';
+import 'package:todo_cat/controllers/base/base_form_controller.dart';
+import 'package:todo_cat/controllers/mixins/edit_state_mixin.dart';
 
 class TaskDialogController extends BaseFormController with EditStateMixin {
   final homeController = Get.find<HomeController>();

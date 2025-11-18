@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/services/auto_update_service.dart';
-import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:todo_cat/services/auto_update_service.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
 
 /// 更新进度对话框组件
 class UpdateProgressDialogWidget extends StatefulWidget {

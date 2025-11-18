@@ -1,8 +1,8 @@
-import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/data/schemas/todo.dart';
-import 'package:TodoCat/data/services/database.dart';
-import 'package:TodoCat/data/database/converters.dart';
-import 'package:TodoCat/data/database/database.dart' as drift_db;
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/data/services/database.dart';
+import 'package:todo_cat/data/database/converters.dart';
+import 'package:todo_cat/data/database/database.dart' as drift_db;
 import 'package:drift/drift.dart';
 import 'package:logger/logger.dart';
 

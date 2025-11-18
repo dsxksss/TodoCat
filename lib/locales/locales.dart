@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
-import 'package:TodoCat/locales/lang/en_us.dart';
-import 'package:TodoCat/locales/lang/zh_cn.dart';
+import 'package:todo_cat/locales/lang/en_us.dart';
+import 'package:todo_cat/locales/lang/zh_cn.dart';
 
 class Locales extends Translations {
   @override

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/controllers/todo_dialog_ctr.dart';
-import 'package:TodoCat/keys/dialog_keys.dart';
-import 'package:TodoCat/services/dialog_service.dart';
-import 'package:TodoCat/widgets/animation_btn.dart';
-import 'package:TodoCat/widgets/todo_dialog.dart';
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
+import 'package:todo_cat/services/dialog_service.dart';
+import 'package:todo_cat/widgets/animation_btn.dart';
+import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:TodoCat/controllers/home_ctr.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
 
 class AddTodoCardBtn extends StatelessWidget {
   const AddTodoCardBtn({

@@ -138,6 +138,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// 关闭数据库连接
+  @override
   Future<void> close() async {
     await executor.close();
     _logger.d('Database connection closed');

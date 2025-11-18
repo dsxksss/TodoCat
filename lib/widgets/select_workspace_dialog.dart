@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:TodoCat/widgets/label_btn.dart';
-import 'package:TodoCat/services/dialog_service.dart';
-import 'package:TodoCat/keys/dialog_keys.dart';
-import 'package:TodoCat/controllers/workspace_ctr.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/services/dialog_service.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
+import 'package:todo_cat/controllers/workspace_ctr.dart';
 
 /// 选择工作空间对话框
 class SelectWorkspaceDialog extends StatelessWidget {

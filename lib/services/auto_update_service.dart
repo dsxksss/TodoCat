@@ -7,9 +7,9 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:TodoCat/core/notification_center_manager.dart';
-import 'package:TodoCat/data/schemas/notification_history.dart';
-import 'package:TodoCat/widgets/show_toast.dart';
+import 'package:todo_cat/core/notification_center_manager.dart';
+import 'package:todo_cat/data/schemas/notification_history.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 
 /// 自动更新服务
 /// 支持 Windows、macOS 和 Linux 平台的应用内更新

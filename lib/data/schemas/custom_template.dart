@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:TodoCat/data/schemas/task.dart';
+import 'package:todo_cat/data/schemas/task.dart';
 
 /// 自定义任务模板
 /// 注意：已迁移到 Drift，不再使用 Isar 注解

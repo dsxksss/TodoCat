@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
-import 'package:TodoCat/controllers/home_ctr.dart';
-import 'package:TodoCat/data/schemas/todo.dart';
-import 'package:TodoCat/data/schemas/tag_with_color.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/data/schemas/tag_with_color.dart';
 import 'package:uuid/uuid.dart';
-import 'package:TodoCat/controllers/base/base_form_controller.dart';
-import 'package:TodoCat/controllers/mixins/edit_state_mixin.dart';
+import 'package:todo_cat/controllers/base/base_form_controller.dart';
+import 'package:todo_cat/controllers/mixins/edit_state_mixin.dart';
 
 class AddTodoDialogController extends BaseFormController with EditStateMixin {
   static final Map<String, Map<String, dynamic>> _dialogCache = {};

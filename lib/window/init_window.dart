@@ -1,4 +1,4 @@
-import 'package:TodoCat/window/window_options.dart';
+import 'package:todo_cat/window/window_options.dart';
 import 'package:window_manager/window_manager.dart';
 
 void initWindow() async {

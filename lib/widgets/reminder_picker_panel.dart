@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class ReminderPickerPanel extends StatelessWidget {

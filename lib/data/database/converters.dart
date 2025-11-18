@@ -1,13 +1,13 @@
 import 'package:drift/drift.dart';
-import 'package:TodoCat/data/schemas/task.dart' as task_models;
-import 'package:TodoCat/data/schemas/todo.dart' as todo_models;
-import 'package:TodoCat/data/schemas/app_config.dart' as app_config_models;
-import 'package:TodoCat/data/schemas/local_notice.dart' as local_notice_models;
-import 'package:TodoCat/data/schemas/notification_history.dart' as notification_models;
-import 'package:TodoCat/data/schemas/custom_template.dart' as template_models;
-import 'package:TodoCat/data/schemas/workspace.dart' as workspace_models;
-import 'package:TodoCat/data/database/database.dart';
-import 'package:TodoCat/data/database/database.dart' as db;
+import 'package:todo_cat/data/schemas/task.dart' as task_models;
+import 'package:todo_cat/data/schemas/todo.dart' as todo_models;
+import 'package:todo_cat/data/schemas/app_config.dart' as app_config_models;
+import 'package:todo_cat/data/schemas/local_notice.dart' as local_notice_models;
+import 'package:todo_cat/data/schemas/notification_history.dart' as notification_models;
+import 'package:todo_cat/data/schemas/custom_template.dart' as template_models;
+import 'package:todo_cat/data/schemas/workspace.dart' as workspace_models;
+import 'package:todo_cat/data/database/database.dart';
+import 'package:todo_cat/data/database/database.dart' as db;
 import 'dart:convert';
 
 /// 数据转换辅助类

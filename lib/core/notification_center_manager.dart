@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
-import 'package:TodoCat/data/schemas/notification_history.dart';
-import 'package:TodoCat/data/services/repositorys/notification_history.dart';
+import 'package:todo_cat/data/schemas/notification_history.dart';
+import 'package:todo_cat/data/services/repositorys/notification_history.dart';
 
 class NotificationCenterManager extends GetxController {
   static final _logger = Logger();

@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import 'package:TodoCat/data/schemas/workspace.dart';
-import 'package:TodoCat/data/services/repositorys/workspace.dart';
-import 'package:TodoCat/controllers/home_ctr.dart';
-import 'package:TodoCat/data/database/converters.dart';
+import 'package:todo_cat/data/schemas/workspace.dart';
+import 'package:todo_cat/data/services/repositorys/workspace.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/data/database/converters.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import 'package:logger/logger.dart';

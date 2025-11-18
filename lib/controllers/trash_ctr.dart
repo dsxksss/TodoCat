@@ -1,13 +1,13 @@
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
-import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/data/schemas/todo.dart';
-import 'package:TodoCat/data/schemas/workspace.dart';
-import 'package:TodoCat/data/services/repositorys/task.dart';
-import 'package:TodoCat/data/services/repositorys/workspace.dart';
-import 'package:TodoCat/controllers/app_ctr.dart';
-import 'package:TodoCat/controllers/home_ctr.dart';
-import 'package:TodoCat/controllers/workspace_ctr.dart';
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/data/schemas/workspace.dart';
+import 'package:todo_cat/data/services/repositorys/task.dart';
+import 'package:todo_cat/data/services/repositorys/workspace.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/controllers/workspace_ctr.dart';
 
 /// 回收站控制器，管理已删除的任务和待办事项
 class TrashController extends GetxController {

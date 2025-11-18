@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/keys/dialog_keys.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 
 /// 滚动控制器Mixin
 /// 提供通用的滚动控制功能，包括自动隐藏对话框等

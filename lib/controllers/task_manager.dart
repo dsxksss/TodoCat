@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
-import 'package:TodoCat/data/schemas/task.dart';
-import 'package:TodoCat/data/services/repositorys/task.dart';
-import 'package:TodoCat/widgets/template_selector_dialog.dart';
-import 'package:TodoCat/controllers/workspace_ctr.dart';
+import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/data/services/repositorys/task.dart';
+import 'package:todo_cat/widgets/template_selector_dialog.dart';
+import 'package:todo_cat/controllers/workspace_ctr.dart';
 
 /// 管理任务数据的类，处理任务的CRUD操作和持久化
 class TaskManager {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:TodoCat/widgets/animation_btn.dart';
+import 'package:todo_cat/widgets/animation_btn.dart';
 
 /// LabelBtn 是一个带有标签和可选图标的按钮组件，支持多种动画效果。
 ///

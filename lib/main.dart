@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:TodoCat/data/services/database.dart';
+import 'package:todo_cat/data/services/database.dart';
 import 'package:flutter/services.dart';
-import 'package:TodoCat/pages/app.dart';
-import 'package:TodoCat/window/init_window.dart';
+import 'package:todo_cat/pages/app.dart';
+import 'package:todo_cat/window/init_window.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 

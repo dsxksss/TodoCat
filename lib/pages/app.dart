@@ -6,15 +6,15 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'dart:io';
-import 'package:TodoCat/controllers/timepicker_ctr.dart';
-import 'package:TodoCat/locales/locales.dart';
-import 'package:TodoCat/pages/binding.dart';
-import 'package:TodoCat/controllers/app_ctr.dart';
-import 'package:TodoCat/pages/unknown_page.dart';
-import 'package:TodoCat/routers/router_map.dart';
-import 'package:TodoCat/themes/dark_theme.dart';
-import 'package:TodoCat/themes/light_theme.dart';
-import 'package:TodoCat/keys/dialog_keys.dart';
+import 'package:todo_cat/controllers/timepicker_ctr.dart';
+import 'package:todo_cat/locales/locales.dart';
+import 'package:todo_cat/pages/binding.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/pages/unknown_page.dart';
+import 'package:todo_cat/routers/router_map.dart';
+import 'package:todo_cat/themes/dark_theme.dart';
+import 'package:todo_cat/themes/light_theme.dart';
+import 'package:todo_cat/keys/dialog_keys.dart';
 
 /// 键盘事件过滤器，用于防止重复的键盘事件
 class KeyboardEventFilter {

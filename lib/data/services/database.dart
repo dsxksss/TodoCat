@@ -1,11 +1,11 @@
-import 'package:TodoCat/data/database/database.dart' as db;
+import 'package:todo_cat/data/database/database.dart' as db;
 import 'package:logger/logger.dart';
-import 'package:TodoCat/data/services/repositorys/task.dart';
-import 'package:TodoCat/data/services/repositorys/app_config.dart';
-import 'package:TodoCat/data/services/repositorys/workspace.dart';
-import 'package:TodoCat/data/services/repositorys/custom_template.dart';
-import 'package:TodoCat/data/services/repositorys/notification_history.dart';
-import 'package:TodoCat/data/services/repositorys/local_notice.dart';
+import 'package:todo_cat/data/services/repositorys/task.dart';
+import 'package:todo_cat/data/services/repositorys/app_config.dart';
+import 'package:todo_cat/data/services/repositorys/workspace.dart';
+import 'package:todo_cat/data/services/repositorys/custom_template.dart';
+import 'package:todo_cat/data/services/repositorys/notification_history.dart';
+import 'package:todo_cat/data/services/repositorys/local_notice.dart';
 
 /// 数据库服务封装
 /// 提供对 Drift 数据库的访问
