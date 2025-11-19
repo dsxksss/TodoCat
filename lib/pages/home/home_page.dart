@@ -10,6 +10,7 @@ import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/widgets/dropdown_menu_btn.dart';
 import 'package:todo_cat/widgets/create_workspace_dialog.dart';
+import 'package:todo_cat/widgets/rename_workspace_dialog.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/task/task_card.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
@@ -683,127 +684,179 @@ class HomePage extends GetView<HomeController> {
     
     return Obx(() {
       final workspaces = workspaceCtrl.workspaces;
-      final currentWorkspace = workspaceCtrl.currentWorkspace;
       
       if (workspaces.isEmpty) {
         return const SizedBox.shrink();
       }
       
-      final menuItems = <MenuItem>[];
-      
-      // 添加工作空间选项
-      for (var workspace in workspaces) {
-        final isCurrent = workspace.uuid == workspaceCtrl.currentWorkspaceId.value;
-        menuItems.add(
-          MenuItem(
-            title: workspace.name,
-            iconData: isCurrent ? Icons.check : null,
-            callback: () {
-              workspaceCtrl.switchWorkspace(workspace.uuid);
-            },
-            // 如果这是当前工作空间且不是默认工作空间，在同一行显示删除按钮
-            trailingIcon: (isCurrent && workspace.uuid != 'default')
-                ? Icons.delete_outline
-                : null,
-            trailingCallback: (isCurrent && workspace.uuid != 'default')
-                ? () {
-                    showToast(
-                      '${'sureDeleteWorkspace'.tr}「${workspace.name}」',
-                      alwaysShow: true,
-                      confirmMode: true,
-                      toastStyleType: TodoCatToastStyleType.error,
-                      onYesCallback: () async {
-                        final deleted = await workspaceCtrl.deleteWorkspace(workspace.uuid);
-                        if (deleted) {
-                          // 刷新回收站数据
-                          if (Get.isRegistered<TrashController>()) {
-                            final trashCtrl = Get.find<TrashController>();
-                            await trashCtrl.refresh();
-                          }
-                          // 显示撤销通知
-                          showUndoToast(
-                            '${'workspaceDeleted'.tr}「${workspace.name}」',
-                            () async {
-                              await workspaceCtrl.restoreWorkspace(workspace.uuid);
-                              // 刷新回收站数据
-                              if (Get.isRegistered<TrashController>()) {
-                                final trashCtrl = Get.find<TrashController>();
-                                await trashCtrl.refresh();
+      return Builder(
+        builder: (context) {
+          // 使用 Obx 确保菜单项能够响应 currentWorkspaceId 的变化
+          return Obx(() {
+            final menuItems = <MenuItem>[];
+            final currentWorkspaceId = workspaceCtrl.currentWorkspaceId.value;
+            
+            // 添加工作空间选项
+            for (var workspace in workspaces) {
+              final isCurrent = workspace.uuid == currentWorkspaceId;
+              
+              // 如果不是默认工作空间，构建包含重命名和删除按钮的 trailingWidget
+              Widget? trailingWidget;
+              if (workspace.uuid != 'default') {
+                trailingWidget = Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 重命名按钮
+                    Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: () {
+                          SmartDialog.dismiss(tag: 'workspace_selector');
+                          showRenameWorkspaceDialog(workspace);
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            Icons.edit_outlined,
+                            size: 18,
+                            color: context.theme.iconTheme.color,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // 删除按钮
+                    Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: () {
+                          SmartDialog.dismiss(tag: 'workspace_selector');
+                          showToast(
+                            '${'sureDeleteWorkspace'.tr}「${workspace.name}」',
+                            alwaysShow: true,
+                            confirmMode: true,
+                            toastStyleType: TodoCatToastStyleType.error,
+                            onYesCallback: () async {
+                              final deleted = await workspaceCtrl.deleteWorkspace(workspace.uuid);
+                              if (deleted) {
+                                // 刷新回收站数据
+                                if (Get.isRegistered<TrashController>()) {
+                                  final trashCtrl = Get.find<TrashController>();
+                                  await trashCtrl.refresh();
+                                }
+                                // 显示撤销通知
+                                showUndoToast(
+                                  '${'workspaceDeleted'.tr}「${workspace.name}」',
+                                  () async {
+                                    await workspaceCtrl.restoreWorkspace(workspace.uuid);
+                                    // 刷新回收站数据
+                                    if (Get.isRegistered<TrashController>()) {
+                                      final trashCtrl = Get.find<TrashController>();
+                                      await trashCtrl.refresh();
+                                    }
+                                  },
+                                );
                               }
                             },
                           );
-                        }
-                      },
-                    );
-                  }
-                : null,
-          ),
-        );
-      }
-      
-      return Builder(
-        builder: (context) {
-          // 构建管理选项
-          final createWorkspaceItem = MenuItem(
-            title: 'createWorkspace',
-            iconData: Icons.add,
-            callback: () {
-              showCreateWorkspaceDialog();
-            },
-          );
-          
-          return DropdownManuBtn(
-            id: 'workspace_selector',
-            content: DPDMenuContent(
-              menuItems: menuItems,
-              tag: 'workspace_selector',
-              width: 195, // 仅为工作空间选择器设置固定宽度
-              additionalWidgets: [
-                // 在工作空间列表和管理选项之间添加分割线
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Divider(
-                    height: 1,
-                    thickness: 0.5,
-                    indent: 16,
-                    endIndent: 16,
-                    color: context.theme.dividerColor,
-                  ),
-                ),
-                // 添加管理选项
-                DPDMenuContent.buildMenuItem(context, createWorkspaceItem, 'workspace_selector'),
-              ],
-            ),
-          alignment: Alignment.bottomRight,
-          attachAlignmentType: SmartAttachAlignmentType.outside,
-          child: Padding(
-            // 添加内边距以扩大可点击区域，特别是左右边缘
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Text(
-                    currentWorkspace?.name ?? 'defaultWorkspace'.tr,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: context.theme.textTheme.bodyLarge?.color,
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            Icons.delete_outline,
+                            size: 18,
+                            color: Colors.redAccent.shade200,
+                          ),
+                        ),
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis, // 防止文字换行，超长时显示省略号
-                    maxLines: 1,
+                  ],
+                );
+              }
+              
+              menuItems.add(
+                MenuItem(
+                  title: workspace.name,
+                  iconData: isCurrent ? Icons.check : null,
+                  callback: () {
+                    workspaceCtrl.switchWorkspace(workspace.uuid);
+                  },
+                  trailingWidget: trailingWidget,
+                ),
+              );
+            }
+            
+            // 构建管理选项
+            final createWorkspaceItem = MenuItem(
+              title: 'createWorkspace',
+              iconData: Icons.add,
+              callback: () {
+                showCreateWorkspaceDialog();
+              },
+            );
+            
+            return DropdownManuBtn(
+              id: 'workspace_selector',
+              content: DPDMenuContent(
+                menuItems: menuItems,
+                tag: 'workspace_selector',
+                width: 195, // 仅为工作空间选择器设置固定宽度
+                additionalWidgets: [
+                  // 在工作空间列表和管理选项之间添加分割线
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Divider(
+                      height: 1,
+                      thickness: 0.5,
+                      indent: 16,
+                      endIndent: 16,
+                      color: context.theme.dividerColor,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.arrow_drop_down,
-                  size: 20,
-                  color: context.theme.iconTheme.color,
-                ),
-              ],
-            ),
-          ),
-          );
+                  // 添加管理选项
+                  DPDMenuContent.buildMenuItem(context, createWorkspaceItem, 'workspace_selector'),
+                ],
+              ),
+              alignment: Alignment.bottomRight,
+              attachAlignmentType: SmartAttachAlignmentType.outside,
+              child: Padding(
+                // 添加内边距以扩大可点击区域，特别是左右边缘
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Obx(() {
+                  final currentWorkspace = workspaceCtrl.currentWorkspace;
+                  final displayName = currentWorkspace?.uuid == 'default'
+                      ? 'defaultWorkspace'.tr
+                      : (currentWorkspace?.name ?? 'defaultWorkspace'.tr);
+                  
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          displayName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: context.theme.textTheme.bodyLarge?.color,
+                          ),
+                          overflow: TextOverflow.ellipsis, // 防止文字换行，超长时显示省略号
+                          maxLines: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        size: 20,
+                        color: context.theme.iconTheme.color,
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            );
+          });
         },
       );
     });

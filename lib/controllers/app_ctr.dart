@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/pages/app_lifecycle_observer.dart';
@@ -137,8 +137,18 @@ class AppController extends GetxController {
   Future<void> changeSystemOverlayUI() async {
     if (_isMobilePlatform) {
       _logger.d('Updating system overlay UI for mobile platform');
-      await FlutterStatusbarcolor.setStatusBarWhiteForeground(
-          appConfig.value.isDarkMode);
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: appConfig.value.isDarkMode
+              ? Brightness.light
+              : Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: appConfig.value.isDarkMode
+              ? Brightness.light
+              : Brightness.dark,
+        ),
+      );
     }
   }
 

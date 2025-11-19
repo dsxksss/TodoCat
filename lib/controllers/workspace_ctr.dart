@@ -99,7 +99,8 @@ class WorkspaceController extends GetxController {
 
   /// 创建工作空间
   /// 返回新创建的工作空间UUID，如果创建失败则返回null
-  Future<String?> createWorkspace(String name) async {
+  /// [autoSwitch] 是否在创建成功后自动切换到新工作空间，默认为 true
+  Future<String?> createWorkspace(String name, {bool autoSwitch = true}) async {
     try {
       if (name.trim().isEmpty) {
         _logger.w('工作空间名称不能为空');
@@ -117,8 +118,10 @@ class WorkspaceController extends GetxController {
       workspaces.add(workspace);
       _logger.d('创建工作空间成功: ${workspace.name}');
       
-      // 创建成功后立即切换到新工作空间
-      await switchWorkspace(workspace.uuid);
+      // 如果启用自动切换，创建成功后立即切换到新工作空间
+      if (autoSwitch) {
+        await switchWorkspace(workspace.uuid);
+      }
       
       return workspace.uuid;
     } catch (e) {

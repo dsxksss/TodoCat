@@ -14,6 +14,8 @@ class MenuItem {
   // 可选的尾部操作按钮（显示在同一行右侧）
   IconData? trailingIcon;
   VoidCallback? trailingCallback;
+  // 可选的尾部自定义 Widget（如果提供，将优先使用此 Widget 而不是 trailingIcon）
+  Widget? trailingWidget;
 
   MenuItem({
     this.iconData,
@@ -22,6 +24,7 @@ class MenuItem {
     this.isDisabled = false,
     this.trailingIcon,
     this.trailingCallback,
+    this.trailingWidget,
   });
 }
 
@@ -115,6 +118,7 @@ class DPDMenuContent extends StatelessWidget {
         minLeadingWidth: 0,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         dense: true,
+        isThreeLine: false,
         hoverColor: isDisabled ? Colors.transparent : context.theme.hoverColor,
         leading: item.iconData == null
             ? null
@@ -139,26 +143,28 @@ class DPDMenuContent extends StatelessWidget {
             maxLines: 1,
           ),
         ),
-        trailing: item.trailingIcon != null && item.trailingCallback != null
-            ? Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  onTap: () {
-                    item.trailingCallback!();
-                    SmartDialog.dismiss(tag: tag ?? dropDownMenuBtnTag);
-                  },
-                  borderRadius: BorderRadius.circular(4),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      item.trailingIcon,
-                      size: 18,
-                      color: Colors.redAccent.shade200,
+        trailing: item.trailingWidget != null
+            ? item.trailingWidget
+            : (item.trailingIcon != null && item.trailingCallback != null
+                ? Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      onTap: () {
+                        item.trailingCallback!();
+                        SmartDialog.dismiss(tag: tag ?? dropDownMenuBtnTag);
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          item.trailingIcon,
+                          size: 18,
+                          color: Colors.redAccent.shade200,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              )
-            : null,
+                  )
+                : null),
         onTap: isDisabled
             ? null
             : () {

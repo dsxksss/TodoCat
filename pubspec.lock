@@ -478,14 +478,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "4.9.8+8"
-  flutter_statusbarcolor_ns:
-    dependency: "direct main"
-    description:
-      name: flutter_statusbarcolor_ns
-      sha256: "28ad644daac2d692b6d0d576458b7967f1aaeaf212eddfcb40ec8b5e68621abc"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.5.0"
   flutter_svg:
     dependency: "direct main"
     description:

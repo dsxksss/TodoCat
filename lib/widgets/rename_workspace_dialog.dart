@@ -8,19 +8,32 @@ import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
+import 'package:todo_cat/data/schemas/workspace.dart';
 
-/// 创建工作空间对话框
-class CreateWorkspaceDialog extends StatefulWidget {
-  const CreateWorkspaceDialog({super.key});
+/// 重命名工作空间对话框
+class RenameWorkspaceDialog extends StatefulWidget {
+  final Workspace workspace;
+
+  const RenameWorkspaceDialog({
+    super.key,
+    required this.workspace,
+  });
 
   @override
-  State<CreateWorkspaceDialog> createState() => _CreateWorkspaceDialogState();
+  State<RenameWorkspaceDialog> createState() => _RenameWorkspaceDialogState();
 }
 
-class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
+class _RenameWorkspaceDialogState extends State<RenameWorkspaceDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  bool _isCreating = false;
+  late final TextEditingController _nameController;
+  bool _isRenaming = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 初始化时填入当前工作空间名称
+    _nameController = TextEditingController(text: widget.workspace.name);
+  }
 
   @override
   void dispose() {
@@ -28,48 +41,49 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
     super.dispose();
   }
 
-  Future<void> _createWorkspace() async {
+  Future<void> _renameWorkspace() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    final newName = _nameController.text.trim();
+    // 如果名称没有变化，直接关闭对话框
+    if (newName == widget.workspace.name) {
+      SmartDialog.dismiss(tag: renameWorkspaceDialogTag);
+      return;
+    }
+
     setState(() {
-      _isCreating = true;
+      _isRenaming = true;
     });
 
     try {
       if (Get.isRegistered<WorkspaceController>()) {
         final workspaceCtrl = Get.find<WorkspaceController>();
-        
-        // 创建工作空间，但不自动切换（autoSwitch: false）
-        final workspaceId = await workspaceCtrl.createWorkspace(
-          _nameController.text.trim(),
-          autoSwitch: false,
+        final success = await workspaceCtrl.updateWorkspace(
+          widget.workspace.uuid,
+          newName,
         );
         
         if (mounted) {
-          if (workspaceId != null) {
-            // 先关闭对话框，避免在切换工作空间时对话框还在显示
-            SmartDialog.dismiss(tag: createWorkspaceDialogTag);
+          if (success) {
+            showSuccessNotification('workspaceRenamed'.tr);
+            SmartDialog.dismiss(tag: renameWorkspaceDialogTag);
             // 关闭工作空间选择器的下拉菜单
             SmartDialog.dismiss(tag: 'workspace_selector');
-            
-            showSuccessNotification('workspaceCreated'.tr);
-            // 对话框已关闭，现在切换工作空间
-            await workspaceCtrl.switchWorkspace(workspaceId);
           } else {
-            showErrorNotification('workspaceCreateFailed'.tr);
+            showErrorNotification('workspaceRenameFailed'.tr);
             setState(() {
-              _isCreating = false;
+              _isRenaming = false;
             });
           }
         }
       }
     } catch (e) {
       if (mounted) {
-        showErrorNotification('workspaceCreateFailed'.tr);
+        showErrorNotification('workspaceRenameFailed'.tr);
         setState(() {
-          _isCreating = false;
+          _isRenaming = false;
         });
       }
     }
@@ -109,7 +123,7 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'createWorkspace'.tr,
+                    'renameWorkspace'.tr,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -117,7 +131,7 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
                   ),
                   LabelBtn(
                     label: const Icon(Icons.close, size: 20),
-                    onPressed: () => SmartDialog.dismiss(tag: createWorkspaceDialogTag),
+                    onPressed: () => SmartDialog.dismiss(tag: renameWorkspaceDialogTag),
                     padding: EdgeInsets.zero,
                     ghostStyle: true,
                   ),
@@ -146,8 +160,8 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
                       },
                       editingController: _nameController,
                       onFieldSubmitted: (_) {
-                        if (!_isCreating) {
-                          _createWorkspace();
+                        if (!_isRenaming) {
+                          _renameWorkspace();
                         }
                       },
                     ),
@@ -182,13 +196,13 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
                       horizontal: 12,
                       vertical: 2,
                     ),
-                    disable: _isCreating,
-                    onPressed: () => SmartDialog.dismiss(tag: createWorkspaceDialogTag),
+                    disable: _isRenaming,
+                    onPressed: () => SmartDialog.dismiss(tag: renameWorkspaceDialogTag),
                   ),
                   const SizedBox(width: 8),
                   LabelBtn(
                     label: Text(
-                      _isCreating ? 'creating'.tr : 'create'.tr,
+                      _isRenaming ? 'renaming'.tr : 'rename'.tr,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.white,
@@ -199,8 +213,8 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
                       horizontal: 12,
                       vertical: 2,
                     ),
-                    disable: _isCreating,
-                    onPressed: () => _createWorkspace(),
+                    disable: _isRenaming,
+                    onPressed: () => _renameWorkspace(),
                   ),
                 ],
               ),
@@ -212,11 +226,11 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
   }
 }
 
-/// 显示创建工作空间对话框
-void showCreateWorkspaceDialog() {
+/// 显示重命名工作空间对话框
+void showRenameWorkspaceDialog(Workspace workspace) {
   DialogService.showFormDialog(
-    tag: createWorkspaceDialogTag,
-    dialog: const CreateWorkspaceDialog(),
+    tag: renameWorkspaceDialogTag,
+    dialog: RenameWorkspaceDialog(workspace: workspace),
   );
 }
 
