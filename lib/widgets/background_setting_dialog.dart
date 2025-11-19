@@ -87,18 +87,20 @@ class BackgroundSettingDialog extends StatelessWidget {
                   const DefaultBackgroundImageGrid(),
                   const SizedBox(height: 24),
                   
-                  // 默认背景视频模板
-                  Text(
-                    'defaultBackgroundVideos'.tr,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: context.theme.textTheme.titleMedium?.color,
+                  // 默认背景视频模板（移动端不显示）
+                  if (!context.isPhone) ...[
+                    Text(
+                      'defaultBackgroundVideos'.tr,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: context.theme.textTheme.titleMedium?.color,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  const DefaultBackgroundVideoGrid(),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 12),
+                    const DefaultBackgroundVideoGrid(),
+                    const SizedBox(height: 24),
+                  ],
 
                   // 分隔线
                   Divider(color: context.theme.dividerColor, height: 1),
@@ -126,7 +128,8 @@ class BackgroundSettingDialog extends StatelessWidget {
                     final isDefaultVideo = isDefaultTemplate &&
                         DefaultBackgrounds.getById(config.backgroundImagePath!.split(':').last)?.isVideo == true;
                     final hasBackground = isDefaultTemplate || isCustomImage;
-                    final isVideo = isCustomVideo || isDefaultVideo;
+                    // 移动端不支持视频背景，如果当前是视频背景，则视为无背景
+                    final isVideo = context.isPhone ? false : (isCustomVideo || isDefaultVideo);
 
                     return Column(
                       mainAxisSize: MainAxisSize.min,

@@ -10,10 +10,12 @@ class MarkdownToolbar extends StatelessWidget {
     super.key,
     required this.controller,
     this.onInsert,
+    this.onPreview,
   });
 
   final TextEditingController controller;
   final void Function(String)? onInsert;
+  final VoidCallback? onPreview; // 预览按钮回调
 
   /// 在光标位置插入文本
   void _insertText(String text) {
@@ -135,6 +137,15 @@ class MarkdownToolbar extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // 预览按钮（眼睛图标）- 显示在最前面
+            if (onPreview != null) ...[
+              _buildToolbarButton(
+                icon: Icons.visibility,
+                tooltip: 'preview'.tr,
+                onPressed: onPreview!,
+              ),
+              const SizedBox(width: 8),
+            ],
             _buildToolbarButton(
               icon: FontAwesomeIcons.bold,
               tooltip: 'markdownBold'.tr,
@@ -222,7 +233,7 @@ class MarkdownToolbar extends StatelessWidget {
             padding: const EdgeInsets.all(6),
             child: Icon(
               icon,
-              size: 16,
+              size: icon == Icons.visibility ? 18 : 16, // 预览图标稍大一点
             ),
           ),
         ),

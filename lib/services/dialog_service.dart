@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
@@ -40,27 +39,32 @@ class DialogService {
           : dialog,
       clickMaskDismiss: false,
       animationBuilder: (controller, child, _) {
-        final animation = child
-            .animate(controller: controller)
-            .fade(duration: controller.duration);
-
-        return context.isPhone
-            ? animation
-                .scaleXY(
-                  begin: 0.97,
-                  duration: controller.duration,
-                  curve: Curves.easeIn,
-                )
-                .moveY(
-                  begin: 0.6.sh,
-                  duration: controller.duration,
-                  curve: Curves.easeOutCirc,
-                )
-            : animation.scaleXY(
-                begin: 0.98,
-                duration: controller.duration,
-                curve: Curves.easeIn,
-              );
+        if (context.isPhone) {
+          // 移动端：从底部滑入，不使用缩放动画
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: controller,
+              curve: Curves.easeOutCubic,
+            )),
+            child: FadeTransition(
+              opacity: controller,
+              child: child,
+            ),
+          );
+        } else {
+          // 桌面端：缩放和淡入
+          final animation = child
+              .animate(controller: controller)
+              .fade(duration: controller.duration);
+          return animation.scaleXY(
+            begin: 0.98,
+            duration: controller.duration,
+            curve: Curves.easeIn,
+          );
+        }
       },
     );
   }

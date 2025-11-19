@@ -427,28 +427,51 @@ class SettingsContent extends GetView<SettingsController> {
 
   /// 显示背景图片对话框
   void _showBackgroundImageDialog() {
-    if (!GetPlatform.isDesktop) {
-      showToast('desktopOnlyFeature'.tr);
-      return;
-    }
-
+    final context = Get.context!;
+    
     SmartDialog.show(
       tag: 'background_setting_dialog',
-      alignment: Alignment.center,
+      alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
       maskColor: Colors.black.withValues(alpha: 0.3),
       clickMaskDismiss: true,
       useAnimation: true,
       animationTime: const Duration(milliseconds: 200),
-      builder: (_) => const BackgroundSettingDialog(),
+      builder: (_) => context.isPhone
+          ? Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: const BackgroundSettingDialog(),
+              ),
+            )
+          : const BackgroundSettingDialog(),
       animationBuilder: (controller, child, _) {
-        return child
-            .animate(controller: controller)
-            .fade(duration: controller.duration)
-            .scaleXY(
-              begin: 0.95,
-              duration: controller.duration,
-              curve: Curves.easeOut,
-            );
+        if (context.isPhone) {
+          // 移动端：从底部滑入
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: controller,
+              curve: Curves.easeOutCubic,
+            )),
+            child: FadeTransition(
+              opacity: controller,
+              child: child,
+            ),
+          );
+        } else {
+          // 桌面端：缩放和淡入
+          return child
+              .animate(controller: controller)
+              .fade(duration: controller.duration)
+              .scaleXY(
+                begin: 0.95,
+                duration: controller.duration,
+                curve: Curves.easeOut,
+              );
+        }
       },
     );
   }

@@ -167,29 +167,59 @@ class TodoCard extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           final dialogTag = 'todo_detail_dialog_${todo.uuid}';
+          final context = Get.context!;
           SmartDialog.show(
             tag: dialogTag,
-            alignment: Alignment.center,
+            alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
             animationTime: const Duration(milliseconds: 250),
             animationBuilder: (animController, child, _) {
-              return FadeTransition(
-                opacity: animController,
-                child: ScaleTransition(
-                  scale: Tween<double>(
-                    begin: 0.9,
-                    end: 1.0,
+              if (context.isPhone) {
+                // 移动端：从底部滑入
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
                   ).animate(CurvedAnimation(
                     parent: animController,
-                    curve: Curves.easeOut,
+                    curve: Curves.easeOutCubic,
                   )),
-                  child: child,
-                ),
-              );
+                  child: FadeTransition(
+                    opacity: animController,
+                    child: child,
+                  ),
+                );
+              } else {
+                // 桌面端：缩放和淡入
+                return FadeTransition(
+                  opacity: animController,
+                  child: ScaleTransition(
+                    scale: Tween<double>(
+                      begin: 0.9,
+                      end: 1.0,
+                    ).animate(CurvedAnimation(
+                      parent: animController,
+                      curve: Curves.easeOut,
+                    )),
+                    child: child,
+                  ),
+                );
+              }
             },
-            builder: (_) => TodoDetailDialog(
-              todoId: todo.uuid,
-              taskId: taskId,
-            ),
+            builder: (_) => context.isPhone
+                ? Scaffold(
+                    backgroundColor: Colors.transparent,
+                    body: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: TodoDetailDialog(
+                        todoId: todo.uuid,
+                        taskId: taskId,
+                      ),
+                    ),
+                  )
+                : TodoDetailDialog(
+                    todoId: todo.uuid,
+                    taskId: taskId,
+                  ),
             clickMaskDismiss: true,
             onDismiss: () {
               // 清理 controller，避免内存泄漏

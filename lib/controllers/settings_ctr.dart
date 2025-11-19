@@ -20,6 +20,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/services/auto_update_service.dart';
+import 'package:todo_cat/config/default_backgrounds.dart';
 import 'package:logger/logger.dart';
 
 class SettingsController extends GetxController {
@@ -612,16 +613,35 @@ class SettingsController extends GetxController {
   /// 选择背景图片或视频
   Future<void> selectBackgroundImage() async {
     try {
+      // 移动端只允许选择图片，桌面端可以选择图片或视频
+      final allowedExtensions = GetPlatform.isMobile
+          ? ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
+          : ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'mp4', 'mov', 'avi', 'mkv', 'webm'];
+      
       // 选择图片或视频文件
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'mp4', 'mov', 'avi', 'mkv', 'webm'],
+        allowedExtensions: allowedExtensions,
         allowMultiple: false,
       );
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
         if (file.path != null) {
+          // 移动端检查：如果选择了视频文件，拒绝并提示
+          if (GetPlatform.isMobile) {
+            final isVideo = file.path!.toLowerCase().endsWith('.mp4') ||
+                           file.path!.toLowerCase().endsWith('.mov') ||
+                           file.path!.toLowerCase().endsWith('.avi') ||
+                           file.path!.toLowerCase().endsWith('.mkv') ||
+                           file.path!.toLowerCase().endsWith('.webm');
+            if (isVideo) {
+              showToast('移动端不支持视频背景', toastStyleType: TodoCatToastStyleType.error);
+              _logger.w('移动端尝试设置视频背景，已拒绝: ${file.path}');
+              return;
+            }
+          }
+          
           // 直接使用选择的图片或视频（桌面端暂不支持裁剪）
           // 更新应用配置
           appCtrl.appConfig.value = appCtrl.appConfig.value.copyWith(
@@ -654,6 +674,16 @@ class SettingsController extends GetxController {
   /// 选择默认背景模板
   Future<void> selectDefaultBackground(String templateId) async {
     try {
+      // 移动端检查：如果选择的是视频模板，拒绝并提示
+      if (GetPlatform.isMobile) {
+        final template = DefaultBackgrounds.getById(templateId);
+        if (template != null && template.isVideo) {
+          showToast('移动端不支持视频背景', toastStyleType: TodoCatToastStyleType.error);
+          _logger.w('移动端尝试应用视频背景模板，已拒绝: $templateId');
+          return;
+        }
+      }
+      
       // 使用特殊标记来表示这是默认模板
       // 格式: default_template:{templateId}
       final templatePath = 'default_template:$templateId';

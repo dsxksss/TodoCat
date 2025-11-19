@@ -15,11 +15,18 @@ import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
 /// 2. 智能防抖：减少不必要的重建
 /// 3. 生命周期保护：防止 dispose 后的操作
 class AppFlowyTodosBoard extends StatefulWidget {
-  const AppFlowyTodosBoard(
-      {super.key, required this.tasks, this.listWidth = 260.0});
+  const AppFlowyTodosBoard({
+    super.key,
+    required this.tasks,
+    this.listWidth = 260.0,
+    this.scrollController,
+    this.taskKeys, // 可选的task keys，用于锚点滚动
+  });
 
   final RxList<Task> tasks;
   final double listWidth;
+  final ScrollController? scrollController; // 可选的滚动控制器
+  final Map<String, GlobalKey>? taskKeys; // 可选的task keys，用于锚点滚动
 
   @override
   State<AppFlowyTodosBoard> createState() => _AppFlowyTodosBoardState();
@@ -42,7 +49,8 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
+    // 使用外部传入的ScrollController，如果没有则创建新的
+    _scrollController = widget.scrollController ?? ScrollController();
     _boardController = AppFlowyBoardController(
       onMoveGroup: (fromGroupId, fromIndex, toGroupId, toIndex) {
         if (_isDisposed || !mounted) return;
@@ -109,10 +117,13 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
       }
     }
     
-    try {
-      _scrollController.dispose();
-    } catch (e) {
-      // 忽略错误
+    // 只有自己创建的ScrollController才需要dispose
+    if (widget.scrollController == null) {
+      try {
+        _scrollController.dispose();
+      } catch (e) {
+        // 忽略错误
+      }
     }
     
     Future.microtask(() {
@@ -304,8 +315,13 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
             }
             final hasTodos = (task.todos ?? []).where((t) => t.deletedAt == 0).isNotEmpty;
 
+            // 使用传入的GlobalKey（如果存在），否则使用ValueKey
+            final key = widget.taskKeys != null && widget.taskKeys!.containsKey(task.uuid)
+                ? widget.taskKeys![task.uuid]!
+                : ValueKey(groupData.id);
+
             return KeyedSubtree(
-              key: ValueKey(groupData.id),
+              key: key,
               child: Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
