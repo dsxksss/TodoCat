@@ -159,3 +159,6 @@ msix_config:
   logo_path: windows\runner\resources\app_icon.ico
   # 仅保留实际需要的功能，移除不必要的权限以通过商店审核
   capabilities: internetClient
+
+dependency_overrides:
+  sqflite_android: 2.4.1
