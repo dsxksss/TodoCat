@@ -6,11 +6,16 @@ import 'package:todo_cat/controllers/task_dialog_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
 class TaskDialog extends GetView<TaskDialogController> {
-  const TaskDialog({super.key});
+  const TaskDialog({
+    super.key,
+    required this.dialogTag,
+  });
+
+  final String dialogTag;
 
   @override
   Widget build(BuildContext context) {
@@ -38,64 +43,11 @@ class TaskDialog extends GetView<TaskDialogController> {
         key: controller.formKey,
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: context.theme.dividerColor,
-                    width: 0.3,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "addTask".tr,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      LabelBtn(
-                        ghostStyle: true,
-                        label: Text(
-                          "cancel".tr,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 2,
-                        ),
-                        onPressed: _handleClose,
-                      ),
-                      const SizedBox(width: 8),
-                      LabelBtn(
-                        label: Text(
-                          "confirm".tr,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 2,
-                        ),
-                        onPressed: controller.submitTask,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            Obx(() => DialogHeader(
+              title: controller.isEditing.value ? "editTask".tr : "addTask".tr,
+              onCancel: _handleClose,
+              onConfirm: _handleSubmit,
+            )),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -161,17 +113,24 @@ class TaskDialog extends GetView<TaskDialogController> {
         tag: confirmDialogTag,
         alwaysShow: true,
         confirmMode: true,
-        onYesCallback: () {
-          controller.submitTask();
-          SmartDialog.dismiss(tag: addTaskDialogTag);
+        onYesCallback: () async {
+          if (await controller.submitTask()) {
+            SmartDialog.dismiss(tag: dialogTag);
+          }
         },
         onNoCallback: () {
           controller.revertChanges();
-          SmartDialog.dismiss(tag: addTaskDialogTag);
+          SmartDialog.dismiss(tag: dialogTag);
         },
       );
     } else {
-      SmartDialog.dismiss(tag: addTaskDialogTag);
+      SmartDialog.dismiss(tag: dialogTag);
+    }
+  }
+
+  void _handleSubmit() async {
+    if (await controller.submitTask()) {
+      SmartDialog.dismiss(tag: dialogTag);
     }
   }
 }

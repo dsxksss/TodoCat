@@ -986,10 +986,10 @@ class HomePage extends GetView<HomeController> {
               backgroundColor: Colors.transparent,
               body: Align(
                 alignment: Alignment.bottomCenter,
-                child: TaskDialog(),
+                child: TaskDialog(dialogTag: addTaskDialogTag),
               ),
             )
-          : const TaskDialog(),
+          : const TaskDialog(dialogTag: addTaskDialogTag),
       clickMaskDismiss: false,
       animationBuilder: (controller, child, _) {
         final animation = child

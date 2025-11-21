@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
-import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/todo_dialog.dart';
@@ -32,7 +31,7 @@ class AddTodoCardBtn extends StatelessWidget {
     todoDialogController.restoreCacheIfAny();
 
     DialogService.showFormDialog(
-      tag: addTodoDialogTag,
+      tag: 'add_todo_dialog',
       dialog: const TodoDialog(dialogTag: 'add_todo_dialog'),
     );
   }

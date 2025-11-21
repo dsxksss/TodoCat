@@ -110,8 +110,8 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
     exitEditing();
   }
 
-  Future<void> submitTask() async {
-    if (!validateForm()) return;
+  Future<bool> submitTask() async {
+    if (!validateForm()) return false;
 
     if (isEditing.value && getEditingItem<Task>() != null) {
       final currentTask = getEditingItem<Task>()!;
@@ -126,12 +126,12 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
       final success =
           await homeController.updateTask(currentTask.uuid, updatedTask);
 
-      SmartDialog.dismiss(tag: addTaskDialogTag);
-
       // 只在失败时显示通知，成功时不添加消息到消息中心
       if (!success) {
         showErrorToast('taskUpdateFailed'.tr);
+        return false;
       }
+      return true;
     } else {
       final task = Task()
         ..uuid = const Uuid().v4()
@@ -142,8 +142,8 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
         ..todos = [];
 
       await homeController.addTask(task);
-      SmartDialog.dismiss(tag: addTaskDialogTag);
       showSuccessToast('taskAddedSuccessfully'.tr);
+      return true;
     }
   }
 }

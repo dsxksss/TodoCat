@@ -207,7 +207,7 @@ class _TaskCardState extends State<TaskCard> {
 
                               DialogService.showFormDialog(
                                 tag: addTaskDialogTag,
-                                dialog: const TaskDialog(),
+                                dialog: const TaskDialog(dialogTag: addTaskDialogTag),
                               );
                             },
                           ),

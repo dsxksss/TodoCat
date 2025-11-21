@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
@@ -95,34 +95,11 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
         child: Column(
           children: [
             // 标题栏
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: context.theme.dividerColor,
-                    width: 0.3,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'createWorkspace'.tr,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  LabelBtn(
-                    label: const Icon(Icons.close, size: 20),
-                    onPressed: () => SmartDialog.dismiss(tag: createWorkspaceDialogTag),
-                    padding: EdgeInsets.zero,
-                    ghostStyle: true,
-                  ),
-                ],
-              ),
+            DialogHeader(
+              title: 'createWorkspace'.tr,
+              onCancel: () => SmartDialog.dismiss(tag: createWorkspaceDialogTag),
+              onConfirm: _isCreating ? null : _createWorkspace,
+              confirmText: _isCreating ? 'creating'.tr : 'create'.tr,
             ),
             // 内容区域
             Expanded(
@@ -153,56 +130,6 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
                     ),
                   ],
                 ),
-              ),
-            ),
-            // 底部按钮
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: context.theme.dividerColor,
-                    width: 0.3,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  LabelBtn(
-                    ghostStyle: true,
-                    label: Text(
-                      'cancel'.tr,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 2,
-                    ),
-                    disable: _isCreating,
-                    onPressed: () => SmartDialog.dismiss(tag: createWorkspaceDialogTag),
-                  ),
-                  const SizedBox(width: 8),
-                  LabelBtn(
-                    label: Text(
-                      _isCreating ? 'creating'.tr : 'create'.tr,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 2,
-                    ),
-                    disable: _isCreating,
-                    onPressed: () => _createWorkspace(),
-                  ),
-                ],
               ),
             ),
           ],

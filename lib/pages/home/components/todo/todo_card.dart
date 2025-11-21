@@ -298,7 +298,7 @@ class TodoCard extends StatelessWidget {
                             todoDialogController.initForEditing(taskId, todo);
 
                             DialogService.showFormDialog(
-                              tag: addTodoDialogTag,
+                              tag: 'edit_todo_dialog',
                               dialog: const TodoDialog(
                                   dialogTag: 'edit_todo_dialog'),
                             );

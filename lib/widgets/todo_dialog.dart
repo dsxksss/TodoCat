@@ -8,6 +8,7 @@ import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/date_picker_panel.dart';
+import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
@@ -351,7 +352,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
     final todoTitle = controller.titleController.text;
     
     if (await controller.submitForm()) {
-      SmartDialog.dismiss(tag: addTodoDialogTag);
+      SmartDialog.dismiss(tag: widget.dialogTag);
       
       // 根据之前获取的编辑状态显示不同的提示
       final actionText = isEditing ? "updatedSuccessfully".tr : "addedSuccessfully".tr;
@@ -380,7 +381,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
             // 只保留输入但不直接创建
             controller.saveCache();
           }
-          SmartDialog.dismiss(tag: addTodoDialogTag);
+          SmartDialog.dismiss(tag: widget.dialogTag);
         },
         onNoCallback: () {
           if (controller.isEditing.value) {
@@ -389,11 +390,11 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
             // 取消保留并清除缓存，避免下次打开有残留
             controller.clearForm();
           }
-          SmartDialog.dismiss(tag: addTodoDialogTag);
+          SmartDialog.dismiss(tag: widget.dialogTag);
         },
       );
     } else {
-      SmartDialog.dismiss(tag: addTodoDialogTag);
+      SmartDialog.dismiss(tag: widget.dialogTag);
     }
   }
 
@@ -510,63 +511,16 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
         key: controller.formKey,
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 0.3,
-                    color: context.theme.dividerColor,
-                  ),
+            DialogHeader(
+              titleWidget: Obx(() => Text(
+                controller.isEditing.value ? "editTodo".tr : "addTodo".tr,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Obx(() => Text(
-                    controller.isEditing.value ? "editTodo".tr : "addTodo".tr,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
-                  Row(
-                    children: [
-                      LabelBtn(
-                        ghostStyle: true,
-                        label: Text(
-                          "cancel".tr,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 2,
-                        ),
-                        onPressed: _handleClose,
-                      ),
-                      const SizedBox(width: 8),
-                      LabelBtn(
-                        label: Text(
-                          "confirm".tr,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 2,
-                        ),
-                        onPressed: _handleSubmit,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+              )),
+              onCancel: _handleClose,
+              onConfirm: _handleSubmit,
             ),
             Expanded(
               child: Column(
@@ -888,38 +842,16 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
         key: controller.formKey,
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 0.3,
-                    color: context.theme.dividerColor,
-                  ),
+            DialogHeader(
+              titleWidget: Obx(() => Text(
+                controller.isEditing.value ? "editTodo".tr : "addTodo".tr,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.dialogTag == 'add_todo_dialog'
-                        ? "addTodo".tr
-                        : "editTodo".tr,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  LabelBtn(
-                    label: const Icon(Icons.close, size: 20),
-                    onPressed: () {
-                      SmartDialog.dismiss(tag: widget.dialogTag);
-                    },
-                    padding: EdgeInsets.zero,
-                    ghostStyle: true,
-                  ),
-                ],
-              ),
+              )),
+              onCancel: _handleClose,
+              onConfirm: _handleSubmit,
             ),
             Expanded(
               child: Column(

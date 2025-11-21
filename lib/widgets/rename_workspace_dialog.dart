@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
@@ -109,34 +109,11 @@ class _RenameWorkspaceDialogState extends State<RenameWorkspaceDialog> {
         child: Column(
           children: [
             // 标题栏
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: context.theme.dividerColor,
-                    width: 0.3,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'renameWorkspace'.tr,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  LabelBtn(
-                    label: const Icon(Icons.close, size: 20),
-                    onPressed: () => SmartDialog.dismiss(tag: renameWorkspaceDialogTag),
-                    padding: EdgeInsets.zero,
-                    ghostStyle: true,
-                  ),
-                ],
-              ),
+            DialogHeader(
+              title: 'renameWorkspace'.tr,
+              onCancel: () => SmartDialog.dismiss(tag: renameWorkspaceDialogTag),
+              onConfirm: _isRenaming ? null : _renameWorkspace,
+              confirmText: _isRenaming ? 'renaming'.tr : 'rename'.tr,
             ),
             // 内容区域
             Expanded(
@@ -167,56 +144,6 @@ class _RenameWorkspaceDialogState extends State<RenameWorkspaceDialog> {
                     ),
                   ],
                 ),
-              ),
-            ),
-            // 底部按钮
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: context.theme.dividerColor,
-                    width: 0.3,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  LabelBtn(
-                    ghostStyle: true,
-                    label: Text(
-                      'cancel'.tr,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 2,
-                    ),
-                    disable: _isRenaming,
-                    onPressed: () => SmartDialog.dismiss(tag: renameWorkspaceDialogTag),
-                  ),
-                  const SizedBox(width: 8),
-                  LabelBtn(
-                    label: Text(
-                      _isRenaming ? 'renaming'.tr : 'rename'.tr,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 2,
-                    ),
-                    disable: _isRenaming,
-                    onPressed: () => _renameWorkspace(),
-                  ),
-                ],
               ),
             ),
           ],

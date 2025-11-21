@@ -3,7 +3,6 @@ import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/controllers/base/base_form_controller.dart';
 import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
-import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 
@@ -107,7 +106,7 @@ class TodoDetailController extends BaseFormController {
     todoDialogController.initForEditing(taskId, todo.value!);
 
     DialogService.showFormDialog(
-      tag: addTodoDialogTag,
+      tag: 'edit_todo_detail_dialog',
       dialog: const TodoDialog(dialogTag: 'edit_todo_detail_dialog'),
     );
 
