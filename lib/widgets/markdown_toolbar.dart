@@ -21,7 +21,7 @@ class MarkdownToolbar extends StatelessWidget {
   void _insertText(String text) {
     final value = controller.value;
     final selection = value.selection;
-    
+
     if (selection.isValid) {
       final newText = value.text.replaceRange(
         selection.start,
@@ -42,7 +42,7 @@ class MarkdownToolbar extends StatelessWidget {
         offset: controller.text.length,
       );
     }
-    
+
     onInsert?.call(text);
   }
 
@@ -50,7 +50,7 @@ class MarkdownToolbar extends StatelessWidget {
   void _wrapText(String prefix, String suffix) {
     final value = controller.value;
     final selection = value.selection;
-    
+
     if (selection.isValid && selection.isCollapsed) {
       // 如果只是光标位置，插入标记
       final newText = value.text.replaceRange(
@@ -78,7 +78,10 @@ class MarkdownToolbar extends StatelessWidget {
       );
       final newSelection = TextSelection(
         baseOffset: selection.start,
-        extentOffset: selection.start + prefix.length + selectedText.length + suffix.length,
+        extentOffset: selection.start +
+            prefix.length +
+            selectedText.length +
+            suffix.length,
       );
       controller.value = TextEditingValue(
         text: newText,
@@ -91,7 +94,7 @@ class MarkdownToolbar extends StatelessWidget {
         offset: controller.text.length - suffix.length,
       );
     }
-    
+
     onInsert?.call('$prefix$suffix');
   }
 
@@ -116,7 +119,7 @@ class MarkdownToolbar extends StatelessWidget {
           return;
         }
       }
-      
+
       // 如果用户取消了选择，可以选择插入网络图片占位符
       // 这里我们不做任何操作，让用户手动输入
     } catch (e) {
@@ -241,4 +244,3 @@ class MarkdownToolbar extends StatelessWidget {
     );
   }
 }
-
