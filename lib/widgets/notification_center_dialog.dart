@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/core/notification_center_manager.dart';
 import 'package:todo_cat/data/schemas/notification_history.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
@@ -88,13 +89,13 @@ class NotificationCenterDialog extends StatelessWidget {
                       Obx(() {
                         final unreadCount = manager.unreadCount;
                         return Text(
-                          unreadCount > 0 
+                          unreadCount > 0
                               ? '$unreadCount ${'unreadMessages'.tr}'
                               : 'allMessagesRead'.tr,
                           style: TextStyle(
                             fontSize: 12,
                             color: context.theme.textTheme.bodySmall?.color
-                                ?.withValues(alpha:0.6),
+                                ?.withValues(alpha: 0.6),
                           ),
                           overflow: TextOverflow.ellipsis,
                         );
@@ -159,6 +160,15 @@ class NotificationCenterDialog extends StatelessWidget {
                   );
                 },
               ),
+              const SizedBox(width: 8),
+              // 关闭按钮
+              LabelBtn(
+                ghostStyle: true,
+                label: const Icon(Icons.close, size: 20),
+                padding: const EdgeInsets.all(4),
+                onPressed: () =>
+                    SmartDialog.dismiss(tag: 'notification_center_dialog'),
+              ),
             ],
           ),
         ],
@@ -170,14 +180,14 @@ class NotificationCenterDialog extends StatelessWidget {
       BuildContext context, NotificationCenterManager manager) {
     return Obx(() {
       final allNotifications = manager.notifications;
-      
+
       // 过滤掉不重要的通知，只显示错误和警告级别，以及未读信息
       final filteredNotifications = allNotifications.where((notification) {
         // 显示所有未读通知
         if (!notification.isRead) return true;
         // 显示错误和警告级别的通知
-        return notification.level == NotificationLevel.error || 
-               notification.level == NotificationLevel.warning;
+        return notification.level == NotificationLevel.error ||
+            notification.level == NotificationLevel.warning;
       }).toList();
 
       if (filteredNotifications.isEmpty) {
@@ -242,7 +252,7 @@ class NotificationCenterDialog extends StatelessWidget {
       decoration: BoxDecoration(
         color: notification.isRead
             ? Colors.transparent
-            : context.theme.primaryColor.withValues(alpha:0.05),
+            : context.theme.primaryColor.withValues(alpha: 0.05),
         border: Border.all(
           color: context.theme.dividerColor,
           width: 0.3,
@@ -262,13 +272,13 @@ class NotificationCenterDialog extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
                   color: Color(notification.level.colorValue)
-                      .withValues(alpha:0.12),
+                      .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
                   child: Icon(
                     notification.level.icon,
-                      color: Color(notification.level.colorValue),
+                    color: Color(notification.level.colorValue),
                     size: 16,
                   ),
                 ),
@@ -309,7 +319,7 @@ class NotificationCenterDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: context.theme.textTheme.bodySmall?.color
-                            ?.withValues(alpha:0.8),
+                            ?.withValues(alpha: 0.8),
                       ),
                       // 移除行数限制，显示完整内容
                     ),
@@ -319,7 +329,7 @@ class NotificationCenterDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         color: context.theme.textTheme.bodySmall?.color
-                            ?.withValues(alpha:0.5),
+                            ?.withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -333,7 +343,7 @@ class NotificationCenterDialog extends StatelessWidget {
                     Icons.close,
                     size: 16,
                     color: context.theme.textTheme.bodyMedium?.color
-                        ?.withValues(alpha:0.6),
+                        ?.withValues(alpha: 0.6),
                   ),
                 ),
                 padding: const EdgeInsets.all(4),

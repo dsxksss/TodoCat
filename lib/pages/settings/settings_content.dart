@@ -428,7 +428,7 @@ class SettingsContent extends GetView<SettingsController> {
   /// 显示背景图片对话框
   void _showBackgroundImageDialog() {
     final context = Get.context!;
-    
+
     SmartDialog.show(
       tag: 'background_setting_dialog',
       alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
@@ -437,11 +437,11 @@ class SettingsContent extends GetView<SettingsController> {
       useAnimation: true,
       animationTime: const Duration(milliseconds: 200),
       builder: (_) => context.isPhone
-          ? Scaffold(
+          ? const Scaffold(
               backgroundColor: Colors.transparent,
               body: Align(
                 alignment: Alignment.bottomCenter,
-                child: const BackgroundSettingDialog(),
+                child: BackgroundSettingDialog(),
               ),
             )
           : const BackgroundSettingDialog(),

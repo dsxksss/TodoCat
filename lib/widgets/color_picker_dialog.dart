@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/utils/font_utils.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
 /// 颜色选择器对话框
 class ColorPickerDialog extends StatelessWidget {
@@ -88,7 +89,7 @@ class ColorPickerDialog extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // 内容区域
           Padding(
             padding: const EdgeInsets.all(20),
@@ -108,8 +109,9 @@ class ColorPickerDialog extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final color = predefinedColors[index];
                     // 使用color.toARGB32()比较颜色值，而不是对象引用
-                    final isSelected = initialColor?.toARGB32() == color.toARGB32();
-                    
+                    final isSelected =
+                        initialColor?.toARGB32() == color.toARGB32();
+
                     return Material(
                       color: Colors.transparent,
                       child: InkWell(
@@ -123,9 +125,10 @@ class ColorPickerDialog extends StatelessWidget {
                             color: color,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: isSelected 
-                                  ? Colors.white 
-                                  : context.theme.dividerColor.withValues(alpha:0.3),
+                              color: isSelected
+                                  ? Colors.white
+                                  : context.theme.dividerColor
+                                      .withValues(alpha: 0.3),
                               width: isSelected ? 2 : 0.5,
                             ),
                             // 移除阴影效果，避免亮主题下的亮光高亮
@@ -163,31 +166,14 @@ void showColorPickerDialog({
   Color? initialColor,
   required Function(Color) onColorSelected,
 }) {
-  SmartDialog.show(
+  PlatformDialogWrapper.show(
     tag: 'color_picker',
-    alignment: Alignment.center,
-    maskColor: Colors.black.withValues(alpha:0.5),
-    clickMaskDismiss: true,
-    useAnimation: true,
-    animationTime: const Duration(milliseconds: 200),
-    builder: (_) => ColorPickerDialog(
+    content: ColorPickerDialog(
       initialColor: initialColor,
       onColorSelected: onColorSelected,
     ),
-    animationBuilder: (controller, child, animationParam) {
-      return ScaleTransition(
-        scale: Tween<double>(
-          begin: 0.8,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: controller,
-          curve: Curves.easeOutCubic,
-        )),
-        child: FadeTransition(
-          opacity: controller,
-          child: child,
-        ),
-      );
-    },
+    maskColor: Colors.black.withValues(alpha: 0.5),
+    clickMaskDismiss: true,
+    animationTime: const Duration(milliseconds: 200),
   );
 }

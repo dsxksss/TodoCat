@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 /// 根据平台自动选择显示底部页（移动端）或dialog（桌面端）
 class PlatformDialogWrapper {
   /// 显示dialog或底部页
-  /// 
+  ///
   /// [tag] dialog的唯一标识
   /// [content] 要显示的内容widget
   /// [width] 桌面端dialog的宽度，移动端忽略
@@ -29,15 +29,16 @@ class PlatformDialogWrapper {
     SmartBackType backType = SmartBackType.normal,
     Duration animationTime = const Duration(milliseconds: 150),
     bool clickMaskDismiss = false,
+    Color? maskColor,
+    VoidCallback? onDismiss,
   }) {
     final context = Get.context!;
     final isPhone = context.isPhone;
-    
+
     // 移动端使用屏幕高度的百分比，桌面端使用固定高度
-    final dialogHeight = isPhone 
-        ? (height ?? 0.75) * Get.height
-        : (height ?? 540.0);
-    
+    final dialogHeight =
+        isPhone ? (height ?? 0.75) * Get.height : (height ?? 540.0);
+
     // 桌面端使用指定宽度，移动端占满宽度
     final dialogWidth = isPhone ? Get.width : (width ?? 430.0);
 
@@ -52,12 +53,25 @@ class PlatformDialogWrapper {
       builder: (_) => isPhone
           ? Scaffold(
               backgroundColor: Colors.transparent,
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: SizedBox(
-                  width: dialogWidth,
-                  height: dialogHeight,
-                  child: content,
+              body: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  if (clickMaskDismiss) {
+                    SmartDialog.dismiss(tag: tag);
+                    onDismiss?.call();
+                  }
+                },
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: GestureDetector(
+                    onTap:
+                        () {}, // Prevent tap from propagating to the background
+                    child: SizedBox(
+                      width: dialogWidth,
+                      height: dialogHeight,
+                      child: content,
+                    ),
+                  ),
                 ),
               ),
             )
@@ -67,6 +81,8 @@ class PlatformDialogWrapper {
               child: content,
             ),
       clickMaskDismiss: clickMaskDismiss,
+      maskColor: maskColor ?? Colors.black.withValues(alpha: 0.3),
+      onDismiss: onDismiss,
       animationBuilder: (controller, child, _) {
         if (isPhone) {
           // 移动端：从底部滑入
@@ -103,4 +119,3 @@ class PlatformDialogWrapper {
     SmartDialog.dismiss(tag: tag);
   }
 }
-

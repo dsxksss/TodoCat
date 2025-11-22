@@ -93,7 +93,8 @@ class DPDMenuContent extends StatelessWidget {
   }
 
   /// 构建单个菜单项（静态方法，供外部调用）
-  static Widget buildMenuItem(BuildContext context, MenuItem item, [String? tag]) {
+  static Widget buildMenuItem(BuildContext context, MenuItem item,
+      [String? tag]) {
     final bool isDelete = item.title == 'delete';
     final bool isPermanentDelete = item.title == 'permanentDelete';
     final bool isRestore = item.title == 'restore';
@@ -133,9 +134,7 @@ class DPDMenuContent extends StatelessWidget {
           child: Text(
             item.title.tr,
             style: TextStyle(
-              color: isDisabled
-                  ? Colors.grey
-                  : textColor,
+              color: isDisabled ? Colors.grey : textColor,
               fontSize: 14.5,
               fontWeight: FontWeight.w500,
             ),
@@ -143,9 +142,8 @@ class DPDMenuContent extends StatelessWidget {
             maxLines: 1,
           ),
         ),
-        trailing: item.trailingWidget != null
-            ? item.trailingWidget
-            : (item.trailingIcon != null && item.trailingCallback != null
+        trailing: item.trailingWidget ??
+            (item.trailingIcon != null && item.trailingCallback != null
                 ? Material(
                     type: MaterialType.transparency,
                     child: InkWell(

@@ -32,6 +32,7 @@ import 'package:todo_cat/widgets/trash_dialog.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/video_background.dart';
 import 'package:todo_cat/services/video_download_service.dart';
+import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
 /// 首页类，继承自 GetView<HomeController>
 class HomePage extends GetView<HomeController> {
@@ -41,111 +42,122 @@ class HomePage extends GetView<HomeController> {
   Widget build(BuildContext context) {
     // 在构建页面时就初始化 SettingsController
     Get.put(SettingsController(), permanent: true);
-    
+
     // 获取 AppController 以读取背景图片设置
     final appCtrl = Get.find<AppController>();
-    
+
     return Obx(() {
       final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
-      final isDefaultTemplate = backgroundImagePath != null && 
-                                backgroundImagePath.startsWith('default_template:');
-      final isCustomImage = backgroundImagePath != null && 
-                            !isDefaultTemplate && 
-                            backgroundImagePath.isNotEmpty && 
-                            GetPlatform.isDesktop &&
-                            File(backgroundImagePath).existsSync();
+      final isDefaultTemplate = backgroundImagePath != null &&
+          backgroundImagePath.startsWith('default_template:');
+      final isCustomImage = backgroundImagePath != null &&
+          !isDefaultTemplate &&
+          backgroundImagePath.isNotEmpty &&
+          GetPlatform.isDesktop &&
+          File(backgroundImagePath).existsSync();
       final hasBackground = isDefaultTemplate || isCustomImage;
-      final affectsNavBar = hasBackground ? appCtrl.appConfig.value.backgroundAffectsNavBar : false;
+      final affectsNavBar = hasBackground
+          ? appCtrl.appConfig.value.backgroundAffectsNavBar
+          : false;
       final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
       final blur = appCtrl.appConfig.value.backgroundImageBlur;
-      
+
       return Scaffold(
         floatingActionButton: _buildFloatingActionButton(context),
         body: hasBackground && affectsNavBar
             ? _buildWithBackground(backgroundImagePath, opacity, blur)
             : hasBackground && !affectsNavBar
-                ? _buildWithBackgroundNavOnly(backgroundImagePath, opacity, blur)
+                ? _buildWithBackgroundNavOnly(
+                    backgroundImagePath, opacity, blur)
                 : TodoCatScaffold(
-        title: _buildTitle(context),
-        leftWidgets: _buildLeftWidgets(),
-        rightWidgets: _buildRightWidgets(context),
-        body: context.isPhone
-            ? Obx(
-                () {
-                  final isSwitching = controller.isSwitchingWorkspace.value;
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchOutCurve: Curves.easeIn,
-                    switchInCurve: Curves.easeOut,
-                    transitionBuilder: (child, animation) {
-                      final fadeAnimation = animation.status == AnimationStatus.reverse
-                          ? animation
-                          : animation;
-                      return FadeTransition(
-                        opacity: fadeAnimation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0.1, 0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: fadeAnimation,
-                            curve: fadeAnimation.status == AnimationStatus.reverse
-                                ? Curves.easeIn
-                                : Curves.easeOut,
-                          )),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: isSwitching
-                        ? const SizedBox.shrink(key: ValueKey('switching'))
-                        : _TaskHorizontalListMobile(
-                            tasks: controller.reactiveTasks,
-                            key: const ValueKey('mobile_task_list'),
+                    title: _buildTitle(context),
+                    leftWidgets: _buildLeftWidgets(),
+                    rightWidgets: _buildRightWidgets(context),
+                    body: context.isPhone
+                        ? Obx(
+                            () {
+                              final isSwitching =
+                                  controller.isSwitchingWorkspace.value;
+                              return AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                switchOutCurve: Curves.easeIn,
+                                switchInCurve: Curves.easeOut,
+                                transitionBuilder: (child, animation) {
+                                  final fadeAnimation = animation.status ==
+                                          AnimationStatus.reverse
+                                      ? animation
+                                      : animation;
+                                  return FadeTransition(
+                                    opacity: fadeAnimation,
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(0.1, 0),
+                                        end: Offset.zero,
+                                      ).animate(CurvedAnimation(
+                                        parent: fadeAnimation,
+                                        curve: fadeAnimation.status ==
+                                                AnimationStatus.reverse
+                                            ? Curves.easeIn
+                                            : Curves.easeOut,
+                                      )),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: isSwitching
+                                    ? const SizedBox.shrink(
+                                        key: ValueKey('switching'))
+                                    : _TaskHorizontalListMobile(
+                                        tasks: controller.reactiveTasks,
+                                        key: const ValueKey('mobile_task_list'),
+                                      ),
+                              );
+                            },
+                          )
+                        : Obx(
+                            () {
+                              // 强制建立对 RxList 的依赖，避免 GetX 提示未使用可观察对象
+                              final _ = controller.reactiveTasks.length;
+                              final isSwitching =
+                                  controller.isSwitchingWorkspace.value;
+                              return AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                switchOutCurve: Curves.easeIn,
+                                switchInCurve: Curves.easeOut,
+                                transitionBuilder: (child, animation) {
+                                  // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
+                                  final fadeAnimation = animation.status ==
+                                          AnimationStatus.reverse
+                                      ? animation
+                                      : animation;
+                                  return FadeTransition(
+                                    opacity: fadeAnimation,
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(0.1, 0),
+                                        end: Offset.zero,
+                                      ).animate(CurvedAnimation(
+                                        parent: fadeAnimation,
+                                        curve: fadeAnimation.status ==
+                                                AnimationStatus.reverse
+                                            ? Curves.easeIn
+                                            : Curves.easeOut,
+                                      )),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: isSwitching
+                                    ? const SizedBox.shrink(
+                                        key: ValueKey('switching'))
+                                    : _TaskHorizontalList(
+                                        tasks: controller.reactiveTasks,
+                                      ),
+                              );
+                            },
                           ),
-                  );
-                },
-              )
-            : Obx(
-                () {
-                  // 强制建立对 RxList 的依赖，避免 GetX 提示未使用可观察对象
-                  final _ = controller.reactiveTasks.length;
-                  final isSwitching = controller.isSwitchingWorkspace.value;
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchOutCurve: Curves.easeIn,
-                    switchInCurve: Curves.easeOut,
-                    transitionBuilder: (child, animation) {
-                      // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
-                      final fadeAnimation = animation.status == AnimationStatus.reverse
-                          ? animation
-                          : animation;
-                      return FadeTransition(
-                        opacity: fadeAnimation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0.1, 0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: fadeAnimation,
-                            curve: fadeAnimation.status == AnimationStatus.reverse
-                                ? Curves.easeIn
-                                : Curves.easeOut,
-                          )),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: isSwitching
-                        ? const SizedBox.shrink(key: ValueKey('switching'))
-                        : _TaskHorizontalList(
-                            tasks: controller.reactiveTasks,
-                          ),
-                  );
-                },
-              ),
-      ),
-    );
+                  ),
+      );
     });
   }
 
@@ -155,17 +167,17 @@ class HomePage extends GetView<HomeController> {
     if (backgroundPath == null || backgroundPath.isEmpty) {
       return Container();
     }
-    
+
     // 获取背景设置
     final appCtrl = Get.find<AppController>();
     final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
     final blur = appCtrl.appConfig.value.backgroundImageBlur;
-    
+
     // 检查是否是默认模板
     if (backgroundPath.startsWith('default_template:')) {
       final templateId = backgroundPath.split(':').last;
       final template = DefaultBackgrounds.getById(templateId);
-      
+
       if (template != null) {
         // 移动端不支持视频背景，如果是视频模板，返回空容器
         if (template.isVideo && GetPlatform.isMobile) {
@@ -178,7 +190,8 @@ class HomePage extends GetView<HomeController> {
             // 使用稳定的 key 确保 Widget 不会被频繁重建
             return FutureBuilder<String?>(
               key: ValueKey('video_bg_future_$templateId'),
-              future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
+              future: VideoDownloadService()
+                  .getCachedVideoPath(template.downloadUrl!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Container(color: Colors.black);
@@ -277,16 +290,16 @@ class HomePage extends GetView<HomeController> {
       if (GetPlatform.isDesktop && File(backgroundPath).existsSync()) {
         // 检查是否是视频文件
         final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
-                       backgroundPath.toLowerCase().endsWith('.mov') ||
-                       backgroundPath.toLowerCase().endsWith('.avi') ||
-                       backgroundPath.toLowerCase().endsWith('.mkv') ||
-                       backgroundPath.toLowerCase().endsWith('.webm');
-        
+            backgroundPath.toLowerCase().endsWith('.mov') ||
+            backgroundPath.toLowerCase().endsWith('.avi') ||
+            backgroundPath.toLowerCase().endsWith('.mkv') ||
+            backgroundPath.toLowerCase().endsWith('.webm');
+
         // 移动端不支持视频背景
         if (isVideo && GetPlatform.isMobile) {
           return Container(color: Colors.transparent);
         }
-        
+
         if (isVideo) {
           // 使用视频背景
           // 使用 ExcludeSemantics 和稳定的 key 减少可访问性树更新
@@ -345,22 +358,23 @@ class HomePage extends GetView<HomeController> {
   /// 构建带背景的页面（影响导航栏）
   Widget _buildWithBackground(String imagePath, double opacity, double blur) {
     // 检查是否是视频
-    final isVideo = !imagePath.startsWith('default_template:') && 
-                   (imagePath.toLowerCase().endsWith('.mp4') ||
-                    imagePath.toLowerCase().endsWith('.mov') ||
-                    imagePath.toLowerCase().endsWith('.avi') ||
-                    imagePath.toLowerCase().endsWith('.mkv') ||
-                    imagePath.toLowerCase().endsWith('.webm')) ||
-                   (imagePath.startsWith('default_template:') && 
-                    DefaultBackgrounds.getById(imagePath.split(':').last)?.isVideo == true);
-    
+    final isVideo = !imagePath.startsWith('default_template:') &&
+            (imagePath.toLowerCase().endsWith('.mp4') ||
+                imagePath.toLowerCase().endsWith('.mov') ||
+                imagePath.toLowerCase().endsWith('.avi') ||
+                imagePath.toLowerCase().endsWith('.mkv') ||
+                imagePath.toLowerCase().endsWith('.webm')) ||
+        (imagePath.startsWith('default_template:') &&
+            DefaultBackgrounds.getById(imagePath.split(':').last)?.isVideo ==
+                true);
+
     return Stack(
       children: [
         // 背景图片/渐变层
         // 注意：VideoBackground 内部已经处理了 opacity，但图片背景需要外层 opacity
         Positioned.fill(
-          child: isVideo 
-              ? _getBackgroundWidget(imagePath) 
+          child: isVideo
+              ? _getBackgroundWidget(imagePath)
               : Opacity(
                   opacity: opacity,
                   child: _getBackgroundWidget(imagePath),
@@ -374,7 +388,7 @@ class HomePage extends GetView<HomeController> {
                 sigmaX: blur,
                 sigmaY: blur,
               ),
-              child: Container(color: Colors.white.withValues(alpha:0.0)),
+              child: Container(color: Colors.white.withValues(alpha: 0.0)),
             ),
           ),
         // 内容层（完全透明）
@@ -389,7 +403,8 @@ class HomePage extends GetView<HomeController> {
   }
 
   /// 构建带背景的页面（仅内容区域，不影响导航栏）
-  Widget _buildWithBackgroundNavOnly(String? imagePath, double opacity, double blur) {
+  Widget _buildWithBackgroundNavOnly(
+      String? imagePath, double opacity, double blur) {
     // 直接构建，不包裹在TodoCatScaffold中，手动处理导航栏和内容区域
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -427,7 +442,8 @@ class HomePage extends GetView<HomeController> {
                             sigmaX: blur,
                             sigmaY: blur,
                           ),
-                          child: Container(color: Colors.white.withValues(alpha:0.0)),
+                          child: Container(
+                              color: Colors.white.withValues(alpha: 0.0)),
                         ),
                       ),
                     // 内容层（完全透明）
@@ -456,9 +472,10 @@ class HomePage extends GetView<HomeController> {
                 switchOutCurve: Curves.easeIn,
                 switchInCurve: Curves.easeOut,
                 transitionBuilder: (child, animation) {
-                  final fadeAnimation = animation.status == AnimationStatus.reverse
-                      ? animation
-                      : animation;
+                  final fadeAnimation =
+                      animation.status == AnimationStatus.reverse
+                          ? animation
+                          : animation;
                   return FadeTransition(
                     opacity: fadeAnimation,
                     child: SlideTransition(
@@ -513,9 +530,10 @@ class HomePage extends GetView<HomeController> {
                   switchInCurve: Curves.easeOut,
                   transitionBuilder: (child, animation) {
                     // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
-                    final fadeAnimation = animation.status == AnimationStatus.reverse
-                        ? animation
-                        : animation;
+                    final fadeAnimation =
+                        animation.status == AnimationStatus.reverse
+                            ? animation
+                            : animation;
                     return FadeTransition(
                       opacity: fadeAnimation,
                       child: SlideTransition(
@@ -578,7 +596,7 @@ class HomePage extends GetView<HomeController> {
   /// 构建左侧控件列表
   List<Widget> _buildLeftWidgets() {
     final widgets = <Widget>[];
-    
+
     // 始终显示logo
     widgets.addAll([
       Image.asset(
@@ -591,11 +609,11 @@ class HomePage extends GetView<HomeController> {
         width: 20,
       ),
     ]);
-    
+
     // 工作空间选择器
     widgets.add(_buildWorkspaceSelector());
     widgets.add(const SizedBox(width: 20));
-    
+
     return widgets;
   }
 
@@ -604,27 +622,27 @@ class HomePage extends GetView<HomeController> {
     if (!Get.isRegistered<WorkspaceController>()) {
       return const SizedBox.shrink();
     }
-    
+
     final workspaceCtrl = Get.find<WorkspaceController>();
-    
+
     return Obx(() {
       final workspaces = workspaceCtrl.workspaces;
-      
+
       if (workspaces.isEmpty) {
         return const SizedBox.shrink();
       }
-      
+
       return Builder(
         builder: (context) {
           // 使用 Obx 确保菜单项能够响应 currentWorkspaceId 的变化
           return Obx(() {
             final menuItems = <MenuItem>[];
             final currentWorkspaceId = workspaceCtrl.currentWorkspaceId.value;
-            
+
             // 添加工作空间选项
             for (var workspace in workspaces) {
               final isCurrent = workspace.uuid == currentWorkspaceId;
-              
+
               // 如果不是默认工作空间，构建包含重命名和删除按钮的 trailingWidget
               Widget? trailingWidget;
               if (workspace.uuid != 'default') {
@@ -663,7 +681,8 @@ class HomePage extends GetView<HomeController> {
                             confirmMode: true,
                             toastStyleType: TodoCatToastStyleType.error,
                             onYesCallback: () async {
-                              final deleted = await workspaceCtrl.deleteWorkspace(workspace.uuid);
+                              final deleted = await workspaceCtrl
+                                  .deleteWorkspace(workspace.uuid);
                               if (deleted) {
                                 // 刷新回收站数据
                                 if (Get.isRegistered<TrashController>()) {
@@ -674,10 +693,12 @@ class HomePage extends GetView<HomeController> {
                                 showUndoToast(
                                   '${'workspaceDeleted'.tr}「${workspace.name}」',
                                   () async {
-                                    await workspaceCtrl.restoreWorkspace(workspace.uuid);
+                                    await workspaceCtrl
+                                        .restoreWorkspace(workspace.uuid);
                                     // 刷新回收站数据
                                     if (Get.isRegistered<TrashController>()) {
-                                      final trashCtrl = Get.find<TrashController>();
+                                      final trashCtrl =
+                                          Get.find<TrashController>();
                                       await trashCtrl.refresh();
                                     }
                                   },
@@ -700,7 +721,7 @@ class HomePage extends GetView<HomeController> {
                   ],
                 );
               }
-              
+
               menuItems.add(
                 MenuItem(
                   title: workspace.name,
@@ -712,7 +733,7 @@ class HomePage extends GetView<HomeController> {
                 ),
               );
             }
-            
+
             // 构建管理选项
             final createWorkspaceItem = MenuItem(
               title: 'createWorkspace',
@@ -721,7 +742,7 @@ class HomePage extends GetView<HomeController> {
                 showCreateWorkspaceDialog();
               },
             );
-            
+
             return DropdownManuBtn(
               id: 'workspace_selector',
               content: DPDMenuContent(
@@ -741,7 +762,8 @@ class HomePage extends GetView<HomeController> {
                     ),
                   ),
                   // 添加管理选项
-                  DPDMenuContent.buildMenuItem(context, createWorkspaceItem, 'workspace_selector'),
+                  DPDMenuContent.buildMenuItem(
+                      context, createWorkspaceItem, 'workspace_selector'),
                 ],
               ),
               alignment: Alignment.bottomRight,
@@ -754,7 +776,7 @@ class HomePage extends GetView<HomeController> {
                   final displayName = currentWorkspace?.uuid == 'default'
                       ? 'defaultWorkspace'.tr
                       : (currentWorkspace?.name ?? 'defaultWorkspace'.tr);
-                  
+
                   return Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -817,10 +839,13 @@ class HomePage extends GetView<HomeController> {
   /// 构建回收站按钮
   Widget _buildTrashButton() {
     return GetBuilder<TrashController>(
-      init: Get.isRegistered<TrashController>() ? Get.find<TrashController>() : TrashController(),
+      init: Get.isRegistered<TrashController>()
+          ? Get.find<TrashController>()
+          : TrashController(),
       builder: (trashCtrl) {
         return Obx(() {
-          final deletedCount = trashCtrl.deletedTasks.length + trashCtrl.deletedWorkspaces.length;
+          final deletedCount = trashCtrl.deletedTasks.length +
+              trashCtrl.deletedWorkspaces.length;
           return badges.Badge(
             showBadge: deletedCount > 0,
             badgeContent: Text(
@@ -893,127 +918,43 @@ class HomePage extends GetView<HomeController> {
 
   /// 显示回收站对话框
   void _showTrashDialog(BuildContext context) {
-    SmartDialog.show(
+    PlatformDialogWrapper.show(
+      tag: 'trash_dialog',
+      content: const TrashDialog(),
       useSystem: false,
       debounce: true,
       keepSingle: true,
-      tag: 'trash_dialog',
       backType: SmartBackType.normal,
       animationTime: const Duration(milliseconds: 200),
-      alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
-      builder: (_) => context.isPhone
-          ? const Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: TrashDialog(),
-              ),
-            )
-          : const TrashDialog(),
       clickMaskDismiss: true,
-      animationBuilder: (controller, child, _) {
-        return child
-            .animate(controller: controller)
-            .fade(duration: controller.duration)
-            .scaleXY(
-              begin: 0.95,
-              duration: controller.duration,
-              curve: Curves.easeOut,
-            );
-      },
     );
   }
 
   /// 显示通知中心对话框
   void _showNotificationCenter() {
-    final context = Get.context!;
-    SmartDialog.show(
+    PlatformDialogWrapper.show(
+      tag: 'notification_center_dialog',
+      content: const NotificationCenterDialog(),
       useSystem: false,
       debounce: true,
       keepSingle: true,
-      tag: 'notification_center_dialog',
       backType: SmartBackType.normal,
       animationTime: const Duration(milliseconds: 200),
-      alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
-      builder: (_) => context.isPhone
-          ? const Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: NotificationCenterDialog(),
-              ),
-            )
-          : const NotificationCenterDialog(),
       clickMaskDismiss: true,
-      animationBuilder: (controller, child, _) {
-        final animation = child
-            .animate(controller: controller)
-            .fade(duration: controller.duration);
-        
-        return context.isPhone
-            ? animation
-                .scaleXY(
-                  begin: 0.97,
-                  duration: controller.duration,
-                  curve: Curves.easeIn,
-                )
-                .moveY(
-                  begin: 0.6.sh,
-                  duration: controller.duration,
-                  curve: Curves.easeOutCirc,
-                )
-            : animation.scaleXY(
-                begin: 0.95,
-                duration: controller.duration,
-                curve: Curves.easeOut,
-              );
-      },
     );
   }
 
   /// 添加显示对话框的方法
   void _showTaskDialog(BuildContext context) {
-    SmartDialog.show(
+    PlatformDialogWrapper.show(
+      tag: addTaskDialogTag,
+      content: const TaskDialog(dialogTag: addTaskDialogTag),
       useSystem: false,
       debounce: true,
       keepSingle: true,
-      tag: addTaskDialogTag,
       backType: SmartBackType.normal,
       animationTime: const Duration(milliseconds: 150),
-      alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
-      builder: (_) => context.isPhone
-          ? const Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: TaskDialog(dialogTag: addTaskDialogTag),
-              ),
-            )
-          : const TaskDialog(dialogTag: addTaskDialogTag),
       clickMaskDismiss: false,
-      animationBuilder: (controller, child, _) {
-        final animation = child
-            .animate(controller: controller)
-            .fade(duration: controller.duration);
-
-        return context.isPhone
-            ? animation
-                .scaleXY(
-                  begin: 0.97,
-                  duration: controller.duration,
-                  curve: Curves.easeIn,
-                )
-                .moveY(
-                  begin: 0.6.sh,
-                  duration: controller.duration,
-                  curve: Curves.easeOutCirc,
-                )
-            : animation.scaleXY(
-                begin: 0.98,
-                duration: controller.duration,
-                curve: Curves.easeIn,
-              );
-      },
     );
   }
 }
@@ -1021,7 +962,7 @@ class HomePage extends GetView<HomeController> {
 /// Task横向列表组件，支持拖拽排序和边缘自动滚动
 class _TaskHorizontalList extends StatefulWidget {
   final RxList<Task> tasks;
-  
+
   const _TaskHorizontalList({required this.tasks});
 
   @override
@@ -1033,7 +974,7 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
   Timer? _scrollTimer;
   final bool _isDragging = false;
   final Map<String, GlobalKey> _listKeys = {}; // 每列区域的 GlobalKey
-  
+
   @override
   void initState() {
     super.initState();
@@ -1064,7 +1005,10 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
       if (renderObject == null || !renderObject.attached) continue;
       final local = renderObject.globalToLocal(globalPosition);
       final size = renderObject.size;
-      if (local.dx >= 0 && local.dx <= size.width && local.dy >= 0 && local.dy <= size.height) {
+      if (local.dx >= 0 &&
+          local.dx <= size.width &&
+          local.dy >= 0 &&
+          local.dy <= size.height) {
         return true;
       }
     }
@@ -1080,11 +1024,13 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
 
   void _startEdgeScroll(double dx, double screenWidth) {
     _scrollTimer?.cancel();
-    
+
     const scrollThreshold = 150;
     const scrollSpeed = 20.0;
-    
-    if (dx < scrollThreshold && _scrollController.hasClients && _scrollController.offset > 0) {
+
+    if (dx < scrollThreshold &&
+        _scrollController.hasClients &&
+        _scrollController.offset > 0) {
       // 接近左边缘，向左滚动
       _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
         if (!mounted || !_isDragging) {
@@ -1129,10 +1075,10 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
         if (pointerSignal is PointerScrollEvent) {
           final scrollDeltaX = pointerSignal.scrollDelta.dx;
           final scrollDeltaY = pointerSignal.scrollDelta.dy;
-          
+
           // 检查鼠标是否在某个TaskCard上
           final isOverTaskCard = _isPointerOverTaskCard(pointerSignal.position);
-          
+
           if (_scrollController.hasClients) {
             // 如果指针位于 TaskCard 内部，且垂直滚动占主导（|dy| >= |dx|），
             // 直接交给内部 todolist 处理，外层不消费该滚轮事件
@@ -1180,7 +1126,8 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
         _scrollTimer?.cancel();
       },
       child: Padding(
-        padding: const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
+        padding:
+            const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
         child: Align(
           alignment: Alignment.topLeft, // 使用 start-start 对齐（左上角）
           child: Obx(() {
@@ -1201,11 +1148,12 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
 /// 移动端Task横向列表组件，使用AppFlowyBoard布局，支持锚点吸附
 class _TaskHorizontalListMobile extends StatefulWidget {
   final RxList<Task> tasks;
-  
+
   const _TaskHorizontalListMobile({required this.tasks, super.key});
 
   @override
-  State<_TaskHorizontalListMobile> createState() => _TaskHorizontalListMobileState();
+  State<_TaskHorizontalListMobile> createState() =>
+      _TaskHorizontalListMobileState();
 }
 
 class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
@@ -1215,7 +1163,7 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
   bool _isUserScrolling = false; // 标记用户是否正在主动滚动
   double _lastScrollOffset = 0.0; // 上次滚动位置
   DateTime _lastScrollTime = DateTime.now(); // 上次滚动时间
-  
+
   @override
   void initState() {
     super.initState();
@@ -1228,14 +1176,15 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
     // 等待ScrollController attach后再添加滚动状态监听
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _scrollController.hasClients) {
-        _scrollController.position.isScrollingNotifier.addListener(_onScrollingStateChanged);
+        _scrollController.position.isScrollingNotifier
+            .addListener(_onScrollingStateChanged);
       }
     });
   }
-  
+
   void _onScrollingStateChanged() {
     if (!_scrollController.hasClients) return;
-    
+
     final isScrolling = _scrollController.position.isScrollingNotifier.value;
     if (isScrolling) {
       // 用户开始滚动
@@ -1259,10 +1208,10 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
     super.didUpdateWidget(oldWidget);
     // 更新task keys
     final currentTaskIds = widget.tasks.map((t) => t.uuid).toSet();
-    
+
     // 移除不存在的task keys
     _taskKeys.removeWhere((id, _) => !currentTaskIds.contains(id));
-    
+
     // 添加新的task keys
     for (final task in widget.tasks) {
       if (!_taskKeys.containsKey(task.uuid)) {
@@ -1273,15 +1222,15 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
-    
+
     // 检测滚动速度
     final now = DateTime.now();
     final timeDelta = now.difference(_lastScrollTime).inMilliseconds;
     final offsetDelta = (_scrollController.offset - _lastScrollOffset).abs();
-    
+
     _lastScrollOffset = _scrollController.offset;
     _lastScrollTime = now;
-    
+
     // 如果用户正在主动滚动（滚动速度较快），不执行锚点吸附
     if (timeDelta > 0 && offsetDelta / timeDelta > 0.5) {
       // 滚动速度较快，说明用户正在主动滚动
@@ -1289,7 +1238,7 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
       _snapTimer?.cancel();
       return;
     }
-    
+
     // 如果用户没有主动滚动，才考虑执行锚点吸附
     // 但这里不立即执行，而是等待滚动停止（由_isScrollingNotifier处理）
   }
@@ -1297,40 +1246,44 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
   /// 吸附到最近的task中心（使用GlobalKey实际测量位置）
   void _snapToNearestTask() {
     if (!_scrollController.hasClients || widget.tasks.isEmpty) return;
-    
+
     final screenWidth = MediaQuery.of(context).size.width;
     final scrollOffset = _scrollController.offset;
     final screenCenter = scrollOffset + screenWidth / 2;
-    
+
     // 找到最近的task索引（通过实际测量位置）
     double minDistance = double.infinity;
     int nearestIndex = 0;
-    
+
     // 获取滚动视图的RenderBox，用于坐标转换
-    final scrollViewRenderBox = _scrollController.position.context.storageContext
-        .findRenderObject() as RenderBox?;
-    
+    final scrollViewRenderBox =
+        _scrollController.position.context.storageContext.findRenderObject()
+            as RenderBox?;
+
     for (int i = 0; i < widget.tasks.length; i++) {
       final task = widget.tasks[i];
       final key = _taskKeys[task.uuid];
-      
+
       if (key?.currentContext != null && scrollViewRenderBox != null) {
         // 获取task的实际位置
-        final RenderBox? renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
+        final RenderBox? renderBox =
+            key?.currentContext?.findRenderObject() as RenderBox?;
         if (renderBox != null && renderBox.hasSize) {
           // 获取task相对于滚动视图的位置
           // 先获取task在屏幕上的位置
           final globalPosition = renderBox.localToGlobal(Offset.zero);
           // 然后转换为相对于滚动视图的位置
-          final scrollViewPosition = scrollViewRenderBox.globalToLocal(globalPosition);
+          final scrollViewPosition =
+              scrollViewRenderBox.globalToLocal(globalPosition);
           // task在滚动视图中的中心位置（相对于滚动视图的起始位置）
-          final taskCenterInScrollView = scrollViewPosition.dx + renderBox.size.width / 2;
+          final taskCenterInScrollView =
+              scrollViewPosition.dx + renderBox.size.width / 2;
           // task在滚动视图中的绝对位置 = 滚动偏移 + 相对位置
           final taskCenter = scrollOffset + taskCenterInScrollView;
-          
+
           // 计算距离屏幕中心的距离
           final distance = (screenCenter - taskCenter).abs();
-          
+
           if (distance < minDistance) {
             minDistance = distance;
             nearestIndex = i;
@@ -1338,31 +1291,31 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
         }
       }
     }
-    
+
     // 如果无法通过GlobalKey获取位置，回退到计算方式
     if (minDistance == double.infinity) {
       // 使用计算方式作为后备
       final listWidth = 0.9.sw;
-      final groupMargin = 8.0;
-      final outerPadding = 20.0;
-      final firstTaskStart = outerPadding + groupMargin;
+      const groupMargin = 8.0;
+      const outerPadding = 20.0;
+      const firstTaskStart = outerPadding + groupMargin;
       final firstTaskCenter = firstTaskStart + listWidth / 2;
       final taskSpacing = listWidth + groupMargin * 2;
-      
+
       for (int i = 0; i < widget.tasks.length; i++) {
         final taskCenter = firstTaskCenter + i * taskSpacing;
         final distance = (screenCenter - taskCenter).abs();
-        
+
         if (distance < minDistance) {
           minDistance = distance;
           nearestIndex = i;
         }
       }
-      
+
       // 计算目标滚动位置
       final targetTaskCenter = firstTaskCenter + nearestIndex * taskSpacing;
       final targetScrollOffset = targetTaskCenter - screenWidth / 2;
-      
+
       _scrollController.animateTo(
         targetScrollOffset.clamp(
           0.0,
@@ -1373,28 +1326,31 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
       );
       return;
     }
-    
+
     // 使用实际测量的位置来计算目标滚动位置
     final targetTask = widget.tasks[nearestIndex];
     final targetKey = _taskKeys[targetTask.uuid];
-    
+
     if (targetKey?.currentContext != null && scrollViewRenderBox != null) {
-      final RenderBox? renderBox = targetKey!.currentContext!.findRenderObject() as RenderBox?;
+      final RenderBox? renderBox =
+          targetKey!.currentContext!.findRenderObject() as RenderBox?;
       if (renderBox != null && renderBox.hasSize) {
         // 获取task相对于滚动视图的位置
         final globalPosition = renderBox.localToGlobal(Offset.zero);
-        final scrollViewPosition = scrollViewRenderBox.globalToLocal(globalPosition);
+        final scrollViewPosition =
+            scrollViewRenderBox.globalToLocal(globalPosition);
         // task在滚动视图中的中心位置（相对于滚动视图的起始位置）
         // scrollViewPosition.dx 已经是相对于滚动视图的位置，不需要再加上scrollOffset
-        final taskCenterInScrollView = scrollViewPosition.dx + renderBox.size.width / 2;
-        
+        final taskCenterInScrollView =
+            scrollViewPosition.dx + renderBox.size.width / 2;
+
         // 计算需要滚动到的位置：让task的中心对齐屏幕中心
         // 屏幕中心在滚动视图中的位置 = scrollOffset + screenWidth / 2
         // 要让task的中心对齐屏幕中心，需要：
         // taskCenterInScrollView = targetScrollOffset + screenWidth / 2
         // 所以：targetScrollOffset = taskCenterInScrollView - screenWidth / 2
         final targetScrollOffset = taskCenterInScrollView - screenWidth / 2;
-        
+
         // 平滑滚动到目标位置
         _scrollController.animateTo(
           targetScrollOffset.clamp(
@@ -1412,7 +1368,8 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
   void dispose() {
     _snapTimer?.cancel();
     if (_scrollController.hasClients) {
-      _scrollController.position.isScrollingNotifier.removeListener(_onScrollingStateChanged);
+      _scrollController.position.isScrollingNotifier
+          .removeListener(_onScrollingStateChanged);
     }
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
@@ -1424,7 +1381,7 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
     return Obx(() {
       // 强制建立对 RxList 的依赖
       final _ = widget.tasks.length;
-      
+
       if (widget.tasks.isEmpty) {
         return Center(
           child: Text(
@@ -1438,10 +1395,11 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
           ),
         );
       }
-      
+
       // 使用和桌面端一样的AppFlowyTodosBoard，但传入自定义的ScrollController和task keys
       return Padding(
-        padding: const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
+        padding:
+            const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
         child: Align(
           alignment: Alignment.topLeft,
           child: _AppFlowyBoardWithSnap(
@@ -1462,7 +1420,7 @@ class _AppFlowyBoardWithSnap extends StatelessWidget {
   final double listWidth;
   final ScrollController scrollController;
   final Map<String, GlobalKey> taskKeys;
-  
+
   const _AppFlowyBoardWithSnap({
     required this.tasks,
     required this.listWidth,
@@ -1480,4 +1438,3 @@ class _AppFlowyBoardWithSnap extends StatelessWidget {
     );
   }
 }
-

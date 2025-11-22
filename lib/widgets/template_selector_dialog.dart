@@ -17,13 +17,14 @@ import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/config/default_backgrounds.dart';
 import 'package:todo_cat/widgets/video_background.dart';
 import 'package:todo_cat/services/video_download_service.dart';
+import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
 enum TaskTemplateType {
-  empty,    // 空模板
-  content,  // 学生日程模板
-  work,     // 工作管理模板
-  fitness,  // 健身训练模板
-  travel,   // 旅行计划模板
+  empty, // 空模板
+  content, // 学生日程模板
+  work, // 工作管理模板
+  fitness, // 健身训练模板
+  travel, // 旅行计划模板
 }
 
 class TemplateSelectorDialog extends StatefulWidget {
@@ -79,122 +80,131 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                 )
               : BorderRadius.circular(10),
         ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          // 标题栏
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: context.theme.dividerColor,
-                  width: 0.3,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            // 标题栏
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: context.theme.dividerColor,
+                    width: 0.3,
+                  ),
                 ),
               ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'selectTaskTemplate'.tr,
-                  style: FontUtils.getBoldStyle(fontSize: 20),
-                ),
-                LabelBtn(
-                  ghostStyle: true,
-                  label: Text('cancel'.tr),
-                  onPressed: () => SmartDialog.dismiss(tag: 'template_selector'),
-                ),
-              ],
-            ),
-          ),
-          // 内容区域 - 使用 Expanded 和 SingleChildScrollView 使其可滚动
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                // 显示自定义模板（放在前面）
-                if (_customTemplates.isNotEmpty) ...[
                   Text(
-                    'customTemplates'.tr,
-                    style: FontUtils.getTextStyle(
-                      fontSize: 14,
-                      color: context.theme.textTheme.bodyMedium?.color,
-                    ),
+                    'selectTaskTemplate'.tr,
+                    style: FontUtils.getBoldStyle(fontSize: 20),
                   ),
-                  const SizedBox(height: 12),
-                  ..._customTemplates.map((template) => 
-                    _buildCustomTemplateOption(context, template),
-                  ).toList(),
-                  const SizedBox(height: 24),
-                  Divider(color: context.theme.dividerColor.withValues(alpha:0.3)),
-                  const SizedBox(height: 12),
+                  LabelBtn(
+                    ghostStyle: true,
+                    label: Text('cancel'.tr),
+                    onPressed: () =>
+                        SmartDialog.dismiss(tag: 'template_selector'),
+                  ),
                 ],
-                Text(
-                  _customTemplates.isNotEmpty ? 'default'.tr : 'selectTemplateType'.tr,
-                  style: FontUtils.getTextStyle(
-                    fontSize: 14,
-                    color: context.theme.textTheme.bodyMedium?.color,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _buildTemplateOption(
-                  context,
-                  TaskTemplateType.empty,
-                  'emptyTemplate'.tr,
-                  'emptyTemplateDescription'.tr,
-                  Icons.checklist_outlined,
-                  Colors.blue,
-                ),
-                const SizedBox(height: 12),
-                _buildTemplateOption(
-                  context,
-                  TaskTemplateType.content,
-                  'studentScheduleTemplate'.tr,
-                  'studentScheduleTemplateDescription'.tr,
-                  Icons.school_outlined,
-                  Colors.green,
-                ),
-                const SizedBox(height: 12),
-                _buildTemplateOption(
-                  context,
-                  TaskTemplateType.work,
-                  'workManagementTemplate'.tr,
-                  'workManagementTemplateDescription'.tr,
-                  Icons.work_outline,
-                  Colors.orange,
-                ),
-                const SizedBox(height: 12),
-                _buildTemplateOption(
-                  context,
-                  TaskTemplateType.fitness,
-                  'fitnessTrainingTemplate'.tr,
-                  'fitnessTrainingTemplateDescription'.tr,
-                  Icons.fitness_center,
-                  Colors.purple,
-                ),
-                const SizedBox(height: 12),
-                _buildTemplateOption(
-                  context,
-                  TaskTemplateType.travel,
-                  'travelPlanTemplate'.tr,
-                  'travelPlanTemplateDescription'.tr,
-                  Icons.flight_takeoff,
-                  Colors.teal,
-                ),
-              ],
               ),
             ),
-          ),
-        ],
-      ),
+            // 内容区域 - 使用 Expanded 和 SingleChildScrollView 使其可滚动
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 显示自定义模板（放在前面）
+                    if (_customTemplates.isNotEmpty) ...[
+                      Text(
+                        'customTemplates'.tr,
+                        style: FontUtils.getTextStyle(
+                          fontSize: 14,
+                          color: context.theme.textTheme.bodyMedium?.color,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ..._customTemplates
+                          .map(
+                            (template) =>
+                                _buildCustomTemplateOption(context, template),
+                          )
+                          .toList(),
+                      const SizedBox(height: 24),
+                      Divider(
+                          color: context.theme.dividerColor
+                              .withValues(alpha: 0.3)),
+                      const SizedBox(height: 12),
+                    ],
+                    Text(
+                      _customTemplates.isNotEmpty
+                          ? 'default'.tr
+                          : 'selectTemplateType'.tr,
+                      style: FontUtils.getTextStyle(
+                        fontSize: 14,
+                        color: context.theme.textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTemplateOption(
+                      context,
+                      TaskTemplateType.empty,
+                      'emptyTemplate'.tr,
+                      'emptyTemplateDescription'.tr,
+                      Icons.checklist_outlined,
+                      Colors.blue,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTemplateOption(
+                      context,
+                      TaskTemplateType.content,
+                      'studentScheduleTemplate'.tr,
+                      'studentScheduleTemplateDescription'.tr,
+                      Icons.school_outlined,
+                      Colors.green,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTemplateOption(
+                      context,
+                      TaskTemplateType.work,
+                      'workManagementTemplate'.tr,
+                      'workManagementTemplateDescription'.tr,
+                      Icons.work_outline,
+                      Colors.orange,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTemplateOption(
+                      context,
+                      TaskTemplateType.fitness,
+                      'fitnessTrainingTemplate'.tr,
+                      'fitnessTrainingTemplateDescription'.tr,
+                      Icons.fitness_center,
+                      Colors.purple,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTemplateOption(
+                      context,
+                      TaskTemplateType.travel,
+                      'travelPlanTemplate'.tr,
+                      'travelPlanTemplateDescription'.tr,
+                      Icons.flight_takeoff,
+                      Colors.teal,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-  
-  Widget _buildCustomTemplateOption(BuildContext context, CustomTemplate template) {
+
+  Widget _buildCustomTemplateOption(
+      BuildContext context, CustomTemplate template) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: _CustomTemplateOptionWidget(
@@ -208,7 +218,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       ),
     );
   }
-  
+
   Future<void> _deleteCustomTemplate(CustomTemplate template) async {
     showToast(
       'confirmDeleteTemplate'.tr,
@@ -229,8 +239,9 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       },
     );
   }
-  
-  void _showConfirmDialogForCustom(BuildContext context, CustomTemplate template, bool shouldClosePreview) {
+
+  void _showConfirmDialogForCustom(
+      BuildContext context, CustomTemplate template, bool shouldClosePreview) {
     // 检查当前工作空间是否有任务
     bool hasTasks = false;
     if (Get.isRegistered<HomeController>()) {
@@ -242,7 +253,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
         hasTasks = true;
       }
     }
-    
+
     // 如果没有任务，直接应用模板，不显示确认提示
     if (!hasTasks) {
       widget.onCustomTemplateSelected?.call(template);
@@ -255,7 +266,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       showSuccessNotification("taskTemplateApplied".tr);
       return;
     }
-    
+
     // 如果有任务，显示确认对话框
     showToast(
       "${'confirmApplyTemplate'.tr}「${template.name}」",
@@ -296,7 +307,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
     );
   }
 
-  void _showConfirmDialog(BuildContext context, TaskTemplateType type, String title, bool shouldClosePreview) {
+  void _showConfirmDialog(BuildContext context, TaskTemplateType type,
+      String title, bool shouldClosePreview) {
     // 检查当前工作空间是否有任务
     bool hasTasks = false;
     if (Get.isRegistered<HomeController>()) {
@@ -308,7 +320,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
         hasTasks = true;
       }
     }
-    
+
     // 如果没有任务，直接应用模板，不显示确认提示
     if (!hasTasks) {
       widget.onTemplateSelected(type);
@@ -321,7 +333,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       showSuccessNotification("taskTemplateApplied".tr);
       return;
     }
-    
+
     // 如果有任务，显示确认对话框
     showToast(
       "${'confirmApplyTemplate'.tr}「$title」",
@@ -356,10 +368,12 @@ class _CustomTemplateOptionWidget extends StatefulWidget {
   });
 
   @override
-  State<_CustomTemplateOptionWidget> createState() => _CustomTemplateOptionWidgetState();
+  State<_CustomTemplateOptionWidget> createState() =>
+      _CustomTemplateOptionWidgetState();
 }
 
-class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget> {
+class _CustomTemplateOptionWidgetState
+    extends State<_CustomTemplateOptionWidget> {
   bool _isPreviewShowing = false;
   late final ScrollController _scrollController;
 
@@ -377,38 +391,24 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
 
   void _showPreview() {
     if (_isPreviewShowing) return;
-    
+
     _isPreviewShowing = true;
-    
-    SmartDialog.show(
+
+    PlatformDialogWrapper.show(
       tag: 'custom_template_preview_${widget.template.id}',
-      alignment: Alignment.center,
-      maskColor: Colors.black.withValues(alpha:0.3),
+      content: _buildPreviewOverlay(),
+      maskColor: Colors.black.withValues(alpha: 0.3),
       clickMaskDismiss: true,
       useSystem: false,
       onDismiss: () {
         _isPreviewShowing = false;
       },
-      builder: (_) => _buildPreviewOverlay(),
-      animationBuilder: (controller, child, _) => ScaleTransition(
-        scale: Tween<double>(
-          begin: 0.95,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: controller,
-          curve: Curves.easeOutCubic,
-        )),
-        child: FadeTransition(
-          opacity: controller,
-          child: child,
-        ),
-      ),
     );
   }
 
   void _hidePreview() {
     if (!_isPreviewShowing) return;
-    
+
     SmartDialog.dismiss(tag: 'custom_template_preview_${widget.template.id}');
     _isPreviewShowing = false;
   }
@@ -427,7 +427,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: context.theme.dividerColor.withValues(alpha:0.3),
+            color: context.theme.dividerColor.withValues(alpha: 0.3),
             width: 0.5,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -438,7 +438,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.deepPurple.withValues(alpha:0.1),
+                color: Colors.deepPurple.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -465,7 +465,8 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                       widget.template.description!,
                       style: FontUtils.getTextStyle(
                         fontSize: 13,
-                        color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
+                        color: context.theme.textTheme.bodyMedium?.color
+                            ?.withValues(alpha: 0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -482,7 +483,8 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5),
+              color: context.theme.textTheme.bodyMedium?.color
+                  ?.withValues(alpha: 0.5),
             ),
           ],
         ),
@@ -507,25 +509,25 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
 
   Widget _buildPreview() {
     final templates = widget.template.getTasks();
-    
+
     // 计算对话框宽度：屏幕宽度的90%，最大不超过1600（约6个卡片）
     final screenWidth = MediaQuery.of(context).size.width;
     final maxWidth = (screenWidth * 0.9).clamp(800.0, 1600.0);
-    
+
     // 获取背景设置
     final appCtrl = Get.find<AppController>();
     final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
-    final isDefaultTemplate = backgroundImagePath != null && 
-                              backgroundImagePath.startsWith('default_template:');
-    final isCustomImage = backgroundImagePath != null && 
-                          !isDefaultTemplate && 
-                          backgroundImagePath.isNotEmpty && 
-                          GetPlatform.isDesktop &&
-                          File(backgroundImagePath).existsSync();
+    final isDefaultTemplate = backgroundImagePath != null &&
+        backgroundImagePath.startsWith('default_template:');
+    final isCustomImage = backgroundImagePath != null &&
+        !isDefaultTemplate &&
+        backgroundImagePath.isNotEmpty &&
+        GetPlatform.isDesktop &&
+        File(backgroundImagePath).existsSync();
     final hasBackground = isDefaultTemplate || isCustomImage;
     final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
     final blur = appCtrl.appConfig.value.backgroundImageBlur;
-    
+
     return Material(
       color: Colors.transparent,
       child: Container(
@@ -538,7 +540,7 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -564,7 +566,8 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                       sigmaX: blur,
                       sigmaY: blur,
                     ),
-                    child: Container(color: Colors.white.withValues(alpha:0.0)),
+                    child:
+                        Container(color: Colors.white.withValues(alpha: 0.0)),
                   ),
                 ),
               // 内容层
@@ -573,11 +576,13 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                 children: [
                   // 标题栏
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 15),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: context.theme.dividerColor.withValues(alpha:0.3),
+                          color:
+                              context.theme.dividerColor.withValues(alpha: 0.3),
                           width: 0.5,
                         ),
                       ),
@@ -593,7 +598,8 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             LabelBtn(
-                              label: Text('apply'.tr,style:const TextStyle(color: Colors.white)),
+                              label: Text('apply'.tr,
+                                  style: const TextStyle(color: Colors.white)),
                               onPressed: _applyTemplate,
                               bgColor: Colors.lightBlue,
                             ),
@@ -605,13 +611,15 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: context.theme.dividerColor.withValues(alpha:0.1),
+                                    color: context.theme.dividerColor
+                                        .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Icon(
                                     Icons.close,
                                     size: 18,
-                                    color: context.theme.textTheme.bodyMedium?.color,
+                                    color: context
+                                        .theme.textTheme.bodyMedium?.color,
                                   ),
                                 ),
                               ),
@@ -634,10 +642,12 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ...templates.map((task) => Padding(
-                              padding: const EdgeInsets.only(right: 50),
-                              child: _buildPreviewTaskCard(task),
-                            )).toList(),
+                            ...templates
+                                .map((task) => Padding(
+                                      padding: const EdgeInsets.only(right: 50),
+                                      child: _buildPreviewTaskCard(task),
+                                    ))
+                                .toList(),
                           ],
                         ),
                       ),
@@ -658,19 +668,21 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
     final appCtrl = Get.find<AppController>();
     final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
     final blur = appCtrl.appConfig.value.backgroundImageBlur;
-    
+
     // 检查是否是默认模板
-    if (backgroundPath != null && backgroundPath.startsWith('default_template:')) {
+    if (backgroundPath != null &&
+        backgroundPath.startsWith('default_template:')) {
       final templateId = backgroundPath.split(':').last;
       final template = DefaultBackgrounds.getById(templateId);
-      
+
       if (template != null) {
         // 检查是否为视频模板
         if (template.isVideo) {
           // 如果有downloadUrl，优先使用缓存路径，否则使用URL
           if (template.downloadUrl != null) {
             return FutureBuilder<String?>(
-              future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
+              future: VideoDownloadService()
+                  .getCachedVideoPath(template.downloadUrl!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Container(color: Colors.black);
@@ -757,13 +769,15 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
       }
     } else {
       // 自定义图片或视频
-      if (backgroundPath != null && GetPlatform.isDesktop && File(backgroundPath).existsSync()) {
+      if (backgroundPath != null &&
+          GetPlatform.isDesktop &&
+          File(backgroundPath).existsSync()) {
         final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
-                       backgroundPath.toLowerCase().endsWith('.mov') ||
-                       backgroundPath.toLowerCase().endsWith('.avi') ||
-                       backgroundPath.toLowerCase().endsWith('.mkv') ||
-                       backgroundPath.toLowerCase().endsWith('.webm');
-        
+            backgroundPath.toLowerCase().endsWith('.mov') ||
+            backgroundPath.toLowerCase().endsWith('.avi') ||
+            backgroundPath.toLowerCase().endsWith('.mkv') ||
+            backgroundPath.toLowerCase().endsWith('.webm');
+
         if (isVideo) {
           // 使用视频背景播放
           return VideoBackground(
@@ -792,7 +806,6 @@ class _CustomTemplateOptionWidgetState extends State<_CustomTemplateOptionWidget
   List<Color> _getGradientColors(String templateId) {
     return [Colors.grey.shade300, Colors.grey.shade400];
   }
-  
 
   Widget _buildPreviewTaskCard(Task task) {
     return IgnorePointer(
@@ -806,16 +819,16 @@ List<Task> createTaskTemplate(TaskTemplateType type) {
   switch (type) {
     case TaskTemplateType.empty:
       return TemplateGenerator.getEmptyTemplate();
-      
+
     case TaskTemplateType.content:
       return TemplateGenerator.getStudentTemplate();
-      
+
     case TaskTemplateType.work:
       return TemplateGenerator.getWorkTemplate();
-      
+
     case TaskTemplateType.fitness:
       return TemplateGenerator.getFitnessTemplate();
-      
+
     case TaskTemplateType.travel:
       return TemplateGenerator.getTravelTemplate();
   }
@@ -840,10 +853,12 @@ class _TemplateOptionWithPreview extends StatefulWidget {
   });
 
   @override
-  State<_TemplateOptionWithPreview> createState() => _TemplateOptionWithPreviewState();
+  State<_TemplateOptionWithPreview> createState() =>
+      _TemplateOptionWithPreviewState();
 }
 
-class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> {
+class _TemplateOptionWithPreviewState
+    extends State<_TemplateOptionWithPreview> {
   bool _isPreviewShowing = false;
   final GlobalKey _key = GlobalKey();
   late final ScrollController _scrollController;
@@ -862,38 +877,24 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
 
   void _showPreview() {
     if (_isPreviewShowing) return;
-    
+
     _isPreviewShowing = true;
-    
-    SmartDialog.show(
+
+    PlatformDialogWrapper.show(
       tag: 'template_preview_${widget.type}',
-      alignment: Alignment.center,
-      maskColor: Colors.black.withValues(alpha:0.3),
+      content: _buildPreviewOverlay(),
+      maskColor: Colors.black.withValues(alpha: 0.3),
       clickMaskDismiss: true,
       useSystem: false, // 使用系统overlay，降低层级
       onDismiss: () {
         _isPreviewShowing = false;
       },
-      builder: (_) => _buildPreviewOverlay(),
-      animationBuilder: (controller, child, _) => ScaleTransition(
-        scale: Tween<double>(
-          begin: 0.95,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: controller,
-          curve: Curves.easeOutCubic,
-        )),
-        child: FadeTransition(
-          opacity: controller,
-          child: child,
-        ),
-      ),
     );
   }
 
   void _hidePreview() {
     if (!_isPreviewShowing) return;
-    
+
     SmartDialog.dismiss(tag: 'template_preview_${widget.type}');
     _isPreviewShowing = false;
   }
@@ -913,7 +914,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: context.theme.dividerColor.withValues(alpha:0.3),
+            color: context.theme.dividerColor.withValues(alpha: 0.3),
             width: 0.5,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -924,7 +925,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: widget.color.withValues(alpha:0.1),
+                color: widget.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -950,7 +951,8 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                     widget.description,
                     style: FontUtils.getTextStyle(
                       fontSize: 13,
-                      color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
+                      color: context.theme.textTheme.bodyMedium?.color
+                          ?.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -959,7 +961,8 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.5),
+              color: context.theme.textTheme.bodyMedium?.color
+                  ?.withValues(alpha: 0.5),
             ),
           ],
         ),
@@ -984,25 +987,25 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
 
   Widget _buildPreview() {
     final templates = _getTemplateData();
-    
+
     // 计算对话框宽度：屏幕宽度的90%，最大不超过1600（约6个卡片）
     final screenWidth = MediaQuery.of(context).size.width;
     final maxWidth = (screenWidth * 0.9).clamp(800.0, 1600.0);
-    
+
     // 获取背景设置
     final appCtrl = Get.find<AppController>();
     final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
-    final isDefaultTemplate = backgroundImagePath != null && 
-                              backgroundImagePath.startsWith('default_template:');
-    final isCustomImage = backgroundImagePath != null && 
-                          !isDefaultTemplate && 
-                          backgroundImagePath.isNotEmpty && 
-                          GetPlatform.isDesktop &&
-                          File(backgroundImagePath).existsSync();
+    final isDefaultTemplate = backgroundImagePath != null &&
+        backgroundImagePath.startsWith('default_template:');
+    final isCustomImage = backgroundImagePath != null &&
+        !isDefaultTemplate &&
+        backgroundImagePath.isNotEmpty &&
+        GetPlatform.isDesktop &&
+        File(backgroundImagePath).existsSync();
     final hasBackground = isDefaultTemplate || isCustomImage;
     final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
     final blur = appCtrl.appConfig.value.backgroundImageBlur;
-    
+
     return Material(
       color: Colors.transparent,
       child: Container(
@@ -1015,7 +1018,7 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -1041,7 +1044,8 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                       sigmaX: blur,
                       sigmaY: blur,
                     ),
-                    child: Container(color: Colors.white.withValues(alpha:0.0)),
+                    child:
+                        Container(color: Colors.white.withValues(alpha: 0.0)),
                   ),
                 ),
               // 内容层
@@ -1050,11 +1054,13 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                 children: [
                   // 标题栏
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 15),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: context.theme.dividerColor.withValues(alpha:0.3),
+                          color:
+                              context.theme.dividerColor.withValues(alpha: 0.3),
                           width: 0.5,
                         ),
                       ),
@@ -1070,7 +1076,8 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             LabelBtn(
-                              label: Text('apply'.tr,style:const TextStyle(color: Colors.white)),
+                              label: Text('apply'.tr,
+                                  style: const TextStyle(color: Colors.white)),
                               onPressed: _applyTemplate,
                               bgColor: Colors.lightBlue,
                             ),
@@ -1082,13 +1089,15 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: context.theme.dividerColor.withValues(alpha:0.1),
+                                    color: context.theme.dividerColor
+                                        .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Icon(
                                     Icons.close,
                                     size: 18,
-                                    color: context.theme.textTheme.bodyMedium?.color,
+                                    color: context
+                                        .theme.textTheme.bodyMedium?.color,
                                   ),
                                 ),
                               ),
@@ -1111,10 +1120,12 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ...templates.map((task) => Padding(
-                              padding: const EdgeInsets.only(right: 50),
-                              child: _buildPreviewTaskCard(task),
-                            )).toList(),
+                            ...templates
+                                .map((task) => Padding(
+                                      padding: const EdgeInsets.only(right: 50),
+                                      child: _buildPreviewTaskCard(task),
+                                    ))
+                                .toList(),
                           ],
                         ),
                       ),
@@ -1135,19 +1146,21 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
     final appCtrl = Get.find<AppController>();
     final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
     final blur = appCtrl.appConfig.value.backgroundImageBlur;
-    
+
     // 检查是否是默认模板
-    if (backgroundPath != null && backgroundPath.startsWith('default_template:')) {
+    if (backgroundPath != null &&
+        backgroundPath.startsWith('default_template:')) {
       final templateId = backgroundPath.split(':').last;
       final template = DefaultBackgrounds.getById(templateId);
-      
+
       if (template != null) {
         // 检查是否为视频模板
         if (template.isVideo) {
           // 如果有downloadUrl，优先使用缓存路径，否则使用URL
           if (template.downloadUrl != null) {
             return FutureBuilder<String?>(
-              future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
+              future: VideoDownloadService()
+                  .getCachedVideoPath(template.downloadUrl!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Container(color: Colors.black);
@@ -1234,13 +1247,15 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
       }
     } else {
       // 自定义图片或视频
-      if (backgroundPath != null && GetPlatform.isDesktop && File(backgroundPath).existsSync()) {
+      if (backgroundPath != null &&
+          GetPlatform.isDesktop &&
+          File(backgroundPath).existsSync()) {
         final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
-                       backgroundPath.toLowerCase().endsWith('.mov') ||
-                       backgroundPath.toLowerCase().endsWith('.avi') ||
-                       backgroundPath.toLowerCase().endsWith('.mkv') ||
-                       backgroundPath.toLowerCase().endsWith('.webm');
-        
+            backgroundPath.toLowerCase().endsWith('.mov') ||
+            backgroundPath.toLowerCase().endsWith('.avi') ||
+            backgroundPath.toLowerCase().endsWith('.mkv') ||
+            backgroundPath.toLowerCase().endsWith('.webm');
+
         if (isVideo) {
           // 使用视频背景播放
           return VideoBackground(
@@ -1269,7 +1284,6 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
   List<Color> _getGradientColors(String templateId) {
     return [Colors.grey.shade300, Colors.grey.shade400];
   }
-  
 
   Widget _buildPreviewTaskCard(Task task) {
     return IgnorePointer(
@@ -1280,7 +1294,6 @@ class _TemplateOptionWithPreviewState extends State<_TemplateOptionWithPreview> 
   List<Task> _getTemplateData() {
     return createTaskTemplate(widget.type);
   }
-
 }
 
 /// 显示模板选择对话框
@@ -1289,31 +1302,15 @@ void showTemplateSelectorDialog({
   Function(CustomTemplate)? onCustomTemplateSelected,
 }) {
   // 使用SmartDialog确保对话框显示在最顶层
-  SmartDialog.show(
+  // 使用SmartDialog确保对话框显示在最顶层
+  PlatformDialogWrapper.show(
     tag: 'template_selector',
-    alignment: Alignment.center,
-    maskColor: Colors.black.withValues(alpha:0.5),
-    clickMaskDismiss: true,
-    useAnimation: true,
-    animationTime: const Duration(milliseconds: 300),
-    builder: (_) => TemplateSelectorDialog(
+    content: TemplateSelectorDialog(
       onTemplateSelected: onTemplateSelected,
       onCustomTemplateSelected: onCustomTemplateSelected,
     ),
-    animationBuilder: (controller, child, animationParam) {
-      return ScaleTransition(
-        scale: Tween<double>(
-          begin: 0.8,
-          end: 1.0,
-        ).animate(CurvedAnimation(
-          parent: controller,
-          curve: Curves.easeOutCubic,
-        )),
-        child: FadeTransition(
-          opacity: controller,
-          child: child,
-        ),
-      );
-    },
+    maskColor: Colors.black.withValues(alpha: 0.5),
+    clickMaskDismiss: true,
+    animationTime: const Duration(milliseconds: 300),
   );
 }
