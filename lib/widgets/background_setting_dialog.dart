@@ -17,14 +17,19 @@ class BackgroundSettingDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: context.isPhone ? 0.9.sw : 500,
+      width: context.isPhone ? double.infinity : 500,
       constraints: BoxConstraints(
         maxHeight: context.isPhone ? 0.8.sh : 700,
       ),
       decoration: BoxDecoration(
         color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: context.isPhone
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              )
+            : BorderRadius.circular(12),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
