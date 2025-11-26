@@ -410,4 +410,10 @@ const Map<String, String> zhCN = {
   'duplicateNameRenameDesc': '重命名为「{itemName} - {source}」',
   'duplicateNameAllow': '允许同名',
   'duplicateNameAllowDesc': '直接移动，允许存在多个同名项',
+
+  // 图片查看器
+  'doubleTapToZoom': '双击放大/缩小',
+  'resetView': '重置视图',
+  'imageLoadFailed': '图片加载失败',
+  'clickToViewImage': '点击查看大图',
 };

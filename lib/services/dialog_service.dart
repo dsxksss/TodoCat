@@ -15,6 +15,7 @@ class DialogService {
     bool keepSingle = true,
     SmartBackType backType = SmartBackType.normal,
     Duration animationTime = const Duration(milliseconds: 150),
+    bool useFixedSize = true,
   }) {
     _logger.d('Showing form dialog with tag: $tag');
 
@@ -27,6 +28,7 @@ class DialogService {
       backType: backType,
       animationTime: animationTime,
       clickMaskDismiss: false,
+      useFixedSize: useFixedSize,
     );
   }
 

@@ -1246,43 +1246,44 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
   /// 吸附到最近的task中心（使用GlobalKey实际测量位置）
   void _snapToNearestTask() {
     if (!_scrollController.hasClients || widget.tasks.isEmpty) return;
+    
+    // 安全检查：确保 maxScrollExtent 已经正确计算
+    final maxScrollExtent = _scrollController.position.maxScrollExtent;
+    if (maxScrollExtent <= 0) return; // 如果还没有正确计算，跳过吸附
+    
+    final scrollOffset = _scrollController.offset;
+    
+    // 边界检查：如果已经在边界附近，不进行吸附（避免回跳）
+    const edgeThreshold = 20.0;
+    if (scrollOffset <= edgeThreshold || 
+        scrollOffset >= maxScrollExtent - edgeThreshold) {
+      return;
+    }
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final scrollOffset = _scrollController.offset;
-    final screenCenter = scrollOffset + screenWidth / 2;
+    final screenCenterX = screenWidth / 2;
 
     // 找到最近的task索引（通过实际测量位置）
     double minDistance = double.infinity;
     int nearestIndex = 0;
 
-    // 获取滚动视图的RenderBox，用于坐标转换
-    final scrollViewRenderBox =
-        _scrollController.position.context.storageContext.findRenderObject()
-            as RenderBox?;
-
     for (int i = 0; i < widget.tasks.length; i++) {
       final task = widget.tasks[i];
       final key = _taskKeys[task.uuid];
 
-      if (key?.currentContext != null && scrollViewRenderBox != null) {
+      if (key?.currentContext != null) {
         // 获取task的实际位置
         final RenderBox? renderBox =
             key?.currentContext?.findRenderObject() as RenderBox?;
         if (renderBox != null && renderBox.hasSize) {
-          // 获取task相对于滚动视图的位置
-          // 先获取task在屏幕上的位置
+          // 获取task在屏幕上的全局位置
           final globalPosition = renderBox.localToGlobal(Offset.zero);
-          // 然后转换为相对于滚动视图的位置
-          final scrollViewPosition =
-              scrollViewRenderBox.globalToLocal(globalPosition);
-          // task在滚动视图中的中心位置（相对于滚动视图的起始位置）
-          final taskCenterInScrollView =
-              scrollViewPosition.dx + renderBox.size.width / 2;
-          // task在滚动视图中的绝对位置 = 滚动偏移 + 相对位置
-          final taskCenter = scrollOffset + taskCenterInScrollView;
+          // task中心在屏幕上的x坐标
+          final taskCenterOnScreen =
+              globalPosition.dx + renderBox.size.width / 2;
 
           // 计算距离屏幕中心的距离
-          final distance = (screenCenter - taskCenter).abs();
+          final distance = (taskCenterOnScreen - screenCenterX).abs();
 
           if (distance < minDistance) {
             minDistance = distance;
@@ -1301,10 +1302,12 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
       const firstTaskStart = outerPadding + groupMargin;
       final firstTaskCenter = firstTaskStart + listWidth / 2;
       final taskSpacing = listWidth + groupMargin * 2;
+      // 在内容坐标系中，屏幕中心的绝对位置
+      final screenCenterAbsolute = scrollOffset + screenCenterX;
 
       for (int i = 0; i < widget.tasks.length; i++) {
         final taskCenter = firstTaskCenter + i * taskSpacing;
-        final distance = (screenCenter - taskCenter).abs();
+        final distance = (screenCenterAbsolute - taskCenter).abs();
 
         if (distance < minDistance) {
           minDistance = distance;
@@ -1331,25 +1334,22 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
     final targetTask = widget.tasks[nearestIndex];
     final targetKey = _taskKeys[targetTask.uuid];
 
-    if (targetKey?.currentContext != null && scrollViewRenderBox != null) {
+    if (targetKey?.currentContext != null) {
       final RenderBox? renderBox =
           targetKey!.currentContext!.findRenderObject() as RenderBox?;
       if (renderBox != null && renderBox.hasSize) {
-        // 获取task相对于滚动视图的位置
+        // 获取task在屏幕上的全局位置
         final globalPosition = renderBox.localToGlobal(Offset.zero);
-        final scrollViewPosition =
-            scrollViewRenderBox.globalToLocal(globalPosition);
-        // task在滚动视图中的中心位置（相对于滚动视图的起始位置）
-        // scrollViewPosition.dx 已经是相对于滚动视图的位置，不需要再加上scrollOffset
-        final taskCenterInScrollView =
-            scrollViewPosition.dx + renderBox.size.width / 2;
+        // task中心在屏幕上的x坐标
+        final taskCenterOnScreen = globalPosition.dx + renderBox.size.width / 2;
+        // 屏幕中心的x坐标
+        final screenCenterX = screenWidth / 2;
 
-        // 计算需要滚动到的位置：让task的中心对齐屏幕中心
-        // 屏幕中心在滚动视图中的位置 = scrollOffset + screenWidth / 2
-        // 要让task的中心对齐屏幕中心，需要：
-        // taskCenterInScrollView = targetScrollOffset + screenWidth / 2
-        // 所以：targetScrollOffset = taskCenterInScrollView - screenWidth / 2
-        final targetScrollOffset = taskCenterInScrollView - screenWidth / 2;
+        // 计算需要调整的滚动量：
+        // 如果task在屏幕中心右边，需要向右滚动（增加offset）
+        // 如果task在屏幕中心左边，需要向左滚动（减少offset）
+        final adjustDelta = taskCenterOnScreen - screenCenterX;
+        final targetScrollOffset = scrollOffset + adjustDelta;
 
         // 平滑滚动到目标位置
         _scrollController.animateTo(

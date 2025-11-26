@@ -12,7 +12,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:todo_cat/widgets/image_viewer.dart';
 
 class TodoDetailDialog extends StatelessWidget {
   final String todoId;
@@ -447,39 +447,37 @@ class TodoDetailDialog extends StatelessWidget {
                   
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ClipRRect(
+                    child: ClickableFileImage(
+                      filePath: filePath,
+                      fit: BoxFit.cover,
+                      width: config.width,
+                      height: config.height,
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        file,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(8),
+                      heroTag: uriString,
+                      caption: config.alt,
+                      errorWidget: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              size: 48,
+                              color: Colors.grey.shade400,
                             ),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.broken_image,
-                                  size: 48,
-                                  color: Colors.grey.shade400,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  config.alt ?? '图片加载失败',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(height: 8),
+                            Text(
+                              config.alt ?? '图片加载失败',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 12,
+                              ),
                             ),
-                          );
-                        },
-                        width: config.width,
-                        height: config.height,
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -517,46 +515,46 @@ class TodoDetailDialog extends StatelessWidget {
                 // 网络图片（使用缓存）
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ClipRRect(
+                  child: ClickableNetworkImage(
+                    url: uriString,
+                    fit: BoxFit.cover,
+                    width: config.width,
+                    height: config.height,
                     borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: uriString,
-                      fit: BoxFit.cover,
-                      width: config.width,
-                      height: config.height,
-                      placeholder: (context, url) => Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                    heroTag: uriString,
+                    caption: config.alt,
+                    placeholder: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      errorWidget: (context, url, error) => Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 48,
-                              color: Colors.grey.shade400,
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    errorWidget: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            config.alt ?? '图片加载失败',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              config.alt ?? '图片加载失败',
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

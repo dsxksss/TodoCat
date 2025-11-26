@@ -18,6 +18,7 @@ class PlatformDialogWrapper {
   /// [backType] 返回键处理类型
   /// [animationTime] 动画时长
   /// [clickMaskDismiss] 点击遮罩是否关闭
+  /// [useFixedSize] 是否使用固定尺寸约束（桌面端），设为false时content自己管理尺寸
   static void show({
     required String tag,
     required Widget content,
@@ -31,6 +32,7 @@ class PlatformDialogWrapper {
     bool clickMaskDismiss = false,
     Color? maskColor,
     VoidCallback? onDismiss,
+    bool useFixedSize = true,
   }) {
     final context = Get.context!;
     final isPhone = context.isPhone;
@@ -75,11 +77,13 @@ class PlatformDialogWrapper {
                 ),
               ),
             )
-          : SizedBox(
-              width: dialogWidth,
-              height: dialogHeight,
-              child: content,
-            ),
+          : useFixedSize
+              ? SizedBox(
+                  width: dialogWidth,
+                  height: dialogHeight,
+                  child: content,
+                )
+              : content, // 不使用固定尺寸，让 content 自己管理大小
       clickMaskDismiss: clickMaskDismiss,
       maskColor: maskColor ?? Colors.black.withValues(alpha: 0.3),
       onDismiss: onDismiss,

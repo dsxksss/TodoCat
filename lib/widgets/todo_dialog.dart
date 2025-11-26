@@ -22,6 +22,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:todo_cat/services/image_paste_service.dart';
+import 'package:todo_cat/widgets/image_viewer.dart';
 
 /// 图片粘贴意图
 class _PasteImageIntent extends Intent {
@@ -677,13 +678,10 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                   ),
               ] else ...[
                 // 桌面端：工具栏在上，Description 在下
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: MarkdownToolbar(
-                    key: _toolbarKey,
-                    controller: controller.descriptionController,
-                    onPreview: _openPreview,
-                  ),
+                MarkdownToolbar(
+                  key: _toolbarKey,
+                  controller: controller.descriptionController,
+                  onPreview: _openPreview,
                 ),
                 Expanded(
                   child: Stack(
@@ -776,9 +774,9 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
     // dialog 的偏移量：根据 _shouldOffset 状态决定
     final dialogOffsetX = _shouldOffset ? maxDialogOffsetX : 0.0;
 
-    // Stack 的宽度：始终保持 totalWidth，避免宽度变化导致位置计算跳动
+    // Stack 的宽度：当预览窗口显示时使用 totalWidth，否则使用 dialogWidth 以确保居中
     // 预览窗口隐藏时，通过 FadeTransition 的 opacity 和 IgnorePointer 来控制显示
-    final stackWidth = totalWidth;
+    final stackWidth = _shouldOffset ? totalWidth : dialogWidth;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -794,7 +792,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            left: (stackWidth - dialogWidth) / 2 - dialogOffsetX,
+            left: _shouldOffset ? (stackWidth - dialogWidth) / 2 - dialogOffsetX : 0,
             top: 0,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -1131,10 +1129,9 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            left: (stackWidth - dialogWidth) / 2 +
-                dialogWidth +
-                spacing -
-                dialogOffsetX,
+            left: _shouldOffset
+                ? (stackWidth - dialogWidth) / 2 + dialogWidth + spacing - dialogOffsetX
+                : dialogWidth + spacing, // 预览窗口隐藏时，位置计算不影响显示
             top: 0,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -1388,108 +1385,44 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                           final imageWidth = config.width;
                                           final imageHeight = config.height;
 
+                                          // 使用可点击的图片组件，支持点击放大查看
                                           return Padding(
                                             padding: const EdgeInsets.symmetric(
                                                 vertical: 8.0),
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              child: imageWidth != null &&
-                                                      imageHeight != null
-                                                  ? Image.file(
-                                                      file,
-                                                      fit: BoxFit.cover,
-                                                      width: imageWidth,
-                                                      height: imageHeight,
-                                                      errorBuilder: (context,
-                                                          error, stackTrace) {
-                                                        return Container(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(16),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: Colors
-                                                                .grey.shade200,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8),
-                                                          ),
-                                                          child: Column(
-                                                            children: [
-                                                              Icon(
-                                                                Icons
-                                                                    .broken_image,
-                                                                size: 48,
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade400,
-                                                              ),
-                                                              const SizedBox(
-                                                                  height: 8),
-                                                              Text(
-                                                                config.alt ??
-                                                                    '图片加载失败',
-                                                                style:
-                                                                    TextStyle(
-                                                                  color: Colors
-                                                                      .grey
-                                                                      .shade600,
-                                                                  fontSize: 12,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
-                                                    )
-                                                  : Image.file(
-                                                      file,
-                                                      fit: BoxFit.contain,
-                                                      errorBuilder: (context,
-                                                          error, stackTrace) {
-                                                        return Container(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(16),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: Colors
-                                                                .grey.shade200,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8),
-                                                          ),
-                                                          child: Column(
-                                                            children: [
-                                                              Icon(
-                                                                Icons
-                                                                    .broken_image,
-                                                                size: 48,
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade400,
-                                                              ),
-                                                              const SizedBox(
-                                                                  height: 8),
-                                                              Text(
-                                                                config.alt ??
-                                                                    '图片加载失败',
-                                                                style:
-                                                                    TextStyle(
-                                                                  color: Colors
-                                                                      .grey
-                                                                      .shade600,
-                                                                  fontSize: 12,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      },
+                                            child: ClickableFileImage(
+                                              filePath: filePath,
+                                              heroTag: 'preview_image_$filePath',
+                                              caption: config.alt,
+                                              fit: imageWidth != null && imageHeight != null
+                                                  ? BoxFit.cover
+                                                  : BoxFit.contain,
+                                              width: imageWidth,
+                                              height: imageHeight,
+                                              borderRadius: BorderRadius.circular(8),
+                                              errorWidget: Container(
+                                                padding: const EdgeInsets.all(16),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade200,
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Column(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.broken_image,
+                                                      size: 48,
+                                                      color: Colors.grey.shade400,
                                                     ),
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      config.alt ?? 'imageLoadFailed'.tr,
+                                                      style: TextStyle(
+                                                        color: Colors.grey.shade600,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             ),
                                           );
                                         } catch (e) {
@@ -1546,61 +1479,55 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                           );
                                         }
                                       } else {
-                                        // 网络图片（使用缓存）
+                                        // 网络图片（使用缓存），支持点击放大查看
                                         return Padding(
                                           padding: const EdgeInsets.symmetric(
                                               vertical: 8.0),
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            child: CachedNetworkImage(
-                                              imageUrl: uriString,
-                                              fit: BoxFit.cover,
-                                              width: config.width,
-                                              height: config.height,
-                                              placeholder: (context, url) =>
-                                                  Container(
-                                                padding:
-                                                    const EdgeInsets.all(16),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade100,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: const Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                ),
+                                          child: ClickableNetworkImage(
+                                            url: uriString,
+                                            heroTag: 'preview_network_$uriString',
+                                            caption: config.alt,
+                                            fit: BoxFit.cover,
+                                            width: config.width,
+                                            height: config.height,
+                                            borderRadius: BorderRadius.circular(8),
+                                            placeholder: Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
-                                              errorWidget:
-                                                  (context, url, error) =>
-                                                      Container(
-                                                padding:
-                                                    const EdgeInsets.all(16),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade200,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: Column(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.broken_image,
-                                                      size: 48,
-                                                      color:
-                                                          Colors.grey.shade400,
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                            ),
+                                            errorWidget: Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade200,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Column(
+                                                children: [
+                                                  Icon(
+                                                    Icons.broken_image,
+                                                    size: 48,
+                                                    color:
+                                                        Colors.grey.shade400,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    config.alt ?? 'imageLoadFailed'.tr,
+                                                    style: TextStyle(
+                                                      color: Colors
+                                                          .grey.shade600,
+                                                      fontSize: 12,
                                                     ),
-                                                    const SizedBox(height: 8),
-                                                    Text(
-                                                      config.alt ?? '图片加载失败',
-                                                      style: TextStyle(
-                                                        color: Colors
-                                                            .grey.shade600,
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ),

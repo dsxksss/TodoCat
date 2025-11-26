@@ -15,6 +15,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:io';
 import 'dart:ui';
+import 'package:todo_cat/widgets/image_viewer.dart';
 
 class TodoDetailPage extends StatelessWidget {
   final String todoId;
@@ -411,71 +412,40 @@ class TodoDetailPage extends StatelessWidget {
                     
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ClipRRect(
+                      child: ClickableFileImage(
+                        filePath: filePath,
+                        fit: imageWidth != null && imageHeight != null
+                            ? BoxFit.cover
+                            : BoxFit.contain,
+                        width: imageWidth,
+                        height: imageHeight,
                         borderRadius: BorderRadius.circular(8),
-                        child: imageWidth != null && imageHeight != null
-                            ? Image.file(
-                                file,
-                                fit: BoxFit.cover,
-                                width: imageWidth,
-                                height: imageHeight,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.broken_image,
-                                          size: 48,
-                                          color: Colors.grey.shade400,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          config.alt ?? '图片加载失败',
-                                          style: TextStyle(
-                                            color: Colors.grey.shade600,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              )
-                            : Image.file(
-                                file,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.broken_image,
-                                          size: 48,
-                                          color: Colors.grey.shade400,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          config.alt ?? '图片加载失败',
-                                          style: TextStyle(
-                                            color: Colors.grey.shade600,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                        heroTag: uriString,
+                        caption: config.alt,
+                        errorWidget: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.broken_image,
+                                size: 48,
+                                color: Colors.grey.shade400,
                               ),
+                              const SizedBox(height: 8),
+                              Text(
+                                config.alt ?? '图片加载失败',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     );
                   } else {
@@ -578,57 +548,47 @@ class TodoDetailPage extends StatelessWidget {
                 // 网络图片
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ClipRRect(
+                  child: ClickableNetworkImage(
+                    url: uriString,
+                    fit: BoxFit.cover,
+                    width: config.width,
+                    height: config.height,
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      uriString,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8),
+                    heroTag: uriString,
+                    caption: config.alt,
+                    placeholder: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    errorWidget: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey.shade400,
                           ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.broken_image,
-                                size: 48,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                config.alt ?? '图片加载失败',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      width: config.width,
-                      height: config.height,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
+                          const SizedBox(height: 8),
+                          Text(
+                            config.alt ?? '图片加载失败',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
                             ),
                           ),
-                        );
-                      },
+                        ],
+                      ),
                     ),
                   ),
                 );

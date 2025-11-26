@@ -301,6 +301,7 @@ class TodoCard extends StatelessWidget {
                               tag: 'edit_todo_dialog',
                               dialog: const TodoDialog(
                                   dialogTag: 'edit_todo_dialog'),
+                              useFixedSize: false, // TodoDialog 需要动态调整宽度以支持预览窗口
                             );
                           },
                         ),

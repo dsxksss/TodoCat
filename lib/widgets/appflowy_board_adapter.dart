@@ -239,6 +239,12 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
   void _performSync() {
     if (_isDisposed || !mounted) return;
     
+    // 保存当前滚动位置（移动端修复：避免滚动位置被重置）
+    double? savedScrollOffset;
+    if (_scrollController.hasClients) {
+      savedScrollOffset = _scrollController.offset;
+    }
+    
     try {
       final currentGroups = List<String>.from(_boardController.groupIds);
       
@@ -261,6 +267,23 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
         } catch (e) {
           // 忽略
         }
+      }
+      
+      // 恢复滚动位置（延迟执行以确保布局完成）
+      if (savedScrollOffset != null && _scrollController.hasClients) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_isDisposed || !mounted || !_scrollController.hasClients) return;
+          try {
+            // 确保恢复的位置不超出边界
+            final maxExtent = _scrollController.position.maxScrollExtent;
+            final targetOffset = savedScrollOffset!.clamp(0.0, maxExtent);
+            if ((_scrollController.offset - targetOffset).abs() > 1) {
+              _scrollController.jumpTo(targetOffset);
+            }
+          } catch (e) {
+            // 忽略
+          }
+        });
       }
     } catch (e) {
       debugPrint('Perform sync error: $e');

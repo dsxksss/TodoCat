@@ -435,4 +435,10 @@ const Map<String, String> enUS = {
   'duplicateNameAllow': 'Allow Duplicate',
   'duplicateNameAllowDesc':
       'Move directly, allow multiple items with the same name',
+
+  // Image viewer
+  'doubleTapToZoom': 'Double tap to zoom in/out',
+  'resetView': 'Reset view',
+  'imageLoadFailed': 'Failed to load image',
+  'clickToViewImage': 'Click to view image',
 };

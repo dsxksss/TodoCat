@@ -108,6 +108,7 @@ class TodoDetailController extends BaseFormController {
     DialogService.showFormDialog(
       tag: 'edit_todo_detail_dialog',
       dialog: const TodoDialog(dialogTag: 'edit_todo_detail_dialog'),
+      useFixedSize: false, // TodoDialog 需要动态调整宽度以支持预览窗口
     );
 
     // 由于已经有自动监听机制，不需要手动刷新
