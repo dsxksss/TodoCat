@@ -576,7 +576,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                           textInputAction: TextInputAction.next,
                           autofocus: true,
                           focusNode: FocusNode(),
-                          maxLength: 20,
+                          maxLength: 200,
                           maxLines: 1,
                           radius: 6,
                           fieldTitle: "title".tr,
@@ -678,10 +678,13 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                   ),
               ] else ...[
                 // 桌面端：工具栏在上，Description 在下
-                MarkdownToolbar(
-                  key: _toolbarKey,
-                  controller: controller.descriptionController,
-                  onPreview: _openPreview,
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: MarkdownToolbar(
+                    key: _toolbarKey,
+                    controller: controller.descriptionController,
+                    onPreview: _openPreview,
+                  ),
                 ),
                 Expanded(
                   child: Stack(

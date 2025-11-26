@@ -27,9 +27,11 @@ class TaskCard extends StatefulWidget {
     required Task task,
     ScrollController? parentScrollController, // 保留但不使用，避免破坏调用
     this.showTodos = true, // 是否显示内部 todo 列表，默认显示
+    this.onContextReady, // 回调：当 Context 可用时
   }) : _task = task;
   final Task _task;
   final bool showTodos; // 新增参数，控制是否显示内部 todo 列表
+  final ValueChanged<BuildContext>? onContextReady;
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -45,6 +47,20 @@ class _TaskCardState extends State<TaskCard> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    // 在下一帧回调 context，确保 context 已挂载
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.onContextReady?.call(context);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(TaskCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (mounted) {
+      widget.onContextReady?.call(context);
+    }
   }
 
   @override
@@ -143,21 +159,34 @@ class _TaskCardState extends State<TaskCard> {
                             width: 10,
                           ),
                           Expanded(
-                            child: Tooltip(
-                              message: widget._task.title.tr,
-                              preferBelow: false,
-                              child: Text(
-                                widget._task.title.tr,
-                                style: GoogleFonts.getFont(
-                                  'Ubuntu',
-                                  textStyle: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
+                            // 移动端禁用 tooltip，避免长按拖拽时误触发
+                            child: context.isPhone
+                                ? Text(
+                                    widget._task.title.tr,
+                                    style: GoogleFonts.getFont(
+                                      'Ubuntu',
+                                      textStyle: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                : Tooltip(
+                                    message: widget._task.title.tr,
+                                    preferBelow: false,
+                                    child: Text(
+                                      widget._task.title.tr,
+                                      style: GoogleFonts.getFont(
+                                        'Ubuntu',
+                                        textStyle: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
                           ),
                           if (todosLength > 0)
                             Row(
@@ -575,28 +604,48 @@ class _TaskCardState extends State<TaskCard> {
             );
 
     if (showContainer) {
-      return Container(
-        width: context.isPhone ? 0.9.sw : 270,
-        decoration: BoxDecoration(
-          color: context.theme.cardColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: context.isDarkMode
-              ? <BoxShadow>[
-                  BoxShadow(
-                    color: context.theme.dividerColor,
-                    blurRadius: 0.2,
-                  ),
-                ]
-              : null, // 亮色主题下不使用阴影
-        ),
-        child: content,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          // 使用 LayoutBuilder 获取父容器的约束，而不是直接依赖 MediaQuery
+          // 这样可以避免在复杂布局中溢出
+          double width = context.isPhone ? (1.sw - 100) : 270;
+          if (width > constraints.maxWidth && constraints.maxWidth > 0) {
+            width = constraints.maxWidth;
+          }
+          
+          return Container(
+            width: width,
+            decoration: BoxDecoration(
+              color: context.theme.cardColor,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: context.isDarkMode
+                  ? <BoxShadow>[
+                      BoxShadow(
+                        color: context.theme.dividerColor,
+                        blurRadius: 0.2,
+                      ),
+                    ]
+                  : null, // 亮色主题下不使用阴影
+            ),
+            child: content,
+          );
+        }
       );
     } else {
       // showTodos 为 false 时，只返回内容，不包裹 Container
       // Container decoration 由外部的 DragAndDropList 提供
-      return SizedBox(
-        width: context.isPhone ? 0.9.sw : 270,
-        child: content,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          double width = context.isPhone ? (1.sw - 100) : 270;
+          if (width > constraints.maxWidth && constraints.maxWidth > 0) {
+            width = constraints.maxWidth;
+          }
+          
+          return SizedBox(
+            width: width,
+            child: content,
+          );
+        }
       );
     }
   }

@@ -59,7 +59,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                     TextFormFieldItem(
                       textInputAction: TextInputAction.next,
                       autofocus: true,
-                      maxLength: 20,
+                      maxLength: 200,
                       maxLines: 1,
                       radius: 6,
                       fieldTitle: "taskTitle".tr,

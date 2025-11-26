@@ -463,102 +463,63 @@ class HomePage extends GetView<HomeController> {
 
   /// 构建主体内容
   Widget _buildBody() {
-    return Get.context!.isPhone
-        ? Obx(
-            () {
-              final isSwitching = controller.isSwitchingWorkspace.value;
-              return AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                switchOutCurve: Curves.easeIn,
-                switchInCurve: Curves.easeOut,
-                transitionBuilder: (child, animation) {
-                  final fadeAnimation =
-                      animation.status == AnimationStatus.reverse
-                          ? animation
-                          : animation;
-                  return FadeTransition(
-                    opacity: fadeAnimation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.1, 0),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(
-                        parent: fadeAnimation,
-                        curve: fadeAnimation.status == AnimationStatus.reverse
-                            ? Curves.easeIn
-                            : Curves.easeOut,
-                      )),
-                      child: child,
-                    ),
-                  );
-                },
-                child: isSwitching
-                    ? const SizedBox.shrink(key: ValueKey('switching'))
-                    : _TaskHorizontalListMobile(
-                        tasks: controller.reactiveTasks,
-                        key: const ValueKey('mobile_task_list'),
+    return Obx(
+      () {
+        final isSwitching = controller.isSwitchingWorkspace.value;
+        return Animate(
+          target: controller.tasks.isEmpty ? 1 : 0,
+          effects: [
+            SwapEffect(
+              builder: (_, __) => SizedBox(
+                height: 0.7.sh,
+                child: Center(
+                  child: Text(
+                    "Do It Now !",
+                    style: GoogleFonts.getFont(
+                      'Ubuntu',
+                      textStyle: const TextStyle(
+                        fontSize: 60,
                       ),
-              );
-            },
-          )
-        : Obx(
-            () {
-              final isSwitching = controller.isSwitchingWorkspace.value;
-              return Animate(
-                target: controller.tasks.isEmpty ? 1 : 0,
-                effects: [
-                  SwapEffect(
-                    builder: (_, __) => SizedBox(
-                      height: 0.7.sh,
-                      child: Center(
-                        child: Text(
-                          "Do It Now !",
-                          style: GoogleFonts.getFont(
-                            'Ubuntu',
-                            textStyle: const TextStyle(
-                              fontSize: 60,
-                            ),
-                          ),
-                        ),
-                      ).animate().fade(),
                     ),
                   ),
-                ],
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  switchOutCurve: Curves.easeIn,
-                  switchInCurve: Curves.easeOut,
-                  transitionBuilder: (child, animation) {
-                    // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
-                    final fadeAnimation =
-                        animation.status == AnimationStatus.reverse
-                            ? animation
-                            : animation;
-                    return FadeTransition(
-                      opacity: fadeAnimation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.1, 0),
-                          end: Offset.zero,
-                        ).animate(CurvedAnimation(
-                          parent: fadeAnimation,
-                          curve: fadeAnimation.status == AnimationStatus.reverse
-                              ? Curves.easeIn
-                              : Curves.easeOut,
-                        )),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: isSwitching
-                      ? const SizedBox.shrink(key: ValueKey('switching'))
-                      : _TaskHorizontalList(
-                          tasks: controller.reactiveTasks,
-                        ),
+                ).animate().fade(),
+              ),
+            ),
+          ],
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            switchOutCurve: Curves.easeIn,
+            switchInCurve: Curves.easeOut,
+            transitionBuilder: (child, animation) {
+              // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
+              final fadeAnimation = animation.status == AnimationStatus.reverse
+                  ? animation
+                  : animation;
+              return FadeTransition(
+                opacity: fadeAnimation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.1, 0),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: fadeAnimation,
+                    curve: fadeAnimation.status == AnimationStatus.reverse
+                        ? Curves.easeIn
+                        : Curves.easeOut,
+                  )),
+                  child: child,
                 ),
               );
             },
-          );
+            child: isSwitching
+                ? const SizedBox.shrink(key: ValueKey('switching'))
+                : _TaskHorizontalList(
+                    tasks: controller.reactiveTasks,
+                  ),
+          ),
+        );
+      },
+    );
   }
 
   /// 构建浮动按钮
@@ -1136,7 +1097,7 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
             // 使用 AppFlowyBoard 的拖拽逻辑，保持原 Task/Todo UI
             return AppFlowyTodosBoard(
               tasks: widget.tasks,
-              listWidth: context.isPhone ? 0.9.sw : 270.0,
+              listWidth: 270.0,
             );
           }),
         ),
@@ -1159,65 +1120,105 @@ class _TaskHorizontalListMobile extends StatefulWidget {
 class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
   late final ScrollController _scrollController;
   Timer? _snapTimer;
-  final Map<String, GlobalKey> _taskKeys = {};
+  Timer? _edgeScrollTimer; // 边缘滚动定时器
+  // 存储每个 task 的 context，用于定位
+  final Map<String, BuildContext> _taskContexts = {};
   bool _isUserScrolling = false; // 标记用户是否正在主动滚动
+  bool _isEdgeScrolling = false; // 标记是否正在边缘滚动
   double _lastScrollOffset = 0.0; // 上次滚动位置
   DateTime _lastScrollTime = DateTime.now(); // 上次滚动时间
+  int _currentTaskIndex = 0; // 当前显示的 task 索引（用于圆点指示器）
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
-    // 为每个task创建GlobalKey
-    for (final task in widget.tasks) {
-      _taskKeys[task.uuid] = GlobalKey();
-    }
-    // 等待ScrollController attach后再添加滚动状态监听
+    // 初始化时将第一个 task 居中
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _scrollController.hasClients) {
-        _scrollController.position.isScrollingNotifier
-            .addListener(_onScrollingStateChanged);
+        _snapToFirstTask();
       }
     });
   }
 
-  void _onScrollingStateChanged() {
-    if (!_scrollController.hasClients) return;
+  @override
+  void dispose() {
+    _snapTimer?.cancel();
+    _edgeScrollTimer?.cancel();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    final isScrolling = _scrollController.position.isScrollingNotifier.value;
-    if (isScrolling) {
-      // 用户开始滚动
-      _isUserScrolling = true;
-      _snapTimer?.cancel(); // 取消锚点吸附
+  void _checkEdgeScroll(Offset localPosition, double width) {
+    const edgeThreshold = 50.0;
+    const scrollSpeed = 10.0; // 每次 tick 滚动的距离
+
+    _edgeScrollTimer?.cancel();
+
+    if (localPosition.dx < edgeThreshold) {
+      // 向左滚动
+      _isEdgeScrolling = true;
+      _edgeScrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+        if (!_scrollController.hasClients) return;
+        final newOffset = _scrollController.offset - scrollSpeed;
+        if (newOffset >= 0) {
+          _scrollController.jumpTo(newOffset);
+        } else {
+          _scrollController.jumpTo(0);
+          _stopEdgeScroll();
+        }
+      });
+    } else if (localPosition.dx > width - edgeThreshold) {
+      // 向右滚动
+      _isEdgeScrolling = true;
+      _edgeScrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+        if (!_scrollController.hasClients) return;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final newOffset = _scrollController.offset + scrollSpeed;
+        if (newOffset <= maxScroll) {
+          _scrollController.jumpTo(newOffset);
+        } else {
+          _scrollController.jumpTo(maxScroll);
+          _stopEdgeScroll();
+        }
+      });
     } else {
-      // 滚动停止，延迟执行锚点吸附
-      _isUserScrolling = false;
-      _snapTimer?.cancel();
-      _snapTimer = Timer(const Duration(milliseconds: 300), () {
-        if (!mounted || !_scrollController.hasClients) return;
-        if (!_isUserScrolling) {
+      _stopEdgeScroll();
+    }
+  }
+
+  void _stopEdgeScroll() {
+    if (_isEdgeScrolling) {
+      _isEdgeScrolling = false;
+      _edgeScrollTimer?.cancel();
+      // 停止边缘滚动后，延时恢复吸附
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && !_isUserScrolling && !_isEdgeScrolling) {
           _snapToNearestTask();
         }
       });
     }
   }
 
+  /// 初始化时吸附到第一个 task（确保完全居中，不露出下一个 task）
+  void _snapToFirstTask() {
+    if (widget.tasks.isEmpty || !_scrollController.hasClients) return;
+
+    // 延迟执行以确保布局完成
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollToTask(0);
+    });
+  }
+
   @override
   void didUpdateWidget(_TaskHorizontalListMobile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 更新task keys
+    // 移除不存在的task contexts
     final currentTaskIds = widget.tasks.map((t) => t.uuid).toSet();
-
-    // 移除不存在的task keys
-    _taskKeys.removeWhere((id, _) => !currentTaskIds.contains(id));
-
-    // 添加新的task keys
-    for (final task in widget.tasks) {
-      if (!_taskKeys.containsKey(task.uuid)) {
-        _taskKeys[task.uuid] = GlobalKey();
-      }
-    }
+    _taskContexts.removeWhere((id, _) => !currentTaskIds.contains(id));
   }
 
   void _onScroll() {
@@ -1231,32 +1232,91 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
     _lastScrollOffset = _scrollController.offset;
     _lastScrollTime = now;
 
-    // 如果用户正在主动滚动（滚动速度较快），不执行锚点吸附
+    // 更新当前 task 索引（用于圆点指示器）
+    _updateCurrentTaskIndex();
+
+    // 如果滚动速度较快，说明用户正在主动滚动
     if (timeDelta > 0 && offsetDelta / timeDelta > 0.5) {
-      // 滚动速度较快，说明用户正在主动滚动
       _isUserScrolling = true;
       _snapTimer?.cancel();
-      return;
+    } else {
+      // 滚动速度变慢，可能即将停止
+      _isUserScrolling = false;
     }
 
-    // 如果用户没有主动滚动，才考虑执行锚点吸附
-    // 但这里不立即执行，而是等待滚动停止（由_isScrollingNotifier处理）
+    // 每次滚动都重置定时器，实现"滚动停止后吸附"的效果
+    _snapTimer?.cancel();
+    _snapTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted || !_scrollController.hasClients) return;
+      if (!_isUserScrolling && !_isEdgeScrolling) {
+        _snapToNearestTask();
+      }
+    });
+  }
+
+  /// 更新当前 task 索引（根据屏幕中心最近的 task）
+  void _updateCurrentTaskIndex() {
+    if (widget.tasks.isEmpty) return;
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenCenterX = screenWidth / 2;
+
+    double minDistance = double.infinity;
+    int nearestIndex = 0;
+
+    for (int i = 0; i < widget.tasks.length; i++) {
+      final task = widget.tasks[i];
+      final ctx = _taskContexts[task.uuid];
+
+      if (ctx != null) {
+        final RenderBox? renderBox = ctx.findRenderObject() as RenderBox?;
+        if (renderBox != null && renderBox.attached && renderBox.hasSize) {
+          try {
+            final globalPosition = renderBox.localToGlobal(Offset.zero);
+            final taskCenterOnScreen =
+                globalPosition.dx + renderBox.size.width / 2;
+            final distance = (taskCenterOnScreen - screenCenterX).abs();
+
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestIndex = i;
+            }
+          } catch (e) {
+            // 忽略计算错误
+          }
+        }
+      }
+    }
+
+    if (_currentTaskIndex != nearestIndex) {
+      setState(() {
+        _currentTaskIndex = nearestIndex;
+      });
+    }
   }
 
   /// 吸附到最近的task中心（使用GlobalKey实际测量位置）
   void _snapToNearestTask() {
-    if (!_scrollController.hasClients || widget.tasks.isEmpty) return;
-    
+    if (!mounted || !_scrollController.hasClients || widget.tasks.isEmpty) {
+      return;
+    }
+
     // 安全检查：确保 maxScrollExtent 已经正确计算
     final maxScrollExtent = _scrollController.position.maxScrollExtent;
     if (maxScrollExtent <= 0) return; // 如果还没有正确计算，跳过吸附
-    
+
     final scrollOffset = _scrollController.offset;
-    
-    // 边界检查：如果已经在边界附近，不进行吸附（避免回跳）
-    const edgeThreshold = 20.0;
-    if (scrollOffset <= edgeThreshold || 
-        scrollOffset >= maxScrollExtent - edgeThreshold) {
+
+    // 边界检查：如果已经在最左边边界附近，吸附到第一个 task
+    const edgeThreshold = 30.0;
+    if (scrollOffset <= edgeThreshold) {
+      _scrollToTask(0);
+      return;
+    }
+
+    // 边界检查：如果已经在最右边边界附近，吸附到最后一个 task
+    if (scrollOffset >= maxScrollExtent - edgeThreshold) {
+      _scrollToTask(widget.tasks.length - 1);
       return;
     }
 
@@ -1269,40 +1329,42 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
 
     for (int i = 0; i < widget.tasks.length; i++) {
       final task = widget.tasks[i];
-      final key = _taskKeys[task.uuid];
+      final ctx = _taskContexts[task.uuid];
 
-      if (key?.currentContext != null) {
+      if (ctx != null) {
         // 获取task的实际位置
-        final RenderBox? renderBox =
-            key?.currentContext?.findRenderObject() as RenderBox?;
-        if (renderBox != null && renderBox.hasSize) {
-          // 获取task在屏幕上的全局位置
-          final globalPosition = renderBox.localToGlobal(Offset.zero);
-          // task中心在屏幕上的x坐标
-          final taskCenterOnScreen =
-              globalPosition.dx + renderBox.size.width / 2;
+        final RenderBox? renderBox = ctx.findRenderObject() as RenderBox?;
+        // 增加 attached 检查，防止异常
+        if (renderBox != null && renderBox.attached && renderBox.hasSize) {
+          try {
+            // 获取task在屏幕上的全局位置
+            final globalPosition = renderBox.localToGlobal(Offset.zero);
+            // task中心在屏幕上的x坐标
+            final taskCenterOnScreen =
+                globalPosition.dx + renderBox.size.width / 2;
 
-          // 计算距离屏幕中心的距离
-          final distance = (taskCenterOnScreen - screenCenterX).abs();
+            // 计算距离屏幕中心的距离
+            final distance = (taskCenterOnScreen - screenCenterX).abs();
 
-          if (distance < minDistance) {
-            minDistance = distance;
-            nearestIndex = i;
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestIndex = i;
+            }
+          } catch (e) {
+            // 忽略计算错误
           }
         }
       }
     }
 
-    // 如果无法通过GlobalKey获取位置，回退到计算方式
+    // 如果无法通过GlobalKey获取位置，使用计算方式作为后备
     if (minDistance == double.infinity) {
-      // 使用计算方式作为后备
-      final listWidth = 0.9.sw;
-      const groupMargin = 8.0;
-      const outerPadding = 20.0;
+      final listWidth = 1.sw - 60;
+      const groupMargin = 20.0; // 与 appflowy_board_adapter 中的设置一致
+      const outerPadding = 10.0;
       const firstTaskStart = outerPadding + groupMargin;
       final firstTaskCenter = firstTaskStart + listWidth / 2;
       final taskSpacing = listWidth + groupMargin * 2;
-      // 在内容坐标系中，屏幕中心的绝对位置
       final screenCenterAbsolute = scrollOffset + screenCenterX;
 
       for (int i = 0; i < widget.tasks.length; i++) {
@@ -1314,73 +1376,52 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
           nearestIndex = i;
         }
       }
-
-      // 计算目标滚动位置
-      final targetTaskCenter = firstTaskCenter + nearestIndex * taskSpacing;
-      final targetScrollOffset = targetTaskCenter - screenWidth / 2;
-
-      _scrollController.animateTo(
-        targetScrollOffset.clamp(
-          0.0,
-          _scrollController.position.maxScrollExtent,
-        ),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-      return;
     }
 
-    // 使用实际测量的位置来计算目标滚动位置
-    final targetTask = widget.tasks[nearestIndex];
-    final targetKey = _taskKeys[targetTask.uuid];
-
-    if (targetKey?.currentContext != null) {
-      final RenderBox? renderBox =
-          targetKey!.currentContext!.findRenderObject() as RenderBox?;
-      if (renderBox != null && renderBox.hasSize) {
-        // 获取task在屏幕上的全局位置
-        final globalPosition = renderBox.localToGlobal(Offset.zero);
-        // task中心在屏幕上的x坐标
-        final taskCenterOnScreen = globalPosition.dx + renderBox.size.width / 2;
-        // 屏幕中心的x坐标
-        final screenCenterX = screenWidth / 2;
-
-        // 计算需要调整的滚动量：
-        // 如果task在屏幕中心右边，需要向右滚动（增加offset）
-        // 如果task在屏幕中心左边，需要向左滚动（减少offset）
-        final adjustDelta = taskCenterOnScreen - screenCenterX;
-        final targetScrollOffset = scrollOffset + adjustDelta;
-
-        // 平滑滚动到目标位置
-        _scrollController.animateTo(
-          targetScrollOffset.clamp(
-            0.0,
-            _scrollController.position.maxScrollExtent,
-          ),
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    }
+    // 使用统一的 _scrollToTask 方法处理吸附（包含边界逻辑）
+    _scrollToTask(nearestIndex);
   }
 
-  @override
-  void dispose() {
-    _snapTimer?.cancel();
-    if (_scrollController.hasClients) {
-      _scrollController.position.isScrollingNotifier
-          .removeListener(_onScrollingStateChanged);
+  /// 滚动到指定 task（所有 task 都居中显示）
+  void _scrollToTask(int index) {
+    if (!mounted || index < 0 || index >= widget.tasks.length) return;
+    if (!_scrollController.hasClients) return;
+
+    final task = widget.tasks[index];
+    final ctx = _taskContexts[task.uuid];
+    final maxExtent = _scrollController.position.maxScrollExtent;
+
+    if (ctx != null) {
+      final RenderBox? renderBox = ctx.findRenderObject() as RenderBox?;
+      // 增加 attached 检查
+      if (renderBox != null && renderBox.attached && renderBox.hasSize) {
+        try {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final globalPosition = renderBox.localToGlobal(Offset.zero);
+          final taskCenterOnScreen =
+              globalPosition.dx + renderBox.size.width / 2;
+          final screenCenterX = screenWidth / 2;
+          final adjustDelta = taskCenterOnScreen - screenCenterX;
+          final targetScrollOffset = _scrollController.offset + adjustDelta;
+
+          _scrollController.animateTo(
+            targetScrollOffset.clamp(0.0, maxExtent),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+          setState(() => _currentTaskIndex = index);
+        } catch (e) {
+          // 忽略计算错误
+        }
+      }
     }
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       // 强制建立对 RxList 的依赖
-      final _ = widget.tasks.length;
+      final taskCount = widget.tasks.length;
 
       if (widget.tasks.isEmpty) {
         return Center(
@@ -1396,21 +1437,98 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
         );
       }
 
-      // 使用和桌面端一样的AppFlowyTodosBoard，但传入自定义的ScrollController和task keys
-      return Padding(
-        padding:
-            const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: _AppFlowyBoardWithSnap(
-            tasks: widget.tasks,
-            listWidth: 0.9.sw,
-            scrollController: _scrollController,
-            taskKeys: _taskKeys,
+      // 使用 Column 布局，上方是任务列表，下方是圆点指示器
+      return Column(
+        children: [
+          // 任务列表
+          Expanded(
+            child: Listener(
+              onPointerMove: (event) {
+                final renderBox = context.findRenderObject() as RenderBox?;
+                if (renderBox != null) {
+                  _checkEdgeScroll(event.localPosition, renderBox.size.width);
+                }
+              },
+              onPointerUp: (_) => _stopEdgeScroll(),
+              onPointerCancel: (_) => _stopEdgeScroll(),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
+                child: _AppFlowyBoardWithSnap(
+                  tasks: widget.tasks,
+                  // 移动端 task 宽度：屏幕宽度 - 外层padding(各10) - groupMargin(各20)
+                  // 总扣除：(10 + 20) * 2 = 60
+                  listWidth: 1.sw - 60,
+                  scrollController: _scrollController,
+                  onTaskContextReady: (taskId, ctx) {
+                    _taskContexts[taskId] = ctx;
+                  },
+                  onDragEnded: () {
+                    // 拖拽结束后，延迟重置状态并触发吸附
+                    _snapTimer?.cancel();
+                    _snapTimer = Timer(const Duration(milliseconds: 600), () {
+                      if (mounted && !_isUserScrolling && !_isEdgeScrolling) {
+                        _snapToNearestTask();
+                      }
+                    });
+                  },
+                ),
+              ),
+            ),
           ),
-        ),
+          // 圆点指示器
+          if (taskCount > 1)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16, top: 8),
+              child: _DotIndicator(
+                count: taskCount,
+                currentIndex: _currentTaskIndex,
+                onDotTap: _scrollToTask,
+              ),
+            ),
+        ],
       );
     });
+  }
+}
+
+/// 圆点指示器组件 - 简约风格，贴合暗/亮主题
+class _DotIndicator extends StatelessWidget {
+  final int count;
+  final int currentIndex;
+  final ValueChanged<int>? onDotTap;
+
+  const _DotIndicator({
+    required this.count,
+    required this.currentIndex,
+    this.onDotTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // 简约配色：暗色主题用浅灰，亮色主题用深灰
+    final activeColor = isDark ? Colors.white : Colors.black87;
+    final inactiveColor = isDark ? Colors.white24 : Colors.black26;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        final isActive = index == currentIndex;
+        return GestureDetector(
+          onTap: () => onDotTap?.call(index),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isActive ? activeColor : inactiveColor,
+            ),
+          ),
+        );
+      }),
+    );
   }
 }
 
@@ -1419,13 +1537,15 @@ class _AppFlowyBoardWithSnap extends StatelessWidget {
   final RxList<Task> tasks;
   final double listWidth;
   final ScrollController scrollController;
-  final Map<String, GlobalKey> taskKeys;
+  final void Function(String taskId, BuildContext context)? onTaskContextReady;
+  final VoidCallback? onDragEnded;
 
   const _AppFlowyBoardWithSnap({
     required this.tasks,
     required this.listWidth,
     required this.scrollController,
-    required this.taskKeys,
+    this.onTaskContextReady,
+    this.onDragEnded,
   });
 
   @override
@@ -1434,7 +1554,8 @@ class _AppFlowyBoardWithSnap extends StatelessWidget {
       tasks: tasks,
       listWidth: listWidth,
       scrollController: scrollController,
-      taskKeys: taskKeys,
+      onTaskContextReady: onTaskContextReady,
+      onDragEnded: onDragEnded,
     );
   }
 }

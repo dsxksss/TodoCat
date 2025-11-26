@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+import 'package:vector_math/vector_math_64.dart' as vector_math;
 
 /// 显示图片查看器（使用 SmartDialog 避免 Navigator context 问题）
 void showImageViewer({
@@ -12,7 +13,7 @@ void showImageViewer({
   String? caption,
 }) {
   final tag = 'image_viewer_${DateTime.now().millisecondsSinceEpoch}';
-  
+
   SmartDialog.show(
     tag: tag,
     useSystem: false,
@@ -112,8 +113,8 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog>
       final dx = position.dx * (1 - scale);
       final dy = position.dy * (1 - scale);
       endMatrix = Matrix4.identity()
-        ..scale(scale)
-        ..translate(dx / scale, dy / scale);
+        ..scaleByVector3(vector_math.Vector3(scale, scale, 1.0))
+        ..translateByVector3(vector_math.Vector3(dx / scale, dy / scale, 0.0));
     }
 
     _animation = Matrix4Tween(
@@ -158,7 +159,8 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog>
                 child: Image(
                   image: widget.imageProvider,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => _buildErrorWidget(),
+                  errorBuilder: (context, error, stackTrace) =>
+                      _buildErrorWidget(),
                 ),
               ),
             ),
@@ -181,7 +183,8 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog>
               ),
               child: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -256,11 +259,13 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.broken_image, size: 64, color: Colors.white.withValues(alpha: 0.5)),
+          Icon(Icons.broken_image,
+              size: 64, color: Colors.white.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(
             'imageLoadFailed'.tr,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
+            style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
           ),
         ],
       ),
@@ -326,7 +331,7 @@ class ClickableImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tag = heroTag ?? 'image_${imageProvider.hashCode}';
-    
+
     Widget imageWidget = Hero(
       tag: tag,
       child: Image(
@@ -504,4 +509,3 @@ class ClickableNetworkImage extends StatelessWidget {
     );
   }
 }
-
