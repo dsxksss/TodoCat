@@ -371,99 +371,171 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
     // 计算每个 group 实际需要的宽度（包含左右 margin）
     final groupWidthWithMargin = widget.listWidth + marginHorizontal * 2;
 
-    return AppFlowyBoard(
-      controller: _boardController,
-      // 使用包含 margin 的宽度作为 group 约束
-      groupConstraints: BoxConstraints.tightFor(width: groupWidthWithMargin),
-      config: boardConfig,
-      scrollController: _scrollController,
-      headerBuilder: (_, groupData) {
-        final task =
-            widget.tasks.firstWhereOrNull((t) => t.uuid == groupData.id);
-        if (task == null) {
-          return const SizedBox.shrink();
-        }
-        final hasTodos =
-            (task.todos ?? []).where((t) => t.deletedAt == 0).isNotEmpty;
+    return Listener(
+      onPointerMove: (event) {
+        _dragPosition = event.position;
+        _checkAutoScroll();
+      },
+      onPointerUp: (_) {
+        _stopAutoScroll();
+        _dragPosition = null;
+      },
+      onPointerCancel: (_) {
+        _stopAutoScroll();
+        _dragPosition = null;
+      },
+      child: AppFlowyBoard(
+        controller: _boardController,
+        // 使用包含 margin 的宽度作为 group 约束
+        groupConstraints: BoxConstraints.tightFor(width: groupWidthWithMargin),
+        config: boardConfig,
+        scrollController: _scrollController,
+        headerBuilder: (_, groupData) {
+          final task =
+              widget.tasks.firstWhereOrNull((t) => t.uuid == groupData.id);
+          if (task == null) {
+            return const SizedBox.shrink();
+          }
+          final hasTodos =
+              (task.todos ?? []).where((t) => t.deletedAt == 0).isNotEmpty;
 
-        // 使用 Container 的 margin 来统一控制所有 group 的间距
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: marginHorizontal),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            // 顶部始终有圆角，底部只有在没有 todos 时才有圆角
-            borderRadius: hasTodos
-                ? const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                  )
-                : BorderRadius.circular(10),
-          ),
-          width: widget.listWidth,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(),
-            child: ClipRRect(
-              // 使用 ClipRRect 确保内容也遵循圆角
+          // 使用 Container 的 margin 来统一控制所有 group 的间距
+          return Container(
+            margin: EdgeInsets.symmetric(horizontal: marginHorizontal),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              // 顶部始终有圆角，底部只有在没有 todos 时才有圆角
               borderRadius: hasTodos
                   ? const BorderRadius.only(
                       topLeft: Radius.circular(10),
                       topRight: Radius.circular(10),
                     )
                   : BorderRadius.circular(10),
-              child: TaskCard(
-                task: task,
-                showTodos: false,
-                onContextReady: (ctx) {
-                  widget.onTaskContextReady?.call(task.uuid, ctx);
-                },
+            ),
+            width: widget.listWidth,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(),
+              child: ClipRRect(
+                // 使用 ClipRRect 确保内容也遵循圆角
+                borderRadius: hasTodos
+                    ? const BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10),
+                      )
+                    : BorderRadius.circular(10),
+                child: TaskCard(
+                  task: task,
+                  showTodos: false,
+                  onContextReady: (ctx) {
+                    widget.onTaskContextReady?.call(task.uuid, ctx);
+                  },
+                ),
               ),
             ),
-          ),
-        );
-      },
-      cardBuilder: (_, group, item) {
-        if (item is! _TodoItem) {
-          return const SizedBox.shrink(key: ValueKey('phantom'));
-        }
+          );
+        },
+        cardBuilder: (_, group, item) {
+          if (item is! _TodoItem) {
+            return const SizedBox.shrink(key: ValueKey('phantom'));
+          }
 
-        final data = item;
-        final items = group.items.whereType<_TodoItem>().toList();
-        final isLastItem = items.isNotEmpty && items.last.id == data.id;
+          final data = item;
+          final items = group.items.whereType<_TodoItem>().toList();
+          final isLastItem = items.isNotEmpty && items.last.id == data.id;
 
-        return KeyedSubtree(
-          key: ValueKey(data.id),
-          child: Container(
-            // 使用与 headerBuilder 相同的 margin 来保持一致性
-            margin: EdgeInsets.symmetric(horizontal: marginHorizontal),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: isLastItem
-                  ? const BorderRadius.only(
-                      bottomLeft: Radius.circular(10),
-                      bottomRight: Radius.circular(10),
-                    )
-                  : null,
-              border: Border.all(width: 0, color: Theme.of(context).cardColor),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 0),
-              child: ConstrainedBox(
-                // 移动端图片封面更高，需要更大的 maxHeight
-                constraints:
-                    BoxConstraints(maxHeight: context.isPhone ? 420 : 350),
-                child: ClipRect(
-                  child: TodoCard(
-                    taskId: data.taskId,
-                    todo: data.todo,
-                    compact: true,
+          return KeyedSubtree(
+            key: ValueKey(data.id),
+            child: Container(
+              // 使用与 headerBuilder 相同的 margin 来保持一致性
+              margin: EdgeInsets.symmetric(horizontal: marginHorizontal),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: isLastItem
+                    ? const BorderRadius.only(
+                        bottomLeft: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
+                      )
+                    : null,
+                border:
+                    Border.all(width: 0, color: Theme.of(context).cardColor),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 0),
+                child: ConstrainedBox(
+                  // 移动端图片封面更高，需要更大的 maxHeight
+                  constraints:
+                      BoxConstraints(maxHeight: context.isPhone ? 420 : 350),
+                  child: ClipRect(
+                    child: TodoCard(
+                      taskId: data.taskId,
+                      todo: data.todo,
+                      compact: true,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
+  }
+
+  Offset? _dragPosition;
+  Timer? _autoScrollTimer;
+
+  void _checkAutoScroll() {
+    if (_dragPosition == null || !mounted) return;
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final scrollThreshold = 50.0; // 边缘触发区域宽度
+    final maxScrollSpeed = 15.0; // 最大滚动速度
+
+    double scrollDelta = 0.0;
+
+    if (_dragPosition!.dx < scrollThreshold) {
+      // 向左滚动
+      final ratio = (scrollThreshold - _dragPosition!.dx) / scrollThreshold;
+      scrollDelta = -maxScrollSpeed * ratio;
+    } else if (_dragPosition!.dx > screenWidth - scrollThreshold) {
+      // 向右滚动
+      final ratio = (_dragPosition!.dx - (screenWidth - scrollThreshold)) /
+          scrollThreshold;
+      scrollDelta = maxScrollSpeed * ratio;
+    }
+
+    if (scrollDelta != 0.0) {
+      _startAutoScroll(scrollDelta);
+    } else {
+      _stopAutoScroll();
+    }
+  }
+
+  void _startAutoScroll(double delta) {
+    if (_autoScrollTimer != null) return;
+
+    _autoScrollTimer =
+        Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted || _scrollController.hasClients == false) {
+        _stopAutoScroll();
+        return;
+      }
+
+      final currentOffset = _scrollController.offset;
+      final maxOffset = _scrollController.position.maxScrollExtent;
+      final minOffset = _scrollController.position.minScrollExtent;
+
+      final targetOffset = (currentOffset + delta).clamp(minOffset, maxOffset);
+
+      if (targetOffset != currentOffset) {
+        _scrollController.jumpTo(targetOffset);
+      }
+    });
+  }
+
+  void _stopAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = null;
   }
 }
 

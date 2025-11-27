@@ -4,6 +4,7 @@ import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 import 'package:todo_cat/widgets/color_picker_dialog.dart';
 import 'package:todo_cat/data/schemas/tag_with_color.dart';
+import 'package:todo_cat/widgets/tag_edit_dialog.dart';
 
 class AddTagWithColorScreen extends StatelessWidget {
   const AddTagWithColorScreen({
@@ -57,7 +58,7 @@ class AddTagWithColorScreen extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => onSubmitted(editingController.text),
                 child: Icon(
-                  Icons.add_box_rounded, 
+                  Icons.add_box_rounded,
                   size: 20,
                   color: context.theme.iconTheme.color,
                 ),
@@ -176,7 +177,7 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
                     child: GestureDetector(
                       onTap: () => _addTagWithColor(),
                       child: Icon(
-                        Icons.add_box_rounded, 
+                        Icons.add_box_rounded,
                         size: 20,
                         color: context.theme.iconTheme.color,
                       ),
@@ -233,16 +234,31 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
                 runSpacing: 8,
                 children: List.generate(
                   widget.selectedTags.length,
-                  (index) => TagDialogBtn(
-                    tag: widget.selectedTags[index].name,
-                    tagColor: widget.selectedTags[index].color,
-                    dialogTag: 'tag_${widget.selectedTags[index].name}',
-                    showDelete: true,
-                    onDelete: () => widget.onDeleteTag(index),
-                    openDialog: const SizedBox.shrink(),
-                    onDialogClose: () {
-                      // 处理对话框关闭事件
+                  (index) => GestureDetector(
+                    onTap: () {
+                      showTagEditDialog(
+                        initialName: widget.selectedTags[index].name,
+                        initialColor: widget.selectedTags[index].color,
+                        onSave: (newName, newColor) {
+                          widget.selectedTags[index] =
+                              widget.selectedTags[index].copyWith(
+                            name: newName,
+                            color: newColor,
+                          );
+                        },
+                      );
                     },
+                    child: TagDialogBtn(
+                      tag: widget.selectedTags[index].name,
+                      tagColor: widget.selectedTags[index].color,
+                      dialogTag: 'tag_${widget.selectedTags[index].name}',
+                      showDelete: true,
+                      onDelete: () => widget.onDeleteTag(index),
+                      openDialog: const SizedBox.shrink(),
+                      onDialogClose: () {
+                        // 处理对话框关闭事件
+                      },
+                    ),
                   ),
                 ),
               ),

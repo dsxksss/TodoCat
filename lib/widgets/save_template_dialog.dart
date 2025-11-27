@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/custom_template.dart';
 import 'package:todo_cat/data/schemas/task.dart';
@@ -14,7 +14,7 @@ import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 /// 保存为模板对话框
 class SaveTemplateDialog extends StatefulWidget {
   final List<Task> tasks;
-  
+
   const SaveTemplateDialog({
     super.key,
     required this.tasks,
@@ -48,7 +48,7 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
 
     try {
       final repository = await CustomTemplateRepository.getInstance();
-      
+
       // 检查名称是否已存在
       final exists = await repository.exists(_nameController.text.trim());
       if (exists) {
@@ -64,8 +64,8 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
       // 创建模板
       final template = CustomTemplate.fromTasks(
         name: _nameController.text.trim(),
-        description: _descriptionController.text.trim().isEmpty 
-            ? null 
+        description: _descriptionController.text.trim().isEmpty
+            ? null
             : _descriptionController.text.trim(),
         tasks: widget.tasks,
         isSystem: false,
@@ -90,8 +90,6 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: context.isPhone ? 1.sw : 430,
-      height: context.isPhone ? 0.6.sh : 500,
       decoration: BoxDecoration(
         color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
@@ -155,7 +153,8 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
                       '${"tasks".tr}: ${widget.tasks.length}',
                       style: TextStyle(
                         fontSize: 13,
-                        color: context.theme.textTheme.bodyMedium?.color?.withValues(alpha:0.7),
+                        color: context.theme.textTheme.bodyMedium?.color
+                            ?.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -176,4 +175,3 @@ void showSaveTemplateDialog(List<Task> tasks) {
     dialog: SaveTemplateDialog(tasks: tasks),
   );
 }
-

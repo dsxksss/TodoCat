@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
@@ -17,10 +17,6 @@ class BackgroundSettingDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: context.isPhone ? double.infinity : 500,
-      constraints: BoxConstraints(
-        maxHeight: context.isPhone ? 0.8.sh : 700,
-      ),
       decoration: BoxDecoration(
         color: context.theme.dialogTheme.backgroundColor,
         border: Border.all(width: 0.3, color: context.theme.dividerColor),
@@ -91,7 +87,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                   const SizedBox(height: 12),
                   const DefaultBackgroundImageGrid(),
                   const SizedBox(height: 24),
-                  
+
                   // 默认背景视频模板（移动端不显示）
                   if (!context.isPhone) ...[
                     Text(
@@ -125,16 +121,31 @@ class BackgroundSettingDialog extends StatelessWidget {
                         GetPlatform.isDesktop &&
                         File(config.backgroundImagePath!).existsSync();
                     final isCustomVideo = isCustomImage &&
-                        (config.backgroundImagePath!.toLowerCase().endsWith('.mp4') ||
-                         config.backgroundImagePath!.toLowerCase().endsWith('.mov') ||
-                         config.backgroundImagePath!.toLowerCase().endsWith('.avi') ||
-                         config.backgroundImagePath!.toLowerCase().endsWith('.mkv') ||
-                         config.backgroundImagePath!.toLowerCase().endsWith('.webm'));
+                        (config.backgroundImagePath!
+                                .toLowerCase()
+                                .endsWith('.mp4') ||
+                            config.backgroundImagePath!
+                                .toLowerCase()
+                                .endsWith('.mov') ||
+                            config.backgroundImagePath!
+                                .toLowerCase()
+                                .endsWith('.avi') ||
+                            config.backgroundImagePath!
+                                .toLowerCase()
+                                .endsWith('.mkv') ||
+                            config.backgroundImagePath!
+                                .toLowerCase()
+                                .endsWith('.webm'));
                     final isDefaultVideo = isDefaultTemplate &&
-                        DefaultBackgrounds.getById(config.backgroundImagePath!.split(':').last)?.isVideo == true;
+                        DefaultBackgrounds.getById(
+                                    config.backgroundImagePath!.split(':').last)
+                                ?.isVideo ==
+                            true;
                     final hasBackground = isDefaultTemplate || isCustomImage;
                     // 移动端不支持视频背景，如果当前是视频背景，则视为无背景
-                    final isVideo = context.isPhone ? false : (isCustomVideo || isDefaultVideo);
+                    final isVideo = context.isPhone
+                        ? false
+                        : (isCustomVideo || isDefaultVideo);
 
                     return Column(
                       mainAxisSize: MainAxisSize.min,
@@ -216,7 +227,8 @@ class BackgroundSettingDialog extends StatelessWidget {
                                       : 'backgroundImageNotSet'.tr,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: context.theme.textTheme.bodySmall?.color,
+                                    color: context
+                                        .theme.textTheme.bodySmall?.color,
                                   ),
                                 ),
                               ),
@@ -345,7 +357,8 @@ class BackgroundSettingDialog extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.image, size: 18, color: Colors.white),
+                                const Icon(Icons.image,
+                                    size: 18, color: Colors.white),
                                 const SizedBox(width: 8),
                                 Flexible(
                                     child: Text(
@@ -410,15 +423,15 @@ class BackgroundSettingDialog extends StatelessWidget {
       ),
     );
   }
-  
+
   /// 构建自定义背景预览（支持图片和视频）
   Widget _buildCustomBackgroundPreview(BuildContext context, String path) {
     final isVideo = path.toLowerCase().endsWith('.mp4') ||
-                   path.toLowerCase().endsWith('.mov') ||
-                   path.toLowerCase().endsWith('.avi') ||
-                   path.toLowerCase().endsWith('.mkv') ||
-                   path.toLowerCase().endsWith('.webm');
-    
+        path.toLowerCase().endsWith('.mov') ||
+        path.toLowerCase().endsWith('.avi') ||
+        path.toLowerCase().endsWith('.mkv') ||
+        path.toLowerCase().endsWith('.webm');
+
     if (isVideo) {
       return VideoThumbnail(
         videoPath: path,
@@ -464,7 +477,7 @@ class BackgroundSettingDialog extends StatelessWidget {
       );
     }
   }
-  
+
   /// 构建默认模板预览
   Widget _buildDefaultTemplatePreview(BuildContext context, String templateId) {
     final template = DefaultBackgrounds.getById(templateId);
@@ -478,18 +491,19 @@ class BackgroundSettingDialog extends StatelessWidget {
         ),
       );
     }
-    
+
     // 如果是视频，显示视频缩略图
     if (template.isVideo) {
       // 如果有downloadUrl，优先使用缓存路径，否则使用URL
       if (template.downloadUrl != null) {
         return FutureBuilder<String?>(
-          future: VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
+          future:
+              VideoDownloadService().getCachedVideoPath(template.downloadUrl!),
           builder: (context, snapshot) {
             // 无论是否已缓存，都先尝试从URL获取缩略图（如果缓存路径不存在）
             final cachedPath = snapshot.data;
             final videoPath = cachedPath ?? template.downloadUrl!;
-            
+
             return VideoThumbnail(
               videoPath: videoPath,
               fit: BoxFit.cover,
@@ -550,7 +564,7 @@ class BackgroundSettingDialog extends StatelessWidget {
         );
       }
     }
-    
+
     // 加载本地图片
     return Image.asset(
       template.imageUrl,
@@ -639,7 +653,7 @@ class DefaultBackgroundImageGrid extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha:0.2),
+                                color: Colors.black.withValues(alpha: 0.2),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -697,10 +711,12 @@ class DefaultBackgroundVideoGrid extends StatefulWidget {
   const DefaultBackgroundVideoGrid({super.key});
 
   @override
-  State<DefaultBackgroundVideoGrid> createState() => _DefaultBackgroundVideoGridState();
+  State<DefaultBackgroundVideoGrid> createState() =>
+      _DefaultBackgroundVideoGridState();
 }
 
-class _DefaultBackgroundVideoGridState extends State<DefaultBackgroundVideoGrid> {
+class _DefaultBackgroundVideoGridState
+    extends State<DefaultBackgroundVideoGrid> {
   final VideoDownloadService _downloadService = VideoDownloadService();
   final Map<String, double> _downloadProgress = {};
   final Map<String, bool> _isDownloading = {};
@@ -719,7 +735,8 @@ class _DefaultBackgroundVideoGridState extends State<DefaultBackgroundVideoGrid>
 
     for (final template in videoTemplates) {
       if (template.downloadUrl != null) {
-        final cached = await _downloadService.isVideoCached(template.downloadUrl!);
+        final cached =
+            await _downloadService.isVideoCached(template.downloadUrl!);
         if (mounted) {
           setState(() {
             _isCached[template.id] = cached;
@@ -809,7 +826,6 @@ class _DefaultBackgroundVideoGridState extends State<DefaultBackgroundVideoGrid>
       },
     );
   }
-
 }
 
 /// 带防抖的透明度滑块
@@ -1010,7 +1026,8 @@ class _VideoGridItem extends StatelessWidget {
             : () async {
                 // 如果有downloadUrl，需要先检查是否已缓存
                 if (template.downloadUrl != null) {
-                  final cached = await downloadService.isVideoCached(template.downloadUrl!);
+                  final cached = await downloadService
+                      .isVideoCached(template.downloadUrl!);
                   if (!cached) {
                     // 未缓存，不能应用
                     return;
@@ -1023,9 +1040,8 @@ class _VideoGridItem extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected
-                  ? context.theme.primaryColor
-                  : Colors.transparent,
+              color:
+                  isSelected ? context.theme.primaryColor : Colors.transparent,
               width: isSelected ? 2 : 0,
             ),
           ),
@@ -1042,7 +1058,8 @@ class _VideoGridItem extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.3),
                     child: Center(
                       child: isDownloading
-                          ? _buildDownloadProgressWithCancel(context, downloadProgress)
+                          ? _buildDownloadProgressWithCancel(
+                              context, downloadProgress)
                           : _buildDownloadButton(context),
                     ),
                   ),
@@ -1081,7 +1098,7 @@ class _VideoGridItem extends StatelessWidget {
   Widget _buildVideoPlaceholder() {
     // 使用稳定的 key，避免频繁重建
     final stableKey = ValueKey('${template.id}_${isCached ? 'cached' : 'url'}');
-    
+
     // 如果有downloadUrl，需要检查是否已缓存
     if (template.downloadUrl != null) {
       // 如果已缓存，使用缓存路径显示缩略图
@@ -1162,8 +1179,10 @@ class _VideoGridItem extends StatelessWidget {
     final theme = Get.theme;
     final isDark = theme.brightness == Brightness.dark;
     const progressColor = Colors.blueAccent;
-    final backgroundColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
-    final progressBgColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+    final backgroundColor =
+        isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+    final progressBgColor =
+        isDark ? Colors.grey.shade700 : Colors.grey.shade300;
     final percentage = (progress * 100).toInt();
 
     return Container(
@@ -1191,7 +1210,8 @@ class _VideoGridItem extends StatelessWidget {
                   value: animatedProgress,
                   strokeWidth: 3.0,
                   backgroundColor: progressBgColor,
-                  valueColor: const AlwaysStoppedAnimation<Color>(progressColor),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(progressColor),
                 );
               },
             ),
@@ -1210,7 +1230,8 @@ class _VideoGridItem extends StatelessWidget {
     );
   }
 
-  Widget _buildDownloadProgressWithCancel(BuildContext context, double progress) {
+  Widget _buildDownloadProgressWithCancel(
+      BuildContext context, double progress) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

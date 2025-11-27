@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 import 'package:todo_cat/config/template_generator.dart';
 import 'package:todo_cat/data/schemas/task.dart';
@@ -66,139 +66,135 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: context.isPhone ? 1.sw : 450,
-      height: MediaQuery.of(context).size.height * 0.85, // 限制最大高度为屏幕的85%
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.theme.dialogTheme.backgroundColor,
-          border: Border.all(width: 0.3, color: context.theme.dividerColor),
-          borderRadius: context.isPhone
-              ? const BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                )
-              : BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            // 标题栏
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: context.theme.dividerColor,
-                    width: 0.3,
-                  ),
+    return Container(
+      decoration: BoxDecoration(
+        color: context.theme.dialogTheme.backgroundColor,
+        border: Border.all(width: 0.3, color: context.theme.dividerColor),
+        borderRadius: context.isPhone
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+              )
+            : BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          // 标题栏
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: context.theme.dividerColor,
+                  width: 0.3,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'selectTaskTemplate'.tr,
-                    style: FontUtils.getBoldStyle(fontSize: 20),
-                  ),
-                  LabelBtn(
-                    ghostStyle: true,
-                    label: Text('cancel'.tr),
-                    onPressed: () =>
-                        SmartDialog.dismiss(tag: 'template_selector'),
-                  ),
-                ],
-              ),
             ),
-            // 内容区域 - 使用 Expanded 和 SingleChildScrollView 使其可滚动
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 显示自定义模板（放在前面）
-                    if (_customTemplates.isNotEmpty) ...[
-                      Text(
-                        'customTemplates'.tr,
-                        style: FontUtils.getTextStyle(
-                          fontSize: 14,
-                          color: context.theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ..._customTemplates
-                          .map(
-                            (template) =>
-                                _buildCustomTemplateOption(context, template),
-                          )
-                          .toList(),
-                      const SizedBox(height: 24),
-                      Divider(
-                          color: context.theme.dividerColor
-                              .withValues(alpha: 0.3)),
-                      const SizedBox(height: 12),
-                    ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'selectTaskTemplate'.tr,
+                  style: FontUtils.getBoldStyle(fontSize: 20),
+                ),
+                LabelBtn(
+                  ghostStyle: true,
+                  label: Text('cancel'.tr),
+                  onPressed: () =>
+                      SmartDialog.dismiss(tag: 'template_selector'),
+                ),
+              ],
+            ),
+          ),
+          // 内容区域 - 使用 Expanded 和 SingleChildScrollView 使其可滚动
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 显示自定义模板（放在前面）
+                  if (_customTemplates.isNotEmpty) ...[
                     Text(
-                      _customTemplates.isNotEmpty
-                          ? 'default'.tr
-                          : 'selectTemplateType'.tr,
+                      'customTemplates'.tr,
                       style: FontUtils.getTextStyle(
                         fontSize: 14,
                         color: context.theme.textTheme.bodyMedium?.color,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    _buildTemplateOption(
-                      context,
-                      TaskTemplateType.empty,
-                      'emptyTemplate'.tr,
-                      'emptyTemplateDescription'.tr,
-                      Icons.checklist_outlined,
-                      Colors.blue,
-                    ),
                     const SizedBox(height: 12),
-                    _buildTemplateOption(
-                      context,
-                      TaskTemplateType.content,
-                      'studentScheduleTemplate'.tr,
-                      'studentScheduleTemplateDescription'.tr,
-                      Icons.school_outlined,
-                      Colors.green,
-                    ),
+                    ..._customTemplates
+                        .map(
+                          (template) =>
+                              _buildCustomTemplateOption(context, template),
+                        )
+                        .toList(),
+                    const SizedBox(height: 24),
+                    Divider(
+                        color:
+                            context.theme.dividerColor.withValues(alpha: 0.3)),
                     const SizedBox(height: 12),
-                    _buildTemplateOption(
-                      context,
-                      TaskTemplateType.work,
-                      'workManagementTemplate'.tr,
-                      'workManagementTemplateDescription'.tr,
-                      Icons.work_outline,
-                      Colors.orange,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTemplateOption(
-                      context,
-                      TaskTemplateType.fitness,
-                      'fitnessTrainingTemplate'.tr,
-                      'fitnessTrainingTemplateDescription'.tr,
-                      Icons.fitness_center,
-                      Colors.purple,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTemplateOption(
-                      context,
-                      TaskTemplateType.travel,
-                      'travelPlanTemplate'.tr,
-                      'travelPlanTemplateDescription'.tr,
-                      Icons.flight_takeoff,
-                      Colors.teal,
-                    ),
                   ],
-                ),
+                  Text(
+                    _customTemplates.isNotEmpty
+                        ? 'default'.tr
+                        : 'selectTemplateType'.tr,
+                    style: FontUtils.getTextStyle(
+                      fontSize: 14,
+                      color: context.theme.textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTemplateOption(
+                    context,
+                    TaskTemplateType.empty,
+                    'emptyTemplate'.tr,
+                    'emptyTemplateDescription'.tr,
+                    Icons.checklist_outlined,
+                    Colors.blue,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTemplateOption(
+                    context,
+                    TaskTemplateType.content,
+                    'studentScheduleTemplate'.tr,
+                    'studentScheduleTemplateDescription'.tr,
+                    Icons.school_outlined,
+                    Colors.green,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTemplateOption(
+                    context,
+                    TaskTemplateType.work,
+                    'workManagementTemplate'.tr,
+                    'workManagementTemplateDescription'.tr,
+                    Icons.work_outline,
+                    Colors.orange,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTemplateOption(
+                    context,
+                    TaskTemplateType.fitness,
+                    'fitnessTrainingTemplate'.tr,
+                    'fitnessTrainingTemplateDescription'.tr,
+                    Icons.fitness_center,
+                    Colors.purple,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTemplateOption(
+                    context,
+                    TaskTemplateType.travel,
+                    'travelPlanTemplate'.tr,
+                    'travelPlanTemplateDescription'.tr,
+                    Icons.flight_takeoff,
+                    Colors.teal,
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -400,6 +396,7 @@ class _CustomTemplateOptionWidgetState
       maskColor: Colors.black.withValues(alpha: 0.3),
       clickMaskDismiss: true,
       useSystem: false,
+      useFixedSize: false,
       onDismiss: () {
         _isPreviewShowing = false;
       },
@@ -886,6 +883,7 @@ class _TemplateOptionWithPreviewState
       maskColor: Colors.black.withValues(alpha: 0.3),
       clickMaskDismiss: true,
       useSystem: false, // 使用系统overlay，降低层级
+      useFixedSize: false,
       onDismiss: () {
         _isPreviewShowing = false;
       },
@@ -1309,6 +1307,8 @@ void showTemplateSelectorDialog({
       onTemplateSelected: onTemplateSelected,
       onCustomTemplateSelected: onCustomTemplateSelected,
     ),
+    width: 900,
+    height: 700,
     maskColor: Colors.black.withValues(alpha: 0.5),
     clickMaskDismiss: true,
     animationTime: const Duration(milliseconds: 300),

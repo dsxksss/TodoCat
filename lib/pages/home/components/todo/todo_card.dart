@@ -17,10 +17,12 @@ import 'package:todo_cat/widgets/select_workspace_and_task_dialog.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/widgets/duplicate_name_dialog.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+
 import 'dart:io';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:todo_cat/widgets/tag_edit_dialog.dart';
+import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
 class TodoCard extends StatelessWidget {
   TodoCard({
@@ -46,7 +48,7 @@ class TodoCard extends StatelessWidget {
   String _formatDateTimeWithoutYear(int timestamp) {
     final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
     final now = DateTime.now();
-    
+
     // 如果是今年，不显示年份
     if (dateTime.year == now.year) {
       return '${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
@@ -113,11 +115,11 @@ class TodoCard extends StatelessWidget {
     if (markdown.isEmpty) {
       return null;
     }
-    
+
     // 匹配 markdown 图片格式：![alt](path) 或 ![alt](path "title")
     final imagePattern = RegExp(r'!\[([^\]]*)\]\(([^)]+)\)');
     final match = imagePattern.firstMatch(markdown);
-    
+
     if (match != null) {
       final imagePath = match.group(2);
       if (imagePath != null && imagePath.isNotEmpty) {
@@ -126,7 +128,7 @@ class TodoCard extends StatelessWidget {
         return cleanPath;
       }
     }
-    
+
     return null;
   }
 
@@ -135,7 +137,7 @@ class TodoCard extends StatelessWidget {
     if (path.isEmpty) {
       return null;
     }
-    
+
     // 处理 file:// 协议
     if (path.startsWith('file://')) {
       // 移除 file:// 或 file:/// 前缀
@@ -146,12 +148,12 @@ class TodoCard extends StatelessWidget {
       }
       return filePath;
     }
-    
+
     // 网络图片直接返回
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return path;
     }
-    
+
     // 普通路径直接返回
     return path;
   }
@@ -167,59 +169,14 @@ class TodoCard extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           final dialogTag = 'todo_detail_dialog_${todo.uuid}';
-          final context = Get.context!;
-          SmartDialog.show(
+          PlatformDialogWrapper.show(
             tag: dialogTag,
-            alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
-            animationTime: const Duration(milliseconds: 250),
-            animationBuilder: (animController, child, _) {
-              if (context.isPhone) {
-                // 移动端：从底部滑入
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 1),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: animController,
-                    curve: Curves.easeOutCubic,
-                  )),
-                  child: FadeTransition(
-                    opacity: animController,
-                    child: child,
-                  ),
-                );
-              } else {
-                // 桌面端：缩放和淡入
-                return FadeTransition(
-                  opacity: animController,
-                  child: ScaleTransition(
-                    scale: Tween<double>(
-                      begin: 0.9,
-                      end: 1.0,
-                    ).animate(CurvedAnimation(
-                      parent: animController,
-                      curve: Curves.easeOut,
-                    )),
-                    child: child,
-                  ),
-                );
-              }
-            },
-            builder: (_) => context.isPhone
-                ? Scaffold(
-                    backgroundColor: Colors.transparent,
-                    body: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: TodoDetailDialog(
-                        todoId: todo.uuid,
-                        taskId: taskId,
-                      ),
-                    ),
-                  )
-                : TodoDetailDialog(
-                    todoId: todo.uuid,
-                    taskId: taskId,
-                  ),
+            content: TodoDetailDialog(
+              todoId: todo.uuid,
+              taskId: taskId,
+            ),
+            width: 600,
+            height: 650,
             clickMaskDismiss: true,
             onDismiss: () {
               // 清理 controller，避免内存泄漏
@@ -228,7 +185,8 @@ class TodoCard extends StatelessWidget {
           );
         },
         child: Container(
-          margin: outerMargin ?? const EdgeInsets.only(left: 15, right: 15, bottom: 15),
+          margin: outerMargin ??
+              const EdgeInsets.only(left: 15, right: 15, bottom: 15),
           padding: const EdgeInsets.only(left: 10, right: 10, top: 5),
           decoration: BoxDecoration(
             color: context.theme.cardColor,
@@ -246,538 +204,666 @@ class TodoCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: 5),
             child: ClipRect(
               // 使用 ClipRect 裁剪溢出内容
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 mainAxisSize: MainAxisSize.min, // 使用 min 以避免溢出
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Row(
-                        children: [
-                          Icon(
-                            FontAwesomeIcons.solidCircle,
-                            size: 11,
-                            color: _getPriorityColor(),
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 1.0),
-                              child: Tooltip(
-                                message: todo.title,
-                                preferBelow: false,
-                                child: Text(
-                                  _getDisplayTitle(),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Row(
+                          children: [
+                            Icon(
+                              FontAwesomeIcons.solidCircle,
+                              size: 11,
+                              color: _getPriorityColor(),
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 1.0),
+                                child: Tooltip(
+                                  message: todo.title,
+                                  preferBelow: false,
+                                  child: Text(
+                                    _getDisplayTitle(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        DPDMenuBtn(
-                      tag: dropDownMenuBtnTag,
-                      menuItems: [
-                        MenuItem(
-                          title: 'edit',
-                          iconData: FontAwesomeIcons.penToSquare,
-                          callback: () async {
-                            final todoDialogController = Get.put(
-                              AddTodoDialogController(),
-                              tag: 'edit_todo_dialog',
-                              permanent: true,
-                            );
-                            todoDialogController.initForEditing(taskId, todo);
-
-                            DialogService.showFormDialog(
-                              tag: 'edit_todo_dialog',
-                              dialog: const TodoDialog(
-                                  dialogTag: 'edit_todo_dialog'),
-                              useFixedSize: false, // TodoDialog 需要动态调整宽度以支持预览窗口
-                            );
-                          },
-                        ),
-                        MenuItem(
-                          title: 'moveTodoToWorkspace',
-                          iconData: FontAwesomeIcons.folderOpen,
-                          callback: () {
-                            // 获取当前工作空间ID和task信息
-                            String currentWorkspaceId = 'default';
-                            if (Get.isRegistered<WorkspaceController>()) {
-                              final workspaceCtrl = Get.find<WorkspaceController>();
-                              currentWorkspaceId = workspaceCtrl.currentWorkspaceId.value;
-                            }
-                            
-                            // 显示选择工作空间和任务对话框
-                            showSelectWorkspaceAndTaskDialog(
-                              currentTaskId: taskId,
-                              currentWorkspaceId: currentWorkspaceId,
-                              onSelected: (targetWorkspaceId, targetTaskId) async {
-                                // 获取源工作空间、目标工作空间和任务名称
-                                String sourceWorkspaceName = 'defaultWorkspace'.tr;
-                                String targetWorkspaceName = 'defaultWorkspace'.tr;
-                                String sourceTaskName = '';
-                                String targetTaskName = '';
-                                
-                                if (Get.isRegistered<WorkspaceController>()) {
-                                  final workspaceCtrl = Get.find<WorkspaceController>();
-                                  
-                                  // 获取当前任务信息（用于显示源工作空间）
-                                  try {
-                                    final taskRepository = await TaskRepository.getInstance();
-                                    final sourceTask = await taskRepository.readOne(taskId);
-                                    if (sourceTask != null) {
-                                      sourceTaskName = sourceTask.title;
-                                      
-                                      // 获取源工作空间名称
-                                      final sourceWorkspace = workspaceCtrl.workspaces.firstWhereOrNull(
-                                        (w) => w.uuid == sourceTask.workspaceId,
-                                      );
-                                      if (sourceWorkspace != null) {
-                                        sourceWorkspaceName = sourceWorkspace.uuid == 'default'
-                                            ? 'defaultWorkspace'.tr
-                                            : sourceWorkspace.name;
-                                      }
-                                    }
-                                  } catch (e) {
-                                    // 忽略错误
-                                  }
-                                  
-                                  // 获取目标工作空间名称
-                                  final targetWorkspace = workspaceCtrl.workspaces.firstWhereOrNull(
-                                    (w) => w.uuid == targetWorkspaceId,
-                                  );
-                                  if (targetWorkspace != null) {
-                                    targetWorkspaceName = targetWorkspace.uuid == 'default'
-                                        ? 'defaultWorkspace'.tr
-                                        : targetWorkspace.name;
-                                  }
-                                }
-                                
-                                // 获取目标任务名称
-                                try {
-                                  final taskRepository = await TaskRepository.getInstance();
-                                  final targetTask = await taskRepository.readOne(targetTaskId);
-                                  if (targetTask != null) {
-                                    targetTaskName = targetTask.title;
-                                  }
-                                } catch (e) {
-                                  // 忽略错误
-                                }
-                                
-                                // 保存原始信息用于撤销
-                                final originalTaskId = taskId;
-                                final originalWorkspaceId = currentWorkspaceId;
-                                // 保存目标taskId，用于撤销时直接使用
-                                final targetTaskIdForUndo = targetTaskId;
-                                
-                                // 先尝试移动，检查是否有同名todo
-                                final hasDuplicate = await _homeCtrl.moveTodoToWorkspaceTask(
-                                  taskId,
-                                  todo.uuid,
-                                  targetWorkspaceId,
-                                  targetTaskId,
-                                );
-                                
-                                // 如果返回false，可能是存在同名todo，需要显示对话框
-                                if (!hasDuplicate) {
-                                  // 检查是否真的存在同名todo
-                                  try {
-                                    final taskRepository = await TaskRepository.getInstance();
-                                    final targetTask = await taskRepository.readOne(targetTaskId);
-                                    if (targetTask != null) {
-                                      final duplicateTodo = (targetTask.todos ?? []).firstWhereOrNull(
-                                        (t) => t.title == todo.title && t.uuid != todo.uuid && t.deletedAt == 0,
-                                      );
-                                      
-                                      if (duplicateTodo != null) {
-                                        // 显示同名处理对话框
-                                        showDuplicateNameDialog(
-                                          itemName: todo.title,
-                                          itemType: 'todo',
-                                          sourceWorkspaceName: sourceWorkspaceName,
-                                          targetWorkspaceName: targetWorkspaceName,
-                                          onActionSelected: (action) async {
-                                            if (action == DuplicateNameAction.cancel) {
-                                              return;
-                                            }
-                                            
-                                            final success = await _homeCtrl.moveTodoToWorkspaceTask(
-                                              taskId,
-                                              todo.uuid,
-                                              targetWorkspaceId,
-                                              targetTaskId,
-                                              duplicateAction: action,
-                                            );
-                                            
-                                            if (success) {
-                                              // 显示带撤销功能的通知
-                                              final todoTitle = todo.title;
-                                              String message;
-                                              if (sourceWorkspaceName != targetWorkspaceName || sourceTaskName != targetTaskName) {
-                                                message = '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
-                                              } else {
-                                                message = '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
-                                              }
-                                              
-                                              showUndoToast(
-                                                message,
-                                                () async {
-                                                  final isUndone = await _homeCtrl.undoMoveTodoToWorkspaceTask(
-                                                    todo.uuid,
-                                                    originalTaskId,
-                                                    originalWorkspaceId,
-                                                    targetTaskIdForUndo,
-                                                  );
-                                                  if (isUndone) {
-                                                    showSuccessNotification(
-                                                      '「$todoTitle」${'todoRestored'.tr}',
-                                                      saveToNotificationCenter: false,
-                                                    );
-                                                  } else {
-                                                    showErrorNotification(
-                                                      '「$todoTitle」${'restoreFailed'.tr}',
-                                                    );
-                                                  }
-                                                },
-                                                countdownSeconds: 5,
-                                              );
-                                            } else {
-                                              showErrorNotification('todoMoveFailed'.tr);
-                                            }
-                                          },
-                                        );
-                                        return;
-                                      }
-                                    }
-                                  } catch (e) {
-                                    // 忽略错误，继续执行
-                                  }
-                                  
-                                  // 不是同名问题，是其他错误
-                                  showErrorNotification('todoMoveFailed'.tr);
-                                  return;
-                                }
-                                
-                                // 移动成功
-                                if (hasDuplicate) {
-                                  // 显示带撤销功能的通知
-                                  final todoTitle = todo.title;
-                                  String message;
-                                  if (sourceWorkspaceName != targetWorkspaceName || sourceTaskName != targetTaskName) {
-                                    message = '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
-                                  } else {
-                                    message = '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
-                                  }
-                                  
-                                  showUndoToast(
-                                    message,
-                                    () async {
-                                      final isUndone = await _homeCtrl.undoMoveTodoToWorkspaceTask(
-                                        todo.uuid,
-                                        originalTaskId,
-                                        originalWorkspaceId,
-                                        targetTaskIdForUndo, // 传递目标taskId，避免查找失败
-                                      );
-                                      if (isUndone) {
-                                        showSuccessNotification(
-                                          '「$todoTitle」${'todoRestored'.tr}',
-                                          saveToNotificationCenter: false,
-                                        );
-                                      } else {
-                                        showErrorNotification(
-                                          '「$todoTitle」${'restoreFailed'.tr}',
-                                        );
-                                      }
-                                    },
-                                    countdownSeconds: 5,
-                                  );
-                                } else {
-                                  showErrorNotification('todoMoveFailed'.tr);
-                                }
-                              },
-                            );
-                          },
-                        ),
-                        MenuItem(
-                          title: 'delete',
-                          iconData: FontAwesomeIcons.trashCan,
-                          callback: () => {
-                            showToast(
-                              "sureDeleteTodo".tr,
-                              alwaysShow: true,
-                              confirmMode: true,
-                              toastStyleType: TodoCatToastStyleType.error,
-                              onYesCallback: () async {
-                                final bool isDeleted = await _handleDelete();
-                                // 只在删除失败时显示通知
-                                if (!isDeleted) {
-                                  0.5.delay(() {
-                                    showErrorNotification(
-                                      "${"todo".tr} '${todo.title}' ${"deletionFailed".tr}",
-                                    );
-                                  });
-                                } else {
-                                  // 删除成功，显示undo toast
-                                  showUndoToast(
-                                    "todoDeleted".tr,
-                                    () async {
-                                      final bool isUndone = await _homeCtrl.undoTodo(taskId, todo.uuid);
-                                      if (isUndone) {
-                                        showSuccessNotification(
-                                          "${"todo".tr} '${todo.title}' ${"todoRestored".tr}",
-                                          saveToNotificationCenter: false,
-                                        );
-                                      } else {
-                                        showErrorNotification(
-                                          "${"todo".tr} '${todo.title}' ${"restoreFailed".tr}",
-                                        );
-                                      }
-                                    },
-                                    countdownSeconds: 5,
-                                  );
-                                }
-                              },
-                            )
-                          },
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-                // 显示 Todo 图片封面（如果启用且存在图片）
-                Obx(() {
-                  final appCtrl = Get.find<AppController>();
-                  final showImage = appCtrl.appConfig.value.showTodoImage;
-                  if (!showImage) {
-                    return const SizedBox.shrink();
-                  }
-                  
-                  // 从 HomeController 的响应式列表获取最新的 todo 数据，确保响应式更新
-                  // 访问 reactiveTasks 会触发 Obx 重新构建
-                  Todo? currentTodo;
-                  try {
-                    final task = _homeCtrl.reactiveTasks.firstWhereOrNull(
-                      (task) => task.uuid == taskId,
-                    );
-                    if (task != null && task.todos != null) {
-                      currentTodo = task.todos!.firstWhereOrNull(
-                        (t) => t.uuid == todo.uuid,
-                      );
-                    }
-                  } catch (e) {
-                    // 如果获取失败，使用原始的 todo
-                  }
-                  final todoToUse = currentTodo ?? todo;
-                  
-                  // 从 markdown 描述中提取第一张图片
-                  String? imagePath = _extractFirstImageFromMarkdown(todoToUse.description);
-                  
-                  // 如果 markdown 中没有图片，尝试从 images 字段获取
-                  if (imagePath == null && todoToUse.images.isNotEmpty) {
-                    imagePath = todoToUse.images.first;
-                  }
-                  
-                  if (imagePath == null) {
-                    return const SizedBox.shrink();
-                  }
-                  
-                  // 处理不同的图片路径格式
-                  final normalizedPath = _normalizeImagePath(imagePath);
-                  if (normalizedPath == null) {
-                    return const SizedBox.shrink();
-                  }
-                  
-                  // 检查是否是网络图片
-                  final isNetworkImage = normalizedPath.startsWith('http://') || 
-                                       normalizedPath.startsWith('https://');
-                  
-                  // 检查是否是本地文件
-                  final isLocalFile = !isNetworkImage && File(normalizedPath).existsSync();
-                  
-                  if (!isLocalFile && !isNetworkImage) {
-                    return const SizedBox.shrink();
-                  }
-                  
-                  // 根据 compact 模式调整图片高度
-                  // 移动端使用更高的图片以呈现竖长方形
-                  final imageHeight = compact 
-                      ? (context.isPhone ? 200.0 : 145.0) 
-                      : 145.0;
-                  
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(height: compact ? 6 : 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: imageHeight,
-                          child: isNetworkImage
-                              ? CachedNetworkImage(
-                                  imageUrl: normalizedPath,
-                                  width: double.infinity,
-                                  height: imageHeight,
-                                  fit: BoxFit.cover,
-                                  errorWidget: (context, url, error) {
-                                    return const SizedBox.shrink();
-                                  },
-                                  placeholder: (context, url) {
-                                    return Container(
-                                      width: double.infinity,
-                                      height: imageHeight,
-                                      color: Colors.grey.withValues(alpha: 0.1),
-                                      child: const Center(
-                                        child: SizedBox(
-                                          width: 14,
-                                          height: 14,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                )
-                              : Image.file(
-                                  File(normalizedPath),
-                                  width: double.infinity,
-                                  height: imageHeight,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                        ),
                       ),
-                    ],
-                  );
-                }),
-                if (todo.tagsWithColor.isNotEmpty)
-                  SizedBox(
-                    height: compact ? 6 : 10,
-                  ),
-                if (todo.tagsWithColor.isNotEmpty)
-                  SizedBox(
-                    height: 32,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: todo.tagsWithColor.take(3).map((tagWithColor) {
-                                // 限制标签文本长度
-                                String displayText = tagWithColor.name;
-                                if (tagWithColor.name.length > 8) {
-                                  displayText = '${tagWithColor.name.substring(0, 6)}...';
-                                }
-
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: Tag(
-                                    tag: displayText,
-                                    color: tagWithColor.color, // 使用存储的颜色
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ),
-                        if (todo.tagsWithColor.length > 3)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '+${todo.tagsWithColor.length - 3}',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade700,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 5),
-                  child: Divider(),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Row(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
-                            size: 15,
-                            FontAwesomeIcons.clock,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(
-                            width: 3,
-                          ),
-                          Flexible(
-                            child: Tooltip(
-                              message: timestampToDateTime(todo.createdAt),
-                              preferBelow: false,
-                              child: Text(
-                                _formatDateTimeWithoutYear(todo.createdAt),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  color: Colors.grey.shade600,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          DPDMenuBtn(
+                            tag: dropDownMenuBtnTag,
+                            menuItems: [
+                              MenuItem(
+                                title: 'edit',
+                                iconData: FontAwesomeIcons.penToSquare,
+                                callback: () async {
+                                  final todoDialogController = Get.put(
+                                    AddTodoDialogController(),
+                                    tag: 'edit_todo_dialog',
+                                    permanent: true,
+                                  );
+                                  todoDialogController.initForEditing(
+                                      taskId, todo);
+
+                                  DialogService.showFormDialog(
+                                    tag: 'edit_todo_dialog',
+                                    dialog: const TodoDialog(
+                                        dialogTag: 'edit_todo_dialog'),
+                                    useFixedSize:
+                                        false, // TodoDialog 需要动态调整宽度以支持预览窗口
+                                  );
+                                },
                               ),
-                            ),
+                              MenuItem(
+                                title: 'moveTodoToWorkspace',
+                                iconData: FontAwesomeIcons.folderOpen,
+                                callback: () {
+                                  // 获取当前工作空间ID和task信息
+                                  String currentWorkspaceId = 'default';
+                                  if (Get.isRegistered<WorkspaceController>()) {
+                                    final workspaceCtrl =
+                                        Get.find<WorkspaceController>();
+                                    currentWorkspaceId =
+                                        workspaceCtrl.currentWorkspaceId.value;
+                                  }
+
+                                  // 显示选择工作空间和任务对话框
+                                  showSelectWorkspaceAndTaskDialog(
+                                    currentTaskId: taskId,
+                                    currentWorkspaceId: currentWorkspaceId,
+                                    onSelected: (targetWorkspaceId,
+                                        targetTaskId) async {
+                                      // 获取源工作空间、目标工作空间和任务名称
+                                      String sourceWorkspaceName =
+                                          'defaultWorkspace'.tr;
+                                      String targetWorkspaceName =
+                                          'defaultWorkspace'.tr;
+                                      String sourceTaskName = '';
+                                      String targetTaskName = '';
+
+                                      if (Get.isRegistered<
+                                          WorkspaceController>()) {
+                                        final workspaceCtrl =
+                                            Get.find<WorkspaceController>();
+
+                                        // 获取当前任务信息（用于显示源工作空间）
+                                        try {
+                                          final taskRepository =
+                                              await TaskRepository
+                                                  .getInstance();
+                                          final sourceTask =
+                                              await taskRepository
+                                                  .readOne(taskId);
+                                          if (sourceTask != null) {
+                                            sourceTaskName = sourceTask.title;
+
+                                            // 获取源工作空间名称
+                                            final sourceWorkspace =
+                                                workspaceCtrl.workspaces
+                                                    .firstWhereOrNull(
+                                              (w) =>
+                                                  w.uuid ==
+                                                  sourceTask.workspaceId,
+                                            );
+                                            if (sourceWorkspace != null) {
+                                              sourceWorkspaceName =
+                                                  sourceWorkspace.uuid ==
+                                                          'default'
+                                                      ? 'defaultWorkspace'.tr
+                                                      : sourceWorkspace.name;
+                                            }
+                                          }
+                                        } catch (e) {
+                                          // 忽略错误
+                                        }
+
+                                        // 获取目标工作空间名称
+                                        final targetWorkspace = workspaceCtrl
+                                            .workspaces
+                                            .firstWhereOrNull(
+                                          (w) => w.uuid == targetWorkspaceId,
+                                        );
+                                        if (targetWorkspace != null) {
+                                          targetWorkspaceName =
+                                              targetWorkspace.uuid == 'default'
+                                                  ? 'defaultWorkspace'.tr
+                                                  : targetWorkspace.name;
+                                        }
+                                      }
+
+                                      // 获取目标任务名称
+                                      try {
+                                        final taskRepository =
+                                            await TaskRepository.getInstance();
+                                        final targetTask = await taskRepository
+                                            .readOne(targetTaskId);
+                                        if (targetTask != null) {
+                                          targetTaskName = targetTask.title;
+                                        }
+                                      } catch (e) {
+                                        // 忽略错误
+                                      }
+
+                                      // 保存原始信息用于撤销
+                                      final originalTaskId = taskId;
+                                      final originalWorkspaceId =
+                                          currentWorkspaceId;
+                                      // 保存目标taskId，用于撤销时直接使用
+                                      final targetTaskIdForUndo = targetTaskId;
+
+                                      // 先尝试移动，检查是否有同名todo
+                                      final hasDuplicate = await _homeCtrl
+                                          .moveTodoToWorkspaceTask(
+                                        taskId,
+                                        todo.uuid,
+                                        targetWorkspaceId,
+                                        targetTaskId,
+                                      );
+
+                                      // 如果返回false，可能是存在同名todo，需要显示对话框
+                                      if (!hasDuplicate) {
+                                        // 检查是否真的存在同名todo
+                                        try {
+                                          final taskRepository =
+                                              await TaskRepository
+                                                  .getInstance();
+                                          final targetTask =
+                                              await taskRepository
+                                                  .readOne(targetTaskId);
+                                          if (targetTask != null) {
+                                            final duplicateTodo =
+                                                (targetTask.todos ?? [])
+                                                    .firstWhereOrNull(
+                                              (t) =>
+                                                  t.title == todo.title &&
+                                                  t.uuid != todo.uuid &&
+                                                  t.deletedAt == 0,
+                                            );
+
+                                            if (duplicateTodo != null) {
+                                              // 显示同名处理对话框
+                                              showDuplicateNameDialog(
+                                                itemName: todo.title,
+                                                itemType: 'todo',
+                                                sourceWorkspaceName:
+                                                    sourceWorkspaceName,
+                                                targetWorkspaceName:
+                                                    targetWorkspaceName,
+                                                onActionSelected:
+                                                    (action) async {
+                                                  if (action ==
+                                                      DuplicateNameAction
+                                                          .cancel) {
+                                                    return;
+                                                  }
+
+                                                  final success = await _homeCtrl
+                                                      .moveTodoToWorkspaceTask(
+                                                    taskId,
+                                                    todo.uuid,
+                                                    targetWorkspaceId,
+                                                    targetTaskId,
+                                                    duplicateAction: action,
+                                                  );
+
+                                                  if (success) {
+                                                    // 显示带撤销功能的通知
+                                                    final todoTitle =
+                                                        todo.title;
+                                                    String message;
+                                                    if (sourceWorkspaceName !=
+                                                            targetWorkspaceName ||
+                                                        sourceTaskName !=
+                                                            targetTaskName) {
+                                                      message =
+                                                          '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
+                                                    } else {
+                                                      message =
+                                                          '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
+                                                    }
+
+                                                    showUndoToast(
+                                                      message,
+                                                      () async {
+                                                        final isUndone =
+                                                            await _homeCtrl
+                                                                .undoMoveTodoToWorkspaceTask(
+                                                          todo.uuid,
+                                                          originalTaskId,
+                                                          originalWorkspaceId,
+                                                          targetTaskIdForUndo,
+                                                        );
+                                                        if (isUndone) {
+                                                          showSuccessNotification(
+                                                            '「$todoTitle」${'todoRestored'.tr}',
+                                                            saveToNotificationCenter:
+                                                                false,
+                                                          );
+                                                        } else {
+                                                          showErrorNotification(
+                                                            '「$todoTitle」${'restoreFailed'.tr}',
+                                                          );
+                                                        }
+                                                      },
+                                                      countdownSeconds: 5,
+                                                    );
+                                                  } else {
+                                                    showErrorNotification(
+                                                        'todoMoveFailed'.tr);
+                                                  }
+                                                },
+                                              );
+                                              return;
+                                            }
+                                          }
+                                        } catch (e) {
+                                          // 忽略错误，继续执行
+                                        }
+
+                                        // 不是同名问题，是其他错误
+                                        showErrorNotification(
+                                            'todoMoveFailed'.tr);
+                                        return;
+                                      }
+
+                                      // 移动成功
+                                      if (hasDuplicate) {
+                                        // 显示带撤销功能的通知
+                                        final todoTitle = todo.title;
+                                        String message;
+                                        if (sourceWorkspaceName !=
+                                                targetWorkspaceName ||
+                                            sourceTaskName != targetTaskName) {
+                                          message =
+                                              '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
+                                        } else {
+                                          message =
+                                              '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
+                                        }
+
+                                        showUndoToast(
+                                          message,
+                                          () async {
+                                            final isUndone = await _homeCtrl
+                                                .undoMoveTodoToWorkspaceTask(
+                                              todo.uuid,
+                                              originalTaskId,
+                                              originalWorkspaceId,
+                                              targetTaskIdForUndo, // 传递目标taskId，避免查找失败
+                                            );
+                                            if (isUndone) {
+                                              showSuccessNotification(
+                                                '「$todoTitle」${'todoRestored'.tr}',
+                                                saveToNotificationCenter: false,
+                                              );
+                                            } else {
+                                              showErrorNotification(
+                                                '「$todoTitle」${'restoreFailed'.tr}',
+                                              );
+                                            }
+                                          },
+                                          countdownSeconds: 5,
+                                        );
+                                      } else {
+                                        showErrorNotification(
+                                            'todoMoveFailed'.tr);
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                              MenuItem(
+                                title: 'delete',
+                                iconData: FontAwesomeIcons.trashCan,
+                                callback: () => {
+                                  showToast(
+                                    "sureDeleteTodo".tr,
+                                    alwaysShow: true,
+                                    confirmMode: true,
+                                    toastStyleType: TodoCatToastStyleType.error,
+                                    onYesCallback: () async {
+                                      final bool isDeleted =
+                                          await _handleDelete();
+                                      // 只在删除失败时显示通知
+                                      if (!isDeleted) {
+                                        0.5.delay(() {
+                                          showErrorNotification(
+                                            "${"todo".tr} '${todo.title}' ${"deletionFailed".tr}",
+                                          );
+                                        });
+                                      } else {
+                                        // 删除成功，显示undo toast
+                                        showUndoToast(
+                                          "todoDeleted".tr,
+                                          () async {
+                                            final bool isUndone =
+                                                await _homeCtrl.undoTodo(
+                                                    taskId, todo.uuid);
+                                            if (isUndone) {
+                                              showSuccessNotification(
+                                                "${"todo".tr} '${todo.title}' ${"todoRestored".tr}",
+                                                saveToNotificationCenter: false,
+                                              );
+                                            } else {
+                                              showErrorNotification(
+                                                "${"todo".tr} '${todo.title}' ${"restoreFailed".tr}",
+                                              );
+                                            }
+                                          },
+                                          countdownSeconds: 5,
+                                        );
+                                      }
+                                    },
+                                  )
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
+                    ],
+                  ),
+                  // 显示 Todo 图片封面（如果启用且存在图片）
+                  Obx(() {
+                    final appCtrl = Get.find<AppController>();
+                    final showImage = appCtrl.appConfig.value.showTodoImage;
+                    if (!showImage) {
+                      return const SizedBox.shrink();
+                    }
+
+                    // 从 HomeController 的响应式列表获取最新的 todo 数据，确保响应式更新
+                    // 访问 reactiveTasks 会触发 Obx 重新构建
+                    Todo? currentTodo;
+                    try {
+                      final task = _homeCtrl.reactiveTasks.firstWhereOrNull(
+                        (task) => task.uuid == taskId,
+                      );
+                      if (task != null && task.todos != null) {
+                        currentTodo = task.todos!.firstWhereOrNull(
+                          (t) => t.uuid == todo.uuid,
+                        );
+                      }
+                    } catch (e) {
+                      // 如果获取失败，使用原始的 todo
+                    }
+                    final todoToUse = currentTodo ?? todo;
+
+                    // 从 markdown 描述中提取第一张图片
+                    String? imagePath =
+                        _extractFirstImageFromMarkdown(todoToUse.description);
+
+                    // 如果 markdown 中没有图片，尝试从 images 字段获取
+                    if (imagePath == null && todoToUse.images.isNotEmpty) {
+                      imagePath = todoToUse.images.first;
+                    }
+
+                    if (imagePath == null) {
+                      return const SizedBox.shrink();
+                    }
+
+                    // 处理不同的图片路径格式
+                    final normalizedPath = _normalizeImagePath(imagePath);
+                    if (normalizedPath == null) {
+                      return const SizedBox.shrink();
+                    }
+
+                    // 检查是否是网络图片
+                    final isNetworkImage =
+                        normalizedPath.startsWith('http://') ||
+                            normalizedPath.startsWith('https://');
+
+                    // 检查是否是本地文件
+                    final isLocalFile =
+                        !isNetworkImage && File(normalizedPath).existsSync();
+
+                    if (!isLocalFile && !isNetworkImage) {
+                      return const SizedBox.shrink();
+                    }
+
+                    // 根据 compact 模式调整图片高度
+                    // 移动端使用更高的图片以呈现竖长方形
+                    final imageHeight =
+                        compact ? (context.isPhone ? 200.0 : 145.0) : 145.0;
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(height: compact ? 6 : 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: imageHeight,
+                            child: isNetworkImage
+                                ? CachedNetworkImage(
+                                    imageUrl: normalizedPath,
+                                    width: double.infinity,
+                                    height: imageHeight,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (context, url, error) {
+                                      return const SizedBox.shrink();
+                                    },
+                                    placeholder: (context, url) {
+                                      return Container(
+                                        width: double.infinity,
+                                        height: imageHeight,
+                                        color:
+                                            Colors.grey.withValues(alpha: 0.1),
+                                        child: const Center(
+                                          child: SizedBox(
+                                            width: 14,
+                                            height: 14,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Image.file(
+                                    File(normalizedPath),
+                                    width: double.infinity,
+                                    height: imageHeight,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                  if (todo.tagsWithColor.isNotEmpty)
+                    SizedBox(
+                      height: compact ? 6 : 10,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor().withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: _getStatusColor(),
-                          width: 0.8,
+                  if (todo.tagsWithColor.isNotEmpty)
+                    SizedBox(
+                      height: 32,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: todo.tagsWithColor
+                                    .take(3)
+                                    .map((tagWithColor) {
+                                  // 限制标签文本长度
+                                  String displayText = tagWithColor.name;
+                                  if (tagWithColor.name.length > 8) {
+                                    displayText =
+                                        '${tagWithColor.name.substring(0, 6)}...';
+                                  }
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        showTagEditDialog(
+                                          initialName: tagWithColor.name,
+                                          initialColor: tagWithColor.color,
+                                          onSave: (newName, newColor) async {
+                                            try {
+                                              final taskRepository =
+                                                  await TaskRepository
+                                                      .getInstance();
+                                              final task = await taskRepository
+                                                  .readOne(taskId);
+                                              if (task != null &&
+                                                  task.todos != null) {
+                                                final todoToUpdate = task.todos!
+                                                    .firstWhereOrNull((t) =>
+                                                        t.uuid == todo.uuid);
+                                                if (todoToUpdate != null) {
+                                                  final tagIndex = todoToUpdate
+                                                      .tagsWithColor
+                                                      .indexWhere((t) =>
+                                                          t.name ==
+                                                              tagWithColor
+                                                                  .name &&
+                                                          t.colorValue ==
+                                                              tagWithColor
+                                                                  .colorValue);
+                                                  if (tagIndex != -1) {
+                                                    todoToUpdate
+                                                        .tagsWithColor[tagIndex]
+                                                        .name = newName;
+                                                    todoToUpdate
+                                                        .tagsWithColor[tagIndex]
+                                                        .color = newColor;
+
+                                                    // 同时更新 tags 列表（如果存在）以保持兼容性
+                                                    final oldName =
+                                                        tagWithColor.name;
+                                                    final tagStringIndex =
+                                                        todoToUpdate.tags
+                                                            .indexOf(oldName);
+                                                    if (tagStringIndex != -1) {
+                                                      todoToUpdate.tags[
+                                                              tagStringIndex] =
+                                                          newName;
+                                                    }
+
+                                                    await _homeCtrl.updateTask(
+                                                        taskId, task);
+                                                  }
+                                                }
+                                              }
+                                            } catch (e) {
+                                              debugPrint(
+                                                  'Error updating tag: $e');
+                                            }
+                                          },
+                                        );
+                                      },
+                                      child: Tag(
+                                        tag: displayText,
+                                        color: tagWithColor.color, // 使用存储的颜色
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                          if (todo.tagsWithColor.length > 3)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '+${todo.tagsWithColor.length - 3}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey.shade700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 5),
+                    child: Divider(),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Row(
+                          children: [
+                            const Icon(
+                              size: 15,
+                              FontAwesomeIcons.clock,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(
+                              width: 3,
+                            ),
+                            Flexible(
+                              child: Tooltip(
+                                message: timestampToDateTime(todo.createdAt),
+                                preferBelow: false,
+                                child: Text(
+                                  _formatDateTimeWithoutYear(todo.createdAt),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Text(
-                        _getStatusText(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: _getStatusColor(),
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor().withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _getStatusColor(),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          _getStatusText(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: _getStatusColor(),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: compact ? 6 : 15)
-              ],
-            ),
+                    ],
+                  ),
+                  SizedBox(height: compact ? 6 : 15)
+                ],
+              ),
             ),
           ),
         ),

@@ -10,6 +10,7 @@ import 'package:todo_cat/widgets/background_setting_dialog.dart';
 import 'package:todo_cat/widgets/data_import_export_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
+import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
 class SettingsContent extends GetView<SettingsController> {
   const SettingsContent({super.key});
@@ -427,52 +428,12 @@ class SettingsContent extends GetView<SettingsController> {
 
   /// 显示背景图片对话框
   void _showBackgroundImageDialog() {
-    final context = Get.context!;
-
-    SmartDialog.show(
+    PlatformDialogWrapper.show(
       tag: 'background_setting_dialog',
-      alignment: context.isPhone ? Alignment.bottomCenter : Alignment.center,
-      maskColor: Colors.black.withValues(alpha: 0.3),
+      content: const BackgroundSettingDialog(),
+      width: 500,
+      height: 700,
       clickMaskDismiss: true,
-      useAnimation: true,
-      animationTime: const Duration(milliseconds: 200),
-      builder: (_) => context.isPhone
-          ? const Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: BackgroundSettingDialog(),
-              ),
-            )
-          : const BackgroundSettingDialog(),
-      animationBuilder: (controller, child, _) {
-        if (context.isPhone) {
-          // 移动端：从底部滑入
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: controller,
-              curve: Curves.easeOutCubic,
-            )),
-            child: FadeTransition(
-              opacity: controller,
-              child: child,
-            ),
-          );
-        } else {
-          // 桌面端：缩放和淡入
-          return child
-              .animate(controller: controller)
-              .fade(duration: controller.duration)
-              .scaleXY(
-                begin: 0.95,
-                duration: controller.duration,
-                curve: Curves.easeOut,
-              );
-        }
-      },
     );
   }
 

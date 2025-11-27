@@ -8,11 +8,14 @@ import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/pages/home/components/tag.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:io';
 import 'package:todo_cat/widgets/image_viewer.dart';
+import 'package:todo_cat/widgets/tag_edit_dialog.dart';
+import 'package:todo_cat/data/services/repositorys/task.dart';
+import 'package:todo_cat/controllers/home_ctr.dart';
 
 class TodoDetailDialog extends StatelessWidget {
   final String todoId;
@@ -23,7 +26,7 @@ class TodoDetailDialog extends StatelessWidget {
     required this.todoId,
     required this.taskId,
   });
-  
+
   String get _dialogTag => 'todo_detail_dialog_$todoId';
 
   // 预处理 markdown 文本：将旧格式的 file:// 路径转换为标准格式
@@ -31,12 +34,12 @@ class TodoDetailDialog extends StatelessWidget {
     if (!text.contains('file://')) {
       return text;
     }
-    
+
     // 检查是否已经是标准格式（file:///），如果是则不需要处理
     if (text.contains('file:///') && !text.contains(RegExp(r'file://[^/]'))) {
       return text;
     }
-    
+
     // 将 file://C:\path 格式转换为 file:///C:/path 格式
     return text.replaceAllMapped(
       RegExp(r'!\[([^\]]*)\]\(file://([^)]+)\)'),
@@ -58,9 +61,9 @@ class TodoDetailDialog extends StatelessWidget {
         todoId: todoId,
         taskId: taskId,
       ),
-      tag: _dialogTag,  // 使用唯一的 tag 创建独立的 controller
+      tag: _dialogTag, // 使用唯一的 tag 创建独立的 controller
     );
-    
+
     return _buildDialog(context, controller);
   }
 
@@ -69,7 +72,6 @@ class TodoDetailDialog extends StatelessWidget {
       final todo = controller.todo.value;
       if (todo == null) {
         return Container(
-          width: context.isPhone ? 1.sw : 430,
           height: 400,
           decoration: BoxDecoration(
             color: context.theme.dialogTheme.backgroundColor,
@@ -88,8 +90,6 @@ class TodoDetailDialog extends StatelessWidget {
       }
 
       return Container(
-        width: context.isPhone ? 1.sw : 600,
-        height: context.isPhone ? 0.8.sh : 650,
         decoration: BoxDecoration(
           color: context.theme.dialogTheme.backgroundColor,
           border: Border.all(width: 0.3, color: context.theme.dividerColor),
@@ -147,32 +147,33 @@ class TodoDetailDialog extends StatelessWidget {
                     // 标题部分
                     _buildTitleSection(todo),
                     const SizedBox(height: 15),
-                    
+
                     // 描述部分
                     if (todo.description.isNotEmpty) ...[
                       _buildDescriptionSection(todo),
                       const SizedBox(height: 15),
                     ],
-                    
+
                     // 状态和优先级
                     _buildStatusSection(todo, controller),
                     const SizedBox(height: 15),
-                    
+
                     // 标签部分
-                    if (todo.tagsWithColor.isNotEmpty || todo.tags.isNotEmpty) ...[
+                    if (todo.tagsWithColor.isNotEmpty ||
+                        todo.tags.isNotEmpty) ...[
                       _buildTagsSection(todo),
                       const SizedBox(height: 15),
                     ],
-                    
+
                     // 时间信息
                     _buildTimeSection(todo),
-                    
+
                     // 提醒信息
                     if (todo.reminders > 0) ...[
                       const SizedBox(height: 15),
                       _buildReminderSection(todo),
                     ],
-                    
+
                     // 图片部分
                     if (todo.images.isNotEmpty) ...[
                       const SizedBox(height: 15),
@@ -329,15 +330,15 @@ class TodoDetailDialog extends StatelessWidget {
               final uriString = config.uri.toString();
               // 检查是否是本地文件路径
               // 优先判断网络图片（http:// 或 https://）
-              final isNetworkImage = uriString.startsWith('http://') || 
-                                     uriString.startsWith('https://');
+              final isNetworkImage = uriString.startsWith('http://') ||
+                  uriString.startsWith('https://');
               // 判断是否是本地文件（file:// 协议，或者不是网络图片且包含路径分隔符或驱动器符）
-              final isLocalFile = uriString.startsWith('file://') || 
-                                 (!isNetworkImage && 
-                                  (uriString.contains('/') || 
-                                   uriString.contains('\\') || 
-                                   (uriString.length > 1 && uriString[1] == ':')));
-              
+              final isLocalFile = uriString.startsWith('file://') ||
+                  (!isNetworkImage &&
+                      (uriString.contains('/') ||
+                          uriString.contains('\\') ||
+                          (uriString.length > 1 && uriString[1] == ':')));
+
               if (isLocalFile) {
                 // 本地文件
                 String filePath;
@@ -349,7 +350,9 @@ class TodoDetailDialog extends StatelessWidget {
                     // file:///C:/path -> C:/path
                     // file://C:/path -> C:/path
                     // file://C:\path -> C:\path
-                    if (filePath.startsWith('/') && filePath.length > 2 && filePath[2] == ':') {
+                    if (filePath.startsWith('/') &&
+                        filePath.length > 2 &&
+                        filePath[2] == ':') {
                       // file:///C:/path 格式，去掉开头的 /
                       filePath = filePath.substring(1);
                     }
@@ -368,12 +371,12 @@ class TodoDetailDialog extends StatelessWidget {
                       filePath = uriString;
                     }
                   }
-                  
+
                   // 尝试使用 File 类加载
                   // Dart 的 File 类在 Windows 上可以处理正斜杠和反斜杠
                   // 先尝试保持原路径格式
                   File file = File(filePath);
-                  
+
                   // 如果文件不存在，尝试其他路径格式
                   if (!file.existsSync() && Platform.isWindows) {
                     // 如果路径包含正斜杠，尝试替换为反斜杠
@@ -385,7 +388,8 @@ class TodoDetailDialog extends StatelessWidget {
                       }
                     }
                     // 如果路径包含反斜杠，尝试替换为正斜杠
-                    else if (filePath.contains('\\') && !filePath.contains('/')) {
+                    else if (filePath.contains('\\') &&
+                        !filePath.contains('/')) {
                       final unixPath = filePath.replaceAll('\\', '/');
                       file = File(unixPath);
                       if (file.existsSync()) {
@@ -393,7 +397,7 @@ class TodoDetailDialog extends StatelessWidget {
                       }
                     }
                   }
-                  
+
                   // 如果还是不存在，显示调试信息
                   if (!file.existsSync()) {
                     return Padding(
@@ -444,7 +448,7 @@ class TodoDetailDialog extends StatelessWidget {
                       ),
                     );
                   }
-                  
+
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ClickableFileImage(
@@ -712,9 +716,10 @@ class TodoDetailDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(todo.status).withValues(alpha:0.1),
+                    color: _getStatusColor(todo.status).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _getStatusColor(todo.status),
@@ -758,9 +763,11 @@ class TodoDetailDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getPriorityColor(todo.priority).withValues(alpha:0.1),
+                    color:
+                        _getPriorityColor(todo.priority).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _getPriorityColor(todo.priority),
@@ -825,10 +832,63 @@ class TodoDetailDialog extends StatelessWidget {
               if (tagWithColor.name.length > 15) {
                 displayText = '${tagWithColor.name.substring(0, 12)}...';
               }
-              
-              return Tag(
-                tag: displayText,
-                color: tagWithColor.color,
+
+              return GestureDetector(
+                onTap: () {
+                  showTagEditDialog(
+                    initialName: tagWithColor.name,
+                    initialColor: tagWithColor.color,
+                    onSave: (newName, newColor) async {
+                      try {
+                        final homeCtrl = Get.find<HomeController>();
+                        final taskRepository =
+                            await TaskRepository.getInstance();
+                        final task = await taskRepository.readOne(taskId);
+
+                        if (task != null && task.todos != null) {
+                          final todoToUpdate = task.todos!
+                              .firstWhereOrNull((t) => t.uuid == todoId);
+
+                          if (todoToUpdate != null) {
+                            final tagIndex = todoToUpdate.tagsWithColor
+                                .indexWhere((t) =>
+                                    t.name == tagWithColor.name &&
+                                    t.colorValue == tagWithColor.colorValue);
+
+                            if (tagIndex != -1) {
+                              todoToUpdate.tagsWithColor[tagIndex].name =
+                                  newName;
+                              todoToUpdate.tagsWithColor[tagIndex].color =
+                                  newColor;
+
+                              // 同时更新 tags 列表（如果存在）以保持兼容性
+                              final oldName = tagWithColor.name;
+                              final tagStringIndex =
+                                  todoToUpdate.tags.indexOf(oldName);
+                              if (tagStringIndex != -1) {
+                                todoToUpdate.tags[tagStringIndex] = newName;
+                              }
+
+                              await homeCtrl.updateTask(taskId, task);
+
+                              // 刷新详情页面的 controller
+                              final detailController =
+                                  Get.find<TodoDetailController>(
+                                      tag: _dialogTag);
+                              detailController.refreshTodoDetail();
+                            }
+                          }
+                        }
+                      } catch (e) {
+                        debugPrint('Error updating tag: $e');
+                      }
+                    },
+                  );
+                },
+                child: Tag(
+                  tag: displayText,
+                  color: tagWithColor.color,
+                ),
               );
             }).toList(),
           ),
@@ -993,4 +1053,3 @@ class TodoDetailDialog extends StatelessWidget {
     }
   }
 }
-
