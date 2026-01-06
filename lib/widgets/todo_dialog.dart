@@ -795,7 +795,9 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            left: _shouldOffset ? (stackWidth - dialogWidth) / 2 - dialogOffsetX : 0,
+            left: _shouldOffset
+                ? (stackWidth - dialogWidth) / 2 - dialogOffsetX
+                : 0,
             top: 0,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -825,221 +827,196 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                       onCancel: _handleClose,
                       onConfirm: _handleSubmit,
                     ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          // 功能按钮区域（水平滚动，独立于垂直滚动）
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
-                            child: SizedBox(
-                              height: 35,
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
-                                physics: const AlwaysScrollableScrollPhysics(
-                                  parent: BouncingScrollPhysics(),
-                                ),
-                                children: [
-                                  // 日期选择器按钮
-                                  Obx(() => TagDialogBtn(
-                                        tag: controller.selectedDate.value !=
-                                                null
+                    // 功能按钮和标题/标签区域
+                    // 功能按钮区域（水平滚动，独立于垂直滚动）
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+                      child: SizedBox(
+                        height: 35,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          children: [
+                            // 日期选择器按钮
+                            Obx(() => TagDialogBtn(
+                                  tag: controller.selectedDate.value != null
+                                      ? DateFormat('MM-dd HH:mm').format(
+                                          controller.selectedDate.value!)
+                                      : "setDueDate".tr,
+                                  tagColor:
+                                      controller.selectedDate.value != null
+                                          ? const Color(0xFF3B82F6)
+                                          : Colors.grey[700]!,
+                                  dialogTag: 'todo_date',
+                                  showDelete: false,
+                                  openDialog: DatePickerPanel(
+                                    dialogTag:
+                                        'todo_date', // 使用与 TagDialogBtn 相同的 tag
+                                    initialSelectedDate: controller
+                                        .selectedDate.value, // 传递当前选中的日期
+                                    onDateSelected: (date) {
+                                      controller.selectedDate.value = date;
+                                    },
+                                  ),
+                                  titleWidget: Row(
+                                    children: [
+                                      Text(
+                                        controller.selectedDate.value != null
                                             ? DateFormat('MM-dd HH:mm').format(
                                                 controller.selectedDate.value!)
                                             : "setDueDate".tr,
-                                        tagColor:
-                                            controller.selectedDate.value !=
-                                                    null
-                                                ? const Color(0xFF3B82F6)
-                                                : Colors.grey[700]!,
-                                        dialogTag: 'todo_date',
-                                        showDelete: false,
-                                        openDialog: DatePickerPanel(
-                                          dialogTag:
-                                              'todo_date', // 使用与 TagDialogBtn 相同的 tag
-                                          initialSelectedDate: controller
-                                              .selectedDate.value, // 传递当前选中的日期
-                                          onDateSelected: (date) {
-                                            controller.selectedDate.value =
-                                                date;
-                                          },
-                                        ),
-                                        titleWidget: Row(
-                                          children: [
-                                            Text(
-                                              controller.selectedDate.value !=
-                                                      null
-                                                  ? DateFormat('MM-dd HH:mm')
-                                                      .format(controller
-                                                          .selectedDate.value!)
-                                                  : "setDueDate".tr,
-                                              style:
-                                                  const TextStyle(fontSize: 12),
-                                            ),
-                                            const SizedBox(width: 5),
-                                            const Icon(
-                                                Icons.event_available_outlined,
-                                                size: 20),
-                                          ],
-                                        ),
-                                      )),
-                                  const SizedBox(width: 10),
-                                  Obx(() => TagDialogBtn(
-                                        tag: _getPriorityLabel(
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      const Icon(Icons.event_available_outlined,
+                                          size: 20),
+                                    ],
+                                  ),
+                                )),
+                            const SizedBox(width: 10),
+                            Obx(() => TagDialogBtn(
+                                  tag: _getPriorityLabel(
+                                      controller.selectedPriority.value),
+                                  tagColor: _getPriorityColor(
+                                      controller.selectedPriority.value),
+                                  dialogTag: 'todo_priority',
+                                  showDelete: false,
+                                  openDialog: PriorityPickerPanel(
+                                    initialPriority:
+                                        controller.selectedPriority.value,
+                                    onPrioritySelected: (priority) {
+                                      controller.selectedPriority.value =
+                                          priority;
+                                    },
+                                  ),
+                                  titleWidget: Row(
+                                    children: [
+                                      Text(
+                                        _getPriorityLabel(
                                             controller.selectedPriority.value),
-                                        tagColor: _getPriorityColor(
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Icon(
+                                        _getPriorityIcon(
                                             controller.selectedPriority.value),
-                                        dialogTag: 'todo_priority',
-                                        showDelete: false,
-                                        openDialog: PriorityPickerPanel(
-                                          initialPriority:
-                                              controller.selectedPriority.value,
-                                          onPrioritySelected: (priority) {
-                                            controller.selectedPriority.value =
-                                                priority;
-                                          },
-                                        ),
-                                        titleWidget: Row(
-                                          children: [
-                                            Text(
-                                              _getPriorityLabel(controller
-                                                  .selectedPriority.value),
-                                              style:
-                                                  const TextStyle(fontSize: 12),
-                                            ),
-                                            const SizedBox(width: 5),
-                                            Icon(
-                                              _getPriorityIcon(controller
-                                                  .selectedPriority.value),
-                                              size: 20,
-                                              color: _getPriorityColor(
-                                                  controller
-                                                      .selectedPriority.value),
-                                            ),
-                                          ],
-                                        ),
-                                      )),
-                                  const SizedBox(width: 10),
-                                  Obx(() => TagDialogBtn(
-                                        tag: _getReminderLabel(
+                                        size: 20,
+                                        color: _getPriorityColor(
+                                            controller.selectedPriority.value),
+                                      ),
+                                    ],
+                                  ),
+                                )),
+                            const SizedBox(width: 10),
+                            Obx(() => TagDialogBtn(
+                                  tag: _getReminderLabel(
+                                      controller.remindersValue.value),
+                                  tagColor: controller.remindersValue.value > 0
+                                      ? const Color(0xFF3B82F6)
+                                      : Colors.grey[700]!,
+                                  dialogTag: 'todo_reminder',
+                                  showDelete: false,
+                                  openDialog: ReminderPickerPanel(
+                                    initialReminder:
+                                        controller.remindersValue.value,
+                                    onReminderSelected: (reminder) {
+                                      controller.remindersValue.value =
+                                          reminder;
+                                    },
+                                  ),
+                                  titleWidget: Row(
+                                    children: [
+                                      Text(
+                                        _getReminderLabel(
                                             controller.remindersValue.value),
-                                        tagColor:
-                                            controller.remindersValue.value > 0
-                                                ? const Color(0xFF3B82F6)
-                                                : Colors.grey[700]!,
-                                        dialogTag: 'todo_reminder',
-                                        showDelete: false,
-                                        openDialog: ReminderPickerPanel(
-                                          initialReminder:
-                                              controller.remindersValue.value,
-                                          onReminderSelected: (reminder) {
-                                            controller.remindersValue.value =
-                                                reminder;
-                                          },
-                                        ),
-                                        titleWidget: Row(
-                                          children: [
-                                            Text(
-                                              _getReminderLabel(controller
-                                                  .remindersValue.value),
-                                              style:
-                                                  const TextStyle(fontSize: 12),
-                                            ),
-                                            const SizedBox(width: 5),
-                                            Icon(
-                                              controller.remindersValue.value >
-                                                      0
-                                                  ? Icons.alarm
-                                                  : Icons.alarm_off,
-                                              size: 20,
-                                            ),
-                                          ],
-                                        ),
-                                      )),
-                                  const SizedBox(width: 10),
-                                  Obx(() => TagDialogBtn(
-                                        tag: _getStatusLabel(
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Icon(
+                                        controller.remindersValue.value > 0
+                                            ? Icons.alarm
+                                            : Icons.alarm_off,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                )),
+                            const SizedBox(width: 10),
+                            Obx(() => TagDialogBtn(
+                                  tag: _getStatusLabel(
+                                      controller.selectedStatus.value),
+                                  tagColor: _getStatusColor(
+                                      controller.selectedStatus.value),
+                                  dialogTag: 'todo_status',
+                                  showDelete: false,
+                                  openDialog: StatusPickerPanel(
+                                    initialStatus:
+                                        controller.selectedStatus.value,
+                                    onStatusSelected: (status) {
+                                      controller.selectedStatus.value = status;
+                                    },
+                                  ),
+                                  titleWidget: Row(
+                                    children: [
+                                      Text(
+                                        _getStatusLabel(
                                             controller.selectedStatus.value),
-                                        tagColor: _getStatusColor(
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Icon(
+                                        _getStatusIcon(
                                             controller.selectedStatus.value),
-                                        dialogTag: 'todo_status',
-                                        showDelete: false,
-                                        openDialog: StatusPickerPanel(
-                                          initialStatus:
-                                              controller.selectedStatus.value,
-                                          onStatusSelected: (status) {
-                                            controller.selectedStatus.value =
-                                                status;
-                                          },
-                                        ),
-                                        titleWidget: Row(
-                                          children: [
-                                            Text(
-                                              _getStatusLabel(controller
-                                                  .selectedStatus.value),
-                                              style:
-                                                  const TextStyle(fontSize: 12),
-                                            ),
-                                            const SizedBox(width: 5),
-                                            Icon(
-                                              _getStatusIcon(controller
-                                                  .selectedStatus.value),
-                                              size: 20,
-                                              color: _getStatusColor(controller
-                                                  .selectedStatus.value),
-                                            ),
-                                          ],
-                                        ),
-                                      )),
-                                ],
-                              ),
-                            ),
+                                        size: 20,
+                                        color: _getStatusColor(
+                                            controller.selectedStatus.value),
+                                      ),
+                                    ],
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // 顶部内容区域（标题和标签）
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormFieldItem(
+                            textInputAction: TextInputAction.next,
+                            autofocus: true,
+                            focusNode: FocusNode(),
+                            maxLength: 20,
+                            maxLines: 1,
+                            radius: 6,
+                            fieldTitle: "title".tr,
+                            validator: controller.validateTitle,
+                            editingController: controller.titleController,
+                            onFieldSubmitted: (_) {},
                           ),
-                          // 顶部可滚动内容区域
-                          Flexible(
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
-                              physics: const AlwaysScrollableScrollPhysics(
-                                parent: BouncingScrollPhysics(),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  TextFormFieldItem(
-                                    textInputAction: TextInputAction.next,
-                                    autofocus: true,
-                                    focusNode: FocusNode(),
-                                    maxLength: 20,
-                                    maxLines: 1,
-                                    radius: 6,
-                                    fieldTitle: "title".tr,
-                                    validator: controller.validateTitle,
-                                    editingController:
-                                        controller.titleController,
-                                    onFieldSubmitted: (_) {},
-                                  ),
-                                  const SizedBox(height: 10),
-                                  AddTagWithColorPicker(
-                                    textInputAction: TextInputAction.next,
-                                    maxLength: 50,
-                                    maxLines: 1,
-                                    radius: 6,
-                                    fieldTitle: "tag".tr,
-                                    validator: (_) => null,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    editingController: controller.tagController,
-                                    selectedTags: controller.selectedTags,
-                                    onDeleteTag: controller.removeTag,
-                                    onAddTagWithColor:
-                                        controller.addTagWithColor,
-                                  ),
-                                ],
-                              ),
-                            ),
+                          const SizedBox(height: 10),
+                          AddTagWithColorPicker(
+                            textInputAction: TextInputAction.next,
+                            maxLength: 50,
+                            maxLines: 1,
+                            radius: 6,
+                            fieldTitle: "tag".tr,
+                            validator: (_) => null,
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 5),
+                            editingController: controller.tagController,
+                            selectedTags: controller.selectedTags,
+                            onDeleteTag: controller.removeTag,
+                            onAddTagWithColor: controller.addTagWithColor,
                           ),
                         ],
                       ),
                     ),
+
                     // Markdown 工具栏 - 固定在tag下方，确保始终可见
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
@@ -1133,7 +1110,10 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             left: _shouldOffset
-                ? (stackWidth - dialogWidth) / 2 + dialogWidth + spacing - dialogOffsetX
+                ? (stackWidth - dialogWidth) / 2 +
+                    dialogWidth +
+                    spacing -
+                    dialogOffsetX
                 : dialogWidth + spacing, // 预览窗口隐藏时，位置计算不影响显示
             top: 0,
             child: AnimatedContainer(
@@ -1394,32 +1374,40 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                                 vertical: 8.0),
                                             child: ClickableFileImage(
                                               filePath: filePath,
-                                              heroTag: 'preview_image_$filePath',
+                                              heroTag:
+                                                  'preview_image_$filePath',
                                               caption: config.alt,
-                                              fit: imageWidth != null && imageHeight != null
+                                              fit: imageWidth != null &&
+                                                      imageHeight != null
                                                   ? BoxFit.cover
                                                   : BoxFit.contain,
                                               width: imageWidth,
                                               height: imageHeight,
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                               errorWidget: Container(
-                                                padding: const EdgeInsets.all(16),
+                                                padding:
+                                                    const EdgeInsets.all(16),
                                                 decoration: BoxDecoration(
                                                   color: Colors.grey.shade200,
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
                                                 child: Column(
                                                   children: [
                                                     Icon(
                                                       Icons.broken_image,
                                                       size: 48,
-                                                      color: Colors.grey.shade400,
+                                                      color:
+                                                          Colors.grey.shade400,
                                                     ),
                                                     const SizedBox(height: 8),
                                                     Text(
-                                                      config.alt ?? 'imageLoadFailed'.tr,
+                                                      config.alt ??
+                                                          'imageLoadFailed'.tr,
                                                       style: TextStyle(
-                                                        color: Colors.grey.shade600,
+                                                        color: Colors
+                                                            .grey.shade600,
                                                         fontSize: 12,
                                                       ),
                                                     ),
@@ -1488,12 +1476,14 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                               vertical: 8.0),
                                           child: ClickableNetworkImage(
                                             url: uriString,
-                                            heroTag: 'preview_network_$uriString',
+                                            heroTag:
+                                                'preview_network_$uriString',
                                             caption: config.alt,
                                             fit: BoxFit.cover,
                                             width: config.width,
                                             height: config.height,
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                             placeholder: Container(
                                               padding: const EdgeInsets.all(16),
                                               decoration: BoxDecoration(
@@ -1518,15 +1508,15 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                                   Icon(
                                                     Icons.broken_image,
                                                     size: 48,
-                                                    color:
-                                                        Colors.grey.shade400,
+                                                    color: Colors.grey.shade400,
                                                   ),
                                                   const SizedBox(height: 8),
                                                   Text(
-                                                    config.alt ?? 'imageLoadFailed'.tr,
+                                                    config.alt ??
+                                                        'imageLoadFailed'.tr,
                                                     style: TextStyle(
-                                                      color: Colors
-                                                          .grey.shade600,
+                                                      color:
+                                                          Colors.grey.shade600,
                                                       fontSize: 12,
                                                     ),
                                                   ),
