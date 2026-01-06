@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+
 import 'package:todo_cat/widgets/animation_btn.dart';
 
 /// LabelBtn 是一个带有标签和可选图标的按钮组件，支持多种动画效果。
@@ -137,10 +137,6 @@ class LabelBtn extends StatelessWidget {
         decoration: ghostStyle
             ? BoxDecoration(
                 borderRadius: BorderRadius.circular(5),
-                border: Border.all(
-                  width: 0.8,
-                  color: context.theme.dividerColor,
-                ),
               )
             : decoration ??
                 BoxDecoration(
