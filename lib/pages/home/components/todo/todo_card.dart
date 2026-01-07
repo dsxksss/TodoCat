@@ -232,7 +232,7 @@ class TodoCard extends StatelessWidget {
                                   preferBelow: false,
                                   child: Text(
                                     _getDisplayTitle(),
-                                    maxLines: 1,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -815,10 +815,8 @@ class TodoCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 5),
-                    child: Divider(),
-                  ),
+
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

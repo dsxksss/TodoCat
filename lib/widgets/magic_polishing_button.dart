@@ -82,7 +82,8 @@ class _MagicPolishingButtonState extends State<MagicPolishingButton>
     SmartDialog.show(
       alignment: Alignment.center,
       animationType: SmartAnimationType.fade, // Disable default scale
-      usePenetrate: true, // 允许点击背景关闭
+      usePenetrate: false, // 禁止点击穿透，确保拖拽事件总是能被捕获（解决 Transform 移出布局边界后无法交互的问题）
+      maskColor: Colors.transparent, // 透明遮罩，保持视觉上的无遮挡感
       clickMaskDismiss: false,
       animationTime: 150.ms,
       builder: (_) {
@@ -162,131 +163,142 @@ class _PolishingResultPopupState extends State<_PolishingResultPopup> {
 
   @override
   Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: _offset,
-      child: Container(
-        width: 300,
-        margin: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: Colors.blue.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header (Draggable Area)
-                GestureDetector(
-                  onPanUpdate: (details) {
-                    setState(() {
-                      _offset += details.delta;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.blue.withOpacity(0.1),
-                        ),
-                      ),
-                    ),
-                    child: Row(
+    return SizedBox.expand(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Transform.translate(
+            offset: _offset,
+            child: Container(
+              width: 300,
+              // ... rest of container content
+              margin: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: Border.all(
+                  color: Colors.blue.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onPanUpdate: (details) {
+                      setState(() {
+                        _offset += details.delta;
+                      });
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.stars, color: Colors.blue, size: 16),
-                        const SizedBox(width: 8),
-                        const Text(
-                          "AI 润色结果",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.blue,
+                        // Header (Draggable Area)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.blue.withOpacity(0.1),
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.stars,
+                                  color: Colors.blue, size: 16),
+                              const SizedBox(width: 8),
+                              const Text(
+                                "AI 润色结果",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                icon: Icon(Icons.close,
+                                    size: 16,
+                                    color: Theme.of(context).dividerColor),
+                                onPressed: widget.onCancel,
+                              ),
+                            ],
                           ),
                         ),
-                        const Spacer(),
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: Icon(Icons.close,
-                              size: 16, color: Theme.of(context).dividerColor),
-                          onPressed: widget.onCancel,
+
+                        // Content
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.polishedText,
+                                style:
+                                    const TextStyle(height: 1.5, fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Footer Actions
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: widget.onCancel,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.grey,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                ),
+                                child: const Text("取消"),
+                              ),
+                              const SizedBox(width: 8),
+                              // 移除 "替换" 按钮
+                              ElevatedButton.icon(
+                                onPressed: widget.onApply,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.check, size: 16),
+                                label: const Text("替换"),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.polishedText,
-                        style: const TextStyle(height: 1.5, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Footer Actions
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: widget.onCancel,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                        ),
-                        child: const Text("取消"),
-                      ),
-                      const SizedBox(width: 8),
-                      const SizedBox(width: 8),
-                      // 移除 "替换" 按钮
-                      ElevatedButton.icon(
-                        onPressed: widget.onApply,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: const Icon(Icons.check, size: 16),
-                        label: const Text("替换"),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
