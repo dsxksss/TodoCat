@@ -20,11 +20,13 @@ import 'package:todo_cat/controllers/home_ctr.dart';
 class TodoDetailDialog extends StatelessWidget {
   final String todoId;
   final String taskId;
+  final Todo? previewTodo;
 
   const TodoDetailDialog({
     super.key,
     required this.todoId,
     required this.taskId,
+    this.previewTodo,
   });
 
   String get _dialogTag => 'todo_detail_dialog_$todoId';
@@ -60,6 +62,7 @@ class TodoDetailDialog extends StatelessWidget {
       TodoDetailController(
         todoId: todoId,
         taskId: taskId,
+        previewTodo: previewTodo,
       ),
       tag: _dialogTag, // 使用唯一的 tag 创建独立的 controller
     );
@@ -184,62 +187,64 @@ class TodoDetailDialog extends StatelessWidget {
               ),
             ),
             // 底部按钮
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: context.theme.dividerColor,
-                    width: 0.3,
+            if (!controller.isPreview)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: context.theme.dividerColor,
+                      width: 0.3,
+                    ),
                   ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  LabelBtn(
-                    ghostStyle: true,
-                    label: Text(
-                      'edit'.tr,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    LabelBtn(
+                      ghostStyle: true,
+                      label: Text(
+                        'edit'.tr,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 2,
-                    ),
-                    onPressed: () => controller.editTodo(),
-                  ),
-                  const SizedBox(width: 8),
-                  LabelBtn(
-                    label: Text(
-                      'delete'.tr,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 2,
                       ),
+                      onPressed: () => controller.editTodo(),
                     ),
-                    bgColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 2,
+                    const SizedBox(width: 8),
+                    LabelBtn(
+                      label: Text(
+                        'delete'.tr,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      bgColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 2,
+                      ),
+                      onPressed: () {
+                        showToast(
+                          "sureDeleteTodo".tr,
+                          alwaysShow: true,
+                          confirmMode: true,
+                          toastStyleType: TodoCatToastStyleType.error,
+                          onYesCallback: () => controller.deleteTodo(),
+                        );
+                      },
                     ),
-                    onPressed: () {
-                      showToast(
-                        "sureDeleteTodo".tr,
-                        alwaysShow: true,
-                        confirmMode: true,
-                        toastStyleType: TodoCatToastStyleType.error,
-                        onYesCallback: () => controller.deleteTodo(),
-                      );
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       );

@@ -31,6 +31,7 @@ class TodoCard extends StatelessWidget {
     required this.todo,
     this.outerMargin,
     this.compact = false,
+    this.isPreview = false,
   });
 
   final String taskId;
@@ -38,6 +39,7 @@ class TodoCard extends StatelessWidget {
   final HomeController _homeCtrl = Get.find();
   final EdgeInsets? outerMargin;
   final bool compact;
+  final bool isPreview;
 
   /// 获取显示标题（直接返回todo标题，因为左下角已经显示创建时间了）
   String _getDisplayTitle() {
@@ -174,6 +176,7 @@ class TodoCard extends StatelessWidget {
             content: TodoDetailDialog(
               todoId: todo.uuid,
               taskId: taskId,
+              previewTodo: isPreview ? todo : null,
             ),
             width: 600,
             height: 650,
@@ -241,139 +244,111 @@ class TodoCard extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          DPDMenuBtn(
-                            tag: dropDownMenuBtnTag,
-                            menuItems: [
-                              MenuItem(
-                                title: 'edit',
-                                iconData: FontAwesomeIcons.penToSquare,
-                                callback: () async {
-                                  final todoDialogController = Get.put(
-                                    AddTodoDialogController(),
-                                    tag: 'edit_todo_dialog',
-                                    permanent: true,
-                                  );
-                                  todoDialogController.initForEditing(
-                                      taskId, todo);
+                          if (!isPreview)
+                            DPDMenuBtn(
+                              tag: dropDownMenuBtnTag,
+                              menuItems: [
+                                MenuItem(
+                                  title: 'edit',
+                                  iconData: FontAwesomeIcons.penToSquare,
+                                  callback: () async {
+                                    final todoDialogController = Get.put(
+                                      AddTodoDialogController(),
+                                      tag: 'edit_todo_dialog',
+                                      permanent: true,
+                                    );
+                                    todoDialogController.initForEditing(
+                                        taskId, todo);
 
-                                  DialogService.showFormDialog(
-                                    tag: 'edit_todo_dialog',
-                                    dialog: const TodoDialog(
-                                        dialogTag: 'edit_todo_dialog'),
-                                    useFixedSize:
-                                        false, // TodoDialog 需要动态调整宽度以支持预览窗口
-                                  );
-                                },
-                              ),
-                              MenuItem(
-                                title: 'moveTodoToWorkspace',
-                                iconData: FontAwesomeIcons.folderOpen,
-                                callback: () {
-                                  // 获取当前工作空间ID和task信息
-                                  String currentWorkspaceId = 'default';
-                                  if (Get.isRegistered<WorkspaceController>()) {
-                                    final workspaceCtrl =
-                                        Get.find<WorkspaceController>();
-                                    currentWorkspaceId =
-                                        workspaceCtrl.currentWorkspaceId.value;
-                                  }
+                                    DialogService.showFormDialog(
+                                      tag: 'edit_todo_dialog',
+                                      dialog: const TodoDialog(
+                                          dialogTag: 'edit_todo_dialog'),
+                                      useFixedSize:
+                                          false, // TodoDialog 需要动态调整宽度以支持预览窗口
+                                    );
+                                  },
+                                ),
+                                MenuItem(
+                                  title: 'moveTodoToWorkspace',
+                                  iconData: FontAwesomeIcons.folderOpen,
+                                  callback: () {
+                                    // 获取当前工作空间ID和task信息
+                                    String currentWorkspaceId = 'default';
+                                    if (Get.isRegistered<
+                                        WorkspaceController>()) {
+                                      final workspaceCtrl =
+                                          Get.find<WorkspaceController>();
+                                      currentWorkspaceId = workspaceCtrl
+                                          .currentWorkspaceId.value;
+                                    }
 
-                                  // 显示选择工作空间和任务对话框
-                                  showSelectWorkspaceAndTaskDialog(
-                                    currentTaskId: taskId,
-                                    currentWorkspaceId: currentWorkspaceId,
-                                    onSelected: (targetWorkspaceId,
-                                        targetTaskId) async {
-                                      // 获取源工作空间、目标工作空间和任务名称
-                                      String sourceWorkspaceName =
-                                          'defaultWorkspace'.tr;
-                                      String targetWorkspaceName =
-                                          'defaultWorkspace'.tr;
-                                      String sourceTaskName = '';
-                                      String targetTaskName = '';
+                                    // 显示选择工作空间和任务对话框
+                                    showSelectWorkspaceAndTaskDialog(
+                                      currentTaskId: taskId,
+                                      currentWorkspaceId: currentWorkspaceId,
+                                      onSelected: (targetWorkspaceId,
+                                          targetTaskId) async {
+                                        // 获取源工作空间、目标工作空间和任务名称
+                                        String sourceWorkspaceName =
+                                            'defaultWorkspace'.tr;
+                                        String targetWorkspaceName =
+                                            'defaultWorkspace'.tr;
+                                        String sourceTaskName = '';
+                                        String targetTaskName = '';
 
-                                      if (Get.isRegistered<
-                                          WorkspaceController>()) {
-                                        final workspaceCtrl =
-                                            Get.find<WorkspaceController>();
+                                        if (Get.isRegistered<
+                                            WorkspaceController>()) {
+                                          final workspaceCtrl =
+                                              Get.find<WorkspaceController>();
 
-                                        // 获取当前任务信息（用于显示源工作空间）
-                                        try {
-                                          final taskRepository =
-                                              await TaskRepository
-                                                  .getInstance();
-                                          final sourceTask =
-                                              await taskRepository
-                                                  .readOne(taskId);
-                                          if (sourceTask != null) {
-                                            sourceTaskName = sourceTask.title;
+                                          // 获取当前任务信息（用于显示源工作空间）
+                                          try {
+                                            final taskRepository =
+                                                await TaskRepository
+                                                    .getInstance();
+                                            final sourceTask =
+                                                await taskRepository
+                                                    .readOne(taskId);
+                                            if (sourceTask != null) {
+                                              sourceTaskName = sourceTask.title;
 
-                                            // 获取源工作空间名称
-                                            final sourceWorkspace =
-                                                workspaceCtrl.workspaces
-                                                    .firstWhereOrNull(
-                                              (w) =>
-                                                  w.uuid ==
-                                                  sourceTask.workspaceId,
-                                            );
-                                            if (sourceWorkspace != null) {
-                                              sourceWorkspaceName =
-                                                  sourceWorkspace.uuid ==
-                                                          'default'
-                                                      ? 'defaultWorkspace'.tr
-                                                      : sourceWorkspace.name;
+                                              // 获取源工作空间名称
+                                              final sourceWorkspace =
+                                                  workspaceCtrl.workspaces
+                                                      .firstWhereOrNull(
+                                                (w) =>
+                                                    w.uuid ==
+                                                    sourceTask.workspaceId,
+                                              );
+                                              if (sourceWorkspace != null) {
+                                                sourceWorkspaceName =
+                                                    sourceWorkspace.uuid ==
+                                                            'default'
+                                                        ? 'defaultWorkspace'.tr
+                                                        : sourceWorkspace.name;
+                                              }
                                             }
+                                          } catch (e) {
+                                            // 忽略错误
                                           }
-                                        } catch (e) {
-                                          // 忽略错误
+
+                                          // 获取目标工作空间名称
+                                          final targetWorkspace = workspaceCtrl
+                                              .workspaces
+                                              .firstWhereOrNull(
+                                            (w) => w.uuid == targetWorkspaceId,
+                                          );
+                                          if (targetWorkspace != null) {
+                                            targetWorkspaceName =
+                                                targetWorkspace.uuid ==
+                                                        'default'
+                                                    ? 'defaultWorkspace'.tr
+                                                    : targetWorkspace.name;
+                                          }
                                         }
 
-                                        // 获取目标工作空间名称
-                                        final targetWorkspace = workspaceCtrl
-                                            .workspaces
-                                            .firstWhereOrNull(
-                                          (w) => w.uuid == targetWorkspaceId,
-                                        );
-                                        if (targetWorkspace != null) {
-                                          targetWorkspaceName =
-                                              targetWorkspace.uuid == 'default'
-                                                  ? 'defaultWorkspace'.tr
-                                                  : targetWorkspace.name;
-                                        }
-                                      }
-
-                                      // 获取目标任务名称
-                                      try {
-                                        final taskRepository =
-                                            await TaskRepository.getInstance();
-                                        final targetTask = await taskRepository
-                                            .readOne(targetTaskId);
-                                        if (targetTask != null) {
-                                          targetTaskName = targetTask.title;
-                                        }
-                                      } catch (e) {
-                                        // 忽略错误
-                                      }
-
-                                      // 保存原始信息用于撤销
-                                      final originalTaskId = taskId;
-                                      final originalWorkspaceId =
-                                          currentWorkspaceId;
-                                      // 保存目标taskId，用于撤销时直接使用
-                                      final targetTaskIdForUndo = targetTaskId;
-
-                                      // 先尝试移动，检查是否有同名todo
-                                      final hasDuplicate = await _homeCtrl
-                                          .moveTodoToWorkspaceTask(
-                                        taskId,
-                                        todo.uuid,
-                                        targetWorkspaceId,
-                                        targetTaskId,
-                                      );
-
-                                      // 如果返回false，可能是存在同名todo，需要显示对话框
-                                      if (!hasDuplicate) {
-                                        // 检查是否真的存在同名todo
+                                        // 获取目标任务名称
                                         try {
                                           final taskRepository =
                                               await TaskRepository
@@ -382,194 +357,232 @@ class TodoCard extends StatelessWidget {
                                               await taskRepository
                                                   .readOne(targetTaskId);
                                           if (targetTask != null) {
-                                            final duplicateTodo =
-                                                (targetTask.todos ?? [])
-                                                    .firstWhereOrNull(
-                                              (t) =>
-                                                  t.title == todo.title &&
-                                                  t.uuid != todo.uuid &&
-                                                  t.deletedAt == 0,
-                                            );
-
-                                            if (duplicateTodo != null) {
-                                              // 显示同名处理对话框
-                                              showDuplicateNameDialog(
-                                                itemName: todo.title,
-                                                itemType: 'todo',
-                                                sourceWorkspaceName:
-                                                    sourceWorkspaceName,
-                                                targetWorkspaceName:
-                                                    targetWorkspaceName,
-                                                onActionSelected:
-                                                    (action) async {
-                                                  if (action ==
-                                                      DuplicateNameAction
-                                                          .cancel) {
-                                                    return;
-                                                  }
-
-                                                  final success = await _homeCtrl
-                                                      .moveTodoToWorkspaceTask(
-                                                    taskId,
-                                                    todo.uuid,
-                                                    targetWorkspaceId,
-                                                    targetTaskId,
-                                                    duplicateAction: action,
-                                                  );
-
-                                                  if (success) {
-                                                    // 显示带撤销功能的通知
-                                                    final todoTitle =
-                                                        todo.title;
-                                                    String message;
-                                                    if (sourceWorkspaceName !=
-                                                            targetWorkspaceName ||
-                                                        sourceTaskName !=
-                                                            targetTaskName) {
-                                                      message =
-                                                          '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
-                                                    } else {
-                                                      message =
-                                                          '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
-                                                    }
-
-                                                    showUndoToast(
-                                                      message,
-                                                      () async {
-                                                        final isUndone =
-                                                            await _homeCtrl
-                                                                .undoMoveTodoToWorkspaceTask(
-                                                          todo.uuid,
-                                                          originalTaskId,
-                                                          originalWorkspaceId,
-                                                          targetTaskIdForUndo,
-                                                        );
-                                                        if (isUndone) {
-                                                          showSuccessNotification(
-                                                            '「$todoTitle」${'todoRestored'.tr}',
-                                                            saveToNotificationCenter:
-                                                                false,
-                                                          );
-                                                        } else {
-                                                          showErrorNotification(
-                                                            '「$todoTitle」${'restoreFailed'.tr}',
-                                                          );
-                                                        }
-                                                      },
-                                                      countdownSeconds: 5,
-                                                    );
-                                                  } else {
-                                                    showErrorNotification(
-                                                        'todoMoveFailed'.tr);
-                                                  }
-                                                },
-                                              );
-                                              return;
-                                            }
+                                            targetTaskName = targetTask.title;
                                           }
                                         } catch (e) {
-                                          // 忽略错误，继续执行
+                                          // 忽略错误
                                         }
 
-                                        // 不是同名问题，是其他错误
-                                        showErrorNotification(
-                                            'todoMoveFailed'.tr);
-                                        return;
-                                      }
+                                        // 保存原始信息用于撤销
+                                        final originalTaskId = taskId;
+                                        final originalWorkspaceId =
+                                            currentWorkspaceId;
+                                        // 保存目标taskId，用于撤销时直接使用
+                                        final targetTaskIdForUndo =
+                                            targetTaskId;
 
-                                      // 移动成功
-                                      if (hasDuplicate) {
-                                        // 显示带撤销功能的通知
-                                        final todoTitle = todo.title;
-                                        String message;
-                                        if (sourceWorkspaceName !=
-                                                targetWorkspaceName ||
-                                            sourceTaskName != targetTaskName) {
-                                          message =
-                                              '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
-                                        } else {
-                                          message =
-                                              '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
-                                        }
-
-                                        showUndoToast(
-                                          message,
-                                          () async {
-                                            final isUndone = await _homeCtrl
-                                                .undoMoveTodoToWorkspaceTask(
-                                              todo.uuid,
-                                              originalTaskId,
-                                              originalWorkspaceId,
-                                              targetTaskIdForUndo, // 传递目标taskId，避免查找失败
-                                            );
-                                            if (isUndone) {
-                                              showSuccessNotification(
-                                                '「$todoTitle」${'todoRestored'.tr}',
-                                                saveToNotificationCenter: false,
-                                              );
-                                            } else {
-                                              showErrorNotification(
-                                                '「$todoTitle」${'restoreFailed'.tr}',
-                                              );
-                                            }
-                                          },
-                                          countdownSeconds: 5,
+                                        // 先尝试移动，检查是否有同名todo
+                                        final hasDuplicate = await _homeCtrl
+                                            .moveTodoToWorkspaceTask(
+                                          taskId,
+                                          todo.uuid,
+                                          targetWorkspaceId,
+                                          targetTaskId,
                                         );
-                                      } else {
-                                        showErrorNotification(
-                                            'todoMoveFailed'.tr);
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
-                              MenuItem(
-                                title: 'delete',
-                                iconData: FontAwesomeIcons.trashCan,
-                                callback: () => {
-                                  showToast(
-                                    "sureDeleteTodo".tr,
-                                    alwaysShow: true,
-                                    confirmMode: true,
-                                    toastStyleType: TodoCatToastStyleType.error,
-                                    onYesCallback: () async {
-                                      final bool isDeleted =
-                                          await _handleDelete();
-                                      // 只在删除失败时显示通知
-                                      if (!isDeleted) {
-                                        0.5.delay(() {
+
+                                        // 如果返回false，可能是存在同名todo，需要显示对话框
+                                        if (!hasDuplicate) {
+                                          // 检查是否真的存在同名todo
+                                          try {
+                                            final taskRepository =
+                                                await TaskRepository
+                                                    .getInstance();
+                                            final targetTask =
+                                                await taskRepository
+                                                    .readOne(targetTaskId);
+                                            if (targetTask != null) {
+                                              final duplicateTodo =
+                                                  (targetTask.todos ?? [])
+                                                      .firstWhereOrNull(
+                                                (t) =>
+                                                    t.title == todo.title &&
+                                                    t.uuid != todo.uuid &&
+                                                    t.deletedAt == 0,
+                                              );
+
+                                              if (duplicateTodo != null) {
+                                                // 显示同名处理对话框
+                                                showDuplicateNameDialog(
+                                                  itemName: todo.title,
+                                                  itemType: 'todo',
+                                                  sourceWorkspaceName:
+                                                      sourceWorkspaceName,
+                                                  targetWorkspaceName:
+                                                      targetWorkspaceName,
+                                                  onActionSelected:
+                                                      (action) async {
+                                                    if (action ==
+                                                        DuplicateNameAction
+                                                            .cancel) {
+                                                      return;
+                                                    }
+
+                                                    final success = await _homeCtrl
+                                                        .moveTodoToWorkspaceTask(
+                                                      taskId,
+                                                      todo.uuid,
+                                                      targetWorkspaceId,
+                                                      targetTaskId,
+                                                      duplicateAction: action,
+                                                    );
+
+                                                    if (success) {
+                                                      // 显示带撤销功能的通知
+                                                      final todoTitle =
+                                                          todo.title;
+                                                      String message;
+                                                      if (sourceWorkspaceName !=
+                                                              targetWorkspaceName ||
+                                                          sourceTaskName !=
+                                                              targetTaskName) {
+                                                        message =
+                                                            '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
+                                                      } else {
+                                                        message =
+                                                            '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
+                                                      }
+
+                                                      showUndoToast(
+                                                        message,
+                                                        () async {
+                                                          final isUndone =
+                                                              await _homeCtrl
+                                                                  .undoMoveTodoToWorkspaceTask(
+                                                            todo.uuid,
+                                                            originalTaskId,
+                                                            originalWorkspaceId,
+                                                            targetTaskIdForUndo,
+                                                          );
+                                                          if (isUndone) {
+                                                            showSuccessNotification(
+                                                              '「$todoTitle」${'todoRestored'.tr}',
+                                                              saveToNotificationCenter:
+                                                                  false,
+                                                            );
+                                                          } else {
+                                                            showErrorNotification(
+                                                              '「$todoTitle」${'restoreFailed'.tr}',
+                                                            );
+                                                          }
+                                                        },
+                                                        countdownSeconds: 5,
+                                                      );
+                                                    } else {
+                                                      showErrorNotification(
+                                                          'todoMoveFailed'.tr);
+                                                    }
+                                                  },
+                                                );
+                                                return;
+                                              }
+                                            }
+                                          } catch (e) {
+                                            // 忽略错误，继续执行
+                                          }
+
+                                          // 不是同名问题，是其他错误
                                           showErrorNotification(
-                                            "${"todo".tr} '${todo.title}' ${"deletionFailed".tr}",
+                                              'todoMoveFailed'.tr);
+                                          return;
+                                        }
+
+                                        // 移动成功
+                                        if (hasDuplicate) {
+                                          // 显示带撤销功能的通知
+                                          final todoTitle = todo.title;
+                                          String message;
+                                          if (sourceWorkspaceName !=
+                                                  targetWorkspaceName ||
+                                              sourceTaskName !=
+                                                  targetTaskName) {
+                                            message =
+                                                '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
+                                          } else {
+                                            message =
+                                                '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
+                                          }
+
+                                          showUndoToast(
+                                            message,
+                                            () async {
+                                              final isUndone = await _homeCtrl
+                                                  .undoMoveTodoToWorkspaceTask(
+                                                todo.uuid,
+                                                originalTaskId,
+                                                originalWorkspaceId,
+                                                targetTaskIdForUndo, // 传递目标taskId，避免查找失败
+                                              );
+                                              if (isUndone) {
+                                                showSuccessNotification(
+                                                  '「$todoTitle」${'todoRestored'.tr}',
+                                                  saveToNotificationCenter:
+                                                      false,
+                                                );
+                                              } else {
+                                                showErrorNotification(
+                                                  '「$todoTitle」${'restoreFailed'.tr}',
+                                                );
+                                              }
+                                            },
+                                            countdownSeconds: 5,
                                           );
-                                        });
-                                      } else {
-                                        // 删除成功，显示undo toast
-                                        showUndoToast(
-                                          "todoDeleted".tr,
-                                          () async {
-                                            final bool isUndone =
-                                                await _homeCtrl.undoTodo(
-                                                    taskId, todo.uuid);
-                                            if (isUndone) {
-                                              showSuccessNotification(
-                                                "${"todo".tr} '${todo.title}' ${"todoRestored".tr}",
-                                                saveToNotificationCenter: false,
-                                              );
-                                            } else {
-                                              showErrorNotification(
-                                                "${"todo".tr} '${todo.title}' ${"restoreFailed".tr}",
-                                              );
-                                            }
-                                          },
-                                          countdownSeconds: 5,
-                                        );
-                                      }
-                                    },
-                                  )
-                                },
-                              ),
-                            ],
-                          ),
+                                        } else {
+                                          showErrorNotification(
+                                              'todoMoveFailed'.tr);
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
+                                MenuItem(
+                                  title: 'delete',
+                                  iconData: FontAwesomeIcons.trashCan,
+                                  callback: () => {
+                                    showToast(
+                                      "sureDeleteTodo".tr,
+                                      alwaysShow: true,
+                                      confirmMode: true,
+                                      toastStyleType:
+                                          TodoCatToastStyleType.error,
+                                      onYesCallback: () async {
+                                        final bool isDeleted =
+                                            await _handleDelete();
+                                        // 只在删除失败时显示通知
+                                        if (!isDeleted) {
+                                          0.5.delay(() {
+                                            showErrorNotification(
+                                              "${"todo".tr} '${todo.title}' ${"deletionFailed".tr}",
+                                            );
+                                          });
+                                        } else {
+                                          // 删除成功，显示undo toast
+                                          showUndoToast(
+                                            "todoDeleted".tr,
+                                            () async {
+                                              final bool isUndone =
+                                                  await _homeCtrl.undoTodo(
+                                                      taskId, todo.uuid);
+                                              if (isUndone) {
+                                                showSuccessNotification(
+                                                  "${"todo".tr} '${todo.title}' ${"todoRestored".tr}",
+                                                  saveToNotificationCenter:
+                                                      false,
+                                                );
+                                              } else {
+                                                showErrorNotification(
+                                                  "${"todo".tr} '${todo.title}' ${"restoreFailed".tr}",
+                                                );
+                                              }
+                                            },
+                                            countdownSeconds: 5,
+                                          );
+                                        }
+                                      },
+                                    )
+                                  },
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ],

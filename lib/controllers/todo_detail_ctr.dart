@@ -9,6 +9,7 @@ import 'package:todo_cat/services/dialog_service.dart';
 class TodoDetailController extends BaseFormController {
   final String todoId;
   final String taskId;
+  final Todo? previewTodo;
 
   final todo = Rx<Todo?>(null);
   final HomeController _homeController = Get.find();
@@ -18,11 +19,18 @@ class TodoDetailController extends BaseFormController {
   TodoDetailController({
     required this.todoId,
     required this.taskId,
+    this.previewTodo,
   });
 
   @override
   void onInit() {
     super.onInit();
+
+    if (previewTodo != null) {
+      todo.value = previewTodo;
+      return;
+    }
+
     _loadTodoDetail();
 
     // 监听HomeController的响应式任务列表变化，自动刷新详情
@@ -39,8 +47,10 @@ class TodoDetailController extends BaseFormController {
     super.onClose();
   }
 
+  bool get isPreview => previewTodo != null;
+
   void _loadTodoDetail() {
-    if (_isDisposed || _isNavigatingBack) {
+    if (_isDisposed || _isNavigatingBack || isPreview) {
       return;
     }
 
@@ -68,7 +78,8 @@ class TodoDetailController extends BaseFormController {
           todo.value = foundTodo;
         } else {
           if (!_isNavigatingBack) {
-            BaseFormController.logger.w('Todo not found: $todoId in task $taskId');
+            BaseFormController.logger
+                .w('Todo not found: $todoId in task $taskId');
             _isNavigatingBack = true;
             Get.back();
           }

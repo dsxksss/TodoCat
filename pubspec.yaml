@@ -79,6 +79,8 @@ dependencies:
   # Windows 视频播放器（更好的性能和硬件加速）
   video_player_win: ^3.2.1
   vector_math: ^2.2.0
+  # LLM library
+  dart_openai: ^6.1.1
 
 dev_dependencies:
   flutter_test:

@@ -18,6 +18,8 @@ import 'package:todo_cat/config/default_backgrounds.dart';
 import 'package:todo_cat/widgets/video_background.dart';
 import 'package:todo_cat/services/video_download_service.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
+import 'package:todo_cat/services/llm_template_service.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 enum TaskTemplateType {
   empty, // 空模板
@@ -62,6 +64,174 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
     } catch (e) {
       // 加载失败，保持空列表
     }
+  }
+
+  void _handleAiGenerate() {
+    SmartDialog.show(
+      tag: 'ai_template_input',
+      alignment: Alignment.center,
+      animationType: SmartAnimationType.fade, // Disable default scale
+      clickMaskDismiss: false,
+      animationTime: 150.ms,
+      builder: (_) {
+        return _AiTemplateGeneratorPopup(
+          onCancel: () => SmartDialog.dismiss(tag: 'ai_template_input'),
+          onGenerate: (prompt) {
+            if (prompt.isNotEmpty) {
+              SmartDialog.dismiss(tag: 'ai_template_input');
+              _generateTemplate(prompt);
+            }
+          },
+        );
+      },
+      animationBuilder: (controller, child, _) => child
+          .animate(controller: controller)
+          .fade(duration: controller.duration)
+          .scaleXY(
+            begin: 0.99,
+            duration: controller.duration,
+            curve: Curves.easeOutCubic,
+          ),
+    );
+  }
+
+  Future<void> _generateTemplate(String prompt) async {
+    SmartDialog.show(
+        tag: 'loading_ai',
+        clickMaskDismiss: false,
+        builder: (_) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            decoration: BoxDecoration(
+              color: context.theme.cardColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                )
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 3, color: Colors.blue)),
+                const SizedBox(height: 24),
+                Text(
+                  "AI 正在为你规划...",
+                  style: FontUtils.getMediumStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "正在生成任务清单与详细步骤",
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: context.theme.textTheme.bodyMedium?.color
+                          ?.withOpacity(0.6)),
+                ),
+              ],
+            ),
+          );
+        });
+
+    try {
+      if (!Get.isRegistered<LlmTemplateService>()) {
+        Get.put(LlmTemplateService());
+      }
+
+      final template = await LlmTemplateService.to.generateTemplate(prompt);
+      SmartDialog.dismiss(tag: 'loading_ai');
+
+      if (template != null) {
+        _showCustomTemplatePreview(template);
+      } else {
+        SmartDialog.showToast("生成失败，请重试");
+      }
+    } catch (e) {
+      SmartDialog.dismiss(tag: 'loading_ai');
+      SmartDialog.showToast("发生错误: $e");
+    }
+  }
+
+  void _showCustomTemplatePreview(CustomTemplate template) {
+    PlatformDialogWrapper.show(
+      tag: 'generated_template_preview',
+      content: _GeneratedTemplatePreview(
+        template: template,
+        onApply: () {
+          SmartDialog.dismiss(tag: 'generated_template_preview');
+          _showConfirmDialogForCustom(context, template, false);
+        },
+        onCancel: () {
+          SmartDialog.dismiss(tag: 'generated_template_preview');
+        },
+      ),
+      maskColor: Colors.black.withOpacity(0.3),
+      clickMaskDismiss: true,
+      useSystem: false,
+      useFixedSize: false,
+    );
+  }
+
+  Widget _buildAiGenerateOption(BuildContext context) {
+    return GestureDetector(
+      onTap: _handleAiGenerate,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: context.theme.dividerColor.withOpacity(0.3),
+            width: 0.5,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color: context.theme.cardColor,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child:
+                  const Icon(Icons.auto_awesome, color: Colors.blue, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "AI 智能生成",
+                    style: FontUtils.getMediumStyle(
+                        fontSize: 16,
+                        color: context.theme.textTheme.bodyLarge?.color),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "输入描述，AI 帮你生成专属任务模板",
+                    style: FontUtils.getTextStyle(
+                        fontSize: 13,
+                        color: context.theme.textTheme.bodyMedium?.color
+                            ?.withOpacity(0.7)),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios,
+                size: 16,
+                color: context.theme.textTheme.bodyMedium?.color
+                    ?.withOpacity(0.5)),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -136,6 +306,10 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                             context.theme.dividerColor.withValues(alpha: 0.3)),
                     const SizedBox(height: 12),
                   ],
+                  // AI 生成按钮
+                  _buildAiGenerateOption(context),
+                  const SizedBox(height: 24),
+
                   Text(
                     _customTemplates.isNotEmpty
                         ? 'default'.tr
@@ -1313,4 +1487,490 @@ void showTemplateSelectorDialog({
     clickMaskDismiss: true,
     animationTime: const Duration(milliseconds: 300),
   );
+}
+
+/// AI 模板生成弹窗
+class _AiTemplateGeneratorPopup extends StatefulWidget {
+  final VoidCallback onCancel;
+  final Function(String) onGenerate;
+
+  const _AiTemplateGeneratorPopup({
+    required this.onCancel,
+    required this.onGenerate,
+  });
+
+  @override
+  State<_AiTemplateGeneratorPopup> createState() =>
+      _AiTemplateGeneratorPopupState();
+}
+
+class _GeneratedTemplatePreview extends StatefulWidget {
+  final CustomTemplate template;
+  final VoidCallback onApply;
+  final VoidCallback onCancel;
+
+  const _GeneratedTemplatePreview({
+    required this.template,
+    required this.onApply,
+    required this.onCancel,
+  });
+
+  @override
+  State<_GeneratedTemplatePreview> createState() =>
+      _GeneratedTemplatePreviewState();
+}
+
+class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final templates = widget.template.getTasks();
+
+    // 计算对话框宽度：屏幕宽度的90%，最大不超过1600（约6个卡片）
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = (screenWidth * 0.9).clamp(800.0, 1600.0);
+
+    // 获取背景设置
+    final appCtrl = Get.find<AppController>();
+    final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
+    final isDefaultTemplate = backgroundImagePath != null &&
+        backgroundImagePath.startsWith('default_template:');
+    final isCustomImage = backgroundImagePath != null &&
+        !isDefaultTemplate &&
+        backgroundImagePath.isNotEmpty &&
+        GetPlatform.isDesktop &&
+        File(backgroundImagePath).existsSync();
+    final hasBackground = isDefaultTemplate || isCustomImage;
+    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
+    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: maxWidth,
+          height: 640,
+          margin: const EdgeInsets.symmetric(horizontal: 40),
+          decoration: BoxDecoration(
+            color: context.theme.dialogTheme.backgroundColor,
+            border: Border.all(width: 1, color: context.theme.dividerColor),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              children: [
+                // 背景图片层
+                if (hasBackground)
+                  Positioned.fill(
+                    child: Opacity(
+                      opacity: opacity,
+                      child: _getBackgroundWidget(backgroundImagePath),
+                    ),
+                  ),
+                // 模糊层
+                if (hasBackground && blur > 0)
+                  Positioned.fill(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: blur,
+                        sigmaY: blur,
+                      ),
+                      child: Container(color: Colors.white.withOpacity(0.0)),
+                    ),
+                  ),
+                // 内容层
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 标题栏
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 15),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: context.theme.dividerColor.withOpacity(0.3),
+                            width: 0.5,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(children: [
+                            Text(
+                              'AI 生成结果预览',
+                              style: FontUtils.getBoldStyle(fontSize: 18),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4)),
+                                child: Text(widget.template.description ?? "",
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.blue)))
+                          ]),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              LabelBtn(
+                                label: Text('apply'.tr,
+                                    style:
+                                        const TextStyle(color: Colors.white)),
+                                onPressed: widget.onApply,
+                                bgColor: Colors.blue,
+                              ),
+                              const SizedBox(width: 12),
+                              MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: GestureDetector(
+                                  onTap: widget.onCancel,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: context.theme.dividerColor
+                                          .withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 18,
+                                      color: context
+                                          .theme.textTheme.bodyMedium?.color,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // 预览内容 - 水平滚动
+                    Expanded(
+                      child: Scrollbar(
+                        controller: _scrollController,
+                        thumbVisibility: true,
+                        scrollbarOrientation: ScrollbarOrientation.bottom,
+                        child: SingleChildScrollView(
+                          controller: _scrollController,
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.all(8),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ...templates
+                                  .map((task) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 50),
+                                        child: SizedBox(
+                                          width:
+                                              300, // Enforce width for TaskCard to ensure it renders correctly in Row
+                                          child: TaskCard(
+                                              task: task, isPreview: true),
+                                        ),
+                                      ))
+                                  .toList(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 获取背景装饰 (Copied helper)
+  Widget _getBackgroundWidget(String? backgroundPath) {
+    // ... Reuse the logic from parent if possible, but for simplicity duplication is easier here since the parent logic is complex with methods.
+    // Actually, we can just instantiate a minimal placeholder or try to reuse.
+    // Let's copy the logic from _TemplateSelectorDialogState._getBackgroundWidget briefly or just simplify it since this is a transient preview.
+    // To be safe and quick, I will just use a transparent placeholder if I can't access instances.
+    // However, the user wants it to look "like existing", so ideally it matches the current background.
+
+    // 获取背景设置
+    final appCtrl = Get.find<AppController>();
+    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
+    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+
+    // 检查是否是默认模板
+    if (backgroundPath != null &&
+        backgroundPath.startsWith('default_template:')) {
+      final templateId = backgroundPath.split(':').last;
+      final template = DefaultBackgrounds.getById(templateId);
+
+      if (template != null) {
+        // 检查是否为视频模板
+        if (template.isVideo) {
+          // 如果有downloadUrl，优先使用缓存路径，否则使用URL
+          if (template.downloadUrl != null) {
+            return FutureBuilder<String?>(
+              future: VideoDownloadService()
+                  .getCachedVideoPath(template.downloadUrl!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(color: Colors.black);
+                }
+                final videoPath = snapshot.data ?? template.downloadUrl!;
+                return VideoBackground(
+                  videoPath: videoPath,
+                  opacity: opacity,
+                  blur: blur,
+                );
+              },
+            );
+          } else {
+            return VideoBackground(
+              videoPath: template.imageUrl,
+              opacity: opacity,
+              blur: blur,
+            );
+          }
+        } else {
+          // 使用本地图片
+          final imageUrl = template.imageUrl;
+          return Opacity(
+            opacity: opacity,
+            child: ClipRect(
+              child: blur > 0
+                  ? ImageFiltered(
+                      imageFilter: ImageFilter.blur(
+                        sigmaX: blur,
+                        sigmaY: blur,
+                      ),
+                      child: Image.asset(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : Image.asset(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+          );
+        }
+      } else {
+        return Container();
+      }
+    } else {
+      // 自定义图片或视频
+      if (backgroundPath != null &&
+          GetPlatform.isDesktop &&
+          File(backgroundPath).existsSync()) {
+        // ... simplified
+        return Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: FileImage(File(backgroundPath)),
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      } else {
+        return Container();
+      }
+    }
+  }
+}
+
+class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
+  final TextEditingController _controller = TextEditingController();
+  Offset _offset = Offset.zero;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.translate(
+      offset: _offset,
+      child: Container(
+        width: 500,
+        margin: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: Colors.blue.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header (Draggable)
+                GestureDetector(
+                  onPanUpdate: (details) {
+                    setState(() {
+                      _offset += details.delta;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.blue.withOpacity(0.1),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.auto_awesome,
+                            color: Colors.blue, size: 16),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "AI 智能生成模板",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(Icons.close,
+                              size: 16, color: Theme.of(context).dividerColor),
+                          onPressed: widget.onCancel,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Content
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _controller,
+                        decoration: InputDecoration(
+                          hintText:
+                              "描述你想要的任务列表，例如：\n- '为期7天的云南旅游计划'\n- '准备一场马拉松的训练计划'\n- '新房装修全流程'",
+                          hintStyle: TextStyle(
+                              color: Colors.grey.withOpacity(0.5),
+                              fontSize: 13),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                                color: context.theme.dividerColor
+                                    .withOpacity(0.5)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                                color: context.theme.dividerColor
+                                    .withOpacity(0.3)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.blue),
+                          ),
+                          contentPadding: const EdgeInsets.all(12),
+                          filled: true,
+                          fillColor: context.theme.cardColor,
+                        ),
+                        maxLines: 4,
+                        maxLength: 200,
+                        autofocus: true,
+                        style: TextStyle(
+                            color: context.theme.textTheme.bodyMedium?.color),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Footer Actions
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: widget.onCancel,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                        child: Text("cancel".tr),
+                      ),
+                      const SizedBox(width: 8),
+                      // AI Generate Button
+                      ElevatedButton.icon(
+                        onPressed: () => widget.onGenerate(_controller.text),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.auto_awesome, size: 16),
+                        label: const Text("立即生成"),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

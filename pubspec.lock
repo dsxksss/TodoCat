@@ -265,6 +265,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.2"
+  dart_openai:
+    dependency: "direct main"
+    description:
+      name: dart_openai
+      sha256: e7d297c932a6d6196ed75eef06aeea3de54d9e3c356846bc0e3493b0080b7030
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "6.1.1"
   dart_style:
     dependency: transitive
     description:
@@ -329,6 +337,22 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.0.1"
+  fetch_api:
+    dependency: transitive
+    description:
+      name: fetch_api
+      sha256: "24cbd5616f3d4008c335c197bb90bfa0eb43b9e55c6de5c60d1f805092636034"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.3.1"
+  fetch_client:
+    dependency: transitive
+    description:
+      name: fetch_client
+      sha256: "375253f4efe64303c793fb17fe90771c591320b2ae11fb29cb5b406cc8533c00"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.1.4"
   ffi:
     dependency: transitive
     description:

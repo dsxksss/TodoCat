@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
+import 'package:todo_cat/widgets/magic_polishing_button.dart';
 
 /// Markdown 工具栏组件
 /// 提供常用的 Markdown 语法快捷插入功能
@@ -140,6 +141,12 @@ class MarkdownToolbar extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // AI 润色按钮 - 显示在最前面
+            MagicPolishingButton(
+              controller: controller,
+              isMultiline: true,
+            ),
+            const SizedBox(width: 8),
             // 预览按钮（眼睛图标）- 显示在最前面
             if (onPreview != null) ...[
               _buildToolbarButton(
@@ -209,11 +216,13 @@ class MarkdownToolbar extends StatelessWidget {
               onPressed: () => _insertText('> '),
             ),
             const SizedBox(width: 4),
+            const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.minus,
               tooltip: 'markdownSeparator'.tr,
               onPressed: () => _insertText('\n---\n'),
             ),
+            const SizedBox(width: 8),
           ],
         ),
       ),
