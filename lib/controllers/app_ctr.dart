@@ -12,16 +12,18 @@ import 'package:todo_cat/themes/theme_mode.dart';
 import 'package:todo_cat/services/auto_update_service.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:logger/logger.dart';
+import 'package:todo_cat/services/sync_manager.dart';
 
 class AppController extends GetxController {
   static final _logger = Logger();
   LocalNotificationManager? _localNotificationManager;
   late final AppConfigRepository appConfigRepository;
   final _autoUpdateService = AutoUpdateService();
-  
+
   /// 获取本地通知管理器（可能为null如果初始化失败）
-  LocalNotificationManager? get localNotificationManager => _localNotificationManager;
-  
+  LocalNotificationManager? get localNotificationManager =>
+      _localNotificationManager;
+
   /// 获取自动更新服务（供外部访问）
   AutoUpdateService get autoUpdateService => _autoUpdateService;
   final appConfig = Rx<AppConfig>(defaultAppConfig);
@@ -34,27 +36,36 @@ class AppController extends GetxController {
   void onInit() async {
     _logger.i('Initializing AppController');
     try {
-    await initConfig();
+      await initConfig();
     } catch (e, stack) {
       _logger.e('Failed to initialize config: $e', error: e, stackTrace: stack);
       // 配置初始化失败不应该阻止应用启动，使用默认配置
     }
-    
+
     try {
-    await initLocalNotification();
+      await initLocalNotification();
     } catch (e, stack) {
-      _logger.e('Failed to initialize local notification: $e', error: e, stackTrace: stack);
+      _logger.e('Failed to initialize local notification: $e',
+          error: e, stackTrace: stack);
       // 通知服务初始化失败不应该阻止应用启动
       // _localNotificationManager 保持为 null，后续访问时需要检查
     }
-    
+
     try {
-    await initAutoUpdate();
+      await initAutoUpdate();
     } catch (e, stack) {
-      _logger.e('Failed to initialize auto update: $e', error: e, stackTrace: stack);
+      _logger.e('Failed to initialize auto update: $e',
+          error: e, stackTrace: stack);
       // 更新服务初始化失败不应该阻止应用启动
     }
-    
+
+    try {
+      _logger.d('Initializing Sync Manager');
+      await SyncManager().init();
+    } catch (e) {
+      _logger.e('Failed to initialize Sync Manager: $e');
+    }
+
     super.onInit();
   }
 
@@ -70,7 +81,7 @@ class AppController extends GetxController {
     if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
       return;
     }
-    
+
     try {
       _logger.d('Initializing auto update service');
       await _autoUpdateService.initialize();
@@ -104,8 +115,8 @@ class AppController extends GetxController {
       appConfig,
       (value) async {
         try {
-        _logger.d('AppConfig changed, updating local storage');
-        await appConfigRepository.update(value.configName, value);
+          _logger.d('AppConfig changed, updating local storage');
+          await appConfigRepository.update(value.configName, value);
         } catch (e) {
           _logger.e('Error updating app config: $e');
           // 配置更新失败不应该导致应用崩溃
@@ -120,11 +131,11 @@ class AppController extends GetxController {
     changeSystemOverlayUI();
     initSmartDialogConfiguration();
     WidgetsBinding.instance.addObserver(AppLifecycleObserver());
-    
+
     // 不再自动检查更新，用户可以在设置页面手动检查更新
     // 这样可以避免应用启动时自动触发更新检查，提升启动体验
     // 如果需要自动检查更新，可以在设置页面添加相关选项
-    
+
     super.onReady();
   }
 
@@ -140,13 +151,11 @@ class AppController extends GetxController {
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: appConfig.value.isDarkMode
-              ? Brightness.light
-              : Brightness.dark,
+          statusBarIconBrightness:
+              appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
           systemNavigationBarColor: Colors.transparent,
-          systemNavigationBarIconBrightness: appConfig.value.isDarkMode
-              ? Brightness.light
-              : Brightness.dark,
+          systemNavigationBarIconBrightness:
+              appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
         ),
       );
     }

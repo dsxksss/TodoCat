@@ -1,4 +1,5 @@
 import 'package:dart_openai/dart_openai.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
@@ -52,7 +53,9 @@ class LlmPolishingService extends GetxService {
 
       return originalText;
     } catch (e) {
-      print('LLM Polishing Error: $e');
+      if (kDebugMode) {
+        print('LLM Polishing Error: $e');
+      }
       // 在这里显示个简单的提示，或者让调用方处理
       SmartDialog.showToast("润色服务连接失败: $e");
       rethrow;

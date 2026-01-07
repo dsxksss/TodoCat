@@ -11,6 +11,7 @@ import 'package:todo_cat/widgets/data_import_export_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
+import 'package:todo_cat/widgets/sync_config_dialog.dart';
 
 class SettingsContent extends GetView<SettingsController> {
   const SettingsContent({super.key});
@@ -378,6 +379,14 @@ class SettingsContent extends GetView<SettingsController> {
     return [
       // 数据导入导出（合并为一个选项）
       SettingsTile(
+        leading: const Icon(Icons.cloud_sync_outlined),
+        title: Text('syncConfiguration'.tr),
+        description: Text('syncConfigurationDescription'.tr),
+        trailing: const Icon(Icons.chevron_right),
+        onPressed: (_) => _showSyncConfigDialog(),
+      ),
+      // 数据导入导出（合并为一个选项）
+      SettingsTile(
         leading: const Icon(Icons.import_export),
         title: Text('dataImportExport'.tr),
         description: Text('dataImportExportDescription'.tr),
@@ -401,6 +410,17 @@ class SettingsContent extends GetView<SettingsController> {
         onPressed: (_) => _showClearAllDataDialog(),
       ),
     ];
+  }
+
+  /// 显示同步配置对话框
+  void _showSyncConfigDialog() {
+    PlatformDialogWrapper.show(
+      tag: 'sync_config_dialog',
+      content: const SyncConfigDialog(),
+      width: 500,
+      height: 600,
+      clickMaskDismiss: true,
+    );
   }
 
   /// 显示数据导入导出对话框

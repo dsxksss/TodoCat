@@ -356,15 +356,15 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
     // 使用统一的 groupMargin，不依赖 AppFlowyBoard 的 _marginFromIndex 逻辑
     // 因为 _marginFromIndex 会移除第一个 group 的左边距和最后一个 group 的右边距
     // 这会导致第一个和最后一个 task 看起来比中间的宽
-    final marginHorizontal = 8.0;
+    const marginHorizontal = 8.0;
 
-    final boardConfig = AppFlowyBoardConfig(
+    const boardConfig = AppFlowyBoardConfig(
       groupCornerRadius: 10,
       // 设置 groupMargin 为 0，完全由外层控制间距
       groupMargin: EdgeInsets.zero,
-      groupBodyPadding: const EdgeInsets.all(0),
-      groupFooterPadding: const EdgeInsets.all(0),
-      groupHeaderPadding: const EdgeInsets.all(0),
+      groupBodyPadding: EdgeInsets.all(0),
+      groupFooterPadding: EdgeInsets.all(0),
+      groupHeaderPadding: EdgeInsets.all(0),
       stretchGroupHeight: true,
     );
 
@@ -401,7 +401,7 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
 
           // 使用 Container 的 margin 来统一控制所有 group 的间距
           return Container(
-            margin: EdgeInsets.symmetric(horizontal: marginHorizontal),
+            margin: const EdgeInsets.symmetric(horizontal: marginHorizontal),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               // 顶部始终有圆角，底部只有在没有 todos 时才有圆角
@@ -447,7 +447,7 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
             key: ValueKey(data.id),
             child: Container(
               // 使用与 headerBuilder 相同的 margin 来保持一致性
-              margin: EdgeInsets.symmetric(horizontal: marginHorizontal),
+              margin: const EdgeInsets.symmetric(horizontal: marginHorizontal),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: isLastItem
@@ -488,8 +488,8 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
     if (_dragPosition == null || !mounted) return;
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final scrollThreshold = 50.0; // 边缘触发区域宽度
-    final maxScrollSpeed = 15.0; // 最大滚动速度
+    const scrollThreshold = 50.0; // 边缘触发区域宽度
+    const maxScrollSpeed = 15.0; // 最大滚动速度
 
     double scrollDelta = 0.0;
 

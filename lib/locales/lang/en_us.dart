@@ -151,7 +151,8 @@ const Map<String, String> enUS = {
   'unreadMessages': 'unread messages',
   'allMessagesRead': 'All messages read',
   'confirmClearAllNotifications': 'Confirm Clear All Notifications',
-  'clickDescriptionInputToOpenBrowseWindow': 'Click description input to open browse window',
+  'clickDescriptionInputToOpenBrowseWindow':
+      'Click description input to open browse window',
   'confirmClearAllNotificationsDesc':
       'Are you sure you want to clear all notifications? This action cannot be undone.',
   // Notification Clear Operation Results
@@ -441,4 +442,28 @@ const Map<String, String> enUS = {
   'resetView': 'Reset view',
   'imageLoadFailed': 'Failed to load image',
   'clickToViewImage': 'Click to view image',
+
+  // Sync Configuration
+  'syncConfiguration': 'Cloud Sync',
+  'syncConfigurationDescription': 'Sync workspaces across devices securely',
+  'syncKey': 'Sync Key',
+  'syncKeyHint': 'Paste Sync Key to import workspace',
+  'import': 'Import',
+  'copy': 'Copy',
+  'syncActions': 'Sync Actions',
+  'syncToCloud': 'Upload to Cloud',
+  'restoreFromCloud': 'Download from Cloud',
+  'workspaceShare': 'Workspace Share',
+  'copyWorkspaceKey': 'Copy Workspace Key',
+  'importWorkspace': 'Import Workspace',
+  'enterWorkspaceKey': 'Enter Workspace Key',
+  'keyCopied': 'Key copied to clipboard',
+  'keyImported': 'Key imported successfully',
+  'invalidKey': 'Invalid Key',
+  'syncSuccess': 'Sync successful',
+  'syncFailed': 'Sync failed',
+  'restoreSuccess': 'Restore successful',
+  'webDavDetails': 'Cloud Service Status',
+  'connected': 'Connected',
+  'upload': 'Upload',
 };

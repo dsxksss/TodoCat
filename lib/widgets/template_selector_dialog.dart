@@ -107,7 +107,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 )
@@ -132,7 +132,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                   style: TextStyle(
                       fontSize: 13,
                       color: context.theme.textTheme.bodyMedium?.color
-                          ?.withOpacity(0.6)),
+                          ?.withValues(alpha: 0.6)),
                 ),
               ],
             ),
@@ -171,7 +171,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
           SmartDialog.dismiss(tag: 'generated_template_preview');
         },
       ),
-      maskColor: Colors.black.withOpacity(0.3),
+      maskColor: Colors.black.withValues(alpha: 0.3),
       clickMaskDismiss: true,
       useSystem: false,
       useFixedSize: false,
@@ -185,7 +185,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: context.theme.dividerColor.withOpacity(0.3),
+            color: context.theme.dividerColor.withValues(alpha: 0.3),
             width: 0.5,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -196,7 +196,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child:
@@ -219,7 +219,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                     style: FontUtils.getTextStyle(
                         fontSize: 13,
                         color: context.theme.textTheme.bodyMedium?.color
-                            ?.withOpacity(0.7)),
+                            ?.withValues(alpha: 0.7)),
                   ),
                 ],
               ),
@@ -227,7 +227,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
             Icon(Icons.arrow_forward_ios,
                 size: 16,
                 color: context.theme.textTheme.bodyMedium?.color
-                    ?.withOpacity(0.5)),
+                    ?.withValues(alpha: 0.5)),
           ],
         ),
       ),
@@ -1570,7 +1570,7 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -1596,7 +1596,8 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
                         sigmaX: blur,
                         sigmaY: blur,
                       ),
-                      child: Container(color: Colors.white.withOpacity(0.0)),
+                      child:
+                          Container(color: Colors.white.withValues(alpha: 0.0)),
                     ),
                   ),
                 // 内容层
@@ -1610,7 +1611,8 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
-                            color: context.theme.dividerColor.withOpacity(0.3),
+                            color: context.theme.dividerColor
+                                .withValues(alpha: 0.3),
                             width: 0.5,
                           ),
                         ),
@@ -1628,7 +1630,7 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
+                                    color: Colors.blue.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(4)),
                                 child: Text(widget.template.description ?? "",
                                     style: const TextStyle(
@@ -1653,7 +1655,7 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
                                     padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       color: context.theme.dividerColor
-                                          .withOpacity(0.1),
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Icon(
@@ -1826,13 +1828,13 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: Colors.blue.withOpacity(0.3),
+            color: Colors.blue.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -1855,10 +1857,10 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withValues(alpha: 0.1),
                       border: Border(
                         bottom: BorderSide(
-                          color: Colors.blue.withOpacity(0.1),
+                          color: Colors.blue.withValues(alpha: 0.1),
                         ),
                       ),
                     ),
@@ -1899,19 +1901,19 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                           hintText:
                               "描述你想要的任务列表，例如：\n- '为期7天的云南旅游计划'\n- '准备一场马拉松的训练计划'\n- '新房装修全流程'",
                           hintStyle: TextStyle(
-                              color: Colors.grey.withOpacity(0.5),
+                              color: Colors.grey.withValues(alpha: 0.5),
                               fontSize: 13),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(
                                 color: context.theme.dividerColor
-                                    .withOpacity(0.5)),
+                                    .withValues(alpha: 0.5)),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide(
                                 color: context.theme.dividerColor
-                                    .withOpacity(0.3)),
+                                    .withValues(alpha: 0.3)),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),

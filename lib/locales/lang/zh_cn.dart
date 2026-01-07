@@ -403,7 +403,8 @@ const Map<String, String> zhCN = {
   'currentTask': '当前任务',
   // 同名项处理
   'duplicateNameTitle': '发现同名项',
-  'duplicateNameMessage': '目标工作空间「{target}」中已存在同名的{itemType}「{itemName}」（来自「{source}」工作空间）。请选择处理方式：',
+  'duplicateNameMessage':
+      '目标工作空间「{target}」中已存在同名的{itemType}「{itemName}」（来自「{source}」工作空间）。请选择处理方式：',
   'duplicateNameMerge': '合并',
   'duplicateNameMergeDesc': '将内容合并到现有项中，删除源项',
   'duplicateNameRename': '重命名',
@@ -416,4 +417,28 @@ const Map<String, String> zhCN = {
   'resetView': '重置视图',
   'imageLoadFailed': '图片加载失败',
   'clickToViewImage': '点击查看大图',
+
+  // 同步配置
+  'syncConfiguration': '云同步',
+  'syncConfigurationDescription': '跨设备安全同步工作空间',
+  'syncKey': '同步密钥',
+  'syncKeyHint': '粘贴同步密钥以导入工作空间',
+  'import': '导入',
+  'copy': '复制',
+  'syncActions': '同步操作',
+  'syncToCloud': '上传到云端',
+  'restoreFromCloud': '从云端下载',
+  'workspaceShare': '分享工作空间',
+  'copyWorkspaceKey': '复制工作空间密钥',
+  'importWorkspace': '导入工作空间',
+  'enterWorkspaceKey': '输入工作空间密钥',
+  'keyCopied': '密钥已复制到剪贴板',
+  'keyImported': '密钥导入成功',
+  'invalidKey': '无效的密钥',
+  'syncSuccess': '同步成功',
+  'syncFailed': '同步失败',
+  'restoreSuccess': '恢复成功',
+  'webDavDetails': '云服务状态',
+  'connected': '已连接',
+  'upload': '上传',
 };

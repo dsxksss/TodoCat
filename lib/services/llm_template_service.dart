@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dart_openai/dart_openai.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/data/schemas/custom_template.dart';
@@ -98,15 +99,18 @@ Rules:
           try {
             decodedJson = jsonDecode(jsonStr);
           } catch (e) {
-            print("JSON Decode error: $e");
+            if (kDebugMode) {
+              print("JSON Decode error: $e");
+            }
           }
 
           final List<Task> tasks = [];
 
           if (decodedJson is List) {
             for (var item in decodedJson) {
-              if (item is! Map)
+              if (item is! Map) {
                 continue; // Skip if not a map (e.g. accidental list)
+              }
 
               final task = Task();
               task.uuid = _uuid.v4();
@@ -171,7 +175,9 @@ Rules:
       }
       return null;
     } catch (e) {
-      print('LLM Template Error: $e');
+      if (kDebugMode) {
+        print('LLM Template Error: $e');
+      }
       SmartDialog.showToast("生成模板失败: $e");
       return null;
     }
