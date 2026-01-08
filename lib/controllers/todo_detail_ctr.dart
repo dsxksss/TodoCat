@@ -5,6 +5,7 @@ import 'package:todo_cat/controllers/base/base_form_controller.dart';
 import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class TodoDetailController extends BaseFormController {
   final String todoId;
@@ -128,8 +129,41 @@ class TodoDetailController extends BaseFormController {
   void deleteTodo() async {
     if (todo.value == null) return;
 
+    BaseFormController.logger.d('Deleting todo: $todoId');
+
+    // 设置标志，防止自动监听器触发 Get.back()
+    _isNavigatingBack = true;
+
+    // 执行删除操作
     await _homeController.deleteTodo(taskId, todoId);
-    Get.back();
+
+    BaseFormController.logger.d('Todo deleted, closing dialog/page...');
+
+    // 添加短暂延迟，确保确认toast完全关闭后再关闭页面
+    await Future.delayed(const Duration(milliseconds: 150));
+
+    // 删除成功后关闭对话框或页面
+    try {
+      // 对话框tag格式：'todo_detail_dialog_${todoId}'
+      final dialogTag = 'todo_detail_dialog_$todoId';
+
+      // 尝试关闭SmartDialog（对话框模式）
+      SmartDialog.dismiss(tag: dialogTag);
+      BaseFormController.logger.d('Dialog dismissed with tag: $dialogTag');
+
+      // 如果是页面模式（/todo-detail路由），也需要关闭页面
+      if (Get.currentRoute == '/todo-detail') {
+        Get.back();
+        BaseFormController.logger.d('Page also closed with Get.back()');
+      }
+
+      // 清理controller
+      if (Get.isRegistered<TodoDetailController>(tag: dialogTag)) {
+        Get.delete<TodoDetailController>(tag: dialogTag);
+      }
+    } catch (e) {
+      BaseFormController.logger.e('Error closing dialog/page: $e');
+    }
   }
 
   String getPriorityText(TodoPriority priority) {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:window_manager/window_manager.dart';
+import 'package:flutter/gestures.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
 import 'package:todo_cat/controllers/data_export_import_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
@@ -27,65 +29,73 @@ class SettingsContent extends GetView<SettingsController> {
     return Column(
       children: [
         // 标题栏
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'settings'.tr,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontFamily: 'SourceHanSans',
-                        ),
-                  ),
-                  const SizedBox(width: 12),
-                  Obx(() => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'v${controller.appVersion.value}',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+        GestureDetector(
+          dragStartBehavior: DragStartBehavior.down,
+          onTapCancel: () {
+            if (GetPlatform.isDesktop) {
+              windowManager.startDragging();
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'settings'.tr,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontFamily: 'SourceHanSans',
                           ),
-                        ),
-                      )),
-                ],
-              ),
-              IconButton(
-                icon: Obx(() {
-                  final isDarkMode =
-                      controller.appCtrl.appConfig.value.isDarkMode;
-                  return Icon(
-                    isDarkMode ? Icons.nights_stay : Icons.light_mode,
-                    size: 24,
-                    color: Theme.of(context).iconTheme.color,
-                  );
-                }),
-                onPressed: () {
-                  controller.appCtrl.targetThemeMode();
-                  controller.isAnimating.value = true;
-                  0.4.delay(() => controller.isAnimating.value = false);
-                },
-              ),
-            ],
+                    ),
+                    const SizedBox(width: 12),
+                    Obx(() => Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'v${controller.appVersion.value}',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )),
+                  ],
+                ),
+                IconButton(
+                  icon: Obx(() {
+                    final isDarkMode =
+                        controller.appCtrl.appConfig.value.isDarkMode;
+                    return Icon(
+                      isDarkMode ? Icons.nights_stay : Icons.light_mode,
+                      size: 24,
+                      color: Theme.of(context).iconTheme.color,
+                    );
+                  }),
+                  onPressed: () {
+                    controller.appCtrl.targetThemeMode();
+                    controller.isAnimating.value = true;
+                    0.4.delay(() => controller.isAnimating.value = false);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
         // 设置列表

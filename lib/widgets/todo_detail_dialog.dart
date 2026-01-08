@@ -139,50 +139,52 @@ class TodoDetailDialog extends StatelessWidget {
             ),
             // 内容区域
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(15),
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 标题部分
-                    _buildTitleSection(todo),
-                    const SizedBox(height: 15),
-
-                    // 描述部分
-                    if (todo.description.isNotEmpty) ...[
-                      _buildDescriptionSection(todo),
+              child: SelectionArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(15),
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 标题部分
+                      _buildTitleSection(todo),
                       const SizedBox(height: 15),
-                    ],
 
-                    // 状态和优先级
-                    _buildStatusSection(todo, controller),
-                    const SizedBox(height: 15),
+                      // 描述部分
+                      if (todo.description.isNotEmpty) ...[
+                        _buildDescriptionSection(todo),
+                        const SizedBox(height: 15),
+                      ],
 
-                    // 标签部分
-                    if (todo.tagsWithColor.isNotEmpty ||
-                        todo.tags.isNotEmpty) ...[
-                      _buildTagsSection(todo),
+                      // 状态和优先级
+                      _buildStatusSection(todo, controller),
                       const SizedBox(height: 15),
-                    ],
 
-                    // 时间信息
-                    _buildTimeSection(todo),
+                      // 标签部分
+                      if (todo.tagsWithColor.isNotEmpty ||
+                          todo.tags.isNotEmpty) ...[
+                        _buildTagsSection(todo),
+                        const SizedBox(height: 15),
+                      ],
 
-                    // 提醒信息
-                    if (todo.reminders > 0) ...[
-                      const SizedBox(height: 15),
-                      _buildReminderSection(todo),
-                    ],
+                      // 时间信息
+                      _buildTimeSection(todo),
 
-                    // 图片部分
-                    if (todo.images.isNotEmpty) ...[
-                      const SizedBox(height: 15),
-                      _buildImagesSection(todo),
+                      // 提醒信息
+                      if (todo.reminders > 0) ...[
+                        const SizedBox(height: 15),
+                        _buildReminderSection(todo),
+                      ],
+
+                      // 图片部分
+                      if (todo.images.isNotEmpty) ...[
+                        const SizedBox(height: 15),
+                        _buildImagesSection(todo),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

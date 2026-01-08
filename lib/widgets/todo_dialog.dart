@@ -113,13 +113,19 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
       Get.find<AddTodoDialogController>(tag: widget.dialogTag);
 
   /// 处理图片粘贴
-  Future<void> _handleImagePaste() async {
+  /// 返回是否成功粘贴图片
+  Future<bool> _handleImagePaste() async {
     if (!Platform.isWindows) {
-      return; // 目前仅支持 Windows
+      return false; // 目前仅支持 Windows
     }
 
     try {
       final imagePasteService = ImagePasteService();
+      final hasImage = await imagePasteService.hasImageInClipboard();
+      if (!hasImage) {
+        return false;
+      }
+
       final imagePath = await imagePasteService.pasteImageFromClipboard();
 
       if (imagePath != null) {
@@ -152,9 +158,43 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
             offset: controller.text.length,
           );
         }
+        return true;
       }
     } catch (e) {
       // 静默失败，不影响正常粘贴文本
+    }
+    return false;
+  }
+
+  /// 处理文本粘贴
+  Future<void> _handleTextPaste() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+    if (text != null && text.isNotEmpty) {
+      final controller = this.controller.descriptionController;
+      final selection = controller.selection;
+
+      if (selection.isValid) {
+        // 在光标位置插入
+        final newText = controller.text.replaceRange(
+          selection.start,
+          selection.end,
+          text,
+        );
+        final newSelection = TextSelection.collapsed(
+          offset: selection.start + text.length,
+        );
+        controller.value = TextEditingValue(
+          text: newText,
+          selection: newSelection,
+        );
+      } else {
+        // 在末尾插入
+        controller.text += text;
+        controller.selection = TextSelection.collapsed(
+          offset: controller.text.length,
+        );
+      }
     }
   }
 
@@ -253,30 +293,41 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
 
   void _handleClose() {
     if (controller.hasChanges) {
-      showToast(
-        controller.isEditing.value ? "${"saveEditing".tr}?" : "keepInput".tr,
-        tag: confirmDialogTag,
-        alwaysShow: true,
-        confirmMode: true,
-        onYesCallback: () {
-          if (controller.isEditing.value) {
-            controller.submitForm();
-          } else {
-            // 只保留输入但不直接创建
-            controller.saveCache();
-          }
-          SmartDialog.dismiss(tag: widget.dialogTag);
-        },
-        onNoCallback: () {
-          if (controller.isEditing.value) {
+      if (controller.isEditing.value) {
+        // 编辑模式：询问是否放弃更改
+        showToast(
+          "discardChanges".tr, // "是否放弃更改？"
+          tag: confirmDialogTag,
+          alwaysShow: true,
+          confirmMode: true,
+          onYesCallback: () {
+            // 放弃更改，恢复原状态并关闭
             controller.revertChanges();
-          } else {
-            // 取消保留并清除缓存，避免下次打开有残留
+            SmartDialog.dismiss(tag: widget.dialogTag);
+          },
+          onNoCallback: () {
+            // 不关闭，继续编辑（toast自动关闭即可）
+          },
+        );
+      } else {
+        // 新建模式：询问是否保留输入
+        showToast(
+          "keepInput".tr,
+          tag: confirmDialogTag,
+          alwaysShow: true,
+          confirmMode: true,
+          onYesCallback: () {
+            // 保留输入（保存草稿）
+            controller.saveCache();
+            SmartDialog.dismiss(tag: widget.dialogTag);
+          },
+          onNoCallback: () {
+            // 不保留，清除缓存
             controller.clearForm();
-          }
-          SmartDialog.dismiss(tag: widget.dialogTag);
-        },
-      );
+            SmartDialog.dismiss(tag: widget.dialogTag);
+          },
+        );
+      }
     } else {
       SmartDialog.dismiss(tag: widget.dialogTag);
     }
@@ -636,7 +687,11 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                     _PasteImageIntent:
                                         CallbackAction<_PasteImageIntent>(
                                       onInvoke: (_) async {
-                                        await _handleImagePaste();
+                                        final success =
+                                            await _handleImagePaste();
+                                        if (!success) {
+                                          await _handleTextPaste();
+                                        }
                                         return null;
                                       },
                                     ),
@@ -715,7 +770,11 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                     _PasteImageIntent:
                                         CallbackAction<_PasteImageIntent>(
                                       onInvoke: (_) async {
-                                        await _handleImagePaste();
+                                        final success =
+                                            await _handleImagePaste();
+                                        if (!success) {
+                                          await _handleTextPaste();
+                                        }
                                         return null;
                                       },
                                     ),
@@ -990,7 +1049,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                             textInputAction: TextInputAction.next,
                             autofocus: true,
                             focusNode: FocusNode(),
-                            maxLength: 20,
+                            maxLength: 200,
                             maxLines: 1,
                             radius: 6,
                             fieldTitle: "title".tr,
@@ -1060,9 +1119,12 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                         _PasteImageIntent:
                                             CallbackAction<_PasteImageIntent>(
                                           onInvoke: (_) async {
-                                            // 尝试粘贴图片
-                                            await _handleImagePaste();
-                                            // 不阻止默认的文本粘贴行为，如果图片粘贴失败，文本粘贴仍然可以工作
+                                            // 尝试粘贴图片，如果失败则粘贴文本
+                                            final success =
+                                                await _handleImagePaste();
+                                            if (!success) {
+                                              await _handleTextPaste();
+                                            }
                                             return null;
                                           },
                                         ),

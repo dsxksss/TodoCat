@@ -364,6 +364,7 @@ const Map<String, String> zhCN = {
   'imageUrl': '图片URL',
   // 其他
   'keepInput': '是否保留输入?',
+  'discardChanges': '是否放弃更改？',
   'preview': '预览',
   'closePreview': '关闭预览',
   // 工作空间
@@ -441,4 +442,20 @@ const Map<String, String> zhCN = {
   'webDavDetails': '云服务状态',
   'connected': '已连接',
   'upload': '上传',
+  'syncInfo': '同步信息',
+  'workspaceId': '工作空间ID',
+  'syncStatus': '同步状态',
+  'synced': '已同步',
+  'notSynced': '未同步',
+  'lastSyncedAt': '上次同步时间',
+  'shareContentWorkspace': 'TodoCat 工作空间',
+  'shareContentId': 'ID',
+  'shareContentLastSynced': '上次同步',
+  'shareContentKey': '密钥',
+  'confirmSyncToCloud': '确认同步到云端？',
+  'confirmSyncToCloudDesc': '这将覆盖云端现有的数据，请确认您要上传当前本地状态。',
+  'confirmDownloadFromCloud': '确认从云端下载？',
+  'confirmDownloadFromCloudDesc': '这将覆盖本地现有的数据，请确认您要恢复云端状态。',
+  'remoteUpdateAvailable': '检测到云端有新版本，是否立即更新？',
+  'syncCompleted': '同步完成',
 };

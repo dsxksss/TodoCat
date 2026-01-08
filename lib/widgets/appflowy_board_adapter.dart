@@ -330,25 +330,19 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
       });
     }
 
-    // 移动端不显示 Scrollbar（使用圆点指示器代替）
-    final bool showScrollbar = !context.isPhone;
-
+    // 始终显示滚动条，方便移动端快速定位
     final board = _buildBoard(context);
 
     return ExcludeSemantics(
       // 在拖拽时排除语义，减少可访问性树更新
-      child: showScrollbar
-          ? Scrollbar(
-              controller: _scrollController,
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                child: board,
-              ),
-            )
-          : Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              child: board,
-            ),
+      child: Scrollbar(
+        controller: _scrollController,
+        thumbVisibility: true,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          child: board,
+        ),
+      ),
     );
   }
 
@@ -489,19 +483,23 @@ class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
 
     final screenWidth = MediaQuery.of(context).size.width;
     const scrollThreshold = 50.0; // 边缘触发区域宽度
-    const maxScrollSpeed = 15.0; // 最大滚动速度
+    final maxScrollSpeed = context.isPhone ? 4.0 : 15.0; // 最大滚动速度
+    // 使用平滑因子，使滚动开始时更平缓
+    // 速度 = maxScrollSpeed * (ratio ^ 2)
 
     double scrollDelta = 0.0;
 
     if (_dragPosition!.dx < scrollThreshold) {
       // 向左滚动
       final ratio = (scrollThreshold - _dragPosition!.dx) / scrollThreshold;
-      scrollDelta = -maxScrollSpeed * ratio;
+      // 使用二次方使加速更平滑
+      scrollDelta = -maxScrollSpeed * ratio * ratio;
     } else if (_dragPosition!.dx > screenWidth - scrollThreshold) {
       // 向右滚动
       final ratio = (_dragPosition!.dx - (screenWidth - scrollThreshold)) /
           scrollThreshold;
-      scrollDelta = maxScrollSpeed * ratio;
+      // 使用二次方使加速更平滑
+      scrollDelta = maxScrollSpeed * ratio * ratio;
     }
 
     if (scrollDelta != 0.0) {

@@ -64,9 +64,11 @@ class HomeController extends GetxController
       await _taskManager.refresh();
     }
 
-    if (_taskManager.tasks.isEmpty) {
-      await _showEmptyTaskToast();
-    }
+    // 移除自动检查，完全交由 WorkspaceController 控制初始化时机
+    // 避免在工作空间恢复前显示空任务提示
+    // if (_taskManager.tasks.isEmpty) {
+    //   await _showEmptyTaskToast();
+    // }
   }
 
   Future<void> resetTasksTemplate() async {

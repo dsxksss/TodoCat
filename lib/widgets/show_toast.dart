@@ -96,11 +96,11 @@ Widget _buildBottomLeftNotification(
   final iconData = _getIconData(toastStyleType);
   final stackManager = NotificationStackManager.instance;
   final notification = stackManager.getNotification(notificationId);
-  
+
   if (notification == null) {
     return const SizedBox.shrink();
   }
-  
+
   return MouseRegion(
     onEnter: (_) {
       stackManager.handleNotificationHover(notificationId, true);
@@ -114,7 +114,9 @@ Widget _buildBottomLeftNotification(
         minWidth: 260,
         minHeight: 60,
       ),
-      margin: const EdgeInsets.only(left: 20, bottom: 10),
+      margin: Platform.isAndroid || Platform.isIOS
+          ? const EdgeInsets.only(bottom: 10) // 手机端：底部居中，无左边距
+          : const EdgeInsets.only(left: 20, bottom: 10), // 桌面端：左下角
       decoration: BoxDecoration(
         color: context.theme.dialogTheme.backgroundColor,
         borderRadius: BorderRadius.circular(12),
@@ -134,7 +136,7 @@ Widget _buildBottomLeftNotification(
         //   ),
         // ],
         border: Border.all(
-          color: iconData[1].withValues(alpha:0.3), // 降低透明度，避免亮主题下的亮光高亮
+          color: iconData[1].withValues(alpha: 0.3), // 降低透明度，避免亮主题下的亮光高亮
           width: 1, // 保持固定宽度
         ),
       ),
@@ -146,7 +148,7 @@ Widget _buildBottomLeftNotification(
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: iconData[1].withValues(alpha:0.12),
+                color: iconData[1].withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(22),
               ),
               child: Icon(
@@ -177,13 +179,13 @@ Widget _buildBottomLeftNotification(
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
                 onTap: () {
-                  stackManager.removeNotification(notificationId, 
+                  stackManager.removeNotification(notificationId,
                       withAnimation: true, isManualClose: true);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha:0.1), // 保持固定样式
+                    color: Colors.grey.withValues(alpha: 0.1), // 保持固定样式
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
@@ -235,32 +237,33 @@ void showToast(
 
   // 根据位置类型设置不同的参数
   final isBottomLeft = position == TodoCatToastPosition.bottomLeft;
-  
+
   SmartDialog.show(
-    displayTime: isBottomLeft 
+    displayTime: isBottomLeft
         ? (displayTime ?? 5000.ms) // 左下角通知默认5秒自动消失
         : (alwaysShow ? const Duration(days: 365) : displayTime ?? 3000.ms),
-    animationTime: isBottomLeft 
+    animationTime: isBottomLeft
         ? (animationTime ?? 400.ms) // 左下角动画更快
         : (animationTime ?? 600.ms),
     tag: tag,
     keepSingle: keepSingle ?? !isBottomLeft, // 左下角允许多个通知并存
-    alignment: isBottomLeft 
-        ? Alignment.bottomLeft 
+    alignment: isBottomLeft
+        ? Alignment.bottomLeft
         : (alignment ??
             (Platform.isAndroid || Platform.isIOS
                 ? Alignment.topCenter
                 : Alignment.bottomCenter)),
-    maskColor: confirmMode ? Colors.black.withValues(alpha:0.3) : Colors.transparent,
+    maskColor:
+        confirmMode ? Colors.black.withValues(alpha: 0.3) : Colors.transparent,
     usePenetrate: !confirmMode,
     maskWidget: confirmMode ? null : Container(),
     clickMaskDismiss: false,
-    backType: isBottomLeft 
+    backType: isBottomLeft
         ? SmartBackType.normal // 左下角通知不阻塞返回
         : (backDismiss == null
             ? SmartBackType.normal
             : (backDismiss ? SmartBackType.normal : SmartBackType.block)),
-    animationBuilder: isBottomLeft 
+    animationBuilder: isBottomLeft
         ? (controller, child, _) => child.animate(
               controller: controller,
               effects: _getBottomLeftAnimationEffect(controller),
@@ -270,7 +273,7 @@ void showToast(
                   controller: controller,
                   effects: _getToastAnimationEffect(controller, toastStyleType),
                 )),
-    builder: isBottomLeft 
+    builder: isBottomLeft
         ? (context) => _buildBottomLeftNotification(
               context,
               message,
@@ -278,131 +281,131 @@ void showToast(
               'legacy_notification', // 传统通知模式的临时ID
             )
         : (builder ??
-        (context) {
-          final iconData =
-              _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
-          return Container(
-            width: 300,
-            height: getHeight(),
-            margin: margin ??
-                (Platform.isAndroid || Platform.isIOS
-                    ? const EdgeInsets.only(top: 110)
-                    : const EdgeInsets.only(bottom: 100)),
-            decoration: BoxDecoration(
-              color: context.theme.dialogTheme.backgroundColor,
-              borderRadius: BorderRadius.circular(12), // 改为完全圆角，与左下角通知样式一致
-              // 移除阴影效果，避免亮主题下的亮光高亮
-              // boxShadow: [
-              //   BoxShadow(
-              //     color: context.theme.dividerColor,
-              //     blurRadius: context.isDarkMode ? 1 : 5,
-              //   )
-              // ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Stack(
-                children: [
-                  Column(
-                    mainAxisSize:
-                        confirmMode ? MainAxisSize.min : MainAxisSize.max,
-                    mainAxisAlignment: confirmMode
-                        ? MainAxisAlignment.start
-                        : MainAxisAlignment.center,
+            (context) {
+              final iconData =
+                  _getIconData(toastStyleType ?? TodoCatToastStyleType.info);
+              return Container(
+                width: 300,
+                height: getHeight(),
+                margin: margin ??
+                    (Platform.isAndroid || Platform.isIOS
+                        ? const EdgeInsets.only(top: 110)
+                        : const EdgeInsets.only(bottom: 100)),
+                decoration: BoxDecoration(
+                  color: context.theme.dialogTheme.backgroundColor,
+                  borderRadius: BorderRadius.circular(12), // 改为完全圆角，与左下角通知样式一致
+                  // 移除阴影效果，避免亮主题下的亮光高亮
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     color: context.theme.dividerColor,
+                  //     blurRadius: context.isDarkMode ? 1 : 5,
+                  //   )
+                  // ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Stack(
                     children: [
-                      if (confirmMode) const SizedBox(height: 15),
-                      Row(
+                      Column(
+                        mainAxisSize:
+                            confirmMode ? MainAxisSize.min : MainAxisSize.max,
+                        mainAxisAlignment: confirmMode
+                            ? MainAxisAlignment.start
+                            : MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            iconData[0],
-                            color: iconData[1],
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: Flex(
-                              direction: Axis.horizontal,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (prefix.isNotEmpty)
-                                  Flexible(
-                                    flex: 1,
-                                    child: Text(
-                                      prefix,
-                                      overflow: TextOverflow.ellipsis,
+                          if (confirmMode) const SizedBox(height: 15),
+                          Row(
+                            children: [
+                              Icon(
+                                iconData[0],
+                                color: iconData[1],
+                              ),
+                              const SizedBox(width: 15),
+                              Expanded(
+                                child: Flex(
+                                  direction: Axis.horizontal,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (prefix.isNotEmpty)
+                                      Flexible(
+                                        flex: 1,
+                                        child: Text(
+                                          prefix,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    SizedBox(
+                                      width: prefixGap,
                                     ),
-                                  ),
-                                SizedBox(
-                                  width: prefixGap,
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    message,
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: suffixGap,
-                                ),
-                                if (suffix.isNotEmpty)
-                                  Flexible(
-                                    flex: 1,
-                                    child: Text(
-                                      suffix,
-                                      overflow: TextOverflow.ellipsis,
+                                    Flexible(
+                                      child: Text(
+                                        message,
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
-                              ],
-                            ),
+                                    SizedBox(
+                                      width: suffixGap,
+                                    ),
+                                    if (suffix.isNotEmpty)
+                                      Flexible(
+                                        flex: 1,
+                                        child: Text(
+                                          suffix,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
+                      if (confirmMode)
+                        Positioned(
+                          bottom: 10,
+                          right: 5,
+                          child: Row(
+                            children: [
+                              LabelBtn(
+                                label: Text(
+                                  "yes".tr,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  if (onYesCallback != null) {
+                                    SmartDialog.dismiss(tag: tag);
+                                    onYesCallback();
+                                  } else {
+                                    SmartDialog.dismiss(tag: tag);
+                                  }
+                                },
+                              ),
+                              const SizedBox(width: 20),
+                              LabelBtn(
+                                label: Text("no".tr),
+                                ghostStyle: true,
+                                onPressed: () {
+                                  if (onNoCallback != null) {
+                                    SmartDialog.dismiss(tag: tag);
+                                    onNoCallback();
+                                  } else {
+                                    SmartDialog.dismiss(tag: tag);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
-                  if (confirmMode)
-                    Positioned(
-                      bottom: 10,
-                      right: 5,
-                      child: Row(
-                        children: [
-                          LabelBtn(
-                            label: Text(
-                              "yes".tr,
-                              style: const TextStyle(
-                                color: Colors.white,
-                              ),
-                            ),
-                            onPressed: () {
-                              if (onYesCallback != null) {
-                                SmartDialog.dismiss(tag: tag);
-                                onYesCallback();
-                              } else {
-                                SmartDialog.dismiss(tag: tag);
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 20),
-                          LabelBtn(
-                            label: Text("no".tr),
-                            ghostStyle: true,
-                            onPressed: () {
-                              if (onNoCallback != null) {
-                                SmartDialog.dismiss(tag: tag);
-                                onNoCallback();
-                              } else {
-                                SmartDialog.dismiss(tag: tag);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        }),
+                ),
+              );
+            }),
   );
 }
 
@@ -415,16 +418,18 @@ void _showStackedNotification(
 ) {
   final stackManager = NotificationStackManager.instance;
   final notification = stackManager.getNotification(notificationId);
-  
+
   if (notification == null) return;
-  
+
   SmartDialog.show(
     displayTime: displayTime, // 使用传入的显示时间，默认5秒自动消失
     animationTime: 400.ms,
     tag: 'notification_$notificationId',
     useSystem: false, // 确保显示在最高层
     keepSingle: false, // 允许多个通知并存
-    alignment: Alignment.bottomLeft,
+    alignment: Platform.isAndroid || Platform.isIOS
+        ? Alignment.bottomCenter // 手机端底部居中
+        : Alignment.bottomLeft, // 桌面端左下角
     maskColor: Colors.transparent,
     maskWidget: Container(),
     clickMaskDismiss: false,
@@ -434,14 +439,15 @@ void _showStackedNotification(
       effects: _getBottomLeftAnimationEffect(controller),
     ),
     builder: (context) => Obx(() => Container(
-      margin: EdgeInsets.only(bottom: notification.currentBottomOffset.value),
-      child: _buildBottomLeftNotification(
-        context,
-        message,
-        toastStyleType,
-        notificationId,
-      ),
-    )),
+          margin:
+              EdgeInsets.only(bottom: notification.currentBottomOffset.value),
+          child: _buildBottomLeftNotification(
+            context,
+            message,
+            toastStyleType,
+            notificationId,
+          ),
+        )),
   );
 }
 
@@ -456,41 +462,44 @@ void showNotification(
   bool saveToNotificationCenter = true,
 }) {
   final stackManager = NotificationStackManager.instance;
-  
+
   // 只有需要保存到通知中心的通知才添加到通知中心
   // 成功类型的通知（如编辑成功）通常不需要保存到通知中心，只显示临时通知
   if (saveToNotificationCenter) {
-  try {
-    // 尝试获取通知中心管理器
-    final notificationCenter = Get.find<NotificationCenterManager>();
-    
+    try {
+      // 尝试获取通知中心管理器
+      final notificationCenter = Get.find<NotificationCenterManager>();
+
       // 添加到通知中心（会自动去重）
-    notificationCenter.addNotification(
-      title: title ?? _getNotificationTitle(type),
-      message: message,
-      level: _mapToNotificationLevel(type),
-    ).then((_) {}).catchError((e) {
+      notificationCenter
+          .addNotification(
+            title: title ?? _getNotificationTitle(type),
+            message: message,
+            level: _mapToNotificationLevel(type),
+          )
+          .then((_) {})
+          .catchError((e) {
+        if (kDebugMode) {
+          print('Failed to save notification: $e');
+        }
+      });
+    } catch (e) {
+      // 如果通知中心未初始化，忽略错误
       if (kDebugMode) {
-        print('Failed to save notification: $e');
-      }
-    });
-  } catch (e) {
-    // 如果通知中心未初始化，忽略错误
-    if (kDebugMode) {
-      print('NotificationCenterManager not initialized: $e');
+        print('NotificationCenterManager not initialized: $e');
       }
     }
   }
-  
+
   final duration = displayTime ?? const Duration(milliseconds: 5000);
-  
+
   // 将通知添加到栈中
   final notificationId = stackManager.addNotification(
     message: message,
     type: _mapToNotificationType(type),
     displayDuration: duration,
   );
-  
+
   // 显示通知（位置由NotificationStackManager管理）
   _showStackedNotification(
     message,
@@ -544,9 +553,10 @@ String _getNotificationTitle(TodoCatToastStyleType type) {
 
 /// 显示成功通知（左下角）
 /// [saveToNotificationCenter] 是否保存到通知中心，默认false（编辑操作等成功通知不保存）
-void showSuccessNotification(String message, {bool saveToNotificationCenter = false}) {
+void showSuccessNotification(String message,
+    {bool saveToNotificationCenter = false}) {
   showNotification(
-    message, 
+    message,
     type: TodoCatToastStyleType.success,
     saveToNotificationCenter: saveToNotificationCenter,
   );
@@ -555,13 +565,15 @@ void showSuccessNotification(String message, {bool saveToNotificationCenter = fa
 /// 显示错误通知（左下角）
 /// 错误通知默认保存到通知中心
 void showErrorNotification(String message) {
-  showNotification(message, type: TodoCatToastStyleType.error, saveToNotificationCenter: true);
+  showNotification(message,
+      type: TodoCatToastStyleType.error, saveToNotificationCenter: true);
 }
 
 /// 显示信息通知（左下角）
 /// 信息通知默认保存到通知中心
 void showInfoNotification(String message) {
-  showNotification(message, type: TodoCatToastStyleType.info, saveToNotificationCenter: true);
+  showNotification(message,
+      type: TodoCatToastStyleType.info, saveToNotificationCenter: true);
 }
 
 /// 显示带倒计时的撤销确认toast（左下角）
@@ -580,13 +592,13 @@ void showUndoToast(
     type: NotificationType.info,
     displayDuration: duration,
   );
-  
+
   // 倒计时完成回调
   void onCountdownComplete() {
     // 倒计时结束，关闭toast
     stackManager.removeNotification(notificationId, withAnimation: true);
   }
-  
+
   // 显示通知
   SmartDialog.show(
     displayTime: duration,
@@ -594,7 +606,9 @@ void showUndoToast(
     tag: 'undo_toast_$notificationId',
     useSystem: false,
     keepSingle: false,
-    alignment: Alignment.bottomLeft,
+    alignment: Platform.isAndroid || Platform.isIOS
+        ? Alignment.bottomCenter // 手机端底部居中
+        : Alignment.bottomLeft, // 桌面端左下角
     maskColor: Colors.transparent,
     maskWidget: Container(),
     clickMaskDismiss: false,
@@ -606,7 +620,7 @@ void showUndoToast(
     builder: (context) => Obx(() {
       final notification = stackManager.getNotification(notificationId);
       if (notification == null) return const SizedBox.shrink();
-      
+
       return Container(
         margin: EdgeInsets.only(bottom: notification.currentBottomOffset.value),
         child: Container(
@@ -615,7 +629,9 @@ void showUndoToast(
             minWidth: 260,
             minHeight: 60,
           ),
-          margin: const EdgeInsets.only(left: 20, bottom: 10),
+          margin: Platform.isAndroid || Platform.isIOS
+              ? const EdgeInsets.only(bottom: 10) // 手机端：底部居中，无左边距
+              : const EdgeInsets.only(left: 20, bottom: 10), // 桌面端：左下角
           decoration: BoxDecoration(
             color: context.theme.dialogTheme.backgroundColor,
             borderRadius: BorderRadius.circular(12),
@@ -675,13 +691,15 @@ void showUndoToast(
                   ),
                   reverse: true, // 将icon放在label前面
                   interval: 8,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.blueAccent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   onPressed: () {
-                    stackManager.removeNotification(notificationId, withAnimation: true);
+                    stackManager.removeNotification(notificationId,
+                        withAnimation: true);
                     onUndo();
                   },
                 ),

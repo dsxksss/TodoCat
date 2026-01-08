@@ -34,8 +34,16 @@ class WebDavConfig {
   }
 
   /// Create config from a base64 "Share Key"
-  factory WebDavConfig.fromShareKey(String key) {
+  factory WebDavConfig.fromShareKey(String keyInput) {
     try {
+      String key = keyInput.trim();
+      // Handle metadata format:
+      // TodoCat Workspace: Name
+      // Key: BASE64...
+      if (key.contains('Key:')) {
+        key = key.split('Key:').last.trim();
+      }
+
       final jsonStr = utf8.decode(base64Decode(key));
       return WebDavConfig.fromJson(jsonDecode(jsonStr));
     } catch (e) {
@@ -116,6 +124,25 @@ class WebDavService {
     }
   }
 
+  Future<void> uploadFileBytes(String fileName, List<int> bytes) async {
+    try {
+      await _dio.put(
+        fileName,
+        data: Stream.fromIterable([bytes]),
+        options: Options(
+          contentType: 'application/octet-stream',
+          headers: {
+            Headers.contentLengthHeader: bytes.length,
+          },
+        ),
+      );
+      _logger.d('Uploaded bytes $fileName');
+    } catch (e) {
+      _logger.e('Upload bytes error: $e');
+      rethrow;
+    }
+  }
+
   Future<String?> downloadFile(String fileName) async {
     try {
       final response = await _dio.get(
@@ -131,6 +158,26 @@ class WebDavService {
       throw Exception('Download failed with status ${response.statusCode}');
     } catch (e) {
       _logger.e('Download error: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<int>?> downloadFileBytes(String fileName) async {
+    try {
+      final response = await _dio.get(
+        fileName,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (response.statusCode == 200) {
+        return response.data as List<int>;
+      }
+      if (response.statusCode == 404) {
+        return null;
+      }
+      throw Exception(
+          'Download bytes failed with status ${response.statusCode}');
+    } catch (e) {
+      _logger.e('Download bytes error: $e');
       rethrow;
     }
   }

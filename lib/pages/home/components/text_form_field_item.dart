@@ -70,12 +70,13 @@ class TextFormFieldItem extends StatelessWidget {
 
     // 如果 maxLines > 1 或 maxLines 为 null，且 textInputAction 为 null，使用多行输入类型
     final maxLinesValue = _maxLines;
-    final isMultiline = (maxLinesValue == null || maxLinesValue > 1) && _textInputAction == null;
+    final isMultiline = (maxLinesValue == null || maxLinesValue > 1) &&
+        _textInputAction == null;
     final keyboardType = isMultiline ? TextInputType.multiline : _inputType;
-    
+
     // 设置 minLines：如果指定了 _minLines 则使用它，否则根据 isMultiline 自动设置
     final minLines = _minLines ?? (isMultiline ? 3 : null);
-    
+
     return TextFormField(
       textInputAction: _textInputAction,
       obscureText: _obscureText,

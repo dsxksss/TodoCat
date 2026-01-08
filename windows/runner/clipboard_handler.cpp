@@ -57,8 +57,20 @@ std::vector<uint8_t> GetClipboardImage() {
     }
   }
   
+  
   CloseClipboard();
   return imageData;
+}
+
+// Check if clipboard has image
+bool HasClipboardImage() {
+  if (!OpenClipboard(nullptr)) {
+    return false;
+  }
+  // Check for DIB or Bitmap
+  bool hasImage = IsClipboardFormatAvailable(CF_DIB) || IsClipboardFormatAvailable(CF_BITMAP);
+  CloseClipboard();
+  return hasImage;
 }
 
 } // namespace
@@ -78,6 +90,8 @@ void ClipboardHandler::Register(flutter::FlutterEngine* engine) {
           } else {
             result->Success(flutter::EncodableValue(imageData));
           }
+        } else if (call.method_name() == "hasImage") {
+          result->Success(flutter::EncodableValue(HasClipboardImage()));
         } else {
           result->NotImplemented();
         }

@@ -154,7 +154,14 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       }
     } catch (e) {
       SmartDialog.dismiss(tag: 'loading_ai');
-      SmartDialog.showToast("发生错误: $e");
+      showToast(
+        "生成失败: $e\n是否重试？",
+        confirmMode: true,
+        toastStyleType: TodoCatToastStyleType.error,
+        onYesCallback: () {
+          _generateTemplate(prompt);
+        },
+      );
     }
   }
 
@@ -1160,9 +1167,15 @@ class _TemplateOptionWithPreviewState
   Widget _buildPreview() {
     final templates = _getTemplateData();
 
-    // 计算对话框宽度：屏幕宽度的90%，最大不超过1600（约6个卡片）
+    // 计算对话框宽度
     final screenWidth = MediaQuery.of(context).size.width;
-    final maxWidth = (screenWidth * 0.9).clamp(800.0, 1600.0);
+    final maxWidth = context.isPhone
+        ? screenWidth * 0.95
+        : (screenWidth * 0.9).clamp(800.0, 1600.0);
+
+    // 计算对话框高度
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxHeight = context.isPhone ? screenHeight * 0.8 : 640.0;
 
     // 获取背景设置
     final appCtrl = Get.find<AppController>();
@@ -1182,8 +1195,10 @@ class _TemplateOptionWithPreviewState
       color: Colors.transparent,
       child: Container(
         width: maxWidth,
-        height: 640,
-        margin: const EdgeInsets.symmetric(horizontal: 40),
+        height: maxHeight,
+        margin: context.isPhone
+            ? const EdgeInsets.symmetric(horizontal: 10)
+            : const EdgeInsets.symmetric(horizontal: 40),
         decoration: BoxDecoration(
           color: context.theme.dialogTheme.backgroundColor,
           border: Border.all(width: 1, color: context.theme.dividerColor),
@@ -1539,9 +1554,15 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
   Widget build(BuildContext context) {
     final templates = widget.template.getTasks();
 
-    // 计算对话框宽度：屏幕宽度的90%，最大不超过1600（约6个卡片）
+    // 计算对话框宽度
     final screenWidth = MediaQuery.of(context).size.width;
-    final maxWidth = (screenWidth * 0.9).clamp(800.0, 1600.0);
+    final maxWidth = context.isPhone
+        ? screenWidth * 0.95
+        : (screenWidth * 0.9).clamp(800.0, 1600.0);
+
+    // 计算对话框高度
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxHeight = context.isPhone ? screenHeight * 0.8 : 640.0;
 
     // 获取背景设置
     final appCtrl = Get.find<AppController>();
@@ -1562,8 +1583,10 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
         color: Colors.transparent,
         child: Container(
           width: maxWidth,
-          height: 640,
-          margin: const EdgeInsets.symmetric(horizontal: 40),
+          height: maxHeight,
+          margin: context.isPhone
+              ? const EdgeInsets.symmetric(horizontal: 10)
+              : const EdgeInsets.symmetric(horizontal: 40),
           decoration: BoxDecoration(
             color: context.theme.dialogTheme.backgroundColor,
             border: Border.all(width: 1, color: context.theme.dividerColor),
@@ -1620,22 +1643,35 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(children: [
-                            Text(
-                              'AI 生成结果预览',
-                              style: FontUtils.getBoldStyle(fontSize: 18),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'AI 生成结果预览',
+                                    style: FontUtils.getBoldStyle(fontSize: 18),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                if (!context.isPhone) // 移动端隐藏标签以节省空间
+                                  Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                          color: Colors.blue
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(4)),
+                                      child: Text(
+                                          widget.template.description ?? "",
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.blue)))
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                    color: Colors.blue.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(4)),
-                                child: Text(widget.template.description ?? "",
-                                    style: const TextStyle(
-                                        fontSize: 12, color: Colors.blue)))
-                          ]),
+                          ),
+                          const SizedBox(width: 8),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

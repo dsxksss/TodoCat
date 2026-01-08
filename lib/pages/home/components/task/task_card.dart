@@ -123,7 +123,9 @@ class _TaskCardState extends State<TaskCard> {
 
   @override
   Widget build(BuildContext context) {
-    final todosLength = widget._task.todos?.length ?? 0;
+    // 过滤掉已删除的todos，与列表显示逻辑保持一致
+    final todosLength =
+        (widget._task.todos ?? []).where((todo) => todo.deletedAt == 0).length;
     final colorAndIcon = _getColorAndIcon();
 
     // 如果 showTodos 为 false，不显示 Container decoration（由外部的 DragAndDropList decoration 提供）

@@ -108,12 +108,6 @@ flutter:
           weight: 700
         - asset: assets/fonts/SourceHanSansCN-Light.otf
           weight: 300
-        - asset: assets/fonts/SourceHanSansCN-ExtraLight.otf
-          weight: 200
-        - asset: assets/fonts/SourceHanSansCN-Heavy.otf
-          weight: 800
-        - asset: assets/fonts/SourceHanSansCN-Normal.otf
-          weight: 400
     # 备用字体：Ubuntu
     - family: Ubuntu
       fonts:

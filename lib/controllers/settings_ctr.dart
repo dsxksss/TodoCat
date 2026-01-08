@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
@@ -21,6 +22,7 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/services/auto_update_service.dart';
 import 'package:todo_cat/config/default_backgrounds.dart';
+import 'package:todo_cat/services/sync_manager.dart';
 import 'package:logger/logger.dart';
 
 class SettingsController extends GetxController {
@@ -145,22 +147,50 @@ class SettingsController extends GetxController {
       );
     } else {
       // 桌面端保持原来的右侧滑入
+      // 使用自定义遮罩以支持窗口拖拽
       SmartDialog.show(
         tag: 'settings',
-        alignment: Alignment.centerRight,
+        alignment: Alignment.center, // 改为 center 以便 Stack 占满全屏
         builder: (_) => const SettingsPage(),
-        maskColor: Colors.black38,
-        clickMaskDismiss: true,
+        maskColor: Colors.transparent, // 禁用默认遮罩
+        clickMaskDismiss: false, // 禁用默认点击遮罩关闭（在自定义遮罩中处理）
         animationBuilder: (controller, child, animationParam) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1, 0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: controller,
-              curve: Curves.easeOutCubic,
-            )),
-            child: child,
+          return Stack(
+            children: [
+              // 自定义遮罩层
+              Positioned.fill(
+                child: GestureDetector(
+                  // 点击遮罩关闭
+                  onTap: () => SmartDialog.dismiss(tag: 'settings'),
+                  // 拖拽遮罩移动窗口
+                  onPanStart: (_) {
+                    if (GetPlatform.isDesktop) {
+                      windowManager.startDragging();
+                    }
+                  },
+                  child: FadeTransition(
+                    opacity: controller,
+                    child: Container(
+                      color: Colors.black38,
+                    ),
+                  ),
+                ),
+              ),
+              // 内容区域
+              Align(
+                alignment: Alignment.centerRight,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(1, 0),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: controller,
+                    curve: Curves.easeOutCubic,
+                  )),
+                  child: child,
+                ),
+              ),
+            ],
           );
         },
       );
@@ -616,8 +646,20 @@ class SettingsController extends GetxController {
       // 移动端只允许选择图片，桌面端可以选择图片或视频
       final allowedExtensions = GetPlatform.isMobile
           ? ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
-          : ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'mp4', 'mov', 'avi', 'mkv', 'webm'];
-      
+          : [
+              'jpg',
+              'jpeg',
+              'png',
+              'gif',
+              'bmp',
+              'webp',
+              'mp4',
+              'mov',
+              'avi',
+              'mkv',
+              'webm'
+            ];
+
       // 选择图片或视频文件
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -631,17 +673,18 @@ class SettingsController extends GetxController {
           // 移动端检查：如果选择了视频文件，拒绝并提示
           if (GetPlatform.isMobile) {
             final isVideo = file.path!.toLowerCase().endsWith('.mp4') ||
-                           file.path!.toLowerCase().endsWith('.mov') ||
-                           file.path!.toLowerCase().endsWith('.avi') ||
-                           file.path!.toLowerCase().endsWith('.mkv') ||
-                           file.path!.toLowerCase().endsWith('.webm');
+                file.path!.toLowerCase().endsWith('.mov') ||
+                file.path!.toLowerCase().endsWith('.avi') ||
+                file.path!.toLowerCase().endsWith('.mkv') ||
+                file.path!.toLowerCase().endsWith('.webm');
             if (isVideo) {
-              showToast('移动端不支持视频背景', toastStyleType: TodoCatToastStyleType.error);
+              showToast('移动端不支持视频背景',
+                  toastStyleType: TodoCatToastStyleType.error);
               _logger.w('移动端尝试设置视频背景，已拒绝: ${file.path}');
               return;
             }
           }
-          
+
           // 直接使用选择的图片或视频（桌面端暂不支持裁剪）
           // 更新应用配置
           appCtrl.appConfig.value = appCtrl.appConfig.value.copyWith(
@@ -651,11 +694,11 @@ class SettingsController extends GetxController {
 
           // 检查是否为视频文件
           final isVideo = file.path!.toLowerCase().endsWith('.mp4') ||
-                         file.path!.toLowerCase().endsWith('.mov') ||
-                         file.path!.toLowerCase().endsWith('.avi') ||
-                         file.path!.toLowerCase().endsWith('.mkv') ||
-                         file.path!.toLowerCase().endsWith('.webm');
-          
+              file.path!.toLowerCase().endsWith('.mov') ||
+              file.path!.toLowerCase().endsWith('.avi') ||
+              file.path!.toLowerCase().endsWith('.mkv') ||
+              file.path!.toLowerCase().endsWith('.webm');
+
           if (isVideo) {
             showToast('backgroundVideoSetSuccess'.tr);
             _logger.i('背景视频已设置: ${file.path}');
@@ -683,7 +726,7 @@ class SettingsController extends GetxController {
           return;
         }
       }
-      
+
       // 使用特殊标记来表示这是默认模板
       // 格式: default_template:{templateId}
       final templatePath = 'default_template:$templateId';
@@ -727,7 +770,7 @@ class SettingsController extends GetxController {
       // 1. 重置数据库（删除数据库文件并重新创建，清除所有残留数据）
       final db = await Database.getInstance();
       await db.resetDatabase();
-      
+
       // 确保数据库已重新初始化（重新获取实例）
       await Database.getInstance();
 
@@ -735,7 +778,7 @@ class SettingsController extends GetxController {
       // 这很重要，因为 resetDatabase() 会重置所有 Repository，需要重新获取实例
       // 等待一小段时间，确保数据库连接已完全建立
       await Future.delayed(const Duration(milliseconds: 200));
-      
+
       try {
         // 重新初始化所有 Repository 实例
         await WorkspaceRepository.getInstance();
@@ -751,7 +794,11 @@ class SettingsController extends GetxController {
       appCtrl.appConfig.value = defaultAppConfig.copyWith();
       appCtrl.appConfig.refresh();
 
-      // 4. 重新初始化工作空间（会创建默认工作空间）
+      // 4. 清除同步配置和状态
+      await SyncManager().clearConfig();
+      await SyncManager().clearSyncStatus();
+
+      // 5. 重新初始化工作空间（会创建默认工作空间）
       try {
         if (Get.isRegistered<WorkspaceController>()) {
           final workspaceCtrl = Get.find<WorkspaceController>();
@@ -783,7 +830,7 @@ class SettingsController extends GetxController {
         // 先清空内存中的任务列表
         homeCtrl.tasks.clear();
         homeCtrl.reactiveTasks.refresh();
-        
+
         // 验证数据库是否真的被清空（检查任务数量）
         final taskRepo = await TaskRepository.getInstance();
         final allTasks = await taskRepo.readAll();
@@ -794,10 +841,11 @@ class SettingsController extends GetxController {
             await taskRepo.permanentDelete(task.uuid);
           }
         }
-        
+
         // 然后刷新数据（不显示空任务提示，因为这是清除操作）
-        await homeCtrl.refreshData(showEmptyPrompt: false, clearBeforeRefresh: true);
-        
+        await homeCtrl.refreshData(
+            showEmptyPrompt: false, clearBeforeRefresh: true);
+
         // 再次验证任务列表是否为空
         if (homeCtrl.tasks.isNotEmpty) {
           _logger.w('刷新后仍有 ${homeCtrl.tasks.length} 个任务，强制清空...');

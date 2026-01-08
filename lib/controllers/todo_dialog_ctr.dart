@@ -32,16 +32,16 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     final todo = getEditingItem<Todo>()!;
     titleController.text = todo.title;
     descriptionController.text = todo.description;
-    
+
     // 优先使用带颜色的标签，如果没有则转换旧格式的标签
     if (todo.tagsWithColor.isNotEmpty) {
       selectedTags.value = todo.tagsWithColor;
     } else {
       // 兼容旧格式：转换字符串标签为带颜色的标签
-      selectedTags.value = todo.tags.map((tag) => 
-          TagWithColor.fromString(tag)).toList();
+      selectedTags.value =
+          todo.tags.map((tag) => TagWithColor.fromString(tag)).toList();
     }
-    
+
     selectedPriority.value = todo.priority;
     remindersValue.value = todo.reminders;
     selectedStatus.value = todo.status;
@@ -173,20 +173,24 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
 
     titleController.text = cache['title'] as String? ?? '';
     descriptionController.text = cache['description'] as String? ?? '';
-    
+
     // 处理标签缓存 - 兼容旧格式
     if (cache['tagsWithColor'] != null) {
       final tagsWithColorJson = cache['tagsWithColor'] as List<dynamic>;
       selectedTags.value = tagsWithColorJson
-          .map((tagJson) => TagWithColor.fromJson(tagJson as Map<String, dynamic>))
+          .map((tagJson) =>
+              TagWithColor.fromJson(tagJson as Map<String, dynamic>))
           .toList();
     } else {
       // 兼容旧格式的字符串标签
-      final stringTags = List<String>.from((cache['tags'] as List?) ?? const []);
-      selectedTags.value = stringTags.map((tag) => TagWithColor.fromString(tag)).toList();
+      final stringTags =
+          List<String>.from((cache['tags'] as List?) ?? const []);
+      selectedTags.value =
+          stringTags.map((tag) => TagWithColor.fromString(tag)).toList();
     }
 
-    final priorityIndex = cache['priority'] as int? ?? TodoPriority.lowLevel.index;
+    final priorityIndex =
+        cache['priority'] as int? ?? TodoPriority.lowLevel.index;
     selectedPriority.value = TodoPriority.values[priorityIndex];
 
     remindersValue.value = cache['reminders'] as int? ?? 0;
@@ -223,7 +227,8 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
       selectedTags.value = todo.tagsWithColor;
     } else {
       // 兼容旧格式：转换字符串标签为带颜色的标签
-      selectedTags.value = todo.tags.map((tag) => TagWithColor.fromString(tag)).toList();
+      selectedTags.value =
+          todo.tags.map((tag) => TagWithColor.fromString(tag)).toList();
     }
     selectedPriority.value = todo.priority;
     remindersValue.value = todo.reminders;
@@ -248,6 +253,9 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     };
 
     initEditing(todo, state);
+
+    // 重置脏标记，避免初始化时误判为已修改
+    isDirty.value = false;
   }
 
   @override
@@ -256,7 +264,7 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
         !compareStrings(titleController.text, originalState['title']);
     bool descriptionChanged = !compareStrings(
         descriptionController.text, originalState['description']);
-    
+
     // 比较带颜色的标签
     bool tagsChanged = false;
     if (originalState['tagsWithColor'] != null) {
@@ -265,9 +273,10 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
           .toList();
       tagsChanged = selectedTags.length != originalTags.length ||
           !selectedTags.every((tag) => originalTags.any((originalTag) =>
-              originalTag.name == tag.name && originalTag.colorValue == tag.colorValue));
+              originalTag.name == tag.name &&
+              originalTag.colorValue == tag.colorValue));
     }
-    
+
     bool priorityChanged = selectedPriority.value != originalState['priority'];
     bool remindersChanged = remindersValue.value != originalState['reminders'];
     bool statusChanged = selectedStatus.value != originalState['status'];
@@ -291,8 +300,8 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
           'Description changed: ${descriptionController.text} != ${originalState['description']}');
     }
     if (tagsChanged) {
-      BaseFormController.logger
-          .d('Tags changed: $selectedTags != ${originalState['tagsWithColor']}');
+      BaseFormController.logger.d(
+          'Tags changed: $selectedTags != ${originalState['tagsWithColor']}');
     }
     if (priorityChanged) {
       BaseFormController.logger.d(
@@ -328,7 +337,8 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
     if (originalState['tagsWithColor'] != null) {
       final tagsWithColorJson = originalState['tagsWithColor'] as List<dynamic>;
       selectedTags.value = tagsWithColorJson
-          .map((tagJson) => TagWithColor.fromJson(tagJson as Map<String, dynamic>))
+          .map((tagJson) =>
+              TagWithColor.fromJson(tagJson as Map<String, dynamic>))
           .toList();
     } else {
       // 兼容旧格式：转换字符串标签为带颜色的标签

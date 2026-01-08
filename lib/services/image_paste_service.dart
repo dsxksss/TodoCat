@@ -23,11 +23,11 @@ class ImagePasteService {
 
       // 在 Windows 上，使用平台通道获取剪贴板图片
       const platform = MethodChannel('com.todocat/clipboard');
-      
+
       try {
         // 调用原生方法获取剪贴板图片
         final result = await platform.invokeMethod('getClipboardImage');
-        
+
         if (result == null) {
           _logger.d('剪贴板中没有图片');
           return null;
@@ -67,6 +67,25 @@ class ImagePasteService {
     }
   }
 
+  /// 检查剪贴板中是否有图片
+  Future<bool> hasImageInClipboard() async {
+    if (!Platform.isWindows) {
+      return false;
+    }
+
+    try {
+      const platform = MethodChannel('com.todocat/clipboard');
+      final hasImage = await platform.invokeMethod<bool>('hasImage');
+      return hasImage ?? false;
+    } on PlatformException catch (_) {
+      // 如果没有实现该方法，尝试获取图片看是否为空（回退）
+      return false;
+    } catch (e) {
+      _logger.e('检查剪贴板图片失败: $e');
+      return false;
+    }
+  }
+
   /// 尝试使用 Flutter 的 Clipboard API（作为备用方案）
   Future<String?> _tryFlutterClipboard() async {
     try {
@@ -76,14 +95,14 @@ class ImagePasteService {
       if (clipboardData?.text != null) {
         // 如果剪贴板是文本，检查是否是图片路径
         final text = clipboardData!.text!;
-        if (text.startsWith('file://') || 
-            (text.contains('.') && 
-             (text.endsWith('.png') || 
-              text.endsWith('.jpg') || 
-              text.endsWith('.jpeg') || 
-              text.endsWith('.gif') || 
-              text.endsWith('.bmp') || 
-              text.endsWith('.webp')))) {
+        if (text.startsWith('file://') ||
+            (text.contains('.') &&
+                (text.endsWith('.png') ||
+                    text.endsWith('.jpg') ||
+                    text.endsWith('.jpeg') ||
+                    text.endsWith('.gif') ||
+                    text.endsWith('.bmp') ||
+                    text.endsWith('.webp')))) {
           // 如果是图片路径，直接返回
           return text.replaceFirst('file://', '').replaceAll('/', '\\');
         }
@@ -101,7 +120,7 @@ class ImagePasteService {
       // 获取应用文档目录
       final appDir = await getApplicationDocumentsDirectory();
       final imagesDir = Directory(path.join(appDir.path, 'pasted_images'));
-      
+
       // 确保目录存在
       if (!await imagesDir.exists()) {
         await imagesDir.create(recursive: true);
@@ -124,4 +143,3 @@ class ImagePasteService {
     }
   }
 }
-

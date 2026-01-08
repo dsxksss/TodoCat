@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:todo_cat/data/schemas/workspace.dart';
 import 'package:todo_cat/data/services/repositorys/workspace.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
@@ -6,19 +10,22 @@ import 'package:todo_cat/data/database/converters.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import 'package:logger/logger.dart';
+import 'package:todo_cat/services/sync_manager.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 
 class WorkspaceController extends GetxController {
   static final _logger = Logger();
   static const _uuid = Uuid();
-  
+
   final RxList<Workspace> workspaces = <Workspace>[].obs;
   final RxString currentWorkspaceId = 'default'.obs;
-  
+
   WorkspaceRepository? _repository;
   bool _isInitialized = false;
 
   Workspace? get currentWorkspace {
-    return workspaces.firstWhereOrNull((w) => w.uuid == currentWorkspaceId.value);
+    return workspaces
+        .firstWhereOrNull((w) => w.uuid == currentWorkspaceId.value);
   }
 
   @override
@@ -32,18 +39,43 @@ class WorkspaceController extends GetxController {
     try {
       _repository = await WorkspaceRepository.getInstance();
       await loadWorkspaces();
-      
+
       // 如果没有工作空间，创建默认工作空间
       if (workspaces.isEmpty) {
         await createDefaultWorkspace();
       }
-      
-      // 确保当前工作空间存在
-      if (workspaces.firstWhereOrNull((w) => w.uuid == currentWorkspaceId.value) == null) {
-        currentWorkspaceId.value = workspaces.first.uuid;
+
+      // 尝试恢复上次使用的工作空间
+      final lastWorkspaceId = await _readLastWorkspaceId();
+      if (lastWorkspaceId != null &&
+          workspaces.any((w) => w.uuid == lastWorkspaceId)) {
+        currentWorkspaceId.value = lastWorkspaceId;
+        // 如果HomeController已注册，刷新数据以显示正确的工作空间任务
+        // 如果HomeController已注册，刷新数据以显示正确的工作空间任务
+        if (Get.isRegistered<HomeController>()) {
+          Get.find<HomeController>().refreshData(
+            clearBeforeRefresh: true,
+            showEmptyPrompt: true, // 恢复工作空间后检查是否为空
+          );
+        }
+      } else {
+        // 确保当前工作空间存在
+        if (workspaces
+                .firstWhereOrNull((w) => w.uuid == currentWorkspaceId.value) ==
+            null) {
+          currentWorkspaceId.value = workspaces.first.uuid;
+        }
+
+        // 默认情况下也检查是否为空
+        if (Get.isRegistered<HomeController>()) {
+          Get.find<HomeController>().refreshData(showEmptyPrompt: true);
+        }
       }
-      
+
       _isInitialized = true;
+
+      // Check for remote updates
+      _checkRemoteUpdate(currentWorkspaceId.value);
     } catch (e) {
       _logger.e('初始化工作空间控制器失败: $e');
     }
@@ -59,15 +91,16 @@ class WorkspaceController extends GetxController {
       }
       final list = await _repository!.readAll();
       workspaces.assignAll(list);
-      
+
       // 更新默认工作空间的本地化名称
-      final defaultWorkspace = workspaces.firstWhereOrNull((w) => w.uuid == 'default');
+      final defaultWorkspace =
+          workspaces.firstWhereOrNull((w) => w.uuid == 'default');
       if (defaultWorkspace != null && defaultWorkspace.name == 'Default') {
         defaultWorkspace.name = 'defaultWorkspace'.tr;
         await _repository!.update('default', defaultWorkspace);
         workspaces.refresh();
       }
-      
+
       _logger.d('加载了 ${list.length} 个工作空间');
     } catch (e) {
       _logger.e('加载工作空间失败: $e');
@@ -88,7 +121,7 @@ class WorkspaceController extends GetxController {
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..order = 0
         ..deletedAt = 0;
-      
+
       await _repository!.write('default', workspace);
       workspaces.add(workspace);
       _logger.d('创建默认工作空间成功');
@@ -113,16 +146,16 @@ class WorkspaceController extends GetxController {
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..order = workspaces.length
         ..deletedAt = 0;
-      
+
       await _repository!.write(workspace.uuid, workspace);
       workspaces.add(workspace);
       _logger.d('创建工作空间成功: ${workspace.name}');
-      
+
       // 如果启用自动切换，创建成功后立即切换到新工作空间
       if (autoSwitch) {
         await switchWorkspace(workspace.uuid);
       }
-      
+
       return workspace.uuid;
     } catch (e) {
       _logger.e('创建工作空间失败: $e');
@@ -188,10 +221,10 @@ class WorkspaceController extends GetxController {
       await _repository!.restore(uuid);
       await loadWorkspaces();
       _logger.d('恢复工作空间成功: $uuid');
-      
+
       // 恢复后切换到恢复的工作空间（带动画）
       await switchWorkspace(uuid);
-      
+
       return true;
     } catch (e) {
       _logger.e('恢复工作空间失败: $e');
@@ -204,7 +237,10 @@ class WorkspaceController extends GetxController {
     try {
       final rows = await (_repository!.db.select(_repository!.db.workspaces)
             ..where((w) => w.deletedAt.isBiggerThanValue(0))
-            ..orderBy([(w) => OrderingTerm(expression: w.deletedAt, mode: OrderingMode.desc)]))
+            ..orderBy([
+              (w) =>
+                  OrderingTerm(expression: w.deletedAt, mode: OrderingMode.desc)
+            ]))
           .get();
       return rows.map((row) => DbConverters.workspaceFromRow(row)).toList();
     } catch (e) {
@@ -222,8 +258,9 @@ class WorkspaceController extends GetxController {
       }
 
       currentWorkspaceId.value = workspaceId;
+      _saveLastWorkspaceId(workspaceId);
       _logger.d('切换到工作空间: $workspaceId');
-      
+
       // 刷新任务列表（通过TaskManager），带动画效果
       if (Get.isRegistered<HomeController>()) {
         final homeCtrl = Get.find<HomeController>();
@@ -233,11 +270,15 @@ class WorkspaceController extends GetxController {
         await Future.delayed(const Duration(milliseconds: 300));
         // 刷新数据，加载新工作空间的任务（在旧任务淡出后再加载新任务）
         // 使用 clearBeforeRefresh: true 确保在刷新前清空列表，避免显示旧任务
-        await homeCtrl.refreshData(showEmptyPrompt: true, clearBeforeRefresh: true);
+        await homeCtrl.refreshData(
+            showEmptyPrompt: true, clearBeforeRefresh: true);
         // 再等待一小段时间，确保数据已更新到UI
         await Future.delayed(const Duration(milliseconds: 50));
         // 触发淡入动画（显示新任务）
         homeCtrl.isSwitchingWorkspace.value = false;
+
+        // Check for remote updates
+        _checkRemoteUpdate(workspaceId);
       }
     } catch (e) {
       _logger.e('切换工作空间失败: $e');
@@ -248,5 +289,56 @@ class WorkspaceController extends GetxController {
       }
     }
   }
-}
 
+  /// 保存最后使用的工作空间ID
+  Future<void> _saveLastWorkspaceId(String uuid) async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File(p.join(directory.path, 'last_workspace.json'));
+      final data = {'uuid': uuid};
+      await file.writeAsString(jsonEncode(data));
+    } catch (e) {
+      _logger.e('保存最后工作空间失败: $e');
+    }
+  }
+
+  /// 读取最后使用的工作空间ID
+  Future<String?> _readLastWorkspaceId() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File(p.join(directory.path, 'last_workspace.json'));
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        final data = jsonDecode(content);
+        return data['uuid'];
+      }
+    } catch (e) {
+      _logger.e('读取最后工作空间失败: $e');
+    }
+    return null;
+  }
+
+  Future<void> _checkRemoteUpdate(String workspaceId) async {
+    // Delay slightly to not block UI/Animation
+    await Future.delayed(const Duration(seconds: 1));
+    final hasUpdate = await SyncManager().checkRemoteUpdate(workspaceId);
+    if (hasUpdate) {
+      showToast(
+        'remoteUpdateAvailable'.tr,
+        confirmMode: true,
+        onYesCallback: () async {
+          try {
+            await SyncManager().restoreWorkspace(workspaceId);
+            if (Get.isRegistered<HomeController>()) {
+              await Get.find<HomeController>().refreshData();
+            }
+            showSuccessNotification('syncCompleted'.tr);
+          } catch (e) {
+            showErrorNotification('${'syncFailed'.tr}: $e');
+            _logger.e('Sync failed: $e');
+          }
+        },
+      );
+    }
+  }
+}

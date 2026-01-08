@@ -37,9 +37,12 @@ class PlatformDialogWrapper {
     final context = Get.context!;
     final isPhone = context.isPhone;
 
-    // 移动端使用屏幕高度的百分比，桌面端使用固定高度
+    // 移动端：如果是百分比(<=1)则使用百分比，否则(>1，通常是传入了桌面端的固定高度)使用默认0.75
+    // 桌面端：使用固定高度
+    final double mobileHeightRatio =
+        (height != null && height <= 1.0) ? height : 0.75;
     final dialogHeight =
-        isPhone ? (height ?? 0.75) * Get.height : (height ?? 540.0);
+        isPhone ? mobileHeightRatio * Get.height : (height ?? 540.0);
 
     // 桌面端使用指定宽度，移动端占满宽度
     final dialogWidth = isPhone ? Get.width : (width ?? 430.0);

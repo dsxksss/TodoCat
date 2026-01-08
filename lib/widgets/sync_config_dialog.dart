@@ -10,7 +10,10 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/services/sync_manager.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'dart:io';
 import 'package:todo_cat/data/schemas/workspace.dart';
+import 'package:intl/intl.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
 
 class SyncConfigDialog extends StatefulWidget {
   const SyncConfigDialog({super.key});
@@ -29,6 +32,7 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
   bool _isLoading = false;
   String? _connectionStatus;
   bool _isConnected = false;
+  String _workspaceKey = '';
 
   @override
   void initState() {
@@ -37,11 +41,20 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
   }
 
   Future<void> _initConnection() async {
+    // Initialize SyncManager (loads config and status)
+    await SyncManager().init();
+
     // Check if config exists, if not use default
     if (SyncManager().currentConfig == null) {
       await _useDefaultConfig();
     } else {
       _checkConnection();
+    }
+
+    if (mounted) {
+      setState(() {
+        _workspaceKey = _generateWorkspaceKey();
+      });
     }
   }
 
@@ -102,7 +115,19 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
     data['wsId'] = wsId;
     data['wsName'] = wsName;
 
-    return base64Encode(utf8.encode(jsonEncode(data)));
+    final base64Key = base64Encode(utf8.encode(jsonEncode(data)));
+
+    final lastSyncTime = SyncManager().getLastSyncTime(wsId);
+    String lastSyncStr = 'Never';
+    if (lastSyncTime != null) {
+      lastSyncStr = DateFormat('yyyy-MM-dd HH:mm:ss')
+          .format(DateTime.fromMillisecondsSinceEpoch(lastSyncTime));
+    }
+
+    return '''${'shareContentWorkspace'.tr}: "$wsName"
+${'shareContentId'.tr}: $wsId
+${'shareContentLastSynced'.tr}: $lastSyncStr
+${'shareContentKey'.tr}: $base64Key''';
   }
 
   void _copyWorkspaceKey() {
@@ -116,9 +141,49 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
 
     setState(() => _isLoading = true);
     try {
-      final text = _importKeyController.text.trim();
-      final jsonStr = utf8.decode(base64Decode(text));
-      final data = jsonDecode(jsonStr);
+      var text = _importKeyController.text.trim();
+
+      // Robust Parsing: Try to find the key line
+      // Strategy: Split by newlines, for each line try to decode.
+      // If direct decode matches JSON with 'url', valid.
+      // Or try to split by ':' in case of labeled line.
+
+      String? foundJsonStr;
+
+      final lines = text.split('\n');
+      for (var line in lines) {
+        line = line.trim();
+        if (line.isEmpty) continue;
+
+        // Try raw line
+        try {
+          final decoded = utf8.decode(base64Decode(line));
+          final json = jsonDecode(decoded);
+          if (json is Map && json.containsKey('url')) {
+            foundJsonStr = decoded;
+            break;
+          }
+        } catch (_) {}
+
+        // Try split by ':' (last part)
+        if (line.contains(':')) {
+          final potentialKey = line.split(':').last.trim();
+          try {
+            final decoded = utf8.decode(base64Decode(potentialKey));
+            final json = jsonDecode(decoded);
+            if (json is Map && json.containsKey('url')) {
+              foundJsonStr = decoded;
+              break;
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (foundJsonStr == null) {
+        throw Exception('Invalid Key Format');
+      }
+
+      final data = jsonDecode(foundJsonStr);
 
       // 1. Setup Config
       final config = WebDavConfig.fromJson(data);
@@ -142,18 +207,68 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
   }
 
   Future<void> _syncToCloud() async {
-    setState(() => _isLoading = true);
-    try {
-      final wsCtrl = Get.find<WorkspaceController>();
-      await SyncManager().syncWorkspace(wsCtrl.currentWorkspaceId.value);
-      showToast('syncSuccess'.tr,
-          toastStyleType: TodoCatToastStyleType.success);
-    } catch (e) {
-      showToast('${'syncFailed'.tr}: $e',
-          toastStyleType: TodoCatToastStyleType.error);
-    } finally {
-      setState(() => _isLoading = false);
-    }
+    showToast(
+      '${'confirmSyncToCloud'.tr}\n${'confirmSyncToCloudDesc'.tr}',
+      confirmMode: true,
+      alwaysShow: true,
+      onYesCallback: () async {
+        if (!mounted) return;
+        setState(() => _isLoading = true);
+        try {
+          final wsCtrl = Get.find<WorkspaceController>();
+          await SyncManager().syncWorkspace(wsCtrl.currentWorkspaceId.value);
+          showToast('syncSuccess'.tr,
+              toastStyleType: TodoCatToastStyleType.success);
+          if (mounted) {
+            setState(() {}); // Refresh UI including last sync time
+          }
+        } catch (e) {
+          showToast('${'syncFailed'.tr}: $e',
+              toastStyleType: TodoCatToastStyleType.error);
+        } finally {
+          if (mounted) {
+            setState(() => _isLoading = false);
+          }
+        }
+      },
+    );
+  }
+
+  Future<void> _downloadFromCloud() async {
+    showToast(
+      '${'confirmDownloadFromCloud'.tr}\n${'confirmDownloadFromCloudDesc'.tr}',
+      confirmMode: true,
+      alwaysShow: true,
+      onYesCallback: () async {
+        if (!mounted) return;
+        setState(() => _isLoading = true);
+        try {
+          final wsCtrl = Get.find<WorkspaceController>();
+          await SyncManager().restoreWorkspace(wsCtrl.currentWorkspaceId.value);
+          // 刷新工作空间数据
+          if (Get.isRegistered<WorkspaceController>()) {
+            await Get.find<WorkspaceController>().loadWorkspaces();
+          }
+          if (Get.isRegistered<HomeController>()) {
+            await Get.find<HomeController>()
+                .refreshData(showEmptyPrompt: false, clearBeforeRefresh: true);
+          }
+
+          showToast('restoreSuccess'.tr,
+              toastStyleType: TodoCatToastStyleType.success);
+          if (mounted) {
+            setState(() {}); // Refresh UI including last sync time
+          }
+        } catch (e) {
+          showToast('${'syncFailed'.tr}: $e',
+              toastStyleType: TodoCatToastStyleType.error);
+        } finally {
+          if (mounted) {
+            setState(() => _isLoading = false);
+          }
+        }
+      },
+    );
   }
 
   Future<void> _restoreRemoteWorkspace(String uuid) async {
@@ -178,6 +293,7 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
 
       showToast('restoreSuccess'.tr,
           toastStyleType: TodoCatToastStyleType.success);
+      setState(() {}); // Refresh UI including last sync time
     } catch (e) {
       rethrow;
     }
@@ -210,57 +326,75 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min, // 自适应高度
+      child: Stack(
         children: [
-          DialogHeader(
-            title: 'syncConfiguration'.tr,
-            onCancel: () => SmartDialog.dismiss(tag: 'sync_config_dialog'),
-            showConfirm: false,
+          Column(
+            mainAxisSize: MainAxisSize.min, // 自适应高度
+            children: [
+              DialogHeader(
+                title: 'syncConfiguration'.tr,
+                onCancel: () => SmartDialog.dismiss(tag: 'sync_config_dialog'),
+                showConfirm: false,
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                      24, 0, 24, 24), // 顶部padding由头部控制
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      // Status Card
+                      _buildStatusCard(context),
+                      const SizedBox(height: 24),
+
+                      // Import Section (Moved here)
+                      Text('importWorkspace'.tr,
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: context.theme.textTheme.bodyMedium?.color
+                                  ?.withValues(alpha: 0.8))),
+                      const SizedBox(height: 12),
+                      _buildImportSection(context),
+                      const SizedBox(height: 24),
+
+                      // Sync Info Section
+                      Text('syncInfo'.tr,
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: context.theme.textTheme.bodyMedium?.color
+                                  ?.withValues(alpha: 0.8))),
+                      const SizedBox(height: 12),
+                      _buildSyncInfoSection(context),
+                      const SizedBox(height: 24),
+
+                      // Share/Current Workspace Section
+                      Text('workspaceShare'.tr,
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: context.theme.textTheme.bodyMedium?.color
+                                  ?.withValues(alpha: 0.8))),
+                      const SizedBox(height: 12),
+                      _buildShareSection(context),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          Flexible(
-            child: SingleChildScrollView(
-              padding:
-                  const EdgeInsets.fromLTRB(24, 0, 24, 24), // 顶部padding由头部控制
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  // Status Card
-                  _buildStatusCard(context),
-                  const SizedBox(height: 24),
-
-                  // Share/Current Workspace Section
-                  Text('workspaceShare'.tr,
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: context.theme.textTheme.bodyMedium?.color
-                              ?.withValues(alpha: 0.8))),
-                  const SizedBox(height: 12),
-                  _buildShareSection(context),
-
-                  const SizedBox(height: 24),
-
-                  // Import Section
-                  Text('importWorkspace'.tr,
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: context.theme.textTheme.bodyMedium?.color
-                              ?.withValues(alpha: 0.8))),
-                  const SizedBox(height: 12),
-                  _buildImportSection(context),
-
-                  if (_isLoading)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 20),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                ],
+          if (_isLoading)
+            Positioned.fill(
+              child: Container(
+                color: context.theme.scaffoldBackgroundColor
+                    .withValues(alpha: 0.5),
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -315,18 +449,29 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
             ],
           )),
           if (_isConnected)
-            SizedBox(
-              height: 32,
-              child: IconButton(
-                onPressed: _syncToCloud,
-                tooltip: 'syncToCloud'.tr,
-                icon: const Icon(Icons.sync, size: 18),
-                style: IconButton.styleFrom(
-                  backgroundColor: context.theme.scaffoldBackgroundColor,
-                  foregroundColor: context.theme.iconTheme.color,
-                  padding: const EdgeInsets.all(6),
+            Row(
+              children: [
+                // Upload (Push)
+                IconButton(
+                  onPressed: _syncToCloud,
+                  tooltip: 'syncToCloud'.tr,
+                  icon: const Icon(Icons.cloud_upload_outlined, size: 22),
+                  style: IconButton.styleFrom(
+                    foregroundColor: Colors.orange,
+                    padding: const EdgeInsets.all(8),
+                  ),
                 ),
-              ),
+                // Download (Pull)
+                IconButton(
+                  onPressed: _downloadFromCloud,
+                  tooltip: 'restoreFromCloud'.tr,
+                  icon: const Icon(Icons.cloud_download_outlined, size: 22),
+                  style: IconButton.styleFrom(
+                    foregroundColor: Colors.green,
+                    padding: const EdgeInsets.all(8),
+                  ),
+                ),
+              ],
             )
         ],
       ),
@@ -335,6 +480,7 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
 
   Widget _buildShareSection(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
@@ -342,92 +488,62 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
             color: context.theme.dividerColor.withValues(alpha: 0.5)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Copy Key Action
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _copyWorkspaceKey,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    Icon(Icons.vpn_key,
-                        color: context.theme.iconTheme.color
-                            ?.withValues(alpha: 0.7),
-                        size: 18),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('copyWorkspaceKey'.tr,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w500, fontSize: 14)),
-                          Text('syncKeyHint'.tr,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: context
-                                      .theme.textTheme.bodySmall?.color)),
-                        ],
-                      ),
+          Row(
+            children: [
+              Icon(Icons.vpn_key,
+                  color: context.theme.iconTheme.color?.withValues(alpha: 0.7),
+                  size: 18),
+              const SizedBox(width: 8),
+              Text('syncKey'.tr,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: context.theme.scaffoldBackgroundColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                  color: context.theme.dividerColor.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SelectableText(
+                    _workspaceKey,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: Platform.isWindows ? 'Consolas' : 'monospace',
+                      color: context.theme.textTheme.bodyMedium?.color
+                          ?.withValues(alpha: 0.8),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: context.theme.scaffoldBackgroundColor,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                            color: context.theme.dividerColor
-                                .withValues(alpha: 0.5)),
-                      ),
-                      child: Text('copy'.tr,
-                          style: TextStyle(
-                              color: context.theme.textTheme.bodyMedium?.color,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500)),
-                    )
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 32,
+                  child: LabelBtn(
+                    onPressed: _copyWorkspaceKey,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    label: Text(
+                      'copy'.tr,
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          Divider(
-              height: 1,
-              color: context.theme.dividerColor.withValues(alpha: 0.5)),
-          // Sync Action (Manual Trigger)
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _syncToCloud,
-              borderRadius:
-                  const BorderRadius.vertical(bottom: Radius.circular(12)),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    Icon(Icons.cloud_upload,
-                        color: context.theme.iconTheme.color
-                            ?.withValues(alpha: 0.7),
-                        size: 18),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text('syncToCloud'.tr,
-                          style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w500)),
-                    ),
-                    Icon(Icons.chevron_right,
-                        size: 16, color: context.theme.disabledColor),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          const SizedBox(height: 8),
+          Text('syncKeyHint'.tr,
+              style: TextStyle(
+                  fontSize: 12,
+                  color: context.theme.textTheme.bodySmall?.color)),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -471,26 +587,96 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
         ),
         const SizedBox(width: 10),
         SizedBox(
-          height: 44,
-          child: ElevatedButton(
+          height: 40,
+          child: LabelBtn(
             onPressed: _importWorkspaceKey,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.theme.primaryColor,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            icon: const Icon(Icons.download, size: 16, color: Colors.white),
+            label: Text(
+              'import'.tr,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.download, size: 16),
-                const SizedBox(width: 6),
-                Text('import'.tr,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13)),
-              ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSyncInfoSection(BuildContext context) {
+    if (Get.find<WorkspaceController>().workspaces.isEmpty) {
+      return const SizedBox();
+    }
+
+    final wsCtrl = Get.find<WorkspaceController>();
+    final currentWsId = wsCtrl.currentWorkspaceId.value;
+    final lastSyncTime = SyncManager().getLastSyncTime(currentWsId);
+
+    // Find workspace name safely
+    String wsName = 'Unknown';
+    try {
+      final ws = wsCtrl.workspaces.firstWhere((w) => w.uuid == currentWsId,
+          orElse: () => Workspace()..name = 'Unknown');
+      wsName = ws.name;
+    } catch (_) {}
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.theme.cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: context.theme.dividerColor.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInfoRow(context, 'workspaceName'.tr, wsName),
+          const SizedBox(height: 8),
+          _buildInfoRow(context, 'workspaceId'.tr, currentWsId),
+          const SizedBox(height: 8),
+          _buildInfoRow(context, 'syncStatus'.tr,
+              lastSyncTime != null ? 'synced'.tr : 'notSynced'.tr,
+              valueColor: lastSyncTime != null ? Colors.green : Colors.orange),
+          if (lastSyncTime != null) ...[
+            const SizedBox(height: 8),
+            _buildInfoRow(
+                context,
+                'lastSyncedAt'.tr,
+                DateFormat('yyyy-MM-dd HH:mm:ss')
+                    .format(DateTime.fromMillisecondsSinceEpoch(lastSyncTime))),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(BuildContext context, String label, String value,
+      {Color? valueColor}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: context.theme.textTheme.bodySmall?.color,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: valueColor ?? context.theme.textTheme.bodyMedium?.color,
             ),
           ),
         ),

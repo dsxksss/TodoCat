@@ -386,6 +386,7 @@ const Map<String, String> enUS = {
   'imageUrl': 'Image URL',
   // Others
   'keepInput': 'Keep input?',
+  'discardChanges': 'Discard changes?',
   'preview': 'Preview',
   'closePreview': 'Close Preview',
   // Workspace
@@ -466,4 +467,22 @@ const Map<String, String> enUS = {
   'webDavDetails': 'Cloud Service Status',
   'connected': 'Connected',
   'upload': 'Upload',
+  'syncInfo': 'Sync Information',
+  'workspaceId': 'Workspace ID',
+  'syncStatus': 'Sync Status',
+  'synced': 'Synced',
+  'notSynced': 'Not Synced',
+  'lastSyncedAt': 'Last Synced At',
+  'shareContentWorkspace': 'TodoCat Workspace',
+  'shareContentId': 'ID',
+  'shareContentLastSynced': 'Last Synced',
+  'shareContentKey': 'Key',
+  'confirmSyncToCloud': 'Confirm Sync to Cloud?',
+  'confirmSyncToCloudDesc':
+      'This will overwrite existing data on the cloud. Please confirm you want to upload current local status.',
+  'confirmDownloadFromCloud': 'Confirm Download from Cloud?',
+  'confirmDownloadFromCloudDesc':
+      'This will overwrite existing local data. Please confirm you want to restore cloud status.',
+  'remoteUpdateAvailable': 'New version detected on cloud, update now?',
+  'syncCompleted': 'Sync completed',
 };
