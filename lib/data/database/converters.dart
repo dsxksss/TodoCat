@@ -3,7 +3,8 @@ import 'package:todo_cat/data/schemas/task.dart' as task_models;
 import 'package:todo_cat/data/schemas/todo.dart' as todo_models;
 import 'package:todo_cat/data/schemas/app_config.dart' as app_config_models;
 import 'package:todo_cat/data/schemas/local_notice.dart' as local_notice_models;
-import 'package:todo_cat/data/schemas/notification_history.dart' as notification_models;
+import 'package:todo_cat/data/schemas/notification_history.dart'
+    as notification_models;
 import 'package:todo_cat/data/schemas/custom_template.dart' as template_models;
 import 'package:todo_cat/data/schemas/workspace.dart' as workspace_models;
 import 'package:todo_cat/data/database/database.dart';
@@ -25,7 +26,9 @@ class DbConverters {
     return workspace;
   }
 
-  static WorkspacesCompanion workspaceToCompanion(workspace_models.Workspace workspace, {bool isUpdate = false}) {
+  static WorkspacesCompanion workspaceToCompanion(
+      workspace_models.Workspace workspace,
+      {bool isUpdate = false}) {
     final companion = WorkspacesCompanion(
       uuid: Value(workspace.uuid),
       name: Value(workspace.name),
@@ -33,7 +36,7 @@ class DbConverters {
       order: Value(workspace.order),
       deletedAt: Value(workspace.deletedAt),
     );
-    
+
     if (isUpdate && workspace.id != null) {
       return companion.copyWith(id: Value(workspace.id!));
     }
@@ -41,7 +44,8 @@ class DbConverters {
   }
 
   // Task 转换
-  static task_models.Task taskFromRow(db.Task row, List<todo_models.Todo> todos) {
+  static task_models.Task taskFromRow(
+      db.Task row, List<todo_models.Todo> todos) {
     final task = task_models.Task()
       ..id = row.id
       ..uuid = row.uuid
@@ -57,11 +61,14 @@ class DbConverters {
       ..tags = List<String>.from(jsonDecode(row.tags))
       ..tagsWithColorJsonString = row.tagsWithColorJsonString
       ..todos = todos.isEmpty ? null : todos
-      ..deletedAt = row.deletedAt;
+      ..deletedAt = row.deletedAt
+      ..customColor = row.customColor
+      ..customIcon = row.customIcon;
     return task;
   }
 
-  static TasksCompanion taskToCompanion(task_models.Task task, {bool isUpdate = false}) {
+  static TasksCompanion taskToCompanion(task_models.Task task,
+      {bool isUpdate = false}) {
     final companion = TasksCompanion(
       uuid: Value(task.uuid),
       workspaceId: Value(task.workspaceId),
@@ -76,8 +83,10 @@ class DbConverters {
       tags: Value(jsonEncode(task.tags)),
       tagsWithColorJsonString: Value(task.tagsWithColorJsonString),
       deletedAt: Value(task.deletedAt),
+      customColor: Value(task.customColor),
+      customIcon: Value(task.customIcon),
     );
-    
+
     if (isUpdate && task.id != null) {
       return companion.copyWith(id: Value(task.id!));
     }
@@ -103,7 +112,8 @@ class DbConverters {
       ..deletedAt = row.deletedAt;
   }
 
-  static TodosCompanion todoToCompanion(todo_models.Todo todo, String taskUuid) {
+  static TodosCompanion todoToCompanion(
+      todo_models.Todo todo, String taskUuid) {
     return TodosCompanion(
       taskUuid: Value(taskUuid),
       uuid: Value(todo.uuid),
@@ -141,7 +151,9 @@ class DbConverters {
       ..showTodoImage = row.showTodoImage;
   }
 
-  static AppConfigsCompanion appConfigToCompanion(app_config_models.AppConfig config, {bool isUpdate = false}) {
+  static AppConfigsCompanion appConfigToCompanion(
+      app_config_models.AppConfig config,
+      {bool isUpdate = false}) {
     final companion = AppConfigsCompanion(
       configName: Value(config.configName),
       isDarkMode: Value(config.isDarkMode),
@@ -156,7 +168,7 @@ class DbConverters {
       backgroundAffectsNavBar: Value(config.backgroundAffectsNavBar),
       showTodoImage: Value(config.showTodoImage),
     );
-    
+
     if (isUpdate && config.id != null) {
       return companion.copyWith(id: Value(config.id!));
     }
@@ -164,7 +176,8 @@ class DbConverters {
   }
 
   // LocalNotice 转换
-  static local_notice_models.LocalNotice localNoticeFromRow(db.LocalNotice row) {
+  static local_notice_models.LocalNotice localNoticeFromRow(
+      db.LocalNotice row) {
     return local_notice_models.LocalNotice(
       noticeId: row.noticeId,
       title: row.title,
@@ -175,7 +188,8 @@ class DbConverters {
     )..id = row.id;
   }
 
-  static LocalNoticesCompanion localNoticeToCompanion(local_notice_models.LocalNotice notice) {
+  static LocalNoticesCompanion localNoticeToCompanion(
+      local_notice_models.LocalNotice notice) {
     return LocalNoticesCompanion(
       noticeId: Value(notice.noticeId),
       title: Value(notice.title),
@@ -187,7 +201,8 @@ class DbConverters {
   }
 
   // NotificationHistory 转换
-  static notification_models.NotificationHistory notificationHistoryFromRow(db.NotificationHistory row) {
+  static notification_models.NotificationHistory notificationHistoryFromRow(
+      db.NotificationHistory row) {
     final model = notification_models.NotificationHistory()
       ..id = row.id
       ..notificationId = row.notificationId
@@ -199,7 +214,8 @@ class DbConverters {
     return model;
   }
 
-  static NotificationHistorysCompanion notificationHistoryToCompanion(notification_models.NotificationHistory history) {
+  static NotificationHistorysCompanion notificationHistoryToCompanion(
+      notification_models.NotificationHistory history) {
     return NotificationHistorysCompanion(
       notificationId: Value(history.notificationId),
       title: Value(history.title),
@@ -211,7 +227,8 @@ class DbConverters {
   }
 
   // CustomTemplate 转换
-  static template_models.CustomTemplate customTemplateFromRow(db.CustomTemplate row) {
+  static template_models.CustomTemplate customTemplateFromRow(
+      db.CustomTemplate row) {
     return template_models.CustomTemplate()
       ..id = row.id
       ..name = row.name
@@ -222,7 +239,9 @@ class DbConverters {
       ..isSystem = row.isSystem;
   }
 
-  static CustomTemplatesCompanion customTemplateToCompanion(template_models.CustomTemplate template, {bool isUpdate = false}) {
+  static CustomTemplatesCompanion customTemplateToCompanion(
+      template_models.CustomTemplate template,
+      {bool isUpdate = false}) {
     final companion = CustomTemplatesCompanion(
       name: Value(template.name),
       description: Value(template.description),
@@ -231,7 +250,7 @@ class DbConverters {
       icon: Value(template.icon),
       isSystem: Value(template.isSystem),
     );
-    
+
     if (isUpdate && template.id != null) {
       return companion.copyWith(id: Value(template.id!));
     }

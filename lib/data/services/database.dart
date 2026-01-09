@@ -40,7 +40,7 @@ class Database {
     _logger.d('Initializing new database instance');
     // 确保获取新的数据库实例（重置后需要重新创建）
     _appDatabase = await db.AppDatabase.getInstance();
-    
+
     // 验证新实例是否可用（最多重试3次）
     int retryCount = 0;
     const maxRetries = 3;
@@ -52,10 +52,12 @@ class Database {
       } catch (e) {
         retryCount++;
         if (retryCount >= maxRetries) {
-          _logger.e('Failed to verify database connection after $maxRetries attempts: $e');
+          _logger.e(
+              'Failed to verify database connection after $maxRetries attempts: $e');
           throw StateError('Failed to initialize database: $e');
         }
-        _logger.w('Database connection verification failed (attempt $retryCount/$maxRetries), retrying...');
+        _logger.w(
+            'Database connection verification failed (attempt $retryCount/$maxRetries), retrying...');
         // 等待一小段时间后重试
         await Future.delayed(Duration(milliseconds: 100 * retryCount));
       }
@@ -82,37 +84,37 @@ class Database {
     if (_appDatabase == null) {
       throw StateError('Database not initialized');
     }
-    
+
     await _appDatabase!.clearAllData();
   }
 
   /// 重置数据库（删除数据库文件并重新创建，清除所有残留数据）
   Future<void> resetDatabase() async {
     _logger.w('Resetting database...');
-    
+
     // 1. 先重置所有 Repository 的缓存（这会清空它们的数据库引用）
     // 这很重要，必须在关闭数据库连接之前完成，确保没有 Repository 持有数据库引用
     _resetAllRepositories();
-    
+
     // 2. 关闭当前数据库连接
     await close();
-    
+
     // 3. 等待一段时间，确保所有文件句柄都被释放
     // Windows 系统需要更长时间来释放文件句柄
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     // 4. 重置 AppDatabase（删除文件并重新创建）
     await db.AppDatabase.resetDatabase();
-    
+
     // 5. 强制重新初始化数据库服务（确保获取新的实例）
     _appDatabase = null;
-    
+
     // 6. 等待一小段时间，确保文件系统操作完成
     await Future.delayed(const Duration(milliseconds: 200));
-    
+
     // 7. 重新初始化
     await _init();
-    
+
     // 8. 再次验证连接
     try {
       await _appDatabase!.customSelect('SELECT 1').get();
@@ -128,7 +130,7 @@ class Database {
   void _resetAllRepositories() {
     try {
       _logger.d('Resetting all repository caches...');
-      
+
       // 重置所有 Repository 的缓存，强制它们重新获取新的数据库实例
       TaskRepository.reset();
       AppConfigRepository.reset();
@@ -136,7 +138,7 @@ class Database {
       CustomTemplateRepository.reset();
       NotificationHistoryRepository.reset();
       LocalNoticeRepository.reset();
-      
+
       _logger.d('All repository caches reset');
     } catch (e) {
       _logger.w('Error resetting repositories: $e');

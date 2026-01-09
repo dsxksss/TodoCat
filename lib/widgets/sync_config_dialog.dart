@@ -10,10 +10,12 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/services/sync_manager.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
 import 'dart:io';
 import 'package:todo_cat/data/schemas/workspace.dart';
 import 'package:intl/intl.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
+import 'package:todo_cat/widgets/sync_history_dialog.dart';
 
 class SyncConfigDialog extends StatefulWidget {
   const SyncConfigDialog({super.key});
@@ -303,6 +305,17 @@ ${'shareContentKey'.tr}: $base64Key''';
     }
   }
 
+  void _showHistoryDialog() {
+    final wsCtrl = Get.find<WorkspaceController>();
+    PlatformDialogWrapper.show(
+      tag: 'sync_history_dialog',
+      content:
+          SyncHistoryDialog(workspaceUuid: wsCtrl.currentWorkspaceId.value),
+      clickMaskDismiss: true,
+      useFixedSize: false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // 桌面端固定尺寸, 移动端适配屏幕
@@ -470,6 +483,16 @@ ${'shareContentKey'.tr}: $base64Key''';
                   icon: const Icon(Icons.cloud_download_outlined, size: 22),
                   style: IconButton.styleFrom(
                     foregroundColor: Colors.green,
+                    padding: const EdgeInsets.all(8),
+                  ),
+                ),
+                // History
+                IconButton(
+                  onPressed: _showHistoryDialog,
+                  tooltip: '历史版本',
+                  icon: const Icon(Icons.history, size: 22),
+                  style: IconButton.styleFrom(
+                    foregroundColor: Colors.blue,
                     padding: const EdgeInsets.all(8),
                   ),
                 ),

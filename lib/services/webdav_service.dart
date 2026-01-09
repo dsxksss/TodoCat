@@ -181,4 +181,114 @@ class WebDavService {
       rethrow;
     }
   }
+
+  Future<bool> checkFileExists(String path) async {
+    try {
+      final response = await _dio.head(path);
+      return response.statusCode == 200;
+    } catch (e) {
+      if (e is DioException && e.response?.statusCode == 404) {
+        return false;
+      }
+      _logger.w('Check file exists error: $e');
+      return false;
+    }
+  }
+
+  /// Recursively ensure a directory exists
+  Future<void> recursiveEnsureDirectory(String path) async {
+    // Trim slashes
+    var p = path;
+    if (p.startsWith('/')) p = p.substring(1);
+    if (p.endsWith('/')) p = p.substring(0, p.length - 1);
+
+    final parts = p.split('/');
+    String currentPath = '';
+
+    for (final part in parts) {
+      if (currentPath.isEmpty) {
+        currentPath = part;
+      } else {
+        currentPath = '$currentPath/$part';
+      }
+      await ensureDirectory(currentPath);
+    }
+  }
+
+  /// List files in a directory (returns simple names/paths)
+  Future<List<String>> listDirectory(String path) async {
+    try {
+      final response = await _dio.request(
+        path,
+        options: Options(
+          method: 'PROPFIND',
+          headers: {'Depth': '1'},
+          responseType: ResponseType.plain,
+        ),
+      );
+
+      if (response.statusCode == 207 && response.data != null) {
+        final xml = response.data.toString();
+        // Regex to extract hrefs. Handles <D:href> or <href> with various namespaces.
+        // Captures content between > and <
+        final regex = RegExp(r'<([a-zA-Z0-9]+:)?href>(.*?)<\/\1?href>');
+        final matches = regex.allMatches(xml);
+
+        final List<String> files = [];
+        final rootPathEncoded = Uri.encodeFull(config.url + path);
+
+        for (final match in matches) {
+          var href = match.group(2) ?? '';
+          // Decode generic URL encoding
+          href = Uri.decodeFull(href);
+
+          // Remove potential server URL prefix if present in href
+          // Many WebDAV servers return full URL or absolute path
+          // We want the relative path or just the filename for logic
+          // But typically we just want to know what's there.
+
+          // Optimization: just return the full hrefs or relative to the search path?
+          // Let's filter out the directory itself.
+
+          // Normalize href for comparison
+          String normalizedHref = href;
+          if (normalizedHref.endsWith('/')) {
+            normalizedHref =
+                normalizedHref.substring(0, normalizedHref.length - 1);
+          }
+          String normalizedPath = path;
+          if (config.url.endsWith(path)) {
+            // If config.url includes the path? No, path is relative to baseUrl usually?
+            // Actually _dio has baseUrl. path arg is relative.
+          }
+
+          // Simple check: if it equals the requested directory, skip
+          if (href.endsWith(path) || href.endsWith('$path/')) {
+            // Check if it really is the root (could be a file with same name prefix?)
+            // Usually the first item is the folder itself.
+            // Let's just collect all and let caller filter.
+          }
+          files.add(href);
+        }
+        return files;
+      }
+      return [];
+    } catch (e) {
+      _logger.e('List directory error: $e');
+      return [];
+    }
+  }
+
+  Future<void> deletePath(String path) async {
+    try {
+      final response = await _dio.request(
+        path,
+        options: Options(method: 'DELETE'),
+      );
+      _logger.d('Delete $path status: ${response.statusCode}');
+    } catch (e) {
+      _logger.e('Delete error: $e');
+      rethrow;
+    }
+  }
 }

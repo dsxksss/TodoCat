@@ -24,8 +24,10 @@ class Task {
   List<String> tags = [];
   String tagsWithColorJsonString = '[]';
   List<Todo>? todos;
-  
+
   int deletedAt = 0; // 删除时间戳，0表示未删除
+  int? customColor; // 自定义侧边栏颜色
+  int? customIcon; // 自定义图标 CodePoint
 
   // 默认构造函数
   Task();
@@ -47,6 +49,8 @@ class Task {
       'tagsWithColor': tagsWithColorJsonString,
       'todos': todos?.map((todo) => todo.toJson()).toList(),
       'deletedAt': deletedAt,
+      'customColor': customColor,
+      'customIcon': customIcon,
     };
   }
 
@@ -68,14 +72,16 @@ class Task {
       ..reminders = json['reminders'] as int? ?? 0
       ..tags = List<String>.from(json['tags'] ?? [])
       ..tagsWithColorJsonString = json['tagsWithColor'] as String? ?? '[]'
-      ..deletedAt = json['deletedAt'] as int? ?? 0;
-    
+      ..deletedAt = json['deletedAt'] as int? ?? 0
+      ..customColor = json['customColor'] as int?
+      ..customIcon = json['customIcon'] as int?;
+
     if (json['todos'] != null) {
       task.todos = (json['todos'] as List)
           .map((todoJson) => Todo.fromJson(todoJson))
           .toList();
     }
-    
+
     return task;
   }
 
@@ -89,9 +95,11 @@ class Task {
         }
         return [];
       }
-      
+
       final List<dynamic> jsonList = jsonDecode(tagsWithColorJsonString);
-      return jsonList.map((json) => TagWithColor.fromJson(json as Map<String, dynamic>)).toList();
+      return jsonList
+          .map((json) => TagWithColor.fromJson(json as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       // JSON解析失败时，如果有字符串标签，则转换为带默认颜色的标签
       if (tags.isNotEmpty) {
@@ -103,7 +111,8 @@ class Task {
 
   /// 设置带颜色的标签列表
   set tagsWithColor(List<TagWithColor> tags) {
-    tagsWithColorJsonString = jsonEncode(tags.map((tag) => tag.toJson()).toList());
+    tagsWithColorJsonString =
+        jsonEncode(tags.map((tag) => tag.toJson()).toList());
     // 同时更新字符串标签列表以保持兼容性
     this.tags = tags.map((tag) => tag.name).toList();
   }

@@ -9,6 +9,9 @@ import 'package:todo_cat/controllers/mixins/edit_state_mixin.dart';
 class TaskDialogController extends BaseFormController with EditStateMixin {
   final homeController = Get.find<HomeController>();
 
+  final Rxn<int> selectedCustomColor = Rxn<int>();
+  final Rxn<int> selectedCustomIcon = Rxn<int>();
+
   @override
   void onInit() {
     super.onInit();
@@ -25,6 +28,9 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
     titleController.text = task.title;
     descriptionController.text =
         task.description.isEmpty ? '' : task.description;
+    selectedCustomColor.value = task.customColor;
+    selectedCustomIcon.value = task.customIcon;
+
     // 优先使用带颜色的标签，如果没有则转换旧格式的标签
     if (task.tagsWithColor.isNotEmpty) {
       selectedTags.value = task.tagsWithColor;
@@ -40,6 +46,9 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
     titleController.text = task.title;
     descriptionController.text =
         task.description.isEmpty ? '' : task.description;
+    selectedCustomColor.value = task.customColor;
+    selectedCustomIcon.value = task.customIcon;
+
     // 优先使用带颜色的标签，如果没有则转换旧格式的标签
     if (task.tagsWithColor.isNotEmpty) {
       selectedTags.value = task.tagsWithColor;
@@ -54,6 +63,8 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
       'title': task.title,
       'description': task.description.isEmpty ? '' : task.description,
       'tags': List<String>.from(task.tags),
+      'customColor': task.customColor,
+      'customIcon': task.customIcon,
     };
 
     initEditing(task, state);
@@ -66,7 +77,11 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
     bool descriptionChanged = !compareStrings(
         descriptionController.text, originalState['description']);
     bool tagsChanged = !compareListEquality(
-        selectedTags, originalState['tags'] as List<String>);
+        selectedTags.map((t) => t.name).toList(),
+        originalState['tags'] as List<String>);
+    bool colorChanged =
+        selectedCustomColor.value != originalState['customColor'];
+    bool iconChanged = selectedCustomIcon.value != originalState['customIcon'];
 
     // 调试日志
     if (titleChanged) {
@@ -81,14 +96,29 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
       BaseFormController.logger
           .d('Task tags changed: $selectedTags != ${originalState['tags']}');
     }
+    if (colorChanged) {
+      BaseFormController.logger.d(
+          'Task color changed: ${selectedCustomColor.value} != ${originalState['customColor']}');
+    }
+    if (iconChanged) {
+      BaseFormController.logger.d(
+          'Task icon changed: ${selectedCustomIcon.value} != ${originalState['customIcon']}');
+    }
 
-    return titleChanged || descriptionChanged || tagsChanged;
+    return titleChanged ||
+        descriptionChanged ||
+        tagsChanged ||
+        colorChanged ||
+        iconChanged;
   }
 
   @override
   void restoreToOriginalState(Map<String, dynamic> originalState) {
     titleController.text = originalState['title'] as String;
     descriptionController.text = originalState['description'] as String;
+    selectedCustomColor.value = originalState['customColor'] as int?;
+    selectedCustomIcon.value = originalState['customIcon'] as int?;
+
     // 优先使用带颜色的标签，如果没有则转换旧格式的标签
     if (originalState['tagsWithColor'] != null) {
       final tagsWithColorJson = originalState['tagsWithColor'] as List<dynamic>;
@@ -108,6 +138,8 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
   void clearForm() {
     BaseFormController.logger.d('Clearing task form');
     super.clearForm();
+    selectedCustomColor.value = null;
+    selectedCustomIcon.value = null;
     exitEditing();
   }
 
@@ -122,7 +154,9 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
         ..description = descriptionController.text
         ..tagsWithColor = selectedTags.toList()
         ..createdAt = currentTask.createdAt
-        ..todos = currentTask.todos;
+        ..todos = currentTask.todos
+        ..customColor = selectedCustomColor.value
+        ..customIcon = selectedCustomIcon.value;
 
       final success =
           await homeController.updateTask(currentTask.uuid, updatedTask);
@@ -140,7 +174,9 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
         ..description = descriptionController.text
         ..tagsWithColor = selectedTags.toList()
         ..createdAt = DateTime.now().millisecondsSinceEpoch
-        ..todos = [];
+        ..todos = []
+        ..customColor = selectedCustomColor.value
+        ..customIcon = selectedCustomIcon.value;
 
       await homeController.addTask(task);
       showSuccessToast('taskAddedSuccessfully'.tr);

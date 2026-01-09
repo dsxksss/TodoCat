@@ -448,6 +448,18 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _customColorMeta =
+      const VerificationMeta('customColor');
+  @override
+  late final GeneratedColumn<int> customColor = GeneratedColumn<int>(
+      'custom_color', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _customIconMeta =
+      const VerificationMeta('customIcon');
+  @override
+  late final GeneratedColumn<int> customIcon = GeneratedColumn<int>(
+      'custom_icon', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -463,7 +475,9 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         reminders,
         tags,
         tagsWithColorJsonString,
-        deletedAt
+        deletedAt,
+        customColor,
+        customIcon
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -545,6 +559,18 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
+    if (data.containsKey('custom_color')) {
+      context.handle(
+          _customColorMeta,
+          customColor.isAcceptableOrUnknown(
+              data['custom_color']!, _customColorMeta));
+    }
+    if (data.containsKey('custom_icon')) {
+      context.handle(
+          _customIconMeta,
+          customIcon.isAcceptableOrUnknown(
+              data['custom_icon']!, _customIconMeta));
+    }
     return context;
   }
 
@@ -583,6 +609,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           data['${effectivePrefix}tags_with_color_json_string'])!,
       deletedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}deleted_at'])!,
+      customColor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}custom_color']),
+      customIcon: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}custom_icon']),
     );
   }
 
@@ -607,6 +637,8 @@ class Task extends DataClass implements Insertable<Task> {
   final String tags;
   final String tagsWithColorJsonString;
   final int deletedAt;
+  final int? customColor;
+  final int? customIcon;
   const Task(
       {required this.id,
       required this.uuid,
@@ -621,7 +653,9 @@ class Task extends DataClass implements Insertable<Task> {
       required this.reminders,
       required this.tags,
       required this.tagsWithColorJsonString,
-      required this.deletedAt});
+      required this.deletedAt,
+      this.customColor,
+      this.customIcon});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -640,6 +674,12 @@ class Task extends DataClass implements Insertable<Task> {
     map['tags_with_color_json_string'] =
         Variable<String>(tagsWithColorJsonString);
     map['deleted_at'] = Variable<int>(deletedAt);
+    if (!nullToAbsent || customColor != null) {
+      map['custom_color'] = Variable<int>(customColor);
+    }
+    if (!nullToAbsent || customIcon != null) {
+      map['custom_icon'] = Variable<int>(customIcon);
+    }
     return map;
   }
 
@@ -659,6 +699,12 @@ class Task extends DataClass implements Insertable<Task> {
       tags: Value(tags),
       tagsWithColorJsonString: Value(tagsWithColorJsonString),
       deletedAt: Value(deletedAt),
+      customColor: customColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customColor),
+      customIcon: customIcon == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customIcon),
     );
   }
 
@@ -681,6 +727,8 @@ class Task extends DataClass implements Insertable<Task> {
       tagsWithColorJsonString:
           serializer.fromJson<String>(json['tagsWithColorJsonString']),
       deletedAt: serializer.fromJson<int>(json['deletedAt']),
+      customColor: serializer.fromJson<int?>(json['customColor']),
+      customIcon: serializer.fromJson<int?>(json['customIcon']),
     );
   }
   @override
@@ -702,6 +750,8 @@ class Task extends DataClass implements Insertable<Task> {
       'tagsWithColorJsonString':
           serializer.toJson<String>(tagsWithColorJsonString),
       'deletedAt': serializer.toJson<int>(deletedAt),
+      'customColor': serializer.toJson<int?>(customColor),
+      'customIcon': serializer.toJson<int?>(customIcon),
     };
   }
 
@@ -719,7 +769,9 @@ class Task extends DataClass implements Insertable<Task> {
           int? reminders,
           String? tags,
           String? tagsWithColorJsonString,
-          int? deletedAt}) =>
+          int? deletedAt,
+          Value<int?> customColor = const Value.absent(),
+          Value<int?> customIcon = const Value.absent()}) =>
       Task(
         id: id ?? this.id,
         uuid: uuid ?? this.uuid,
@@ -736,6 +788,8 @@ class Task extends DataClass implements Insertable<Task> {
         tagsWithColorJsonString:
             tagsWithColorJsonString ?? this.tagsWithColorJsonString,
         deletedAt: deletedAt ?? this.deletedAt,
+        customColor: customColor.present ? customColor.value : this.customColor,
+        customIcon: customIcon.present ? customIcon.value : this.customIcon,
       );
   @override
   String toString() {
@@ -753,7 +807,9 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('reminders: $reminders, ')
           ..write('tags: $tags, ')
           ..write('tagsWithColorJsonString: $tagsWithColorJsonString, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('customColor: $customColor, ')
+          ..write('customIcon: $customIcon')
           ..write(')'))
         .toString();
   }
@@ -773,7 +829,9 @@ class Task extends DataClass implements Insertable<Task> {
       reminders,
       tags,
       tagsWithColorJsonString,
-      deletedAt);
+      deletedAt,
+      customColor,
+      customIcon);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -791,7 +849,9 @@ class Task extends DataClass implements Insertable<Task> {
           other.reminders == this.reminders &&
           other.tags == this.tags &&
           other.tagsWithColorJsonString == this.tagsWithColorJsonString &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.customColor == this.customColor &&
+          other.customIcon == this.customIcon);
 }
 
 class TasksCompanion extends UpdateCompanion<Task> {
@@ -809,6 +869,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String> tags;
   final Value<String> tagsWithColorJsonString;
   final Value<int> deletedAt;
+  final Value<int?> customColor;
+  final Value<int?> customIcon;
   const TasksCompanion({
     this.id = const Value.absent(),
     this.uuid = const Value.absent(),
@@ -824,6 +886,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.tags = const Value.absent(),
     this.tagsWithColorJsonString = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.customColor = const Value.absent(),
+    this.customIcon = const Value.absent(),
   });
   TasksCompanion.insert({
     this.id = const Value.absent(),
@@ -840,6 +904,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.tags = const Value.absent(),
     this.tagsWithColorJsonString = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.customColor = const Value.absent(),
+    this.customIcon = const Value.absent(),
   })  : uuid = Value(uuid),
         title = Value(title),
         createdAt = Value(createdAt);
@@ -858,6 +924,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<String>? tags,
     Expression<String>? tagsWithColorJsonString,
     Expression<int>? deletedAt,
+    Expression<int>? customColor,
+    Expression<int>? customIcon,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -875,6 +943,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (tagsWithColorJsonString != null)
         'tags_with_color_json_string': tagsWithColorJsonString,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (customColor != null) 'custom_color': customColor,
+      if (customIcon != null) 'custom_icon': customIcon,
     });
   }
 
@@ -892,7 +962,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
       Value<int>? reminders,
       Value<String>? tags,
       Value<String>? tagsWithColorJsonString,
-      Value<int>? deletedAt}) {
+      Value<int>? deletedAt,
+      Value<int?>? customColor,
+      Value<int?>? customIcon}) {
     return TasksCompanion(
       id: id ?? this.id,
       uuid: uuid ?? this.uuid,
@@ -909,6 +981,8 @@ class TasksCompanion extends UpdateCompanion<Task> {
       tagsWithColorJsonString:
           tagsWithColorJsonString ?? this.tagsWithColorJsonString,
       deletedAt: deletedAt ?? this.deletedAt,
+      customColor: customColor ?? this.customColor,
+      customIcon: customIcon ?? this.customIcon,
     );
   }
 
@@ -958,6 +1032,12 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<int>(deletedAt.value);
     }
+    if (customColor.present) {
+      map['custom_color'] = Variable<int>(customColor.value);
+    }
+    if (customIcon.present) {
+      map['custom_icon'] = Variable<int>(customIcon.value);
+    }
     return map;
   }
 
@@ -977,7 +1057,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('reminders: $reminders, ')
           ..write('tags: $tags, ')
           ..write('tagsWithColorJsonString: $tagsWithColorJsonString, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('customColor: $customColor, ')
+          ..write('customIcon: $customIcon')
           ..write(')'))
         .toString();
   }
@@ -1830,7 +1912,7 @@ class $AppConfigsTable extends AppConfigs
       requiredDuringInsert: false,
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("show_todo_image" IN (0, 1))'),
-      defaultValue: const Constant(false));
+      defaultValue: const Constant(true));
   @override
   List<GeneratedColumn> get $columns => [
         id,

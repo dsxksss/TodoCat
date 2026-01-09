@@ -9,6 +9,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart' hide Value;
 import 'package:todo_cat/widgets/import_conflict_dialog.dart';
+import 'package:crypto/crypto.dart';
 import '../data/database/database.dart';
 import 'webdav_service.dart';
 
@@ -248,6 +249,8 @@ class SyncManager {
                   'finishedAt': t.finishedAt,
                   'progress': t.progress,
                   'deletedAt': t.deletedAt, // 同步回收站数据
+                  'customColor': t.customColor, // 同步自定义颜色
+                  'customIcon': t.customIcon,
                 })
             .toList(),
         'todos': todos
@@ -302,8 +305,17 @@ class SyncManager {
         jsonEncode(exportData),
       );
 
+      // 3.1 Upload History Version
+      final historyDir = 'TodoCat/history/$workspaceUuid';
+      final historyPath = '$historyDir/$syncTime.json';
+      await _webDavService!.recursiveEnsureDirectory(historyDir);
+      await _webDavService!.uploadFile(
+        historyPath,
+        jsonEncode(exportData),
+      );
+
       // 4. Update Manifest and Local Status
-      await _updateManifest(workspace, syncTime);
+      await _updateManifestWithHistory(workspace, syncTime, historyPath);
 
       _lastSyncTimes[workspaceUuid] = syncTime;
       // Sync complete, clear local change flag (by making modification time same as sync time or ensuring syncTime is later)
@@ -321,8 +333,9 @@ class SyncManager {
     }
   }
 
-  /// Updates the remote manifest.json with the given workspace info
-  Future<void> _updateManifest(dynamic workspace, int syncedAt) async {
+  /// Updates the remote manifest.json with the given workspace info and history
+  Future<void> _updateManifestWithHistory(
+      dynamic workspace, int syncedAt, String historyPath) async {
     try {
       final manifestContent =
           await _webDavService!.downloadFile('TodoCat/manifest.json');
@@ -338,13 +351,46 @@ class SyncManager {
         workspaces = List.from(manifest['workspaces']);
       }
 
-      // Update or add current workspace
+      // Find, Update or Add current workspace
       final index = workspaces.indexWhere((w) => w['uuid'] == workspace.uuid);
-      final workspaceInfo = {
-        'uuid': workspace.uuid,
-        'name': workspace.name,
+      Map<String, dynamic> workspaceInfo = {};
+
+      if (index >= 0) {
+        workspaceInfo = Map<String, dynamic>.from(workspaces[index]);
+      } else {
+        workspaceInfo = {'uuid': workspace.uuid};
+      }
+
+      // Update basic info
+      workspaceInfo['name'] = workspace.name;
+      workspaceInfo['syncedAt'] = syncedAt;
+
+      // Handle History
+      List<dynamic> history = [];
+      if (workspaceInfo['history'] is List) {
+        history = List.from(workspaceInfo['history']);
+      }
+
+      // Add new entry to the HEAD
+      history.insert(0, {
         'syncedAt': syncedAt,
-      };
+        'path': historyPath,
+        'version': 1, // Future proofing
+      });
+
+      // Maintain only 5 records
+      List<String> filesToDelete = [];
+      if (history.length > 5) {
+        final removed = history.sublist(5);
+        history = history.sublist(0, 5);
+        for (var item in removed) {
+          if (item is Map && item['path'] != null) {
+            filesToDelete.add(item['path']);
+          }
+        }
+      }
+
+      workspaceInfo['history'] = history;
 
       if (index >= 0) {
         workspaces[index] = workspaceInfo;
@@ -359,20 +405,32 @@ class SyncManager {
         'TodoCat/manifest.json',
         jsonEncode(manifest),
       );
+
+      // Clean up old history files asynchronously
+      for (var path in filesToDelete) {
+        // Don't await strictly or catch errors to avoid failing the sync if cleanup fails
+        _webDavService!.deletePath(path).catchError((e) {
+          _logger.w('Failed to delete old history file $path: $e');
+        });
+      }
     } catch (e) {
       _logger.w('Failed to update manifest: $e');
     }
   }
 
   /// Downloads workspace data and merges/overwrites local
-  Future<void> restoreWorkspace(String workspaceUuid) async {
+  /// If [historyPath] is provided, it restores from that specific history file.
+  Future<void> restoreWorkspace(String workspaceUuid,
+      {String? historyPath, int? historyTimestamp}) async {
     if (_webDavService == null) throw Exception('WebDAV not configured');
 
     try {
-      final jsonStr = await _webDavService!
-          .downloadFile('TodoCat/workspace_$workspaceUuid.json');
+      final downloadPath =
+          historyPath ?? 'TodoCat/workspace_$workspaceUuid.json';
+      final jsonStr = await _webDavService!.downloadFile(downloadPath);
+
       if (jsonStr == null) {
-        throw Exception('Remote workspace file not found');
+        throw Exception('Remote workspace file not found at $downloadPath');
       }
 
       final data = jsonDecode(jsonStr);
@@ -462,11 +520,15 @@ class SyncManager {
             if (conflictAction == ConflictAction.skip) {
               continue;
             } else if (conflictAction == ConflictAction.replace) {
-              // Delete existing task
+              // Rename existing task instead of deleting to prevent data loss
+              // This handles the edge case where Cloud Task A (UUID 1) conflicts with Local Task A (UUID 2)
+              // while Cloud Task B might overwrite Local Task A (UUID 1).
+              // Renaming ensures Local Task A (UUID 2) survives as "Task A (Local)".
               final existingTask = existingTaskMap[title]!;
-              await (db.delete(db.tasks)
+              await (db.update(db.tasks)
                     ..where((tbl) => tbl.uuid.equals(existingTask.uuid)))
-                  .go();
+                  .write(TasksCompanion(
+                      title: Value('${existingTask.title} (Local)')));
             }
           }
 
@@ -491,6 +553,12 @@ class SyncManager {
               finishedAt: Value(t['finishedAt'] ?? 0),
               progress: Value(t['progress'] ?? 0),
               deletedAt: Value(t['deletedAt'] ?? 0), // 恢复回收站数据
+              customColor: t.containsKey('customColor')
+                  ? Value(t['customColor'])
+                  : const Value.absent(), // 恢复自定义颜色，兼容旧数据
+              customIcon: t.containsKey('customIcon')
+                  ? Value(t['customIcon'])
+                  : const Value.absent(), // 恢复自定义图标
             ));
           } else {
             await db.into(db.tasks).insert(TasksCompanion.insert(
@@ -507,6 +575,12 @@ class SyncManager {
                   finishedAt: Value(t['finishedAt'] ?? 0),
                   progress: Value(t['progress'] ?? 0),
                   deletedAt: Value(t['deletedAt'] ?? 0), // 恢复回收站数据
+                  customColor: t.containsKey('customColor')
+                      ? Value(t['customColor'])
+                      : const Value.absent(), // 恢复自定义颜色
+                  customIcon: t.containsKey('customIcon')
+                      ? Value(t['customIcon'])
+                      : const Value.absent(), // 恢复自定义图标
                 ));
           }
         }
@@ -562,30 +636,33 @@ class SyncManager {
       });
 
       // Update Local Status
-      // Update Local Status
-      // Update Local Status
       int syncedAt =
           data['syncedAt'] as int? ?? DateTime.now().millisecondsSinceEpoch;
 
-      // 尝试从 manifest 获取该工作空间的时间戳，以保持与 getSyncStatus 检查的一致性
-      // 解决 "workspace.json 写入时间" 与 "manifest 更新时间" 不一致导致的 "云端有更新" 假象
-      try {
-        final manifestContent =
-            await _webDavService!.downloadFile('TodoCat/manifest.json');
-        if (manifestContent != null) {
-          final manifest = jsonDecode(manifestContent);
-          final workspaces = manifest['workspaces'] as List?;
-          if (workspaces != null) {
-            final remoteWs =
-                workspaces.firstWhereOrNull((w) => w['uuid'] == workspaceUuid);
-            if (remoteWs != null && remoteWs['syncedAt'] is int) {
-              syncedAt = remoteWs['syncedAt'];
+      // If restoring from history, use that timestamp
+      if (historyTimestamp != null) {
+        syncedAt = historyTimestamp;
+      } else {
+        // Normal restore (latest)
+        // 尝试从 manifest 获取该工作空间的时间戳
+        try {
+          final manifestContent =
+              await _webDavService!.downloadFile('TodoCat/manifest.json');
+          if (manifestContent != null) {
+            final manifest = jsonDecode(manifestContent);
+            final workspaces = manifest['workspaces'] as List?;
+            if (workspaces != null) {
+              final remoteWs = workspaces
+                  .firstWhereOrNull((w) => w['uuid'] == workspaceUuid);
+              if (remoteWs != null && remoteWs['syncedAt'] is int) {
+                syncedAt = remoteWs['syncedAt'];
+              }
             }
           }
+        } catch (e) {
+          _logger.w(
+              'Failed to fetch manifest during restore to sync timestamp: $e');
         }
-      } catch (e) {
-        _logger
-            .w('Failed to fetch manifest during restore to sync timestamp: $e');
       }
 
       _lastSyncTimes[workspaceUuid] = syncedAt;
@@ -597,6 +674,33 @@ class SyncManager {
     } catch (e) {
       _logger.e('Restore failed: $e');
       rethrow;
+    }
+  }
+
+  /// Lists history versions for a workspace
+  Future<List<Map<String, dynamic>>> listWorkspaceHistory(
+      String workspaceUuid) async {
+    if (_webDavService == null) return [];
+    try {
+      final manifestContent =
+          await _webDavService!.downloadFile('TodoCat/manifest.json');
+      if (manifestContent == null) return [];
+
+      final manifest = jsonDecode(manifestContent);
+      final workspaces = manifest['workspaces'] as List?;
+      if (workspaces == null) return [];
+
+      final remoteWorkspace =
+          workspaces.firstWhereOrNull((w) => w['uuid'] == workspaceUuid);
+      if (remoteWorkspace == null) return [];
+
+      if (remoteWorkspace['history'] is List) {
+        return List<Map<String, dynamic>>.from(remoteWorkspace['history']);
+      }
+      return [];
+    } catch (e) {
+      _logger.e('Failed to list workspace history: $e');
+      return [];
     }
   }
 
@@ -734,12 +838,22 @@ class SyncManager {
 
           final file = File(localPath);
           if (await file.exists()) {
-            final fileName = p.basename(localPath);
+            final extension = p.extension(localPath);
             // Upload
             try {
               final bytes = await file.readAsBytes();
-              await _webDavService!.uploadFileBytes(
-                  'TodoCat/assets/$workspaceUuid/$fileName', bytes);
+              final hash = md5.convert(bytes).toString();
+              final fileName = '$hash$extension';
+              final remotePath = 'TodoCat/assets/$workspaceUuid/$fileName';
+
+              final exists = await _webDavService!.checkFileExists(remotePath);
+
+              if (!exists) {
+                await _webDavService!.uploadFileBytes(remotePath, bytes);
+              } else {
+                _logger.d(
+                    'Image $fileName already exists on remote, skipping upload');
+              }
 
               // Replace in description
               final relativePath = '$relativePathPrefix$fileName';
@@ -790,23 +904,18 @@ class SyncManager {
                 await localFile.writeAsBytes(bytes);
 
                 // Replace with local path
-                // Windows requires file:///C:/...
-                // Others file:///
                 final localUri = Uri.file(localFile.path).toString();
                 description = description.replaceFirst(relativeUrl, localUri);
               }
             } catch (e) {
-              _logger.e('Failed to restore image $fileName: $e');
+              _logger.e('Failed to download asset $fileName: $e');
             }
           }
         }
-
-        final newTodoMap = Map<String, dynamic>.from(todoMap);
-        newTodoMap['description'] = description;
-        processedList.add(newTodoMap);
-      } else {
-        processedList.add(todoMap);
       }
+      final processedTodo = Map<String, dynamic>.from(todoMap);
+      processedTodo['description'] = description;
+      processedList.add(processedTodo);
     }
     return processedList;
   }

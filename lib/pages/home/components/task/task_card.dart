@@ -19,6 +19,7 @@ import 'package:todo_cat/widgets/select_workspace_dialog.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/widgets/duplicate_name_dialog.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
+import 'package:todo_cat/config/task_icons.dart';
 import 'dart:async';
 
 class TaskCard extends StatefulWidget {
@@ -108,17 +109,30 @@ class _TaskCardState extends State<TaskCard> {
   }
 
   List<dynamic> _getColorAndIcon() {
-    switch (widget._task.status) {
-      case TaskStatus.todo:
-        return [Colors.grey, FontAwesomeIcons.clipboard];
-      case TaskStatus.inProgress:
-        return [Colors.orangeAccent, FontAwesomeIcons.pencil];
-      case TaskStatus.done:
-        return [
-          const Color.fromRGBO(46, 204, 147, 1),
-          FontAwesomeIcons.circleCheck
-        ];
+    // 默认颜色改为灰色，只使用 customColor
+    // 如果是旧数据（customColor 为空），数据库迁移已经处理了填充，或者默认为灰色
+    Color color = widget._task.customColor != null
+        ? Color(widget._task.customColor!)
+        : Colors.grey;
+
+    IconData icon;
+    if (widget._task.customIcon != null) {
+      icon = TaskIcons.getIconByCodePoint(widget._task.customIcon)!;
+    } else {
+      switch (widget._task.status) {
+        case TaskStatus.todo:
+          icon = FontAwesomeIcons.clipboard;
+          break;
+        case TaskStatus.inProgress:
+          icon = FontAwesomeIcons.pencil;
+          break;
+        case TaskStatus.done:
+          icon = FontAwesomeIcons.circleCheck;
+          break;
+      }
     }
+
+    return [color, icon];
   }
 
   @override
@@ -157,9 +171,9 @@ class _TaskCardState extends State<TaskCard> {
                   const SizedBox(
                     width: 10,
                   ),
-                  Icon(
+                  FaIcon(
                     colorAndIcon[1],
-                    size: colorAndIcon[1] == FontAwesomeIcons.pencil ? 18 : 20,
+                    size: 18,
                   ),
                   const SizedBox(
                     width: 10,
