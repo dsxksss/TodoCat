@@ -4,6 +4,7 @@ import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/widgets/template_selector_dialog.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
+import 'package:todo_cat/services/sync_manager.dart';
 
 /// 管理任务数据的类，处理任务的CRUD操作和持久化
 class TaskManager {
@@ -27,7 +28,7 @@ class TaskManager {
       await refresh();
       return;
     }
-    
+
     _logger.d('Initializing TaskManager');
     _repository = await TaskRepository.getInstance();
     _isInitialized = true;
@@ -49,14 +50,15 @@ class TaskManager {
   /// 刷新任务列表的UI并保存到存储（可选的按工作空间过滤）
   Future<void> refresh({String? workspaceId}) async {
     try {
-      _logger.d('Refreshing tasks${workspaceId != null ? " for workspace: $workspaceId" : ""}');
-      
+      _logger.d(
+          'Refreshing tasks${workspaceId != null ? " for workspace: $workspaceId" : ""}');
+
       // 确保 Repository 已初始化（在数据库重置后可能需要重新获取）
       if (_repository == null || !_isInitialized) {
         _repository = await TaskRepository.getInstance();
         _isInitialized = true;
       }
-      
+
       final localTasks = await repository.readAll(workspaceId: workspaceId);
 
       // 去重复处理，确保任务唯一性
@@ -98,12 +100,12 @@ class TaskManager {
       },
     );
   }
-  
+
   /// 应用自定义模板
   Future<void> _applyCustomTemplate(customTemplate) async {
     try {
       _logger.i('应用自定义模板: ${customTemplate.name}');
-      
+
       // 1. 获取当前工作空间ID（在应用模板前获取，避免切换工作空间导致的问题）
       String? workspaceId;
       if (Get.isRegistered<WorkspaceController>()) {
@@ -111,31 +113,32 @@ class TaskManager {
         workspaceId = workspaceCtrl.currentWorkspaceId.value;
       }
       workspaceId ??= 'default';
-      
+
       _logger.d('应用模板到工作空间: $workspaceId');
-      
+
       // 2. 清空内存中的任务列表
       tasks.clear();
       tasks.refresh(); // 立即刷新UI
 
       // 3. 清空当前工作空间的所有任务
       await _clearAllTasks(workspaceId: workspaceId);
-      
+
       // 4. 从自定义模板获取任务列表
       final List<Task> templateTasks = customTemplate.getTasks();
-      _logger.d('Created ${templateTasks.length} template tasks from custom template');
-      
+      _logger.d(
+          'Created ${templateTasks.length} template tasks from custom template');
+
       // 5. 设置所有任务的工作空间ID
       for (var task in templateTasks) {
         task.workspaceId = workspaceId;
       }
-      
+
       // 6. 添加到内存和数据库
       await assignAll(templateTasks);
-      
+
       // 7. 确保UI完全刷新
       tasks.refresh();
-      
+
       _logger.i('自定义模板应用成功, final count: ${tasks.length}');
     } catch (e) {
       _logger.e('应用自定义模板失败: $e');
@@ -155,7 +158,7 @@ class TaskManager {
         workspaceId = workspaceCtrl.currentWorkspaceId.value;
       }
       workspaceId ??= 'default';
-      
+
       _logger.d('应用模板到工作空间: $workspaceId');
 
       // 2. 清空内存中的任务列表
@@ -179,8 +182,9 @@ class TaskManager {
 
       // 7. 确保UI完全刷新
       tasks.refresh();
-      
-      _logger.d('Tasks template reset completed successfully with type: $type, final count: ${tasks.length}');
+
+      _logger.d(
+          'Tasks template reset completed successfully with type: $type, final count: ${tasks.length}');
     } catch (e) {
       _logger.e('Error resetting tasks template: $e');
       throw Exception('Failed to reset tasks template: $e');
@@ -191,26 +195,27 @@ class TaskManager {
   Future<void> _clearAllTasks({String? workspaceId}) async {
     try {
       if (workspaceId != null) {
-        _logger.d('Clearing all tasks from workspace: $workspaceId (permanently)');
+        _logger
+            .d('Clearing all tasks from workspace: $workspaceId (permanently)');
       } else {
         _logger.d('Clearing all tasks from database (permanently)');
       }
 
       // 获取当前工作空间的所有任务
       final tasksToDelete = await repository.readAll(workspaceId: workspaceId);
-      
+
       // 永久删除这些任务
       for (var task in tasksToDelete) {
         await repository.permanentDelete(task.uuid);
       }
 
-      _logger.d('All tasks${workspaceId != null ? " from workspace $workspaceId" : ""} permanently deleted from database');
+      _logger.d(
+          'All tasks${workspaceId != null ? " from workspace $workspaceId" : ""} permanently deleted from database');
     } catch (e) {
       _logger.e('Error clearing all tasks: $e');
       throw Exception('Failed to clear all tasks: $e');
     }
   }
-
 
   /// 重新排序任务
   Future<void> reorderTasks(int oldIndex, int newIndex) async {
@@ -237,6 +242,10 @@ class TaskManager {
       // 刷新 UI
       tasks.refresh();
 
+      if (tasks.isNotEmpty) {
+        await SyncManager().notifyLocalChange(tasks.first.workspaceId);
+      }
+
       _logger.d('Task reorder completed and saved');
     } catch (e) {
       _logger.e('Error reordering tasks: $e');
@@ -253,6 +262,7 @@ class TaskManager {
       tasks.add(task);
       tasks.refresh();
       await repository.write(task.uuid, task);
+      await SyncManager().notifyLocalChange(task.workspaceId);
     }
   }
 
@@ -282,6 +292,7 @@ class TaskManager {
       // 无论task是否在内存中，都要更新数据库
       // 这对于移动task到其他工作空间很重要
       await repository.update(uuid, task);
+      await SyncManager().notifyLocalChange(task.workspaceId);
 
       _logger.d('Task $uuid updated successfully');
     } catch (e) {
@@ -308,6 +319,12 @@ class TaskManager {
       );
 
       _logger.d('All ${newTasks.length} tasks assigned successfully');
+      if (newTasks.isNotEmpty) {
+        // Assume all tasks belong to the same workspace or use the first one as representative for now
+        // Ideally we should track which workspaces were modified
+        final workspaceId = newTasks.first.workspaceId;
+        await SyncManager().notifyLocalChange(workspaceId);
+      }
     } catch (e) {
       _logger.e('Error assigning tasks: $e');
       throw Exception('Failed to assign tasks: $e');

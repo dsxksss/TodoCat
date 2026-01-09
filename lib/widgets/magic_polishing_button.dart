@@ -241,18 +241,22 @@ class _PolishingResultPopupState extends State<_PolishingResultPopup> {
                           ),
                         ),
 
-                        // Content
                         Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.polishedText,
-                                style:
-                                    const TextStyle(height: 1.5, fontSize: 14),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 300),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.polishedText,
+                                    style: const TextStyle(
+                                        height: 1.5, fontSize: 14),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
 

@@ -426,6 +426,8 @@ const Map<String, String> zhCN = {
   'syncKeyHint': '粘贴同步密钥以导入工作空间',
   'import': '导入',
   'copy': '复制',
+  'duplicate': '创建副本',
+  'todoDuplicated': '已创建副本',
   'syncActions': '同步操作',
   'syncToCloud': '上传到云端',
   'restoreFromCloud': '从云端下载',

@@ -15,6 +15,8 @@ import 'package:todo_cat/controllers/mixins/task_state_mixin.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/widgets/duplicate_name_dialog.dart';
 import 'package:todo_cat/data/schemas/tag_with_color.dart';
+import 'package:uuid/uuid.dart';
+import 'package:todo_cat/services/sync_manager.dart';
 
 class HomeController extends GetxController
     with ScrollControllerMixin, TaskStateMixin {
@@ -194,6 +196,62 @@ class HomeController extends GetxController
     }
   }
 
+  /// 复制Todo（创建副本）
+  /// [taskUuid] 任务的UUID
+  /// [todoUuid] 要复制的Todo的UUID
+  Future<bool> duplicateTodo(String taskUuid, String todoUuid) async {
+    try {
+      // 检查任务是否存在
+      final task = allTasks.firstWhereOrNull((t) => t.uuid == taskUuid);
+      if (task == null) {
+        _logger.e('Duplicate failed: Task not found');
+        return false;
+      }
+
+      // 检查Todo是否存在
+      final originalTodo =
+          task.todos?.firstWhereOrNull((t) => t.uuid == todoUuid);
+      if (originalTodo == null) {
+        _logger.e('Duplicate failed: Todo not found');
+        return false;
+      }
+
+      // 创建副本
+      final newTodo = Todo()
+        ..uuid = const Uuid().v4()
+        ..title = originalTodo.title
+        ..description = originalTodo.description
+        ..status = TodoStatus.todo // 重置状态为待办
+        ..priority = originalTodo.priority
+        ..createdAt = DateTime.now().millisecondsSinceEpoch
+        ..dueDate = originalTodo.dueDate
+        ..tags = List.from(originalTodo.tags)
+        ..tagsWithColorJsonString = originalTodo.tagsWithColorJsonString
+        ..finishedAt = 0 // 重置完成时间
+        ..reminders = originalTodo.reminders
+        ..progress = 0 // 重置进度
+        ..images = List.from(originalTodo.images)
+        ..deletedAt = 0;
+
+      // 添加新Todo (复用addTodo逻辑)
+      // 注意：addTodo内部会更新task.todos并调用repository.update
+      final success = await addTodo(newTodo, taskUuid);
+
+      if (success) {
+        // 显示成功提示
+        showToast(
+          "todoDuplicated".tr,
+          toastStyleType: TodoCatToastStyleType.success,
+        );
+      }
+
+      return success;
+    } catch (e) {
+      _logger.e('Error duplicating todo: $e');
+      return false;
+    }
+  }
+
   Future<void> addTask(Task task) async {
     // 设置工作空间ID
     if (Get.isRegistered<WorkspaceController>()) {
@@ -219,6 +277,7 @@ class HomeController extends GetxController
 
       // 使用repository.delete标记task和所有todos为已删除
       await _taskManager.repository.delete(uuid);
+      await SyncManager().notifyLocalChange(task.workspaceId);
 
       // 从内存中移除（因为已标记为删除，readAll不会读取）
       _taskManager.tasks.removeAt(taskIndex);
@@ -261,6 +320,7 @@ class HomeController extends GetxController
 
       // 保存到数据库
       await _taskManager.repository.update(uuid, task);
+      await SyncManager().notifyLocalChange(task.workspaceId);
 
       // 重新加载所有任务（包括恢复的task）
       await _taskManager.refresh();
@@ -566,6 +626,7 @@ class HomeController extends GetxController
 
       // 关键：先保存到数据库
       await _taskManager.repository.update(taskUuid, task);
+      await SyncManager().notifyLocalChange(task.workspaceId);
 
       // 然后触发内存更新（创建新对象，确保引用变化）
       final updatedTask = Task()
@@ -646,6 +707,7 @@ class HomeController extends GetxController
 
       // 保存到数据库
       await _taskManager.repository.update(taskUuid, task);
+      await SyncManager().notifyLocalChange(task.workspaceId);
 
       // 触发内存更新
       final updatedTask = Task()

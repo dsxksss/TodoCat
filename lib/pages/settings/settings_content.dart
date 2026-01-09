@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+
 import 'package:get/get.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:window_manager/window_manager.dart';
@@ -435,24 +435,13 @@ class SettingsContent extends GetView<SettingsController> {
 
   /// 显示数据导入导出对话框
   void _showDataImportExportDialog() {
-    SmartDialog.show(
+    PlatformDialogWrapper.show(
       tag: 'data_import_export_dialog',
-      alignment: Alignment.center,
-      maskColor: Colors.black.withValues(alpha: 0.3),
+      content: const DataImportExportDialog(),
+      width: 400,
+      height: 300, // 适应内容高度
       clickMaskDismiss: true,
-      useAnimation: true,
-      animationTime: const Duration(milliseconds: 200),
-      builder: (_) => const DataImportExportDialog(),
-      animationBuilder: (controller, child, _) {
-        return child
-            .animate(controller: controller)
-            .fade(duration: controller.duration)
-            .scaleXY(
-              begin: 0.95,
-              duration: controller.duration,
-              curve: Curves.easeOut,
-            );
-      },
+      useFixedSize: false, // 让内容自适应大小
     );
   }
 

@@ -215,16 +215,20 @@ class TodoCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Flexible(
+                      Expanded(
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              FontAwesomeIcons.solidCircle,
-                              size: 11,
-                              color: _getPriorityColor(),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Icon(
+                                FontAwesomeIcons.solidCircle,
+                                size: 11,
+                                color: _getPriorityColor(),
+                              ),
                             ),
                             const SizedBox(width: 5),
-                            Flexible(
+                            Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.only(bottom: 1.0),
                                 child: Tooltip(
@@ -267,6 +271,13 @@ class TodoCard extends StatelessWidget {
                                       useFixedSize:
                                           false, // TodoDialog 需要动态调整宽度以支持预览窗口
                                     );
+                                  },
+                                ),
+                                MenuItem(
+                                  title: 'copy',
+                                  iconData: FontAwesomeIcons.copy,
+                                  callback: () {
+                                    _homeCtrl.duplicateTodo(taskId, todo.uuid);
                                   },
                                 ),
                                 MenuItem(

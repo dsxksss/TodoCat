@@ -26,6 +26,7 @@ class SyncManager {
   bool get isConfigured => _webDavService != null;
 
   Map<String, int> _lastSyncTimes = {};
+  Map<String, int> _lastLocalChangeTimes = {};
 
   Future<void> init() async {
     await loadConfig();
@@ -42,6 +43,10 @@ class SyncManager {
         if (json['lastSyncTimes'] != null) {
           _lastSyncTimes = Map<String, int>.from(json['lastSyncTimes']);
         }
+        if (json['lastLocalChangeTimes'] != null) {
+          _lastLocalChangeTimes =
+              Map<String, int>.from(json['lastLocalChangeTimes']);
+        }
       }
     } catch (e) {
       _logger.e('Failed to load sync status: $e');
@@ -54,6 +59,7 @@ class SyncManager {
       final file = File(p.join(directory.path, 'sync_status.json'));
       final data = {
         'lastSyncTimes': _lastSyncTimes,
+        'lastLocalChangeTimes': _lastLocalChangeTimes,
       };
       await file.writeAsString(jsonEncode(data));
     } catch (e) {
@@ -69,6 +75,7 @@ class SyncManager {
         await file.delete();
       }
       _lastSyncTimes.clear();
+      _lastLocalChangeTimes.clear();
       _logger.i('Sync status cleared');
     } catch (e) {
       _logger.e('Failed to clear sync status: $e');
@@ -77,6 +84,74 @@ class SyncManager {
 
   int? getLastSyncTime(String workspaceUuid) {
     return _lastSyncTimes[workspaceUuid];
+  }
+
+  /// 获取工作空间的同步状态
+  /// 返回状态: 'synced', 'notSynced', 'localChanges', 'remoteUpdate', 'unknown'
+  Future<String> getSyncStatus(String workspaceUuid) async {
+    // 重新加载同步状态以获取最新的本地更改时间
+    await loadSyncStatus();
+
+    final localSyncTime = _lastSyncTimes[workspaceUuid] ?? 0;
+    final localChangeTime = _lastLocalChangeTimes[workspaceUuid] ?? 0;
+
+    // 检查是否有本地更改 (本地更改时间 > 上次同步时间)
+    final hasLocalChanges = localChangeTime > localSyncTime;
+
+    if (_webDavService == null) {
+      return hasLocalChanges ? 'localChanges' : 'notSynced';
+    }
+
+    try {
+      // 检查云端版本
+      final manifestContent =
+          await _webDavService!.downloadFile('TodoCat/manifest.json');
+
+      if (manifestContent == null) {
+        // 云端没有manifest，如果有本地数据则视为本地更改
+        return hasLocalChanges ? 'localChanges' : 'synced'; // 或者 'notSynced'
+      }
+
+      final manifest = jsonDecode(manifestContent);
+      final workspaces = manifest['workspaces'] as List?;
+      if (workspaces == null)
+        return hasLocalChanges ? 'localChanges' : 'synced';
+
+      final remoteWorkspace =
+          workspaces.firstWhereOrNull((w) => w['uuid'] == workspaceUuid);
+
+      // 云端不存在此工作空间
+      if (remoteWorkspace == null) {
+        return hasLocalChanges ? 'localChanges' : 'synced';
+      }
+
+      final remoteTime = remoteWorkspace['syncedAt'] as int?;
+      if (remoteTime == null)
+        return hasLocalChanges ? 'localChanges' : 'synced';
+
+      final hasRemoteUpdate = remoteTime > localSyncTime;
+
+      if (hasRemoteUpdate && hasLocalChanges) {
+        return 'conflict'; // 既有云端更新又有本地更改
+      } else if (hasRemoteUpdate) {
+        return 'remoteUpdate';
+      } else if (hasLocalChanges) {
+        return 'localChanges';
+      } else {
+        return 'synced';
+      }
+    } catch (e) {
+      _logger.e('Failed to get sync status: $e');
+      return 'unknown';
+    }
+  }
+
+  /// 标记工作空间有本地更改
+  Future<void> notifyLocalChange(String workspaceUuid) async {
+    _lastLocalChangeTimes[workspaceUuid] =
+        DateTime.now().millisecondsSinceEpoch;
+    await saveSyncStatus();
+    _logger.d('Marked workspace $workspaceUuid as locally modified');
   }
 
   Future<void> saveConfig(WebDavConfig config) async {
@@ -146,10 +221,13 @@ class SyncManager {
             ..where((tbl) => tbl.taskUuid.isIn(taskUuids)))
           .get();
 
+      // 1.5 Prepare Timestamp
+      final syncTime = DateTime.now().millisecondsSinceEpoch;
+
       // 2. Prepare JSON
       final exportData = {
         'version': 1,
-        'syncedAt': DateTime.now().millisecondsSinceEpoch,
+        'syncedAt': syncTime,
         'workspace': {
           'uuid': workspace.uuid,
           'name': workspace.name,
@@ -225,10 +303,15 @@ class SyncManager {
       );
 
       // 4. Update Manifest and Local Status
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await _updateManifest(workspace, now);
+      await _updateManifest(workspace, syncTime);
 
-      _lastSyncTimes[workspaceUuid] = now;
+      _lastSyncTimes[workspaceUuid] = syncTime;
+      // Sync complete, clear local change flag (by making modification time same as sync time or ensuring syncTime is later)
+      // Actually strictly speaking, modification time should be <= syncTime if we just synced everything.
+      // We don't delete the key, just ensure logic handles it.
+      // But clearing it is safer to avoid confusion if clocks drift slightly.
+      // Or set it to syncTime.
+      _lastLocalChangeTimes[workspaceUuid] = syncTime;
       await saveSyncStatus();
 
       _logger.i('Workspace $workspaceUuid synced successfully');
@@ -480,9 +563,34 @@ class SyncManager {
 
       // Update Local Status
       // Update Local Status
-      final syncedAt =
+      // Update Local Status
+      int syncedAt =
           data['syncedAt'] as int? ?? DateTime.now().millisecondsSinceEpoch;
+
+      // 尝试从 manifest 获取该工作空间的时间戳，以保持与 getSyncStatus 检查的一致性
+      // 解决 "workspace.json 写入时间" 与 "manifest 更新时间" 不一致导致的 "云端有更新" 假象
+      try {
+        final manifestContent =
+            await _webDavService!.downloadFile('TodoCat/manifest.json');
+        if (manifestContent != null) {
+          final manifest = jsonDecode(manifestContent);
+          final workspaces = manifest['workspaces'] as List?;
+          if (workspaces != null) {
+            final remoteWs =
+                workspaces.firstWhereOrNull((w) => w['uuid'] == workspaceUuid);
+            if (remoteWs != null && remoteWs['syncedAt'] is int) {
+              syncedAt = remoteWs['syncedAt'];
+            }
+          }
+        }
+      } catch (e) {
+        _logger
+            .w('Failed to fetch manifest during restore to sync timestamp: $e');
+      }
+
       _lastSyncTimes[workspaceUuid] = syncedAt;
+      _lastLocalChangeTimes[workspaceUuid] =
+          syncedAt; // Restore implies local matches remote
       await saveSyncStatus();
 
       _logger.i('Workspace restored successfully');
@@ -558,6 +666,10 @@ class SyncManager {
   Future<bool> checkRemoteUpdate(String workspaceUuid) async {
     if (_webDavService == null) return false;
     try {
+      // 重新加载同步状态，确保使用最新的本地同步时间
+      // 这对于刚导入或恢复的工作空间很重要
+      await loadSyncStatus();
+
       final manifestContent =
           await _webDavService!.downloadFile('TodoCat/manifest.json');
       if (manifestContent == null) return false;

@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_cat/controllers/data_export_import_ctr.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/dialog_header.dart';
 
 /// 数据导入导出选择对话框
 class DataImportExportDialog extends StatelessWidget {
@@ -14,52 +14,50 @@ class DataImportExportDialog extends StatelessWidget {
     final dataController = Get.find<DataExportImportController>();
 
     return Container(
-      width: context.isPhone ? 0.9.sw : 400,
+      width: context.isPhone ? 1.sw : 400,
       decoration: BoxDecoration(
         color: context.theme.dialogTheme.backgroundColor,
-        border: Border.all(width: 0.3, color: context.theme.dividerColor),
-        borderRadius: BorderRadius.circular(12),
+        border: context.isPhone
+            ? null
+            : Border.all(width: 0.3, color: context.theme.dividerColor),
+        borderRadius: context.isPhone
+            ? const BorderRadius.vertical(top: Radius.circular(20))
+            : BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 标题
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          DialogHeader(
+            titleWidget: Row(
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.import_export,
-                      size: 20,
-                      color: context.theme.iconTheme.color,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'dataManagement'.tr,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Icon(
+                  Icons.import_export,
+                  size: 20,
+                  color: context.theme.iconTheme.color,
                 ),
-                LabelBtn(
-                  label: Icon(
-                    Icons.close,
-                    size: 20,
-                    color: context.theme.iconTheme.color,
+                const SizedBox(width: 8),
+                Text(
+                  'dataManagement'.tr,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  onPressed: () =>
-                      SmartDialog.dismiss(tag: 'data_import_export_dialog'),
-                  padding: EdgeInsets.zero,
-                  ghostStyle: true,
                 ),
               ],
             ),
+            onCancel: () =>
+                SmartDialog.dismiss(tag: 'data_import_export_dialog'),
+            showConfirm: false,
+            cancelText: 'close'.tr, // 可以使用 'close'.tr 或保持默认 'cancel'.tr
           ),
           // 内容
           Padding(
@@ -130,9 +128,7 @@ class DataImportExportDialog extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color: isLoading
-                  ? Colors.grey
-                  : context.theme.iconTheme.color,
+              color: isLoading ? Colors.grey : context.theme.iconTheme.color,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -179,4 +175,3 @@ class DataImportExportDialog extends StatelessWidget {
     );
   }
 }
-

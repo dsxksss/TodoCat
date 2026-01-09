@@ -451,6 +451,8 @@ const Map<String, String> enUS = {
   'syncKeyHint': 'Paste Sync Key to import workspace',
   'import': 'Import',
   'copy': 'Copy',
+  'duplicate': 'Duplicate',
+  'todoDuplicated': 'Todo duplicated',
   'syncActions': 'Sync Actions',
   'syncToCloud': 'Upload to Cloud',
   'restoreFromCloud': 'Download from Cloud',

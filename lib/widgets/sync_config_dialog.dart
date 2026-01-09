@@ -280,15 +280,19 @@ ${'shareContentKey'.tr}: $base64Key''';
       }
 
       final workspaceCtrl = Get.find<WorkspaceController>();
-      // Switch if it matches current (refresh data) or newly added
+
+      // 导入成功后自动切换到该工作空间
       if (Get.isRegistered<HomeController>()) {
-        // If we are currently on this workspace, refresh.
-        // If it's a new workspace, the user might want to switch to it?
-        // For now, if current ID matches, refresh data.
-        if (workspaceCtrl.currentWorkspaceId.value == uuid) {
-          await Get.find<HomeController>()
-              .refreshData(showEmptyPrompt: false, clearBeforeRefresh: true);
-        }
+        final homeCtrl = Get.find<HomeController>();
+
+        // 切换到新导入的工作空间
+        await workspaceCtrl.switchWorkspace(uuid);
+
+        // 刷新数据以显示新工作空间的内容
+        await homeCtrl.refreshData(
+          showEmptyPrompt: false,
+          clearBeforeRefresh: true,
+        );
       }
 
       showToast('restoreSuccess'.tr,
@@ -310,9 +314,7 @@ ${'shareContentKey'.tr}: $base64Key''';
         // 增加高度适配 Safe Area
         maxHeight: context.isPhone ? 1.sh : 650,
       ),
-      padding: context.isPhone
-          ? EdgeInsets.only(top: MediaQuery.of(context).padding.top + 12)
-          : null,
+      padding: context.isPhone ? const EdgeInsets.only(top: 12) : null,
       decoration: BoxDecoration(
         color: context.theme.dialogTheme.backgroundColor,
         borderRadius: context.isPhone
@@ -639,9 +641,91 @@ ${'shareContentKey'.tr}: $base64Key''';
           const SizedBox(height: 8),
           _buildInfoRow(context, 'workspaceId'.tr, currentWsId),
           const SizedBox(height: 8),
-          _buildInfoRow(context, 'syncStatus'.tr,
-              lastSyncTime != null ? 'synced'.tr : 'notSynced'.tr,
-              valueColor: lastSyncTime != null ? Colors.green : Colors.orange),
+
+          // 异步获取同步状态
+          FutureBuilder<String>(
+            future: SyncManager().getSyncStatus(currentWsId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return _buildInfoRow(
+                  context,
+                  'syncStatus'.tr,
+                  '检查中...',
+                  valueColor: Colors.grey,
+                );
+              }
+
+              final status = snapshot.data ?? 'unknown';
+              String statusText;
+              Color statusColor;
+              IconData statusIcon;
+
+              switch (status) {
+                case 'synced':
+                  statusText = '已同步';
+                  statusColor = Colors.green;
+                  statusIcon = Icons.cloud_done;
+                  break;
+                case 'notSynced':
+                  statusText = '未同步';
+                  statusColor = Colors.orange;
+                  statusIcon = Icons.cloud_off;
+                  break;
+                case 'localChanges':
+                  statusText = '本地有更改';
+                  statusColor = Colors.blue;
+                  statusIcon = Icons.cloud_upload;
+                  break;
+                case 'remoteUpdate':
+                  statusText = '云端有更新';
+                  statusColor = Colors.purple;
+                  statusIcon = Icons.cloud_download;
+                  break;
+                case 'conflict':
+                  statusText = '云端更新 & 本地更改';
+                  statusColor = Colors.red;
+                  statusIcon = Icons.sync_problem;
+                  break;
+                default:
+                  statusText = '未知';
+                  statusColor = Colors.grey;
+                  statusIcon = Icons.help_outline;
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      'syncStatus'.tr,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.theme.textTheme.bodySmall?.color,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(statusIcon, size: 16, color: statusColor),
+                        const SizedBox(width: 6),
+                        Text(
+                          statusText,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+
           if (lastSyncTime != null) ...[
             const SizedBox(height: 8),
             _buildInfoRow(
