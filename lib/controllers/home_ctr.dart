@@ -54,6 +54,9 @@ class HomeController extends GetxController
     await _initializeTasks();
     initScrollController();
     await 1.delay(() => shouldAnimate.value = false);
+
+    // 初始化完成后刷新回收站数据，确保 badge 显示正确
+    _refreshTrash();
   }
 
   Future<void> _initializeTasks() async {
@@ -106,6 +109,9 @@ class HomeController extends GetxController
       if (showEmptyPrompt && _taskManager.tasks.isEmpty) {
         await _showEmptyTaskToast();
       }
+
+      // 刷新回收站数据，确保 badge 显示正确
+      _refreshTrash();
     } catch (e) {
       _logger.e('刷新主页数据失败: $e');
     }

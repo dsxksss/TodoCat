@@ -90,13 +90,51 @@ class _TagEditDialogState extends State<TagEditDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'editTag'.tr, // 需要在翻译文件中添加 editTag
+                  'editTag'.tr,
                   style: FontUtils.getBoldStyle(fontSize: 18),
                 ),
-                LabelBtn(
-                  ghostStyle: true,
-                  label: Text('cancel'.tr),
-                  onPressed: () => SmartDialog.dismiss(tag: 'tag_edit_dialog'),
+                Row(
+                  children: [
+                    LabelBtn(
+                      ghostStyle: true,
+                      label: Text(
+                        'cancel'.tr,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 2,
+                      ),
+                      onPressed: () =>
+                          SmartDialog.dismiss(tag: 'tag_edit_dialog'),
+                    ),
+                    const SizedBox(width: 8),
+                    LabelBtn(
+                      label: Text(
+                        'confirm'.tr,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 2,
+                      ),
+                      onPressed: () {
+                        if (_nameController.text.trim().isEmpty) {
+                          return;
+                        }
+                        widget.onSave(
+                            _nameController.text.trim(), _selectedColor);
+                        SmartDialog.dismiss(tag: 'tag_edit_dialog');
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -192,37 +230,6 @@ class _TagEditDialogState extends State<TagEditDialog> {
                       ),
                     );
                   },
-                ),
-                const SizedBox(height: 24),
-
-                // 保存按钮
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_nameController.text.trim().isEmpty) {
-                        return;
-                      }
-                      widget.onSave(
-                          _nameController.text.trim(), _selectedColor);
-                      SmartDialog.dismiss(tag: 'tag_edit_dialog');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: context.theme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      'save'.tr,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                 ),
               ],
             ),

@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:todo_cat/data/schemas/workspace.dart';
 import 'package:todo_cat/data/services/repositorys/workspace.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/controllers/trash_ctr.dart';
 import 'package:todo_cat/data/database/converters.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -341,6 +342,10 @@ class WorkspaceController extends GetxController {
             await SyncManager().restoreWorkspace(workspaceId);
             if (Get.isRegistered<HomeController>()) {
               await Get.find<HomeController>().refreshData();
+            }
+            // 刷新回收站数据
+            if (Get.isRegistered<TrashController>()) {
+              await Get.find<TrashController>().refresh();
             }
             showSuccessNotification('syncCompleted'.tr);
           } catch (e) {

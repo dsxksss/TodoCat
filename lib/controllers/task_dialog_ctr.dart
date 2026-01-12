@@ -42,32 +42,51 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
   }
 
   void initForEditing(Task task) {
+    // 从 HomeController 的响应式列表中获取最新的 task 数据
+    Task latestTask = task;
+    try {
+      final foundTask = homeController.reactiveTasks.firstWhereOrNull(
+        (t) => t.uuid == task.uuid,
+      );
+      if (foundTask != null) {
+        latestTask = foundTask;
+      }
+    } catch (e) {
+      // 如果获取失败，使用传入的 task
+    }
+
     // 设置表单数据
-    titleController.text = task.title;
+    titleController.text = latestTask.title;
     descriptionController.text =
-        task.description.isEmpty ? '' : task.description;
-    selectedCustomColor.value = task.customColor;
-    selectedCustomIcon.value = task.customIcon;
+        latestTask.description.isEmpty ? '' : latestTask.description;
+    selectedCustomColor.value = latestTask.customColor;
+    selectedCustomIcon.value = latestTask.customIcon;
 
     // 优先使用带颜色的标签，如果没有则转换旧格式的标签
-    if (task.tagsWithColor.isNotEmpty) {
-      selectedTags.value = task.tagsWithColor;
+    if (latestTask.tagsWithColor.isNotEmpty) {
+      // 创建深拷贝，避免直接修改原始数据
+      selectedTags.value = latestTask.tagsWithColor
+          .map((tag) => TagWithColor(name: tag.name, color: tag.color))
+          .toList();
     } else {
       // 兼容旧格式：转换字符串标签为带颜色的标签
       selectedTags.value =
-          task.tags.map((tag) => TagWithColor.fromString(tag)).toList();
+          latestTask.tags.map((tag) => TagWithColor.fromString(tag)).toList();
     }
 
     // 使用编辑状态管理
     final state = {
-      'title': task.title,
-      'description': task.description.isEmpty ? '' : task.description,
-      'tags': List<String>.from(task.tags),
-      'customColor': task.customColor,
-      'customIcon': task.customIcon,
+      'title': latestTask.title,
+      'description':
+          latestTask.description.isEmpty ? '' : latestTask.description,
+      'tags': List<String>.from(latestTask.tags),
+      'tagsWithColor':
+          latestTask.tagsWithColor.map((tag) => tag.toJson()).toList(),
+      'customColor': latestTask.customColor,
+      'customIcon': latestTask.customIcon,
     };
 
-    initEditing(task, state);
+    initEditing(latestTask, state);
   }
 
   @override
@@ -76,9 +95,23 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
         !compareStrings(titleController.text, originalState['title']);
     bool descriptionChanged = !compareStrings(
         descriptionController.text, originalState['description']);
-    bool tagsChanged = !compareListEquality(
-        selectedTags.map((t) => t.name).toList(),
-        originalState['tags'] as List<String>);
+
+    // 比较带颜色的标签
+    bool tagsChanged = false;
+    if (originalState['tagsWithColor'] != null) {
+      final originalTags = (originalState['tagsWithColor'] as List<dynamic>)
+          .map((tag) => TagWithColor.fromJson(tag as Map<String, dynamic>))
+          .toList();
+      tagsChanged = selectedTags.length != originalTags.length ||
+          !selectedTags.every((tag) => originalTags.any((originalTag) =>
+              originalTag.name == tag.name &&
+              originalTag.colorValue == tag.colorValue));
+    } else {
+      // 兼容旧格式
+      tagsChanged = !compareListEquality(
+          selectedTags.map((t) => t.name).toList(),
+          originalState['tags'] as List<String>);
+    }
     bool colorChanged =
         selectedCustomColor.value != originalState['customColor'];
     bool iconChanged = selectedCustomIcon.value != originalState['customIcon'];

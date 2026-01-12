@@ -222,6 +222,13 @@ class SyncManager {
             ..where((tbl) => tbl.taskUuid.isIn(taskUuids)))
           .get();
 
+      // Debug: 统计已删除和未删除的任务/待办数量
+      final deletedTasks = tasks.where((t) => t.deletedAt > 0).length;
+      final deletedTodos = todos.where((t) => t.deletedAt > 0).length;
+      _logger.i('Syncing workspace $workspaceUuid: '
+          '${tasks.length} tasks ($deletedTasks deleted), '
+          '${todos.length} todos ($deletedTodos deleted)');
+
       // 1.5 Prepare Timestamp
       final syncTime = DateTime.now().millisecondsSinceEpoch;
 
@@ -436,6 +443,15 @@ class SyncManager {
       final data = jsonDecode(jsonStr);
       final tasksList = (data['tasks'] as List).cast<Map<String, dynamic>>();
       final todosList = (data['todos'] as List).cast<Map<String, dynamic>>();
+
+      // Debug: 统计已删除和未删除的任务/待办数量
+      final deletedTasks =
+          tasksList.where((t) => (t['deletedAt'] ?? 0) > 0).length;
+      final deletedTodos =
+          todosList.where((t) => (t['deletedAt'] ?? 0) > 0).length;
+      _logger.i('Restoring workspace $workspaceUuid: '
+          '${tasksList.length} tasks ($deletedTasks deleted), '
+          '${todosList.length} todos ($deletedTodos deleted)');
 
       // Metadata from file (if available) or assume from manifest
       final workspaceInfo = data['workspace'];

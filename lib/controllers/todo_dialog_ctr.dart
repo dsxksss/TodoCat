@@ -219,40 +219,64 @@ class AddTodoDialogController extends BaseFormController with EditStateMixin {
   void initForEditing(String taskId, Todo todo) {
     this.taskId = taskId;
 
+    // 从 HomeController 的响应式列表中获取最新的 todo 数据
+    Todo latestTodo = todo;
+    try {
+      final homeCtrl = Get.find<HomeController>();
+      final task = homeCtrl.reactiveTasks.firstWhereOrNull(
+        (task) => task.uuid == taskId,
+      );
+      if (task != null && task.todos != null) {
+        final foundTodo = task.todos!.firstWhereOrNull(
+          (t) => t.uuid == todo.uuid,
+        );
+        if (foundTodo != null) {
+          latestTodo = foundTodo;
+        }
+      }
+    } catch (e) {
+      // 如果获取失败，使用传入的 todo
+    }
+
     // 设置表单数据
-    titleController.text = todo.title;
-    descriptionController.text = todo.description;
+    titleController.text = latestTodo.title;
+    descriptionController.text = latestTodo.description;
     // 优先使用带颜色的标签，如果没有则转换旧格式的标签
-    if (todo.tagsWithColor.isNotEmpty) {
-      selectedTags.value = todo.tagsWithColor;
+    if (latestTodo.tagsWithColor.isNotEmpty) {
+      // 创建深拷贝，避免直接修改原始数据
+      selectedTags.value = latestTodo.tagsWithColor
+          .map((tag) => TagWithColor(name: tag.name, color: tag.color))
+          .toList();
     } else {
       // 兼容旧格式：转换字符串标签为带颜色的标签
       selectedTags.value =
-          todo.tags.map((tag) => TagWithColor.fromString(tag)).toList();
+          latestTodo.tags.map((tag) => TagWithColor.fromString(tag)).toList();
     }
-    selectedPriority.value = todo.priority;
-    remindersValue.value = todo.reminders;
-    selectedStatus.value = todo.status;
+    selectedPriority.value = latestTodo.priority;
+    remindersValue.value = latestTodo.reminders;
+    selectedStatus.value = latestTodo.status;
 
-    if (todo.dueDate > 0) {
-      selectedDate.value = DateTime.fromMillisecondsSinceEpoch(todo.dueDate);
+    if (latestTodo.dueDate > 0) {
+      selectedDate.value =
+          DateTime.fromMillisecondsSinceEpoch(latestTodo.dueDate);
     } else {
       selectedDate.value = null;
     }
 
     // 使用编辑状态管理
     final state = {
-      'title': todo.title,
-      'description': todo.description,
-      'tags': List<String>.from(todo.tags),
-      'tagsWithColor': todo.tagsWithColor.map((tag) => tag.toJson()).toList(),
-      'priority': todo.priority,
-      'reminders': todo.reminders,
-      'dueDate': todo.dueDate,
-      'status': todo.status,
+      'title': latestTodo.title,
+      'description': latestTodo.description,
+      'tags': List<String>.from(latestTodo.tags),
+      'tagsWithColor':
+          latestTodo.tagsWithColor.map((tag) => tag.toJson()).toList(),
+      'priority': latestTodo.priority,
+      'reminders': latestTodo.reminders,
+      'dueDate': latestTodo.dueDate,
+      'status': latestTodo.status,
     };
 
-    initEditing(todo, state);
+    initEditing(latestTodo, state);
 
     // 重置脏标记，避免初始化时误判为已修改
     isDirty.value = false;

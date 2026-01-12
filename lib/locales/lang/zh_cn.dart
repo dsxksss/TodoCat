@@ -287,6 +287,11 @@ const Map<String, String> zhCN = {
   'moreItems': '更多项目',
   // 颜色选择器
   'selectTagColor': '选择标签颜色',
+  // 标签编辑
+  'editTag': '编辑标签',
+  'tagName': '标签名称',
+  'enterTagName': '请输入标签名称',
+  'tagColor': '标签颜色',
   // 自动更新
   'checkForUpdates': '检查更新',
   'checkForUpdatesDescription': '检查是否有新版本可用',

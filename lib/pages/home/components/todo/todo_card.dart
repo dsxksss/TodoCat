@@ -709,123 +709,158 @@ class TodoCard extends StatelessWidget {
                       ],
                     );
                   }),
-                  if (todo.tagsWithColor.isNotEmpty)
-                    SizedBox(
-                      height: compact ? 6 : 10,
-                    ),
-                  if (todo.tagsWithColor.isNotEmpty)
-                    SizedBox(
-                      height: 32,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: todo.tagsWithColor
-                                    .take(3)
-                                    .map((tagWithColor) {
-                                  // 限制标签文本长度
-                                  String displayText = tagWithColor.name;
-                                  if (tagWithColor.name.length > 8) {
-                                    displayText =
-                                        '${tagWithColor.name.substring(0, 6)}...';
-                                  }
+                  // 标签部分使用 Obx 包装，从响应式源获取最新数据
+                  Obx(() {
+                    // 从 HomeController 的响应式列表获取最新的 todo 数据
+                    Todo? currentTodo;
+                    try {
+                      final task = _homeCtrl.reactiveTasks.firstWhereOrNull(
+                        (task) => task.uuid == taskId,
+                      );
+                      if (task != null && task.todos != null) {
+                        currentTodo = task.todos!.firstWhereOrNull(
+                          (t) => t.uuid == todo.uuid,
+                        );
+                      }
+                    } catch (e) {
+                      // 如果获取失败，使用原始的 todo
+                    }
+                    final todoToUse = currentTodo ?? todo;
 
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        showTagEditDialog(
-                                          initialName: tagWithColor.name,
-                                          initialColor: tagWithColor.color,
-                                          onSave: (newName, newColor) async {
-                                            try {
-                                              final taskRepository =
-                                                  await TaskRepository
-                                                      .getInstance();
-                                              final task = await taskRepository
-                                                  .readOne(taskId);
-                                              if (task != null &&
-                                                  task.todos != null) {
-                                                final todoToUpdate = task.todos!
-                                                    .firstWhereOrNull((t) =>
-                                                        t.uuid == todo.uuid);
-                                                if (todoToUpdate != null) {
-                                                  final tagIndex = todoToUpdate
-                                                      .tagsWithColor
-                                                      .indexWhere((t) =>
-                                                          t.name ==
-                                                              tagWithColor
-                                                                  .name &&
-                                                          t.colorValue ==
-                                                              tagWithColor
-                                                                  .colorValue);
-                                                  if (tagIndex != -1) {
-                                                    todoToUpdate
-                                                        .tagsWithColor[tagIndex]
-                                                        .name = newName;
-                                                    todoToUpdate
-                                                        .tagsWithColor[tagIndex]
-                                                        .color = newColor;
+                    if (todoToUse.tagsWithColor.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
 
-                                                    // 同时更新 tags 列表（如果存在）以保持兼容性
-                                                    final oldName =
-                                                        tagWithColor.name;
-                                                    final tagStringIndex =
-                                                        todoToUpdate.tags
-                                                            .indexOf(oldName);
-                                                    if (tagStringIndex != -1) {
-                                                      todoToUpdate.tags[
-                                                              tagStringIndex] =
-                                                          newName;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: compact ? 6 : 10),
+                        SizedBox(
+                          height: 32,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const BouncingScrollPhysics(),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: todoToUse.tagsWithColor
+                                        .take(3)
+                                        .map((tagWithColor) {
+                                      // 限制标签文本长度
+                                      String displayText = tagWithColor.name;
+                                      if (tagWithColor.name.length > 8) {
+                                        displayText =
+                                            '${tagWithColor.name.substring(0, 6)}...';
+                                      }
+
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 8),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            showTagEditDialog(
+                                              initialName: tagWithColor.name,
+                                              initialColor: tagWithColor.color,
+                                              onSave:
+                                                  (newName, newColor) async {
+                                                try {
+                                                  final taskRepository =
+                                                      await TaskRepository
+                                                          .getInstance();
+                                                  final task =
+                                                      await taskRepository
+                                                          .readOne(taskId);
+                                                  if (task != null &&
+                                                      task.todos != null) {
+                                                    final todoToUpdate = task
+                                                        .todos!
+                                                        .firstWhereOrNull((t) =>
+                                                            t.uuid ==
+                                                            todo.uuid);
+                                                    if (todoToUpdate != null) {
+                                                      final tagIndex = todoToUpdate
+                                                          .tagsWithColor
+                                                          .indexWhere((t) =>
+                                                              t.name ==
+                                                                  tagWithColor
+                                                                      .name &&
+                                                              t.colorValue ==
+                                                                  tagWithColor
+                                                                      .colorValue);
+                                                      if (tagIndex != -1) {
+                                                        todoToUpdate
+                                                            .tagsWithColor[
+                                                                tagIndex]
+                                                            .name = newName;
+                                                        todoToUpdate
+                                                            .tagsWithColor[
+                                                                tagIndex]
+                                                            .color = newColor;
+
+                                                        // 同时更新 tags 列表（如果存在）以保持兼容性
+                                                        final oldName =
+                                                            tagWithColor.name;
+                                                        final tagStringIndex =
+                                                            todoToUpdate.tags
+                                                                .indexOf(
+                                                                    oldName);
+                                                        if (tagStringIndex !=
+                                                            -1) {
+                                                          todoToUpdate.tags[
+                                                                  tagStringIndex] =
+                                                              newName;
+                                                        }
+
+                                                        await _homeCtrl
+                                                            .updateTask(
+                                                                taskId, task);
+                                                      }
                                                     }
-
-                                                    await _homeCtrl.updateTask(
-                                                        taskId, task);
                                                   }
+                                                } catch (e) {
+                                                  debugPrint(
+                                                      'Error updating tag: $e');
                                                 }
-                                              }
-                                            } catch (e) {
-                                              debugPrint(
-                                                  'Error updating tag: $e');
-                                            }
+                                              },
+                                            );
                                           },
-                                        );
-                                      },
-                                      child: Tag(
-                                        tag: displayText,
-                                        color: tagWithColor.color, // 使用存储的颜色
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ),
-                          if (todo.tagsWithColor.length > 3)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '+${todo.tagsWithColor.length - 3}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey.shade700,
-                                  fontWeight: FontWeight.w600,
+                                          child: Tag(
+                                            tag: displayText,
+                                            color:
+                                                tagWithColor.color, // 使用存储的颜色
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
-                      ),
-                    ),
+                              if (todoToUse.tagsWithColor.length > 3)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    '+${todoToUse.tagsWithColor.length - 3}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey.shade700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
 
                   const SizedBox(height: 12),
                   Row(

@@ -234,7 +234,12 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
                 runSpacing: 8,
                 children: List.generate(
                   widget.selectedTags.length,
-                  (index) => GestureDetector(
+                  (index) => TagDialogBtn(
+                    tag: widget.selectedTags[index].name,
+                    tagColor: widget.selectedTags[index].color,
+                    dialogTag: 'tag_${widget.selectedTags[index].name}',
+                    showDelete: true,
+                    onDelete: () => widget.onDeleteTag(index),
                     onTap: () {
                       showTagEditDialog(
                         initialName: widget.selectedTags[index].name,
@@ -245,20 +250,11 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
                             name: newName,
                             color: newColor,
                           );
+                          // 强制刷新 RxList 以触发 UI 更新
+                          widget.selectedTags.refresh();
                         },
                       );
                     },
-                    child: TagDialogBtn(
-                      tag: widget.selectedTags[index].name,
-                      tagColor: widget.selectedTags[index].color,
-                      dialogTag: 'tag_${widget.selectedTags[index].name}',
-                      showDelete: true,
-                      onDelete: () => widget.onDeleteTag(index),
-                      openDialog: const SizedBox.shrink(),
-                      onDialogClose: () {
-                        // 处理对话框关闭事件
-                      },
-                    ),
                   ),
                 ),
               ),

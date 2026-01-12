@@ -10,6 +10,7 @@ import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/services/sync_manager.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/controllers/trash_ctr.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'dart:io';
 import 'package:todo_cat/data/schemas/workspace.dart';
@@ -256,6 +257,10 @@ ${'shareContentKey'.tr}: $base64Key''';
             await Get.find<HomeController>()
                 .refreshData(showEmptyPrompt: false, clearBeforeRefresh: true);
           }
+          // 刷新回收站数据
+          if (Get.isRegistered<TrashController>()) {
+            await Get.find<TrashController>().refresh();
+          }
 
           showToast('restoreSuccess'.tr,
               toastStyleType: TodoCatToastStyleType.success);
@@ -296,6 +301,11 @@ ${'shareContentKey'.tr}: $base64Key''';
           showEmptyPrompt: false,
           clearBeforeRefresh: true,
         );
+
+        // 刷新回收站数据
+        if (Get.isRegistered<TrashController>()) {
+          await Get.find<TrashController>().refresh();
+        }
       }
 
       showToast('restoreSuccess'.tr,

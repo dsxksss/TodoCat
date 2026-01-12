@@ -306,6 +306,11 @@ const Map<String, String> enUS = {
   'moreItems': 'more items',
   // Color picker
   'selectTagColor': 'Select Tag Color',
+  // Tag editing
+  'editTag': 'Edit Tag',
+  'tagName': 'Tag Name',
+  'enterTagName': 'Enter tag name',
+  'tagColor': 'Tag Color',
   // Auto update
   'checkForUpdates': 'Check for Updates',
   'checkForUpdatesDescription': 'Check if a new version is available',
