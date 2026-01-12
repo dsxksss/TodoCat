@@ -16,6 +16,7 @@ import 'package:todo_cat/data/schemas/workspace.dart';
 import 'package:intl/intl.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 import 'package:todo_cat/widgets/sync_history_dialog.dart';
+import 'package:todo_cat/data/database/database.dart' show AppDatabase;
 
 class SyncConfigDialog extends StatefulWidget {
   const SyncConfigDialog({super.key});
@@ -664,6 +665,24 @@ ${'shareContentKey'.tr}: $base64Key''';
           const SizedBox(height: 8),
           _buildInfoRow(context, 'workspaceId'.tr, currentWsId),
           const SizedBox(height: 8),
+          FutureBuilder<int>(
+            future: () async {
+              final db = await AppDatabase.getInstance();
+              return (db.select(db.tasks)
+                    ..where((t) => t.workspaceId.equals(currentWsId)))
+                  .get()
+                  .then((l) => l.length);
+            }(),
+            builder: (context, snapshot) {
+              final dbCount = snapshot.data ?? -1;
+              final homeCount = Get.isRegistered<HomeController>()
+                  ? Get.find<HomeController>().allTasks.length
+                  : -1;
+              return _buildInfoRow(
+                  context, 'Debug Tasks', 'UI: $homeCount / DB: $dbCount');
+            },
+          ),
+          const SizedBox(height: 8),
 
           // 异步获取同步状态
           FutureBuilder<String>(
@@ -685,32 +704,32 @@ ${'shareContentKey'.tr}: $base64Key''';
 
               switch (status) {
                 case 'synced':
-                  statusText = '已同步';
+                  statusText = 'synced'.tr;
                   statusColor = Colors.green;
                   statusIcon = Icons.cloud_done;
                   break;
                 case 'notSynced':
-                  statusText = '未同步';
+                  statusText = 'notSynced'.tr;
                   statusColor = Colors.orange;
                   statusIcon = Icons.cloud_off;
                   break;
                 case 'localChanges':
-                  statusText = '本地有更改';
+                  statusText = 'statusLocalChanges'.tr;
                   statusColor = Colors.blue;
                   statusIcon = Icons.cloud_upload;
                   break;
                 case 'remoteUpdate':
-                  statusText = '云端有更新';
+                  statusText = 'statusRemoteUpdate'.tr;
                   statusColor = Colors.purple;
                   statusIcon = Icons.cloud_download;
                   break;
                 case 'conflict':
-                  statusText = '云端更新 & 本地更改';
+                  statusText = 'statusConflict'.tr;
                   statusColor = Colors.red;
                   statusIcon = Icons.sync_problem;
                   break;
                 default:
-                  statusText = '未知';
+                  statusText = 'unknown'.tr;
                   statusColor = Colors.grey;
                   statusIcon = Icons.help_outline;
               }

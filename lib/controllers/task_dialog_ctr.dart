@@ -150,10 +150,16 @@ class TaskDialogController extends BaseFormController with EditStateMixin {
       final currentTask = getEditingItem<Task>()!;
       final updatedTask = Task()
         ..uuid = currentTask.uuid
+        ..workspaceId = currentTask.workspaceId // 保留原有 workspaceId
+        ..order = currentTask.order // 保留排序
         ..title = titleController.text
         ..description = descriptionController.text
         ..tagsWithColor = selectedTags.toList()
         ..createdAt = currentTask.createdAt
+        ..status = currentTask.status // 保留状态
+        ..finishedAt = currentTask.finishedAt // 保留完成时间
+        ..progress = currentTask.progress // 保留进度
+        ..deletedAt = currentTask.deletedAt // 保留删除时间戳
         ..todos = currentTask.todos
         ..customColor = selectedCustomColor.value
         ..customIcon = selectedCustomIcon.value;

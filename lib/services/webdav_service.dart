@@ -112,12 +112,18 @@ class WebDavService {
 
   Future<void> uploadFile(String fileName, String content) async {
     try {
+      final bytes = utf8.encode(content);
       await _dio.put(
         fileName,
-        data: content,
-        options: Options(contentType: 'application/json'),
+        data: Stream.fromIterable([bytes]),
+        options: Options(
+          contentType: 'application/json; charset=utf-8',
+          headers: {
+            Headers.contentLengthHeader: bytes.length,
+          },
+        ),
       );
-      _logger.d('Uploaded $fileName');
+      _logger.d('Uploaded $fileName (${bytes.length} bytes)');
     } catch (e) {
       _logger.e('Upload error: $e');
       rethrow;
@@ -147,7 +153,11 @@ class WebDavService {
     try {
       final response = await _dio.get(
         fileName,
-        options: Options(responseType: ResponseType.plain),
+        options: Options(
+          responseType: ResponseType.plain,
+          // Ensure we don't get cached 0-byte responses if that's an issue
+          headers: {'Cache-Control': 'no-cache'},
+        ),
       );
       if (response.statusCode == 200) {
         return response.data as String;
@@ -166,7 +176,10 @@ class WebDavService {
     try {
       final response = await _dio.get(
         fileName,
-        options: Options(responseType: ResponseType.bytes),
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'Cache-Control': 'no-cache'},
+        ),
       );
       if (response.statusCode == 200) {
         return response.data as List<int>;
@@ -235,39 +248,12 @@ class WebDavService {
         final matches = regex.allMatches(xml);
 
         final List<String> files = [];
-        final rootPathEncoded = Uri.encodeFull(config.url + path);
 
         for (final match in matches) {
           var href = match.group(2) ?? '';
           // Decode generic URL encoding
           href = Uri.decodeFull(href);
 
-          // Remove potential server URL prefix if present in href
-          // Many WebDAV servers return full URL or absolute path
-          // We want the relative path or just the filename for logic
-          // But typically we just want to know what's there.
-
-          // Optimization: just return the full hrefs or relative to the search path?
-          // Let's filter out the directory itself.
-
-          // Normalize href for comparison
-          String normalizedHref = href;
-          if (normalizedHref.endsWith('/')) {
-            normalizedHref =
-                normalizedHref.substring(0, normalizedHref.length - 1);
-          }
-          String normalizedPath = path;
-          if (config.url.endsWith(path)) {
-            // If config.url includes the path? No, path is relative to baseUrl usually?
-            // Actually _dio has baseUrl. path arg is relative.
-          }
-
-          // Simple check: if it equals the requested directory, skip
-          if (href.endsWith(path) || href.endsWith('$path/')) {
-            // Check if it really is the root (could be a file with same name prefix?)
-            // Usually the first item is the folder itself.
-            // Let's just collect all and let caller filter.
-          }
           files.add(href);
         }
         return files;

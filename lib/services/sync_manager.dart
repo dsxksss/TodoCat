@@ -236,7 +236,7 @@ class SyncManager {
           'createdAt': workspace.createdAt,
         },
         'tasks': tasks
-            .map((t) => {
+            .map((t) => <String, dynamic>{
                   'uuid': t.uuid,
                   'title': t.title,
                   'workspaceId': t.workspaceId,
@@ -254,7 +254,7 @@ class SyncManager {
                 })
             .toList(),
         'todos': todos
-            .map((t) => {
+            .map((t) => <String, dynamic>{
                   'uuid': t.uuid,
                   'taskUuid': t.taskUuid,
                   'title': t.title,
@@ -281,7 +281,7 @@ class SyncManager {
       final todosWithRelativePaths = await _syncImages(todos, workspaceUuid);
       // Update export data with processed todos (relative paths)
       exportData['todos'] = todosWithRelativePaths
-          .map((t) => {
+          .map((t) => <String, dynamic>{
                 'uuid': t.uuid,
                 'taskUuid': t.taskUuid,
                 'title': t.title,

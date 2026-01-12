@@ -490,4 +490,23 @@ const Map<String, String> enUS = {
       'This will overwrite existing local data. Please confirm you want to restore cloud status.',
   'remoteUpdateAvailable': 'New version detected on cloud, update now?',
   'syncCompleted': 'Sync completed',
+  'statusLocalChanges': 'Local changes',
+  'statusRemoteUpdate': 'Remote update',
+  'statusConflict': 'Conflict',
+  'historyVersions': 'History Versions',
+  'confirmRestoreHistory':
+      'Are you sure you want to restore to this version?\nThis will overwrite current local data.',
+  'noHistoryVersions': 'No history versions',
+  'aiGenerate': 'AI Generate',
+  'aiGenerateDesc':
+      'Enter description, AI will generate a custom task template for you',
+  'aiPlanning': 'AI is planning...',
+  'aiGeneratingTasks': 'Generating tasks and detailed steps',
+  'aiGenerateFailed': 'Generation failed, please try again',
+  'aiGenerateFailedRetry': 'Generation failed: @error\nRetry?',
+  'aiGenerateTemplate': 'AI Generate Template',
+  'aiGenerateHint':
+      'Describe the task list you want, e.g.:\n- "7-day travel plan to Yunnan"\n- "Marathon training plan"\n- "New house decoration process"',
+  'aiGenerateButton': 'Generate Now',
+  'aiPreview': 'AI Generation Preview',
 };

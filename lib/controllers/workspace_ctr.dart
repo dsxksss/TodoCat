@@ -108,25 +108,29 @@ class WorkspaceController extends GetxController {
   }
 
   /// 创建默认工作空间
-  Future<void> createDefaultWorkspace() async {
+  Future<String> createDefaultWorkspace() async {
     try {
       // 确保 Repository 已初始化（在数据库重置后可能需要重新获取）
       if (_repository == null || !_isInitialized) {
         _repository = await WorkspaceRepository.getInstance();
         _isInitialized = true;
       }
+      final uuid = _uuid.v4();
       final workspace = Workspace()
-        ..uuid = 'default'
+        ..uuid = uuid
         ..name = 'defaultWorkspace'.tr
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..order = 0
         ..deletedAt = 0;
 
-      await _repository!.write('default', workspace);
+      await _repository!.write(uuid, workspace);
       workspaces.add(workspace);
-      _logger.d('创建默认工作空间成功');
+      _logger.d('创建默认工作空间成功: $uuid');
+      return uuid;
     } catch (e) {
       _logger.e('创建默认工作空间失败: $e');
+      // Fallback
+      return 'default';
     }
   }
 
@@ -191,16 +195,22 @@ class WorkspaceController extends GetxController {
   /// 删除工作空间（标记为已删除，移到回收站）
   Future<bool> deleteWorkspace(String uuid) async {
     try {
-      // 不能删除默认工作空间
-      if (uuid == 'default') {
-        _logger.w('不能删除默认工作空间');
+      // Cannot delete the last workspace
+      if (workspaces.length <= 1) {
+        _logger.w('不能删除最后一个工作空间');
         return false;
       }
 
-      // 如果删除的是当前工作空间，先切换到默认工作空间（带动画）
+      // Restore legacy check just in case, or remove it.
+      // If we want to allow deleting the "default" workspace if there are others, remove it.
+      // But purely for safety/legacy compatibility, we can keep it if we assume 'default' is special.
+      // However, with new logic, 'default' is just a UUID.
+
+      // 如果删除的是当前工作空间，先切换到其他工作空间（带动画）
       if (uuid == currentWorkspaceId.value) {
-        // 先触发切换动画，切换到默认工作空间
-        await switchWorkspace('default');
+        final nextWorkspace = workspaces.firstWhere((w) => w.uuid != uuid);
+        // 先触发切换动画，切换到其他工作空间
+        await switchWorkspace(nextWorkspace.uuid);
         // 等待动画完成（switchWorkspace 内部已经处理了动画时序）
       }
 

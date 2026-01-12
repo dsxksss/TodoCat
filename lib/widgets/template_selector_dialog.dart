@@ -123,12 +123,12 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                         strokeWidth: 3, color: Colors.blue)),
                 const SizedBox(height: 24),
                 Text(
-                  "AI 正在为你规划...",
+                  'aiPlanning'.tr,
                   style: FontUtils.getMediumStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "正在生成任务清单与详细步骤",
+                  'aiGeneratingTasks'.tr,
                   style: TextStyle(
                       fontSize: 13,
                       color: context.theme.textTheme.bodyMedium?.color
@@ -150,12 +150,12 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       if (template != null) {
         _showCustomTemplatePreview(template);
       } else {
-        SmartDialog.showToast("生成失败，请重试");
+        SmartDialog.showToast('aiGenerateFailed'.tr);
       }
     } catch (e) {
       SmartDialog.dismiss(tag: 'loading_ai');
       showToast(
-        "生成失败: $e\n是否重试？",
+        'aiGenerateFailedRetry'.trParams({'error': e.toString()}),
         confirmMode: true,
         toastStyleType: TodoCatToastStyleType.error,
         onYesCallback: () {
@@ -215,14 +215,14 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "AI 智能生成",
+                    'aiGenerate'.tr,
                     style: FontUtils.getMediumStyle(
                         fontSize: 16,
                         color: context.theme.textTheme.bodyLarge?.color),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "输入描述，AI 帮你生成专属任务模板",
+                    'aiGenerateDesc'.tr,
                     style: FontUtils.getTextStyle(
                         fontSize: 13,
                         color: context.theme.textTheme.bodyMedium?.color
@@ -1648,7 +1648,7 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
                               children: [
                                 Flexible(
                                   child: Text(
-                                    'AI 生成结果预览',
+                                    'aiPreview'.tr,
                                     style: FontUtils.getBoldStyle(fontSize: 18),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1905,9 +1905,9 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                         const Icon(Icons.auto_awesome,
                             color: Colors.blue, size: 16),
                         const SizedBox(width: 8),
-                        const Text(
-                          "AI 智能生成模板",
-                          style: TextStyle(
+                        Text(
+                          'aiGenerateTemplate'.tr,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                             color: Colors.blue,
@@ -1934,8 +1934,7 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                       TextField(
                         controller: _controller,
                         decoration: InputDecoration(
-                          hintText:
-                              "描述你想要的任务列表，例如：\n- '为期7天的云南旅游计划'\n- '准备一场马拉松的训练计划'\n- '新房装修全流程'",
+                          hintText: 'aiGenerateHint'.tr,
                           hintStyle: TextStyle(
                               color: Colors.grey.withValues(alpha: 0.5),
                               fontSize: 13),
@@ -1999,7 +1998,7 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                           ),
                         ),
                         icon: const Icon(Icons.auto_awesome, size: 16),
-                        label: const Text("立即生成"),
+                        label: Text('aiGenerateButton'.tr),
                       ),
                     ],
                   ),

@@ -48,7 +48,7 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
 
   Future<void> _restoreVersion(Map<String, dynamic> version) async {
     showToast(
-      '确定要恢复到此版本吗？\n这将覆盖当前的本地数据。',
+      'confirmRestoreHistory'.tr,
       confirmMode: true,
       onYesCallback: () async {
         SmartDialog.dismiss(tag: 'sync_history_dialog'); // Close history dialog
@@ -110,7 +110,7 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           DialogHeader(
-            title: '历史版本',
+            title: 'historyVersions'.tr,
             onCancel: () => SmartDialog.dismiss(tag: 'sync_history_dialog'),
             showConfirm: false,
           ),
@@ -122,7 +122,7 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Text(
-                            '暂无历史版本',
+                            'noHistoryVersions'.tr,
                             style: TextStyle(color: context.theme.hintColor),
                           ),
                         ),
@@ -155,8 +155,8 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
                                     horizontal: 12, vertical: 0),
                                 minimumSize: const Size(60, 32),
                               ),
-                              child: const Text('恢复',
-                                  style: TextStyle(fontSize: 12)),
+                              child: Text('restore'.tr,
+                                  style: const TextStyle(fontSize: 12)),
                             ),
                           );
                         },
