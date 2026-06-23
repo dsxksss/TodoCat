@@ -72,8 +72,6 @@ dependencies:
   package_info_plus: ^8.1.2
   # 加密库（用于文件哈希验证）
   crypto: ^3.0.5
-  # 看板拖拽组件
-  appflowy_board: 0.1.2
   # markdown 渲染库
   flutter_markdown: ^0.7.4
   # 网络图片缓存库

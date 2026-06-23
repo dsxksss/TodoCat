@@ -26,7 +26,7 @@ import 'dart:ui';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/config/default_backgrounds.dart';
-import 'package:todo_cat/widgets/appflowy_board_adapter.dart';
+import 'package:todo_cat/widgets/kanban_board.dart';
 import 'package:todo_cat/controllers/trash_ctr.dart';
 import 'package:todo_cat/widgets/trash_dialog.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
@@ -1098,8 +1098,8 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
             const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
         child: Align(
           alignment: Alignment.topLeft, // 使用 start-start 对齐（左上角）
-          // 使用 AppFlowyBoard 的拖拽逻辑，保持原 Task/Todo UI
-          child: AppFlowyTodosBoard(
+          // 自研看板：列内独立滚动 + 拖拽重排/跨列移动
+          child: KanbanBoard(
             tasks: widget.tasks,
             listWidth: 270.0,
           ),
@@ -1550,7 +1550,7 @@ class _AppFlowyBoardWithSnap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppFlowyTodosBoard(
+    return KanbanBoard(
       tasks: tasks,
       listWidth: listWidth,
       scrollController: scrollController,
