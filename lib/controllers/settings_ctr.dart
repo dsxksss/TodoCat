@@ -288,9 +288,12 @@ class SettingsController extends _$SettingsController {
 
   // 以下为开机自启动相关逻辑（桌面端）
   Future<void> _refreshLaunchAtStartupState() async {
+    // 注意：必须先 await 再读 state——若在 build() 返回初始 state 之前同步读取
+    // state（如 `state.copyWith(... await ...)` 中 state 作为接收者会先被求值），
+    // 会抛 "Tried to read the state of an uninitialized provider"。
     try {
-      state = state.copyWith(
-          launchAtStartupEnabled: await launchAtStartup.isEnabled());
+      final enabled = await launchAtStartup.isEnabled();
+      state = state.copyWith(launchAtStartupEnabled: enabled);
     } catch (_) {
       state = state.copyWith(launchAtStartupEnabled: false);
     }
