@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/dropdown_menu_btn.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 菜单项类，包含标题、图标和回调函数
 class MenuItem {
   String title;
@@ -129,10 +130,10 @@ class DPDMenuContent extends StatelessWidget {
                 size: 18,
               ),
         title: Tooltip(
-          message: item.title.tr, // hover时显示完整内容
+          message: dynTr(item.title), // hover时显示完整内容
           waitDuration: const Duration(milliseconds: 500), // hover延迟时间
           child: Text(
-            item.title.tr,
+            dynTr(item.title),
             style: TextStyle(
               color: isDisabled ? Colors.grey : textColor,
               fontSize: 14.5,

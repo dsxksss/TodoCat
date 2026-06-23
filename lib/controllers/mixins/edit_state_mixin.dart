@@ -1,23 +1,24 @@
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
-/// 编辑状态管理Mixin
-/// 提供通用的编辑状态管理功能
-mixin EditStateMixin on GetxController {
+/// 编辑状态管理 Mixin（Riverpod 版）。
+///
+/// 原 `mixin EditStateMixin on GetxController` 去掉了 `on GetxController` 约束，
+/// 现在是一个纯 Dart mixin，供各表单 Notifier 复用。
+/// `isEditing` 不再是 `RxBool`，改为各表单 state 对象里的普通 `bool`，
+/// 这里只保留 “编辑原始态 / 变更比较 / 恢复” 等与 UI 无关的纯逻辑。
+mixin EditStateMixin {
   static final _logger = Logger();
 
-  final isEditing = false.obs;
   Map<String, dynamic>? _originalState;
   dynamic _editingItem;
 
   /// 获取当前编辑的项目
   T? getEditingItem<T>() => _editingItem as T?;
 
-  /// 初始化编辑模式
+  /// 初始化编辑模式（仅记录原始态与被编辑对象，编辑标记由 state 持有）
   void initEditing<T>(T item, Map<String, dynamic> state) {
     _editingItem = item;
-    isEditing.value = true;
     _originalState = Map<String, dynamic>.from(state);
     _logger.d('Editing initialized for ${T.toString()}: $_originalState');
     onEditingInitialized(item, state);
@@ -26,7 +27,6 @@ mixin EditStateMixin on GetxController {
   /// 退出编辑模式
   void exitEditing() {
     _editingItem = null;
-    isEditing.value = false;
     _originalState = null;
     _logger.d('Editing mode exited');
     onEditingExited();
@@ -34,13 +34,13 @@ mixin EditStateMixin on GetxController {
 
   /// 检查是否有变更
   bool hasUnsavedChanges() {
-    if (!isEditing.value || _originalState == null) return false;
+    if (_originalState == null) return false;
     return checkForChanges(_originalState!);
   }
 
   /// 恢复到原始状态
   void revertChanges() {
-    if (!isEditing.value || _originalState == null) return;
+    if (_originalState == null) return;
     _logger.d('Reverting changes to original state');
     restoreToOriginalState(_originalState!);
   }

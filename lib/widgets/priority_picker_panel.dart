@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
-class PriorityPickerPanel extends StatelessWidget {
-  PriorityPickerPanel({
+import 'package:todo_cat/core/utils/l10n.dart';
+
+class PriorityPickerPanel extends ConsumerStatefulWidget {
+  const PriorityPickerPanel({
     super.key,
     required this.onPrioritySelected,
     this.initialPriority = TodoPriority.lowLevel,
@@ -13,12 +16,23 @@ class PriorityPickerPanel extends StatelessWidget {
 
   final Function(TodoPriority) onPrioritySelected;
   final TodoPriority initialPriority;
-  final selectedPriority = TodoPriority.lowLevel.obs;
+
+  @override
+  ConsumerState<PriorityPickerPanel> createState() =>
+      _PriorityPickerPanelState();
+}
+
+class _PriorityPickerPanelState extends ConsumerState<PriorityPickerPanel> {
+  late TodoPriority _selectedPriority;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPriority = widget.initialPriority;
+  }
 
   @override
   Widget build(BuildContext context) {
-    selectedPriority.value = initialPriority;
-    
     return Container(
       width: 280,
       decoration: BoxDecoration(
@@ -43,7 +57,7 @@ class PriorityPickerPanel extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "priority".tr,
+                  l10n.priority,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -54,7 +68,7 @@ class PriorityPickerPanel extends StatelessWidget {
                     LabelBtn(
                       ghostStyle: true,
                       label: Text(
-                        "cancel".tr,
+                        l10n.cancel,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -69,7 +83,7 @@ class PriorityPickerPanel extends StatelessWidget {
                     const SizedBox(width: 8),
                     LabelBtn(
                       label: Text(
-                        "confirm".tr,
+                        l10n.confirm,
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -81,7 +95,7 @@ class PriorityPickerPanel extends StatelessWidget {
                         vertical: 2,
                       ),
                       onPressed: () {
-                        onPrioritySelected(selectedPriority.value);
+                        widget.onPrioritySelected(_selectedPriority);
                         SmartDialog.dismiss();
                       },
                     ),
@@ -97,7 +111,7 @@ class PriorityPickerPanel extends StatelessWidget {
                 _buildPriorityOption(
                   context,
                   TodoPriority.lowLevel,
-                  "lowPriority".tr,
+                  l10n.lowPriority,
                   Colors.green,
                   Icons.flag_outlined,
                 ),
@@ -105,7 +119,7 @@ class PriorityPickerPanel extends StatelessWidget {
                 _buildPriorityOption(
                   context,
                   TodoPriority.mediumLevel,
-                  "mediumPriority".tr,
+                  l10n.mediumPriority,
                   Colors.orange,
                   Icons.flag_outlined,
                 ),
@@ -113,7 +127,7 @@ class PriorityPickerPanel extends StatelessWidget {
                 _buildPriorityOption(
                   context,
                   TodoPriority.highLevel,
-                  "highPriority".tr,
+                  l10n.highPriority,
                   Colors.red,
                   Icons.flag,
                 ),
@@ -132,52 +146,47 @@ class PriorityPickerPanel extends StatelessWidget {
     Color color,
     IconData icon,
   ) {
-    return Obx(() => GestureDetector(
-          onTap: () => selectedPriority.value = priority,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: selectedPriority.value == priority
-                  ? color.withValues(alpha:0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: selectedPriority.value == priority
+    final isSelected = _selectedPriority == priority;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedPriority = priority),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? color : context.theme.dividerColor,
+            width: isSelected ? 1.5 : 0.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected
                     ? color
-                    : context.theme.dividerColor,
-                width: selectedPriority.value == priority ? 1.5 : 0.5,
+                    : context.theme.textTheme.bodyLarge?.color,
               ),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: color,
-                  size: 18,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: selectedPriority.value == priority
-                        ? FontWeight.w600
-                        : FontWeight.w400,
-                    color: selectedPriority.value == priority
-                        ? color
-                        : context.theme.textTheme.bodyLarge?.color,
-                  ),
-                ),
-                const Spacer(),
-                if (selectedPriority.value == priority)
-                  Icon(
-                    Icons.check_circle,
-                    color: color,
-                    size: 18,
-                  ),
-              ],
-            ),
-          ),
-        ));
+            const Spacer(),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: color,
+                size: 18,
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

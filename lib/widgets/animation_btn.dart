@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:get/get.dart';
 
 /// AnimationBtn 是一个自定义的 Flutter 按钮组件，支持多种动画效果。
 ///
@@ -19,8 +18,8 @@ import 'package:get/get.dart';
 /// [onHoverAnimationEnabled] 是是否启用悬停动画。
 /// [onHoverBgColorChangeEnabled] 是是否启用悬停背景颜色变化动画。
 /// [onClickAnimationEnabled] 是是否启用点击动画。
-class AnimationBtn extends StatelessWidget {
-  AnimationBtn({
+class AnimationBtn extends StatefulWidget {
+  const AnimationBtn({
     super.key,
     required this.child,
     required this.onPressed,
@@ -54,37 +53,53 @@ class AnimationBtn extends StatelessWidget {
 
   final Color? hoverBgColor;
 
+  @override
+  State<AnimationBtn> createState() => _AnimationBtnState();
+}
+
+class _AnimationBtnState extends State<AnimationBtn> {
   final Duration _defaultDuration = 150.ms;
-  final _onHover = false.obs;
-  final _onHoverbgColorChange = false.obs;
-  final _onClick = false.obs;
-  final _onClickDisableAnimat = false.obs;
+  bool _onHover = false;
+  bool _onHoverbgColorChange = false;
+  bool _onClick = false;
+  bool _onClickDisableAnimat = false;
 
   /// 播放悬停动画
   void _playHoverAnimation() {
     if (!Platform.isAndroid && !Platform.isIOS) {
-      if (onHoverAnimationEnabled) _onHover.value = true;
-      if (onHoverBgColorChangeEnabled) _onHoverbgColorChange.value = true;
+      if (widget.onHoverAnimationEnabled) {
+        setState(() => _onHover = true);
+      }
+      if (widget.onHoverBgColorChangeEnabled) {
+        setState(() => _onHoverbgColorChange = true);
+      }
     }
   }
 
   /// 播放禁用动画
   void _playDisableAnimation() async {
-    _onClickDisableAnimat.value = true;
-    await (_defaultDuration + 120.ms)
-        .delay(() => _onClickDisableAnimat.value = false);
+    setState(() => _onClickDisableAnimat = true);
+    await Future.delayed(_defaultDuration + 120.ms);
+    if (mounted) {
+      setState(() => _onClickDisableAnimat = false);
+    }
   }
 
   /// 播放点击动画
   void _playClickAnimation() {
-    if (onClickAnimationEnabled) _onClick.value = true;
+    if (widget.onClickAnimationEnabled) {
+      setState(() => _onClick = true);
+    }
   }
 
   /// 关闭所有动画
   void _closeAllAnimation() {
-    _onHover.value = false;
-    _onHoverbgColorChange.value = false;
-    _onClick.value = false;
+    if (!mounted) return;
+    setState(() {
+      _onHover = false;
+      _onHoverbgColorChange = false;
+      _onClick = false;
+    });
   }
 
   @override
@@ -97,57 +112,57 @@ class AnimationBtn extends StatelessWidget {
         // 使用 opaque 行为，确保整个区域（包括边缘）都可以响应点击
         behavior: HitTestBehavior.opaque,
         onTap: () async {
-          if (!disable) {
+          if (!widget.disable) {
             _playClickAnimation();
-            await ((clickScaleDuration ?? _defaultDuration) - 50.ms).delay();
+            await Future.delayed(
+                (widget.clickScaleDuration ?? _defaultDuration) - 50.ms);
             _closeAllAnimation();
-            onPressed();
+            widget.onPressed();
           } else {
             _playDisableAnimation();
           }
         },
         onLongPressDown: (_) async {
-          if (!disable) {
+          if (!widget.disable) {
             _playClickAnimation();
-            await 1.delay(_closeAllAnimation);
+            await Future.delayed(const Duration(seconds: 1));
+            _closeAllAnimation();
           }
         },
         onLongPressUp: () {
           _closeAllAnimation();
-          if (!disable) onPressed();
+          if (!widget.disable) widget.onPressed();
         },
-        child: Obx(
-          () => child
-              // 悬停动画
-              .animate(target: _onHover.value ? 1 : 0)
-              .scaleXY(
-                end: onHoverScale,
-                duration: hoverScaleDuration ?? _defaultDuration,
-                curve: Curves.easeIn,
-              )
-              .animate(target: _onHoverbgColorChange.value ? 1 : 0)
-              .tint(
-                color: hoverBgColor ?? Colors.grey.shade500,
-                duration: bgColorChangeDuration ?? _defaultDuration,
-              )
-              // 点击动画
-              .animate(target: _onClick.value ? 1 : 0)
-              .scaleXY(
-                end: onClickScale,
-                duration: clickScaleDuration ?? _defaultDuration,
-                curve: Curves.easeOut,
-              )
-              .animate(target: _onClickDisableAnimat.value ? 1 : 0)
-              .tint(
-                color: Colors.red.withValues(alpha:0.9),
-                duration: disableAnimatDuration ?? _defaultDuration,
-              )
-              .shakeX(
-                hz: 4,
-                amount: 2,
-                duration: disableAnimatDuration ?? _defaultDuration,
-              ),
-        ),
+        child: widget.child
+            // 悬停动画
+            .animate(target: _onHover ? 1 : 0)
+            .scaleXY(
+              end: widget.onHoverScale,
+              duration: widget.hoverScaleDuration ?? _defaultDuration,
+              curve: Curves.easeIn,
+            )
+            .animate(target: _onHoverbgColorChange ? 1 : 0)
+            .tint(
+              color: widget.hoverBgColor ?? Colors.grey.shade500,
+              duration: widget.bgColorChangeDuration ?? _defaultDuration,
+            )
+            // 点击动画
+            .animate(target: _onClick ? 1 : 0)
+            .scaleXY(
+              end: widget.onClickScale,
+              duration: widget.clickScaleDuration ?? _defaultDuration,
+              curve: Curves.easeOut,
+            )
+            .animate(target: _onClickDisableAnimat ? 1 : 0)
+            .tint(
+              color: Colors.red.withValues(alpha: 0.9),
+              duration: widget.disableAnimatDuration ?? _defaultDuration,
+            )
+            .shakeX(
+              hz: 4,
+              amount: 2,
+              duration: widget.disableAnimatDuration ?? _defaultDuration,
+            ),
       ),
     );
   }

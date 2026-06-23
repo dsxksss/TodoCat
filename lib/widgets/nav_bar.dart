@@ -1,13 +1,15 @@
 import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+import 'package:todo_cat/routers/app_router.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:window_manager/window_manager.dart';
 
-class NavBar extends StatefulWidget {
+class NavBar extends ConsumerStatefulWidget {
   const NavBar({
     super.key,
     this.rightWidgets,
@@ -20,12 +22,10 @@ class NavBar extends StatefulWidget {
   final List<Widget>? rightWidgets;
 
   @override
-  State<NavBar> createState() => _NavBarState();
+  ConsumerState<NavBar> createState() => _NavBarState();
 }
 
-class _NavBarState extends State<NavBar> with WindowListener {
-  final AppController _appController = Get.find();
-  final Rx<String> currentRoute = Get.currentRoute.obs;
+class _NavBarState extends ConsumerState<NavBar> with WindowListener {
   final double _iconSize = 25;
 
   @override
@@ -42,41 +42,42 @@ class _NavBarState extends State<NavBar> with WindowListener {
 
   @override
   void onWindowFocus() {
-    _appController.updateWindowStatus();
+    ref.read(windowControllerProvider.notifier).updateWindowStatus();
   }
 
   @override
   void onWindowMove() {
-    _appController.updateWindowStatus();
+    ref.read(windowControllerProvider.notifier).updateWindowStatus();
     super.onWindowMove();
   }
 
   @override
   void onWindowMaximize() {
-    _appController.updateWindowStatus();
+    ref.read(windowControllerProvider.notifier).updateWindowStatus();
     super.onWindowMaximize();
   }
 
   @override
   void onWindowUnmaximize() {
-    _appController.updateWindowStatus();
+    ref.read(windowControllerProvider.notifier).updateWindowStatus();
     super.onWindowUnmaximize();
   }
 
   @override
   void onWindowEnterFullScreen() {
-    _appController.updateWindowStatus();
+    ref.read(windowControllerProvider.notifier).updateWindowStatus();
     super.onWindowEnterFullScreen();
   }
 
   @override
   void onWindowLeaveFullScreen() {
-    _appController.updateWindowStatus();
+    ref.read(windowControllerProvider.notifier).updateWindowStatus();
     super.onWindowLeaveFullScreen();
   }
 
   @override
   Widget build(BuildContext context) {
+    final windowCtrl = ref.read(windowControllerProvider.notifier);
     return GestureDetector(
       dragStartBehavior: DragStartBehavior.down,
       onTapCancel: () => {if (!context.isPhone) windowManager.startDragging()},
@@ -92,9 +93,9 @@ class _NavBarState extends State<NavBar> with WindowListener {
                 children: [
                   Row(
                     children: [
-                      if (currentRoute.value != "/")
+                      if (currentRoutePath != "/")
                         NavBarBtn(
-                          onPressed: Get.back,
+                          onPressed: () => Navigator.of(context).pop(),
                           child: const Icon(
                             size: 30,
                             Icons.keyboard_arrow_left_sharp,
@@ -127,7 +128,7 @@ class _NavBarState extends State<NavBar> with WindowListener {
                         Row(
                           children: [
                             NavBarBtn(
-                              onPressed: _appController.minimizeWindow,
+                              onPressed: windowCtrl.minimizeWindow,
                               child: Icon(
                                 Icons.remove_rounded,
                                 size: _iconSize,
@@ -135,19 +136,17 @@ class _NavBarState extends State<NavBar> with WindowListener {
                             ),
                             2.horizontalSpace,
                             NavBarBtn(
-                              onPressed: _appController.targetMaximizeWindow,
-                              child: Obx(
-                                () => Icon(
-                                  _appController.isMaximize.value
-                                      ? Icons.close_fullscreen_rounded
-                                      : Icons.crop_square_rounded,
-                                  size: _iconSize,
-                                ),
+                              onPressed: windowCtrl.targetMaximizeWindow,
+                              child: Icon(
+                                ref.watch(windowControllerProvider).isMaximize
+                                    ? Icons.close_fullscreen_rounded
+                                    : Icons.crop_square_rounded,
+                                size: _iconSize,
                               ),
                             ),
                             2.horizontalSpace,
                             NavBarBtn(
-                              onPressed: _appController.closeWindow,
+                              onPressed: windowCtrl.closeWindow,
                               hoverColor: Colors.redAccent,
                               child: Icon(
                                 Icons.close_rounded,

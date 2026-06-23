@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 
-class AddTagScreen extends StatelessWidget {
+class AddTagScreen extends ConsumerWidget {
   const AddTagScreen({
     super.key,
     this.textInputAction,
@@ -30,11 +31,11 @@ class AddTagScreen extends StatelessWidget {
   final TextEditingController editingController;
   final bool ghostStyle;
   final void Function(String) onSubmitted;
-  final RxList<String> selectedTags;
+  final List<String> selectedTags;
   final Function(int) onDeleteTag;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -55,7 +56,7 @@ class AddTagScreen extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => onSubmitted(editingController.text),
                 child: Icon(
-                  Icons.add_box_rounded, 
+                  Icons.add_box_rounded,
                   size: 20,
                   color: context.theme.iconTheme.color,
                 ),
@@ -64,24 +65,24 @@ class AddTagScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: List.generate(
-                selectedTags.length,
-                (index) => TagDialogBtn(
-                  tag: selectedTags[index],
-                  tagColor: Colors.blueAccent,
-                  dialogTag: 'tag_${selectedTags[index]}',
-                  showDelete: true,
-                  onDelete: () => onDeleteTag(index),
-                  openDialog: const SizedBox.shrink(),
-                  onDialogClose: () {
-                    // 处理对话框关闭事件
-                  },
-                ),
-              ),
-            )),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: List.generate(
+            selectedTags.length,
+            (index) => TagDialogBtn(
+              tag: selectedTags[index],
+              tagColor: Colors.blueAccent,
+              dialogTag: 'tag_${selectedTags[index]}',
+              showDelete: true,
+              onDelete: () => onDeleteTag(index),
+              openDialog: const SizedBox.shrink(),
+              onDialogClose: () {
+                // 处理对话框关闭事件
+              },
+            ),
+          ),
+        ),
       ],
     );
   }

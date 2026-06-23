@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/utils/font_utils.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 标签编辑对话框
-class TagEditDialog extends StatefulWidget {
+class TagEditDialog extends ConsumerStatefulWidget {
   final String initialName;
   final Color initialColor;
   final Function(String name, Color color) onSave;
@@ -20,10 +22,10 @@ class TagEditDialog extends StatefulWidget {
   });
 
   @override
-  State<TagEditDialog> createState() => _TagEditDialogState();
+  ConsumerState<TagEditDialog> createState() => _TagEditDialogState();
 }
 
-class _TagEditDialogState extends State<TagEditDialog> {
+class _TagEditDialogState extends ConsumerState<TagEditDialog> {
   late TextEditingController _nameController;
   late Color _selectedColor;
 
@@ -90,7 +92,7 @@ class _TagEditDialogState extends State<TagEditDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'editTag'.tr,
+                  l10n.editTag,
                   style: FontUtils.getBoldStyle(fontSize: 18),
                 ),
                 Row(
@@ -98,7 +100,7 @@ class _TagEditDialogState extends State<TagEditDialog> {
                     LabelBtn(
                       ghostStyle: true,
                       label: Text(
-                        'cancel'.tr,
+                        l10n.cancel,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -114,7 +116,7 @@ class _TagEditDialogState extends State<TagEditDialog> {
                     const SizedBox(width: 8),
                     LabelBtn(
                       label: Text(
-                        'confirm'.tr,
+                        l10n.confirm,
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -147,7 +149,7 @@ class _TagEditDialogState extends State<TagEditDialog> {
               children: [
                 // 标签名称输入框
                 Text(
-                  'tagName'.tr, // 需要在翻译文件中添加 tagName
+                  l10n.tagName, // 需要在翻译文件中添加 tagName
                   style: TextStyle(
                     fontSize: 14,
                     color: context.theme.textTheme.bodyMedium?.color,
@@ -158,7 +160,7 @@ class _TagEditDialogState extends State<TagEditDialog> {
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                    hintText: 'enterTagName'.tr, // 需要在翻译文件中添加 enterTagName
+                    hintText: l10n.enterTagName, // 需要在翻译文件中添加 enterTagName
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(
@@ -175,7 +177,7 @@ class _TagEditDialogState extends State<TagEditDialog> {
 
                 // 颜色选择
                 Text(
-                  'tagColor'.tr, // 需要在翻译文件中添加 tagColor
+                  l10n.tagColor, // 需要在翻译文件中添加 tagColor
                   style: TextStyle(
                     fontSize: 14,
                     color: context.theme.textTheme.bodyMedium?.color,

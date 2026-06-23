@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/controllers/todo_detail_ctr.dart';
 import 'package:todo_cat/pages/home/components/tag.dart';
 import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
@@ -24,8 +24,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:todo_cat/widgets/tag_edit_dialog.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
-class TodoCard extends StatelessWidget {
-  TodoCard({
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
+class TodoCard extends ConsumerStatefulWidget {
+  const TodoCard({
     super.key,
     required this.taskId,
     required this.todo,
@@ -36,10 +39,22 @@ class TodoCard extends StatelessWidget {
 
   final String taskId;
   final Todo todo;
-  final HomeController _homeCtrl = Get.find();
   final EdgeInsets? outerMargin;
   final bool compact;
   final bool isPreview;
+
+  @override
+  ConsumerState<TodoCard> createState() => _TodoCardState();
+}
+
+class _TodoCardState extends ConsumerState<TodoCard> {
+  HomeController get _homeCtrl => ref.read(homeControllerProvider.notifier);
+
+  String get taskId => widget.taskId;
+  Todo get todo => widget.todo;
+  EdgeInsets? get outerMargin => widget.outerMargin;
+  bool get compact => widget.compact;
+  bool get isPreview => widget.isPreview;
 
   /// 获取显示标题（直接返回todo标题，因为左下角已经显示创建时间了）
   String _getDisplayTitle() {
@@ -96,15 +111,15 @@ class TodoCard extends StatelessWidget {
 
   String _getStatusText() {
     if (_isOverdue()) {
-      return "overdue".tr;
+      return l10n.overdue;
     }
     switch (todo.status) {
       case TodoStatus.todo:
-        return 'todo'.tr;
+        return l10n.todo;
       case TodoStatus.inProgress:
-        return 'inProgress'.tr;
+        return l10n.inProgress;
       case TodoStatus.done:
-        return 'done'.tr;
+        return l10n.done;
     }
   }
 
@@ -181,10 +196,6 @@ class TodoCard extends StatelessWidget {
             width: 600,
             height: 650,
             clickMaskDismiss: true,
-            onDismiss: () {
-              // 清理 controller，避免内存泄漏
-              Get.delete<TodoDetailController>(tag: dialogTag);
-            },
           );
         },
         child: Container(
@@ -256,18 +267,17 @@ class TodoCard extends StatelessWidget {
                                   title: 'edit',
                                   iconData: FontAwesomeIcons.penToSquare,
                                   callback: () async {
-                                    final todoDialogController = Get.put(
-                                      AddTodoDialogController(),
-                                      tag: 'edit_todo_dialog',
-                                      permanent: true,
-                                    );
+                                    final dialogTag = todo.uuid;
+                                    final todoDialogController = ref
+                                        .read(addTodoDialogControllerProvider(
+                                                dialogTag)
+                                            .notifier);
                                     todoDialogController.initForEditing(
                                         taskId, todo);
 
                                     DialogService.showFormDialog(
-                                      tag: 'edit_todo_dialog',
-                                      dialog: const TodoDialog(
-                                          dialogTag: 'edit_todo_dialog'),
+                                      tag: dialogTag,
+                                      dialog: TodoDialog(dialogTag: dialogTag),
                                       useFixedSize:
                                           false, // TodoDialog 需要动态调整宽度以支持预览窗口
                                     );
@@ -285,14 +295,9 @@ class TodoCard extends StatelessWidget {
                                   iconData: FontAwesomeIcons.folderOpen,
                                   callback: () {
                                     // 获取当前工作空间ID和task信息
-                                    String currentWorkspaceId = 'default';
-                                    if (Get.isRegistered<
-                                        WorkspaceController>()) {
-                                      final workspaceCtrl =
-                                          Get.find<WorkspaceController>();
-                                      currentWorkspaceId = workspaceCtrl
-                                          .currentWorkspaceId.value;
-                                    }
+                                    final currentWorkspaceId = ref
+                                        .read(workspaceControllerProvider)
+                                        .currentWorkspaceId;
 
                                     // 显示选择工作空间和任务对话框
                                     showSelectWorkspaceAndTaskDialog(
@@ -302,16 +307,16 @@ class TodoCard extends StatelessWidget {
                                           targetTaskId) async {
                                         // 获取源工作空间、目标工作空间和任务名称
                                         String sourceWorkspaceName =
-                                            'defaultWorkspace'.tr;
+                                            l10n.defaultWorkspace;
                                         String targetWorkspaceName =
-                                            'defaultWorkspace'.tr;
+                                            l10n.defaultWorkspace;
                                         String sourceTaskName = '';
                                         String targetTaskName = '';
 
-                                        if (Get.isRegistered<
-                                            WorkspaceController>()) {
-                                          final workspaceCtrl =
-                                              Get.find<WorkspaceController>();
+                                        {
+                                          final workspaces = ref
+                                              .read(workspaceControllerProvider)
+                                              .workspaces;
 
                                           // 获取当前任务信息（用于显示源工作空间）
                                           try {
@@ -326,8 +331,7 @@ class TodoCard extends StatelessWidget {
 
                                               // 获取源工作空间名称
                                               final sourceWorkspace =
-                                                  workspaceCtrl.workspaces
-                                                      .firstWhereOrNull(
+                                                  workspaces.firstWhereOrNull(
                                                 (w) =>
                                                     w.uuid ==
                                                     sourceTask.workspaceId,
@@ -336,7 +340,7 @@ class TodoCard extends StatelessWidget {
                                                 sourceWorkspaceName =
                                                     sourceWorkspace.uuid ==
                                                             'default'
-                                                        ? 'defaultWorkspace'.tr
+                                                        ? l10n.defaultWorkspace
                                                         : sourceWorkspace.name;
                                               }
                                             }
@@ -345,8 +349,7 @@ class TodoCard extends StatelessWidget {
                                           }
 
                                           // 获取目标工作空间名称
-                                          final targetWorkspace = workspaceCtrl
-                                              .workspaces
+                                          final targetWorkspace = workspaces
                                               .firstWhereOrNull(
                                             (w) => w.uuid == targetWorkspaceId,
                                           );
@@ -354,7 +357,7 @@ class TodoCard extends StatelessWidget {
                                             targetWorkspaceName =
                                                 targetWorkspace.uuid ==
                                                         'default'
-                                                    ? 'defaultWorkspace'.tr
+                                                    ? l10n.defaultWorkspace
                                                     : targetWorkspace.name;
                                           }
                                         }
@@ -447,10 +450,10 @@ class TodoCard extends StatelessWidget {
                                                           sourceTaskName !=
                                                               targetTaskName) {
                                                         message =
-                                                            '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
+                                                            '「$todoTitle」${l10n.todoMovedToWorkspace}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
                                                       } else {
                                                         message =
-                                                            '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
+                                                            '「$todoTitle」${l10n.todoMovedToWorkspace}「$targetWorkspaceName/$targetTaskName」';
                                                       }
 
                                                       showUndoToast(
@@ -466,13 +469,13 @@ class TodoCard extends StatelessWidget {
                                                           );
                                                           if (isUndone) {
                                                             showSuccessNotification(
-                                                              '「$todoTitle」${'todoRestored'.tr}',
+                                                              '「$todoTitle」${l10n.todoRestored}',
                                                               saveToNotificationCenter:
                                                                   false,
                                                             );
                                                           } else {
                                                             showErrorNotification(
-                                                              '「$todoTitle」${'restoreFailed'.tr}',
+                                                              '「$todoTitle」${l10n.restoreFailed}',
                                                             );
                                                           }
                                                         },
@@ -480,7 +483,7 @@ class TodoCard extends StatelessWidget {
                                                       );
                                                     } else {
                                                       showErrorNotification(
-                                                          'todoMoveFailed'.tr);
+                                                          l10n.todoMoveFailed);
                                                     }
                                                   },
                                                 );
@@ -493,7 +496,7 @@ class TodoCard extends StatelessWidget {
 
                                           // 不是同名问题，是其他错误
                                           showErrorNotification(
-                                              'todoMoveFailed'.tr);
+                                              l10n.todoMoveFailed);
                                           return;
                                         }
 
@@ -507,10 +510,10 @@ class TodoCard extends StatelessWidget {
                                               sourceTaskName !=
                                                   targetTaskName) {
                                             message =
-                                                '「$todoTitle」${'todoMovedToWorkspace'.tr}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
+                                                '「$todoTitle」${l10n.todoMovedToWorkspace}「$sourceWorkspaceName/$sourceTaskName」→「$targetWorkspaceName/$targetTaskName」';
                                           } else {
                                             message =
-                                                '「$todoTitle」${'todoMovedToWorkspace'.tr}「$targetWorkspaceName/$targetTaskName」';
+                                                '「$todoTitle」${l10n.todoMovedToWorkspace}「$targetWorkspaceName/$targetTaskName」';
                                           }
 
                                           showUndoToast(
@@ -525,13 +528,13 @@ class TodoCard extends StatelessWidget {
                                               );
                                               if (isUndone) {
                                                 showSuccessNotification(
-                                                  '「$todoTitle」${'todoRestored'.tr}',
+                                                  '「$todoTitle」${l10n.todoRestored}',
                                                   saveToNotificationCenter:
                                                       false,
                                                 );
                                               } else {
                                                 showErrorNotification(
-                                                  '「$todoTitle」${'restoreFailed'.tr}',
+                                                  '「$todoTitle」${l10n.restoreFailed}',
                                                 );
                                               }
                                             },
@@ -539,7 +542,7 @@ class TodoCard extends StatelessWidget {
                                           );
                                         } else {
                                           showErrorNotification(
-                                              'todoMoveFailed'.tr);
+                                              l10n.todoMoveFailed);
                                         }
                                       },
                                     );
@@ -550,7 +553,7 @@ class TodoCard extends StatelessWidget {
                                   iconData: FontAwesomeIcons.trashCan,
                                   callback: () => {
                                     showToast(
-                                      "sureDeleteTodo".tr,
+                                      l10n.sureDeleteTodo,
                                       alwaysShow: true,
                                       confirmMode: true,
                                       toastStyleType:
@@ -560,28 +563,30 @@ class TodoCard extends StatelessWidget {
                                             await _handleDelete();
                                         // 只在删除失败时显示通知
                                         if (!isDeleted) {
-                                          0.5.delay(() {
+                                          Future.delayed(
+                                              const Duration(milliseconds: 500),
+                                              () {
                                             showErrorNotification(
-                                              "${"todo".tr} '${todo.title}' ${"deletionFailed".tr}",
+                                              "${l10n.todo} '${todo.title}' ${l10n.deletionFailed}",
                                             );
                                           });
                                         } else {
                                           // 删除成功，显示undo toast
                                           showUndoToast(
-                                            "todoDeleted".tr,
+                                            l10n.todoDeleted,
                                             () async {
                                               final bool isUndone =
                                                   await _homeCtrl.undoTodo(
                                                       taskId, todo.uuid);
                                               if (isUndone) {
                                                 showSuccessNotification(
-                                                  "${"todo".tr} '${todo.title}' ${"todoRestored".tr}",
+                                                  "${l10n.todo} '${todo.title}' ${l10n.todoRestored}",
                                                   saveToNotificationCenter:
                                                       false,
                                                 );
                                               } else {
                                                 showErrorNotification(
-                                                  "${"todo".tr} '${todo.title}' ${"restoreFailed".tr}",
+                                                  "${l10n.todo} '${todo.title}' ${l10n.restoreFailed}",
                                                 );
                                               }
                                             },
@@ -599,20 +604,23 @@ class TodoCard extends StatelessWidget {
                     ],
                   ),
                   // 显示 Todo 图片封面（如果启用且存在图片）
-                  Obx(() {
-                    final appCtrl = Get.find<AppController>();
-                    final showImage = appCtrl.appConfig.value.showTodoImage;
+                  Consumer(builder: (context, ref, _) {
+                    final showImage =
+                        ref.watch(appControllerProvider).showTodoImage;
                     if (!showImage) {
                       return const SizedBox.shrink();
                     }
 
-                    // 从 HomeController 的响应式列表获取最新的 todo 数据，确保响应式更新
-                    // 访问 reactiveTasks 会触发 Obx 重新构建
+                    // 从 HomeController 的响应式状态获取最新的 todo 数据，确保响应式更新
+                    // watch homeControllerProvider 会触发重新构建
                     Todo? currentTodo;
                     try {
-                      final task = _homeCtrl.reactiveTasks.firstWhereOrNull(
-                        (task) => task.uuid == taskId,
-                      );
+                      final task = ref
+                          .watch(homeControllerProvider)
+                          .tasks
+                          .firstWhereOrNull(
+                            (task) => task.uuid == taskId,
+                          );
                       if (task != null && task.todos != null) {
                         currentTodo = task.todos!.firstWhereOrNull(
                           (t) => t.uuid == todo.uuid,
@@ -709,14 +717,17 @@ class TodoCard extends StatelessWidget {
                       ],
                     );
                   }),
-                  // 标签部分使用 Obx 包装，从响应式源获取最新数据
-                  Obx(() {
-                    // 从 HomeController 的响应式列表获取最新的 todo 数据
+                  // 标签部分使用 Consumer 包装，从响应式源获取最新数据
+                  Consumer(builder: (context, ref, _) {
+                    // 从 HomeController 的响应式状态获取最新的 todo 数据
                     Todo? currentTodo;
                     try {
-                      final task = _homeCtrl.reactiveTasks.firstWhereOrNull(
-                        (task) => task.uuid == taskId,
-                      );
+                      final task = ref
+                          .watch(homeControllerProvider)
+                          .tasks
+                          .firstWhereOrNull(
+                            (task) => task.uuid == taskId,
+                          );
                       if (task != null && task.todos != null) {
                         currentTodo = task.todos!.firstWhereOrNull(
                           (t) => t.uuid == todo.uuid,

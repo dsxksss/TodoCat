@@ -1,4 +1,3 @@
-import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
@@ -6,6 +5,7 @@ import 'package:todo_cat/data/schemas/tag_with_color.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 模板生成器 - 根据当前语言生成相应的任务模板
 class TemplateGenerator {
   // 预定义的颜色列表
@@ -34,36 +34,36 @@ class TemplateGenerator {
     return [
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'todo'.tr
+        ..title = l10n.todo
         ..createdAt = DateTime.now().millisecondsSinceEpoch
-        ..tagsWithColor = _createTagsWithColors(['default'.tr])
+        ..tagsWithColor = _createTagsWithColors([l10n.defaultLabel])
         ..status = TaskStatus.todo
         ..customColor = Colors.grey.value
         ..customIcon = FontAwesomeIcons.list.codePoint
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'inProgress'.tr
+        ..title = l10n.inProgress
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 1
-        ..tagsWithColor = _createTagsWithColors(['default'.tr])
+        ..tagsWithColor = _createTagsWithColors([l10n.defaultLabel])
         ..status = TaskStatus.inProgress
         ..customColor = Colors.orange.value
         ..customIcon = FontAwesomeIcons.listCheck.codePoint
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'done'.tr
+        ..title = l10n.done
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 2
-        ..tagsWithColor = _createTagsWithColors(['default'.tr])
+        ..tagsWithColor = _createTagsWithColors([l10n.defaultLabel])
         ..status = TaskStatus.done
         ..customColor = const Color.fromRGBO(46, 204, 147, 1).value
         ..customIcon = FontAwesomeIcons.circleCheck.codePoint
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'another'.tr
+        ..title = l10n.another
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 3
-        ..tagsWithColor = _createTagsWithColors(['default'.tr])
+        ..tagsWithColor = _createTagsWithColors([l10n.defaultLabel])
         ..status = TaskStatus.todo
         ..customColor = Colors.blue.value
         ..customIcon = FontAwesomeIcons.clipboard.codePoint
@@ -73,13 +73,13 @@ class TemplateGenerator {
 
   /// 获取学生/学习模板
   static List<Task> getStudentTemplate() {
-    final isZh = Get.locale?.languageCode == 'zh';
+    final isZh = currentLocale.languageCode == 'zh';
 
     return [
       // 学习任务
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'todo'.tr
+        ..title = l10n.todo
         ..description = isZh ? '提升语言学习能力' : 'Improve language learning skills'
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..tagsWithColor = _createTagsWithColors(
@@ -115,7 +115,7 @@ class TemplateGenerator {
       // 项目任务
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'inProgress'.tr
+        ..title = l10n.inProgress
         ..description = isZh ? '完成个人项目' : 'Complete personal project'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
         ..tagsWithColor =
@@ -152,7 +152,7 @@ class TemplateGenerator {
       // 兴趣爱好
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'done'.tr
+        ..title = l10n.done
         ..description = isZh ? '提升兴趣爱好技能' : 'Improve hobby skills'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
         ..tagsWithColor =
@@ -214,12 +214,12 @@ class TemplateGenerator {
 
   /// 获取工作管理模板
   static List<Task> getWorkTemplate() {
-    final isZh = Get.locale?.languageCode == 'zh';
+    final isZh = currentLocale.languageCode == 'zh';
 
     return [
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'todo'.tr
+        ..title = l10n.todo
         ..description = isZh ? '管理工作项目和任务' : 'Manage work projects and tasks'
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..tagsWithColor = _createTagsWithColors(
@@ -257,7 +257,7 @@ class TemplateGenerator {
         ],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'inProgress'.tr
+        ..title = l10n.inProgress
         ..description = isZh ? '进行中的开发工作' : 'Development in progress'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
         ..tagsWithColor = _createTagsWithColors(
@@ -281,7 +281,7 @@ class TemplateGenerator {
         ],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'done'.tr
+        ..title = l10n.done
         ..description = isZh ? '已完成的工作' : 'Completed work'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
         ..tagsWithColor =
@@ -291,7 +291,7 @@ class TemplateGenerator {
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'another'.tr
+        ..title = l10n.another
         ..description = isZh ? '其他工作事项' : 'Other work items'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 30
         ..tagsWithColor =
@@ -303,12 +303,12 @@ class TemplateGenerator {
 
   /// 获取健身训练模板
   static List<Task> getFitnessTemplate() {
-    final isZh = Get.locale?.languageCode == 'zh';
+    final isZh = currentLocale.languageCode == 'zh';
 
     return [
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'todo'.tr
+        ..title = l10n.todo
         ..description = isZh ? '制定健身计划' : 'Create fitness plan'
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..tagsWithColor =
@@ -332,7 +332,7 @@ class TemplateGenerator {
         ],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'inProgress'.tr
+        ..title = l10n.inProgress
         ..description = isZh ? '进行中的训练' : 'Training in progress'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
         ..tagsWithColor = _createTagsWithColors(
@@ -356,7 +356,7 @@ class TemplateGenerator {
         ],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'done'.tr
+        ..title = l10n.done
         ..description = isZh ? '完成的训练' : 'Completed training'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
         ..tagsWithColor =
@@ -366,7 +366,7 @@ class TemplateGenerator {
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'another'.tr
+        ..title = l10n.another
         ..description = isZh ? '其他健身项目' : 'Other fitness items'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 30
         ..tagsWithColor =
@@ -378,12 +378,12 @@ class TemplateGenerator {
 
   /// 获取旅行计划模板
   static List<Task> getTravelTemplate() {
-    final isZh = Get.locale?.languageCode == 'zh';
+    final isZh = currentLocale.languageCode == 'zh';
 
     return [
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'todo'.tr
+        ..title = l10n.todo
         ..description = isZh ? '规划旅行行程' : 'Plan travel itinerary'
         ..createdAt = DateTime.now().millisecondsSinceEpoch
         ..tagsWithColor =
@@ -419,7 +419,7 @@ class TemplateGenerator {
         ],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'inProgress'.tr
+        ..title = l10n.inProgress
         ..description = isZh ? '旅行前的准备' : 'Travel preparation'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 10
         ..tagsWithColor = _createTagsWithColors(
@@ -444,7 +444,7 @@ class TemplateGenerator {
         ],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'done'.tr
+        ..title = l10n.done
         ..description = isZh ? '完成的事项' : 'Completed items'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 20
         ..tagsWithColor =
@@ -454,7 +454,7 @@ class TemplateGenerator {
         ..todos = [],
       Task()
         ..uuid = const Uuid().v4()
-        ..title = 'another'.tr
+        ..title = l10n.another
         ..description = isZh ? '其他旅行事项' : 'Other travel items'
         ..createdAt = DateTime.now().millisecondsSinceEpoch + 30
         ..tagsWithColor =

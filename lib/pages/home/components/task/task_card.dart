@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get.dart';
+import 'package:collection/collection.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
@@ -22,7 +23,10 @@ import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/config/task_icons.dart';
 import 'dart:async';
 
-class TaskCard extends StatefulWidget {
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
+class TaskCard extends ConsumerStatefulWidget {
   const TaskCard({
     super.key,
     required Task task,
@@ -37,11 +41,11 @@ class TaskCard extends StatefulWidget {
   final bool isPreview;
 
   @override
-  State<TaskCard> createState() => _TaskCardState();
+  ConsumerState<TaskCard> createState() => _TaskCardState();
 }
 
-class _TaskCardState extends State<TaskCard> {
-  final HomeController _homeCtrl = Get.find();
+class _TaskCardState extends ConsumerState<TaskCard> {
+  HomeController get _homeCtrl => ref.read(homeControllerProvider.notifier);
   late final ScrollController _scrollController;
   Timer? _autoScrollTimer;
   bool _isDragging = false;
@@ -182,7 +186,7 @@ class _TaskCardState extends State<TaskCard> {
                     // 移动端禁用 tooltip，避免长按拖拽时误触发
                     child: context.isPhone
                         ? Text(
-                            widget._task.title.tr,
+                            dynTr(widget._task.title),
                             style: GoogleFonts.getFont(
                               'Ubuntu',
                               textStyle: const TextStyle(
@@ -193,10 +197,10 @@ class _TaskCardState extends State<TaskCard> {
                             overflow: TextOverflow.ellipsis,
                           )
                         : Tooltip(
-                            message: widget._task.title.tr,
+                            message: dynTr(widget._task.title),
                             preferBelow: false,
                             child: Text(
-                              widget._task.title.tr,
+                              dynTr(widget._task.title),
                               style: GoogleFonts.getFont(
                                 'Ubuntu',
                                 textStyle: const TextStyle(
@@ -251,8 +255,9 @@ class _TaskCardState extends State<TaskCard> {
                       title: 'edit',
                       iconData: FontAwesomeIcons.penToSquare,
                       callback: () async {
-                        final taskDialogController =
-                            Get.put(TaskDialogController());
+                        final taskDialogController = ref
+                            .read(taskDialogControllerProvider(widget._task.uuid)
+                                .notifier);
                         taskDialogController.initForEditing(widget._task);
 
                         DialogService.showFormDialog(
@@ -266,46 +271,44 @@ class _TaskCardState extends State<TaskCard> {
                       iconData: FontAwesomeIcons.folderOpen,
                       callback: () {
                         // 获取当前工作空间ID
-                        String currentWorkspaceId = 'default';
-                        if (Get.isRegistered<WorkspaceController>()) {
-                          final workspaceCtrl = Get.find<WorkspaceController>();
-                          currentWorkspaceId =
-                              workspaceCtrl.currentWorkspaceId.value;
-                        }
+                        final currentWorkspaceId = ref
+                            .read(workspaceControllerProvider)
+                            .currentWorkspaceId;
 
                         // 显示选择工作空间对话框
                         showSelectWorkspaceDialog(
                           currentWorkspaceId: currentWorkspaceId,
                           onWorkspaceSelected: (targetWorkspaceId) async {
                             // 获取源工作空间和目标工作空间名称
-                            String sourceWorkspaceName = 'defaultWorkspace'.tr;
-                            String targetWorkspaceName = 'defaultWorkspace'.tr;
+                            String sourceWorkspaceName = l10n.defaultWorkspace;
+                            String targetWorkspaceName = l10n.defaultWorkspace;
 
-                            if (Get.isRegistered<WorkspaceController>()) {
-                              final workspaceCtrl =
-                                  Get.find<WorkspaceController>();
+                            {
+                              final workspaces = ref
+                                  .read(workspaceControllerProvider)
+                                  .workspaces;
 
                               // 获取源工作空间名称
                               final sourceWorkspace =
-                                  workspaceCtrl.workspaces.firstWhereOrNull(
+                                  workspaces.firstWhereOrNull(
                                 (w) => w.uuid == widget._task.workspaceId,
                               );
                               if (sourceWorkspace != null) {
                                 sourceWorkspaceName =
                                     sourceWorkspace.uuid == 'default'
-                                        ? 'defaultWorkspace'.tr
+                                        ? l10n.defaultWorkspace
                                         : sourceWorkspace.name;
                               }
 
                               // 获取目标工作空间名称
                               final targetWorkspace =
-                                  workspaceCtrl.workspaces.firstWhereOrNull(
+                                  workspaces.firstWhereOrNull(
                                 (w) => w.uuid == targetWorkspaceId,
                               );
                               if (targetWorkspace != null) {
                                 targetWorkspaceName =
                                     targetWorkspace.uuid == 'default'
-                                        ? 'defaultWorkspace'.tr
+                                        ? l10n.defaultWorkspace
                                         : targetWorkspace.name;
                               }
                             }
@@ -363,10 +366,10 @@ class _TaskCardState extends State<TaskCard> {
                                         if (sourceWorkspaceName !=
                                             targetWorkspaceName) {
                                           message =
-                                              '「$taskTitle」${'taskMovedToWorkspace'.tr}「$sourceWorkspaceName」→「$targetWorkspaceName」';
+                                              '「$taskTitle」${l10n.taskMovedToWorkspace}「$sourceWorkspaceName」→「$targetWorkspaceName」';
                                         } else {
                                           message =
-                                              '「$taskTitle」${'taskMovedToWorkspace'.tr}「$targetWorkspaceName」';
+                                              '「$taskTitle」${l10n.taskMovedToWorkspace}「$targetWorkspaceName」';
                                         }
 
                                         showUndoToast(
@@ -379,12 +382,12 @@ class _TaskCardState extends State<TaskCard> {
                                             );
                                             if (isUndone) {
                                               showSuccessNotification(
-                                                '「$taskTitle」${'taskRestored'.tr}',
+                                                '「$taskTitle」${l10n.taskRestored}',
                                                 saveToNotificationCenter: false,
                                               );
                                             } else {
                                               showErrorNotification(
-                                                '「$taskTitle」${'restoreFailed'.tr}',
+                                                '「$taskTitle」${l10n.restoreFailed}',
                                               );
                                             }
                                           },
@@ -392,7 +395,7 @@ class _TaskCardState extends State<TaskCard> {
                                         );
                                       } else {
                                         showErrorNotification(
-                                            'taskMoveFailed'.tr);
+                                            l10n.taskMoveFailed);
                                       }
                                     },
                                   );
@@ -403,7 +406,7 @@ class _TaskCardState extends State<TaskCard> {
                               }
 
                               // 不是同名问题，是其他错误
-                              showErrorNotification('taskMoveFailed'.tr);
+                              showErrorNotification(l10n.taskMoveFailed);
                               return;
                             }
 
@@ -414,10 +417,10 @@ class _TaskCardState extends State<TaskCard> {
                               String message;
                               if (sourceWorkspaceName != targetWorkspaceName) {
                                 message =
-                                    '「$taskTitle」${'taskMovedToWorkspace'.tr}「$sourceWorkspaceName」→「$targetWorkspaceName」';
+                                    '「$taskTitle」${l10n.taskMovedToWorkspace}「$sourceWorkspaceName」→「$targetWorkspaceName」';
                               } else {
                                 message =
-                                    '「$taskTitle」${'taskMovedToWorkspace'.tr}「$targetWorkspaceName」';
+                                    '「$taskTitle」${l10n.taskMovedToWorkspace}「$targetWorkspaceName」';
                               }
 
                               showUndoToast(
@@ -430,19 +433,19 @@ class _TaskCardState extends State<TaskCard> {
                                   );
                                   if (isUndone) {
                                     showSuccessNotification(
-                                      '「$taskTitle」${'taskRestored'.tr}',
+                                      '「$taskTitle」${l10n.taskRestored}',
                                       saveToNotificationCenter: false,
                                     );
                                   } else {
                                     showErrorNotification(
-                                      '「$taskTitle」${'restoreFailed'.tr}',
+                                      '「$taskTitle」${l10n.restoreFailed}',
                                     );
                                   }
                                 },
                                 countdownSeconds: 5,
                               );
                             } else {
-                              showErrorNotification('taskMoveFailed'.tr);
+                              showErrorNotification(l10n.taskMoveFailed);
                             }
                           },
                         );
@@ -453,7 +456,7 @@ class _TaskCardState extends State<TaskCard> {
                       iconData: FontAwesomeIcons.trashCan,
                       callback: () => {
                         showToast(
-                          "sureDeleteTask".tr,
+                          l10n.sureDeleteTask,
                           alwaysShow: true,
                           confirmMode: true,
                           toastStyleType: TodoCatToastStyleType.error,
@@ -462,26 +465,27 @@ class _TaskCardState extends State<TaskCard> {
                                 await _homeCtrl.deleteTask(widget._task.uuid);
                             // 只在删除失败时显示通知
                             if (!isDeleted) {
-                              0.5.delay(() {
+                              Future.delayed(
+                                  const Duration(milliseconds: 500), () {
                                 showErrorNotification(
-                                  "${"task".tr} '${widget._task.title.tr}' ${"deletionFailed".tr}",
+                                  "${l10n.task} '${dynTr(widget._task.title)}' ${l10n.deletionFailed}",
                                 );
                               });
                             } else {
                               // 删除成功，显示undo toast
                               showUndoToast(
-                                "taskDeleted".tr,
+                                l10n.taskDeleted,
                                 () async {
                                   final bool isUndone = await _homeCtrl
                                       .undoTask(widget._task.uuid);
                                   if (isUndone) {
                                     showSuccessNotification(
-                                      "${"task".tr} '${widget._task.title.tr}' ${"taskRestored".tr}",
+                                      "${l10n.task} '${dynTr(widget._task.title)}' ${l10n.taskRestored}",
                                       saveToNotificationCenter: false,
                                     );
                                   } else {
                                     showErrorNotification(
-                                      "${"task".tr} '${widget._task.title.tr}' ${"restoreFailed".tr}",
+                                      "${l10n.task} '${dynTr(widget._task.title)}' ${l10n.restoreFailed}",
                                     );
                                   }
                                 },
@@ -559,10 +563,11 @@ class _TaskCardState extends State<TaskCard> {
               },
               child: ExcludeSemantics(
                 // 在拖拽时排除语义，减少可访问性树更新
-                child: Obx(
-                  () {
+                child: Consumer(
+                  builder: (context, ref, _) {
                     // 安全地获取最新的任务状态
-                    final currentTask = _homeCtrl.allTasks.firstWhere(
+                    final tasks = ref.watch(homeControllerProvider).tasks;
+                    final currentTask = tasks.firstWhere(
                       (task) => task.uuid == widget._task.uuid,
                       orElse: () => widget._task,
                     );
@@ -674,7 +679,7 @@ class _TaskCardState extends State<TaskCard> {
           decoration: BoxDecoration(
             color: context.theme.cardColor,
             borderRadius: BorderRadius.circular(10),
-            boxShadow: context.isDarkMode
+            boxShadow: Theme.of(context).brightness == Brightness.dark
                 ? <BoxShadow>[
                     BoxShadow(
                       color: context.theme.dividerColor,

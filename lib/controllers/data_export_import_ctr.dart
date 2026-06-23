@@ -1,30 +1,60 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/data/services/data_export_import_service.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/widgets/data_export_confirm_dialog.dart';
 import 'package:todo_cat/widgets/data_import_confirm_dialog.dart';
+import 'package:todo_cat/core/utils/l10n.dart';
 
-class DataExportImportController extends GetxController {
+part 'data_export_import_ctr.g.dart';
+
+/// 数据导入/导出状态。
+@immutable
+class DataExportImportState {
+  final bool isExporting;
+  final bool isImporting;
+  final Map<String, dynamic>? exportPreview;
+
+  const DataExportImportState({
+    this.isExporting = false,
+    this.isImporting = false,
+    this.exportPreview,
+  });
+
+  DataExportImportState copyWith({
+    bool? isExporting,
+    bool? isImporting,
+    Map<String, dynamic>? exportPreview,
+  }) {
+    return DataExportImportState(
+      isExporting: isExporting ?? this.isExporting,
+      isImporting: isImporting ?? this.isImporting,
+      exportPreview: exportPreview ?? this.exportPreview,
+    );
+  }
+}
+
+@Riverpod(keepAlive: true)
+class DataExportImportController extends _$DataExportImportController {
   static final _logger = Logger();
   DataExportImportService? _service;
-  
-  final isExporting = false.obs;
-  final isImporting = false.obs;
-  final exportPreview = Rx<Map<String, dynamic>?>(null);
 
   @override
-  void onInit() async {
-    super.onInit();
+  DataExportImportState build() {
+    _init();
+    return const DataExportImportState();
+  }
+
+  Future<void> _init() async {
     await _initService();
     await _loadExportPreview();
   }
 
-  /// 初始化服务
   Future<void> _initService() async {
     try {
       _service = await DataExportImportService.getInstance();
@@ -33,7 +63,6 @@ class DataExportImportController extends GetxController {
     }
   }
 
-  /// 确保服务已初始化
   Future<DataExportImportService> _ensureService() async {
     if (_service == null) {
       await _initService();
@@ -44,12 +73,11 @@ class DataExportImportController extends GetxController {
     return _service!;
   }
 
-  /// 加载导出预览信息
   Future<void> _loadExportPreview() async {
     try {
       final service = await _ensureService();
       final preview = await service.getExportPreview();
-      exportPreview.value = preview;
+      state = state.copyWith(exportPreview: preview);
     } catch (e) {
       _logger.e('加载导出预览失败: $e');
     }
@@ -57,91 +85,80 @@ class DataExportImportController extends GetxController {
 
   /// 执行数据导出
   Future<void> exportData() async {
-    if (isExporting.value) return;
-    
+    if (state.isExporting) return;
     try {
-      isExporting.value = true;
+      state = state.copyWith(isExporting: true);
       _logger.i('开始导出数据...');
-      
-      // 显示导出确认对话框
+
       final confirmed = await _showExportConfirmDialog();
       if (!confirmed) {
         _logger.i('用户取消了导出操作');
         return;
       }
-      
+
       showInfoNotification('正在导出数据，请稍候...');
-      
+
       final service = await _ensureService();
       final filePath = await service.exportData();
-      
+
       if (filePath != null) {
         showSuccessNotification('数据导出成功！文件已保存到: $filePath');
         _logger.i('数据导出成功: $filePath');
       } else {
-        showInfoNotification('exportCancelled'.tr);
+        showInfoNotification(l10n.exportCancelled);
       }
-      
     } catch (e) {
       _logger.e('导出数据失败: $e');
-      showErrorNotification('${'exportFailed'.tr}: ${e.toString()}');
+      showErrorNotification('${l10n.exportFailed}: ${e.toString()}');
     } finally {
-      isExporting.value = false;
+      state = state.copyWith(isExporting: false);
     }
   }
 
   /// 执行数据导入
   Future<void> importData() async {
-    if (isImporting.value) return;
-    
+    if (state.isImporting) return;
     try {
-      isImporting.value = true;
-      _logger.i('startingImport'.tr);
-      
-      // 显示导入警告对话框
+      state = state.copyWith(isImporting: true);
+      _logger.i(l10n.startingImport);
+
       final confirmed = await _showImportConfirmDialog();
       if (!confirmed) {
-        _logger.i('userCancelledImport'.tr);
+        _logger.i(l10n.userCancelledImport);
         return;
       }
-      
-      showInfoNotification('importingDataPlease'.tr);
-      
+
+      showInfoNotification(l10n.importingDataPlease);
+
       final service = await _ensureService();
       final result = await service.importData();
-      
+
       if (result.success) {
         showSuccessNotification(result.message);
-        // 刷新导出预览
         await _loadExportPreview();
-        // 通知HomeController刷新数据
         try {
-          final homeController = Get.find<HomeController>();
-          await homeController.refreshData();
+          await ref.read(homeControllerProvider.notifier).refreshData();
         } catch (e) {
-          _logger.w('未找到HomeController，跳过数据刷新: $e');
+          _logger.w('刷新主页数据失败: $e');
         }
         _logger.i('数据导入成功');
       } else {
         showErrorNotification(result.message);
         _logger.w('数据导入失败: ${result.message}');
       }
-      
     } catch (e) {
       _logger.e('导入数据失败: $e');
-      showErrorNotification('${'importFailed'.tr}: ${e.toString()}');
+      showErrorNotification('${l10n.importFailed}: ${e.toString()}');
     } finally {
-      isImporting.value = false;
+      state = state.copyWith(isImporting: false);
     }
   }
 
-  /// 显示导出确认对话框
   Future<bool> _showExportConfirmDialog() async {
-    final preview = exportPreview.value;
+    final preview = state.exportPreview;
     if (preview == null) return false;
-    
+
     bool? confirmed;
-    
     await SmartDialog.show(
       useSystem: false,
       debounce: true,
@@ -173,14 +190,11 @@ class DataExportImportController extends GetxController {
             );
       },
     );
-    
     return confirmed ?? false;
   }
 
-  /// 显示导入确认对话框
   Future<bool> _showImportConfirmDialog() async {
     bool? confirmed;
-    
     await SmartDialog.show(
       useSystem: false,
       debounce: true,
@@ -211,7 +225,6 @@ class DataExportImportController extends GetxController {
             );
       },
     );
-    
     return confirmed ?? false;
   }
 

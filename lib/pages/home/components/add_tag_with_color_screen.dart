@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/tag_dialog_btn.dart';
 import 'package:todo_cat/widgets/color_picker_dialog.dart';
 import 'package:todo_cat/data/schemas/tag_with_color.dart';
 import 'package:todo_cat/widgets/tag_edit_dialog.dart';
 
-class AddTagWithColorScreen extends StatelessWidget {
+class AddTagWithColorScreen extends ConsumerWidget {
   const AddTagWithColorScreen({
     super.key,
     this.textInputAction,
@@ -33,11 +34,11 @@ class AddTagWithColorScreen extends StatelessWidget {
   final TextEditingController editingController;
   final bool ghostStyle;
   final void Function(String) onSubmitted;
-  final RxList<TagWithColor> selectedTags;
+  final List<TagWithColor> selectedTags;
   final Function(int) onDeleteTag;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -67,31 +68,31 @@ class AddTagWithColorScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: List.generate(
-                selectedTags.length,
-                (index) => TagDialogBtn(
-                  tag: selectedTags[index].name,
-                  tagColor: selectedTags[index].color,
-                  dialogTag: 'tag_${selectedTags[index].name}',
-                  showDelete: true,
-                  onDelete: () => onDeleteTag(index),
-                  openDialog: const SizedBox.shrink(),
-                  onDialogClose: () {
-                    // 处理对话框关闭事件
-                  },
-                ),
-              ),
-            )),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: List.generate(
+            selectedTags.length,
+            (index) => TagDialogBtn(
+              tag: selectedTags[index].name,
+              tagColor: selectedTags[index].color,
+              dialogTag: 'tag_${selectedTags[index].name}',
+              showDelete: true,
+              onDelete: () => onDeleteTag(index),
+              openDialog: const SizedBox.shrink(),
+              onDialogClose: () {
+                // 处理对话框关闭事件
+              },
+            ),
+          ),
+        ),
       ],
     );
   }
 }
 
 /// 带颜色选择的标签添加组件
-class AddTagWithColorPicker extends StatefulWidget {
+class AddTagWithColorPicker extends ConsumerStatefulWidget {
   final TextInputAction? textInputAction;
   final int maxLength;
   final int maxLines;
@@ -101,9 +102,12 @@ class AddTagWithColorPicker extends StatefulWidget {
   final EdgeInsets contentPadding;
   final TextEditingController editingController;
   final bool ghostStyle;
-  final RxList<TagWithColor> selectedTags;
+  final List<TagWithColor> selectedTags;
   final Function(int) onDeleteTag;
   final Function(Color) onAddTagWithColor;
+
+  /// 编辑某个已选标签时回调（替代原先直接修改 RxList）。
+  final void Function(int index, TagWithColor newTag)? onEditTag;
 
   const AddTagWithColorPicker({
     super.key,
@@ -119,13 +123,15 @@ class AddTagWithColorPicker extends StatefulWidget {
     required this.selectedTags,
     required this.onDeleteTag,
     required this.onAddTagWithColor,
+    this.onEditTag,
   });
 
   @override
-  State<AddTagWithColorPicker> createState() => _AddTagWithColorPickerState();
+  ConsumerState<AddTagWithColorPicker> createState() =>
+      _AddTagWithColorPickerState();
 }
 
-class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
+class _AddTagWithColorPickerState extends ConsumerState<AddTagWithColorPicker> {
   Color _selectedColor = Colors.blueAccent;
 
   @override
@@ -220,12 +226,9 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
             ),
           ],
         ),
-        Obx(() {
-          // 只有当有标签时才显示间距和标签列表
-          if (widget.selectedTags.isEmpty) {
-            return const SizedBox.shrink();
-          }
-          return Column(
+        // 只有当有标签时才显示间距和标签列表
+        if (widget.selectedTags.isNotEmpty)
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 10),
@@ -245,13 +248,13 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
                         initialName: widget.selectedTags[index].name,
                         initialColor: widget.selectedTags[index].color,
                         onSave: (newName, newColor) {
-                          widget.selectedTags[index] =
-                              widget.selectedTags[index].copyWith(
-                            name: newName,
-                            color: newColor,
+                          widget.onEditTag?.call(
+                            index,
+                            widget.selectedTags[index].copyWith(
+                              name: newName,
+                              color: newColor,
+                            ),
                           );
-                          // 强制刷新 RxList 以触发 UI 更新
-                          widget.selectedTags.refresh();
                         },
                       );
                     },
@@ -259,8 +262,7 @@ class _AddTagWithColorPickerState extends State<AddTagWithColorPicker> {
                 ),
               ),
             ],
-          );
-        }),
+          ),
       ],
     );
   }

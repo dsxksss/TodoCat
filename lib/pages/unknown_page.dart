@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class UnknownPage extends StatelessWidget {
   const UnknownPage({super.key});
@@ -15,7 +15,7 @@ class UnknownPage extends StatelessWidget {
             const Text("Unknown Page Please Enter Go Back Button!"),
             ElevatedButton(
               child: const Text("Go Back"),
-              onPressed: () => Get.back(),
+              onPressed: () => context.go('/'),
             ),
           ],
         ),

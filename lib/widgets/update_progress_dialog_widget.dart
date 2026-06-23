@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/services/auto_update_service.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
 /// 更新进度对话框组件
 class UpdateProgressDialogWidget extends StatefulWidget {
@@ -19,7 +21,7 @@ class UpdateProgressDialogWidget extends StatefulWidget {
 
 class _UpdateProgressDialogWidgetState extends State<UpdateProgressDialogWidget> {
   double _progress = 0.0;
-  String _status = 'checkingForUpdates'.tr;
+  String _status = l10n.checkingForUpdates;
   bool _isDownloading = false;
   final bool _isInstalling = false;
 
@@ -45,7 +47,7 @@ class _UpdateProgressDialogWidgetState extends State<UpdateProgressDialogWidget>
     widget.updateService.onUpdateAvailable = (version, changelog) {
       if (mounted) {
         setState(() {
-          _status = '${'newVersionAvailable'.tr}: $version';
+          _status = '${l10n.newVersionAvailable}: $version';
           _progress = 1.0;
         });
       }
@@ -55,7 +57,7 @@ class _UpdateProgressDialogWidgetState extends State<UpdateProgressDialogWidget>
     widget.updateService.onUpdateComplete = () {
       if (mounted) {
         setState(() {
-          _status = 'updateComplete'.tr;
+          _status = l10n.updateComplete;
           _progress = 1.0;
         });
       }
@@ -65,7 +67,7 @@ class _UpdateProgressDialogWidgetState extends State<UpdateProgressDialogWidget>
     widget.updateService.onUpdateError = (error) {
       if (mounted) {
         setState(() {
-          _status = 'updateError'.tr;
+          _status = l10n.updateError;
         });
       }
     };
@@ -90,7 +92,7 @@ class _UpdateProgressDialogWidgetState extends State<UpdateProgressDialogWidget>
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'checkingForUpdates'.tr,
+                  l10n.checkingForUpdates,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -100,7 +102,7 @@ class _UpdateProgressDialogWidgetState extends State<UpdateProgressDialogWidget>
               if (!_isDownloading && !_isInstalling && _progress == 0.0)
                 LabelBtn(
                   label: const Icon(Icons.close),
-                  onPressed: () => Get.back(),
+                  onPressed: () => Navigator.of(context).pop(),
                   padding: EdgeInsets.zero,
                   ghostStyle: true,
                 ),
@@ -146,8 +148,8 @@ class _UpdateProgressDialogWidgetState extends State<UpdateProgressDialogWidget>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => Get.back(),
-                child: Text('cancel'.tr),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.cancel),
               ),
             ),
         ],

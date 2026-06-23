@@ -1,10 +1,19 @@
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:todo_cat/config/ai_config.dart';
 
-class LlmPolishingService extends GetxService {
-  static LlmPolishingService get to => Get.find();
+/// LLM 文案润色服务。
+///
+/// 原 GetX `GetxService` + `Get.find()` 单例已移除，改为普通 Dart 单例。
+/// 调用点 `LlmPolishingService.to.polishText(...)` 保持不变。
+class LlmPolishingService {
+  LlmPolishingService._();
+
+  static final LlmPolishingService _instance = LlmPolishingService._();
+
+  /// 全局单例（替代原 `Get.find()`）。
+  static LlmPolishingService get to => _instance;
 
   Future<String> polishText(String originalText) async {
     if (originalText.trim().isEmpty) {
@@ -37,10 +46,10 @@ class LlmPolishingService extends GetxService {
 
       // 调用 OpenAI 接口
       final completion = await OpenAI.instance.chat.create(
-        model: "qwen3-max",
+        model: AiConfig.model,
         messages: [systemMessage, userMessage],
         temperature: 0.7,
-        maxTokens: 21000, // 限制回复长度，避免过长
+        maxTokens: 8000, // DeepSeek 输出上限 8192，留余量
       );
 
       // 解析结果

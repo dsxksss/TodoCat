@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
 class DataExportConfirmDialog extends StatelessWidget {
   final Map<String, dynamic> preview;
@@ -54,7 +56,7 @@ class DataExportConfirmDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'confirmExport'.tr,
+                  l10n.confirmExport,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -65,7 +67,7 @@ class DataExportConfirmDialog extends StatelessWidget {
                     LabelBtn(
                       ghostStyle: true,
                       label: Text(
-                        "cancel".tr,
+                        l10n.cancel,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -80,7 +82,7 @@ class DataExportConfirmDialog extends StatelessWidget {
                     const SizedBox(width: 8),
                     LabelBtn(
                       label: Text(
-                        "confirm".tr,
+                        l10n.confirm,
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -105,7 +107,7 @@ class DataExportConfirmDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'exportDataPreview'.tr,
+                  l10n.exportDataPreview,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -113,13 +115,13 @@ class DataExportConfirmDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildDataItem('tasksCount'.tr, '${preview['tasksCount']}', context),
+                _buildDataItem(l10n.tasksCount, '${preview['tasksCount']}', context),
                 const SizedBox(height: 8),
-                _buildDataItem('todosCount'.tr, '${preview['todosCount']}', context),
+                _buildDataItem(l10n.todosCount, '${preview['todosCount']}', context),
                 const SizedBox(height: 8),
-                _buildDataItem('appConfig'.tr, preview['hasAppConfig'] ? 'yes'.tr : 'no'.tr, context),
+                _buildDataItem(l10n.appConfig, preview['hasAppConfig'] ? l10n.yes : l10n.no, context),
                 const SizedBox(height: 8),
-                _buildDataItem('estimatedSize'.tr, '${preview['dataSize']} KB', context),
+                _buildDataItem(l10n.estimatedSize, '${preview['dataSize']} KB', context),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -141,7 +143,7 @@ class DataExportConfirmDialog extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'exportDataNotice'.tr,
+                          l10n.exportDataNotice,
                           style: TextStyle(
                             fontSize: 12,
                             color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.8),

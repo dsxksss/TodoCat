@@ -1,10 +1,9 @@
 import 'package:flutter/widgets.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
+import 'package:todo_cat/routers/app_router.dart';
 
 class AppLifecycleObserver extends WidgetsBindingObserver {
-  final AppController _appController = Get.find();
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -18,7 +17,12 @@ class AppLifecycleObserver extends WidgetsBindingObserver {
         break;
       case AppLifecycleState.resumed:
         // 应用程序从后台恢复到前台
-        _appController.changeSystemOverlayUI();
+        final context = rootNavigatorKey.currentContext;
+        if (context != null) {
+          ProviderScope.containerOf(context)
+              .read(appControllerProvider.notifier)
+              .changeSystemOverlayUI();
+        }
         break;
       case AppLifecycleState.detached:
         // 应用程序已分离（例如，iOS上应用程序已被强制退出）

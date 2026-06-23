@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dio/io.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'package:todo_cat/data/schemas/local_notice.dart';
 import 'package:todo_cat/data/services/repositorys/local_notice.dart';
@@ -13,6 +12,7 @@ import 'package:logger/logger.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
+import 'package:todo_cat/core/utils/l10n.dart';
 const baseUrl = 'https://express-tozj-72009-4-1321092629.sh.run.tcloudbase.com';
 
 /// 本地通知管理器类
@@ -261,7 +261,7 @@ class LocalNotificationManager {
 
       if (response.statusCode == 200) {
         showToast(
-          "emailReminderSentSuccessfully".tr,
+          l10n.emailReminderSentSuccessfully,
           toastStyleType: TodoCatToastStyleType.success,
         );
       } else {
@@ -270,7 +270,7 @@ class LocalNotificationManager {
     } catch (e) {
       _logger.w('Error sending email notification: $e');
       showToast(
-        "emailReminderSendingFailed".tr,
+        l10n.emailReminderSendingFailed,
         toastStyleType: TodoCatToastStyleType.error,
       );
       // 不抛出异常，让调用者继续执行

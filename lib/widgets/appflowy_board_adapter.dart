@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:appflowy_board/appflowy_board.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/pages/home/components/task/task_card.dart';
@@ -14,7 +16,7 @@ import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
 /// 1. 拖拽锁定：拖拽时暂停数据同步，避免冲突
 /// 2. 智能防抖：减少不必要的重建
 /// 3. 生命周期保护：防止 dispose 后的操作
-class AppFlowyTodosBoard extends StatefulWidget {
+class AppFlowyTodosBoard extends ConsumerStatefulWidget {
   const AppFlowyTodosBoard({
     super.key,
     required this.tasks,
@@ -24,18 +26,19 @@ class AppFlowyTodosBoard extends StatefulWidget {
     this.onDragEnded, // 拖拽结束回调
   });
 
-  final RxList<Task> tasks;
+  final List<Task> tasks;
   final double listWidth;
   final ScrollController? scrollController; // 可选的滚动控制器
   final void Function(String taskId, BuildContext context)? onTaskContextReady;
   final VoidCallback? onDragEnded; // 拖拽结束时调用
 
   @override
-  State<AppFlowyTodosBoard> createState() => _AppFlowyTodosBoardState();
+  ConsumerState<AppFlowyTodosBoard> createState() => _AppFlowyTodosBoardState();
 }
 
-class _AppFlowyTodosBoardState extends State<AppFlowyTodosBoard> {
-  final HomeController _controller = Get.find();
+class _AppFlowyTodosBoardState extends ConsumerState<AppFlowyTodosBoard> {
+  HomeController get _controller =>
+      ref.read(homeControllerProvider.notifier);
   late final AppFlowyBoardController _boardController;
   late final ScrollController _scrollController;
 

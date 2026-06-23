@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/controllers/data_export_import_ctr.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/widgets/dialog_header.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
 /// 数据导入导出选择对话框
-class DataImportExportDialog extends StatelessWidget {
+class DataImportExportDialog extends ConsumerWidget {
   const DataImportExportDialog({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final dataController = Get.find<DataExportImportController>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dataState = ref.watch(dataExportImportControllerProvider);
+    final dataController =
+        ref.read(dataExportImportControllerProvider.notifier);
 
     return Container(
       width: context.isPhone ? 1.sw : 400,
@@ -46,7 +51,7 @@ class DataImportExportDialog extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'dataManagement'.tr,
+                  l10n.dataManagement,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -57,7 +62,7 @@ class DataImportExportDialog extends StatelessWidget {
             onCancel: () =>
                 SmartDialog.dismiss(tag: 'data_import_export_dialog'),
             showConfirm: false,
-            cancelText: 'close'.tr, // 可以使用 'close'.tr 或保持默认 'cancel'.tr
+            cancelText: l10n.close, // 可以使用 l10n.close 或保持默认 l10n.cancel
           ),
           // 内容
           Padding(
@@ -69,30 +74,30 @@ class DataImportExportDialog extends StatelessWidget {
                 _buildOption(
                   context: context,
                   icon: Icons.download_rounded,
-                  title: 'exportData'.tr,
-                  description: 'exportDataDescription'.tr,
+                  title: l10n.exportData,
+                  description: l10n.exportDataDescription,
                   onTap: () async {
                     SmartDialog.dismiss(tag: 'data_import_export_dialog');
-                    if (!dataController.isExporting.value) {
+                    if (!dataState.isExporting) {
                       await dataController.exportData();
                     }
                   },
-                  isLoading: dataController.isExporting.value,
+                  isLoading: dataState.isExporting,
                 ),
                 const SizedBox(height: 16),
                 // 导入数据选项
                 _buildOption(
                   context: context,
                   icon: Icons.upload_rounded,
-                  title: 'importData'.tr,
-                  description: 'importDataDescription'.tr,
+                  title: l10n.importData,
+                  description: l10n.importDataDescription,
                   onTap: () async {
                     SmartDialog.dismiss(tag: 'data_import_export_dialog');
-                    if (!dataController.isImporting.value) {
+                    if (!dataState.isImporting) {
                       await dataController.importData();
                     }
                   },
-                  isLoading: dataController.isImporting.value,
+                  isLoading: dataState.isImporting,
                 ),
                 const SizedBox(height: 24),
               ],

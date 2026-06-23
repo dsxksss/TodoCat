@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/widgets/magic_polishing_button.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// Markdown 工具栏组件
 /// 提供常用的 Markdown 语法快捷插入功能
-class MarkdownToolbar extends StatelessWidget {
+class MarkdownToolbar extends ConsumerWidget {
   const MarkdownToolbar({
     super.key,
     required this.controller,
@@ -125,12 +126,12 @@ class MarkdownToolbar extends StatelessWidget {
       // 这里我们不做任何操作，让用户手动输入
     } catch (e) {
       // 如果选择失败，插入网络图片占位符
-      _wrapText('![', '](${"imageUrl".tr})');
+      _wrapText('![', '](${l10n.imageUrl})');
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -151,75 +152,75 @@ class MarkdownToolbar extends StatelessWidget {
             if (onPreview != null) ...[
               _buildToolbarButton(
                 icon: Icons.visibility,
-                tooltip: 'preview'.tr,
+                tooltip: l10n.preview,
                 onPressed: onPreview!,
               ),
               const SizedBox(width: 8),
             ],
             _buildToolbarButton(
               icon: FontAwesomeIcons.bold,
-              tooltip: 'markdownBold'.tr,
+              tooltip: l10n.markdownBold,
               onPressed: () => _wrapText('**', '**'),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.italic,
-              tooltip: 'markdownItalic'.tr,
+              tooltip: l10n.markdownItalic,
               onPressed: () => _wrapText('*', '*'),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.strikethrough,
-              tooltip: 'markdownStrikethrough'.tr,
+              tooltip: l10n.markdownStrikethrough,
               onPressed: () => _wrapText('~~', '~~'),
             ),
             const SizedBox(width: 8),
             _buildToolbarButton(
               icon: FontAwesomeIcons.heading,
-              tooltip: 'markdownHeading'.tr,
+              tooltip: l10n.markdownHeading,
               onPressed: () => _insertText('# '),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.list,
-              tooltip: 'markdownUnorderedList'.tr,
+              tooltip: l10n.markdownUnorderedList,
               onPressed: () => _insertText('- '),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.listOl,
-              tooltip: 'markdownOrderedList'.tr,
+              tooltip: l10n.markdownOrderedList,
               onPressed: () => _insertText('1. '),
             ),
             const SizedBox(width: 8),
             _buildToolbarButton(
               icon: FontAwesomeIcons.link,
-              tooltip: 'markdownLink'.tr,
+              tooltip: l10n.markdownLink,
               onPressed: () => _wrapText('[', '](url)'),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.image,
-              tooltip: 'markdownImage'.tr,
+              tooltip: l10n.markdownImage,
               onPressed: () => _insertImage(),
             ),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.code,
-              tooltip: 'markdownCodeBlock'.tr,
+              tooltip: l10n.markdownCodeBlock,
               onPressed: () => _insertText('```\n\n```'),
             ),
             const SizedBox(width: 8),
             _buildToolbarButton(
               icon: FontAwesomeIcons.quoteLeft,
-              tooltip: 'markdownQuote'.tr,
+              tooltip: l10n.markdownQuote,
               onPressed: () => _insertText('> '),
             ),
             const SizedBox(width: 4),
             const SizedBox(width: 4),
             _buildToolbarButton(
               icon: FontAwesomeIcons.minus,
-              tooltip: 'markdownSeparator'.tr,
+              tooltip: l10n.markdownSeparator,
               onPressed: () => _insertText('\n---\n'),
             ),
             const SizedBox(width: 8),

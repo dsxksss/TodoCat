@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/custom_template.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/services/repositorys/custom_template.dart';
@@ -10,7 +9,9 @@ import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 保存为模板对话框
 class SaveTemplateDialog extends StatefulWidget {
   final List<Task> tasks;
@@ -53,7 +54,7 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
       final exists = await repository.exists(_nameController.text.trim());
       if (exists) {
         if (mounted) {
-          showErrorNotification('templateAlreadyExists'.tr);
+          showErrorNotification(l10n.templateAlreadyExists);
           setState(() {
             _isSaving = false;
           });
@@ -74,7 +75,7 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
       await repository.save(template);
 
       if (mounted) {
-        showSuccessNotification('templateSaved'.tr);
+        showSuccessNotification(l10n.templateSaved);
         SmartDialog.dismiss(tag: saveTemplateDialogTag);
       }
     } catch (e) {
@@ -106,10 +107,10 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
           children: [
             // 标题栏
             DialogHeader(
-              title: 'saveAsTemplate'.tr,
+              title: l10n.saveAsTemplate,
               onCancel: () => SmartDialog.dismiss(tag: saveTemplateDialogTag),
               onConfirm: _isSaving ? null : _saveTemplate,
-              confirmText: _isSaving ? 'saving'.tr : 'save'.tr,
+              confirmText: _isSaving ? l10n.saving : l10n.save,
             ),
             // 内容区域
             Expanded(
@@ -124,10 +125,10 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
                       maxLength: 50,
                       maxLines: 1,
                       radius: 6,
-                      fieldTitle: 'enterTemplateName'.tr,
+                      fieldTitle: l10n.enterTemplateName,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'templateNameRequired'.tr;
+                          return l10n.templateNameRequired;
                         }
                         return null;
                       },
@@ -142,7 +143,7 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
                       maxLines: 3,
                       minLines: 3,
                       radius: 6,
-                      fieldTitle: 'description'.tr,
+                      fieldTitle: l10n.description,
                       validator: (_) => null,
                       editingController: _descriptionController,
                       onFieldSubmitted: (_) {},
@@ -150,7 +151,7 @@ class _SaveTemplateDialogState extends State<SaveTemplateDialog> {
                     const SizedBox(height: 20),
                     // 任务列表预览
                     Text(
-                      '${"tasks".tr}: ${widget.tasks.length}',
+                      '${l10n.tasks}: ${widget.tasks.length}',
                       style: TextStyle(
                         fontSize: 13,
                         color: context.theme.textTheme.bodyMedium?.color

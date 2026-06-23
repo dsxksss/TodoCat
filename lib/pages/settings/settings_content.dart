@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter/gestures.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
-import 'package:todo_cat/controllers/data_export_import_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/background_setting_dialog.dart';
@@ -15,16 +15,18 @@ import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 import 'package:todo_cat/widgets/sync_config_dialog.dart';
 
-class SettingsContent extends GetView<SettingsController> {
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/platform.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
+class SettingsContent extends ConsumerWidget {
   const SettingsContent({super.key});
 
-  // 获取数据导出导入控制器
-  DataExportImportController get dataController =>
-      Get.find<DataExportImportController>();
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = _buildSettingsTheme(context);
+    final appVersion = ref.watch(
+        settingsControllerProvider.select((s) => s.appVersion));
 
     return Column(
       children: [
@@ -32,7 +34,7 @@ class SettingsContent extends GetView<SettingsController> {
         GestureDetector(
           dragStartBehavior: DragStartBehavior.down,
           onTapCancel: () {
-            if (GetPlatform.isDesktop) {
+            if (AppPlatform.isDesktop) {
               windowManager.startDragging();
             }
           },
@@ -54,34 +56,34 @@ class SettingsContent extends GetView<SettingsController> {
                 Row(
                   children: [
                     Text(
-                      'settings'.tr,
+                      l10n.settings,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontFamily: 'SourceHanSans',
                           ),
                     ),
                     const SizedBox(width: 12),
-                    Obx(() => Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'v${controller.appVersion.value}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'v$appVersion',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 IconButton(
-                  icon: Obx(() {
+                  icon: Consumer(builder: (context, ref, _) {
                     final isDarkMode =
-                        controller.appCtrl.appConfig.value.isDarkMode;
+                        ref.watch(appControllerProvider).isDarkMode;
                     return Icon(
                       isDarkMode ? Icons.nights_stay : Icons.light_mode,
                       size: 24,
@@ -89,9 +91,7 @@ class SettingsContent extends GetView<SettingsController> {
                     );
                   }),
                   onPressed: () {
-                    controller.appCtrl.targetThemeMode();
-                    controller.isAnimating.value = true;
-                    0.4.delay(() => controller.isAnimating.value = false);
+                    ref.read(appControllerProvider.notifier).targetThemeMode();
                   },
                 ),
               ],
@@ -111,24 +111,22 @@ class SettingsContent extends GetView<SettingsController> {
               }
               return false; // 允许通知继续传播
             },
-            child: Obx(
-              () => SettingsList(
-                lightTheme: theme,
-                darkTheme: theme,
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                sections: [
-                  SettingsSection(
-                    title: Text('common'.tr),
-                    tiles: _buildSettingsTiles(context),
-                  ),
-                  SettingsSection(
-                    title: Text('dataManagement'.tr),
-                    tiles: _buildDataManagementTiles(context),
-                  ),
-                ],
+            child: SettingsList(
+              lightTheme: theme,
+              darkTheme: theme,
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
               ),
+              sections: [
+                SettingsSection(
+                  title: Text(l10n.common),
+                  tiles: _buildSettingsTiles(context, ref),
+                ),
+                SettingsSection(
+                  title: Text(l10n.dataManagement),
+                  tiles: _buildDataManagementTiles(context, ref),
+                ),
+              ],
             ),
           ),
         ),
@@ -145,52 +143,54 @@ class SettingsContent extends GetView<SettingsController> {
     );
   }
 
-  List<SettingsTile> _buildSettingsTiles(BuildContext context) {
+  List<SettingsTile> _buildSettingsTiles(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsControllerProvider);
+    final controller = ref.read(settingsControllerProvider.notifier);
     return [
       SettingsTile.navigation(
         leading: const Icon(Icons.g_translate_rounded),
-        title: Text('language'.tr),
+        title: Text(l10n.language),
         trailing: Row(
           children: [
-            Obx(() => Text(controller.currentLanguage.value)),
+            Text(settings.currentLanguage),
             const Icon(Icons.arrow_drop_down_rounded)
           ],
         ),
         onPressed: (context) => controller.showLanguageMenu(context),
       ),
       // 检查更新（仅桌面端显示）
-      if (GetPlatform.isDesktop)
+      if (AppPlatform.isDesktop)
         SettingsTile(
           onPressed: (_) {
             // 下载中时禁用点击，只能通过关闭按钮取消
-            if (controller.isDownloading.value) {
+            if (settings.isDownloading) {
               return; // 下载中时，点击无效
             }
             controller.checkForUpdates(); // 未下载时，点击为检查更新
           },
           leading: const Icon(Icons.system_update), // 下载中时图标保持不变
-          title: Obx(() => Text(
-                controller.isDownloading.value
-                    ? 'downloadingUpdate'.tr
-                    : 'checkForUpdates'.tr,
-              )),
-          description: Obx(() {
-            final status = controller.updateStatus.value;
+          title: Text(
+            settings.isDownloading
+                ? l10n.downloadingUpdate
+                : l10n.checkForUpdates,
+          ),
+          description: Builder(builder: (context) {
+            final status = settings.updateStatus;
             if (status.isNotEmpty) {
               return Text(status);
             }
-            if (controller.isDownloading.value) {
-              return Text('downloadingUpdate'.tr);
+            if (settings.isDownloading) {
+              return Text(l10n.downloadingUpdate);
             }
-            return Text('checkForUpdatesDescription'.tr);
+            return Text(l10n.checkForUpdatesDescription);
           }),
-          trailing: Obx(() {
-            final progress = controller.updateProgress.value;
-            final isDownloading = controller.isDownloading.value;
+          trailing: Builder(builder: (context) {
+            final progress = settings.updateProgress;
+            final isDownloading = settings.isDownloading;
 
             // 正在下载时，显示取消按钮或进度（参考 undo 的倒计时样式）
             if (isDownloading && progress > 0.0 && progress < 1.0) {
-              final theme = Get.theme;
+              final theme = context.theme;
               final isDark = theme.brightness == Brightness.dark;
               const progressColor = Colors.blueAccent;
               final backgroundColor =
@@ -250,7 +250,7 @@ class SettingsContent extends GetView<SettingsController> {
                   IconButton(
                     icon: const Icon(Icons.close, size: 18),
                     onPressed: () => controller.cancelUpdate(),
-                    tooltip: 'cancelUpdate'.tr,
+                    tooltip: l10n.cancelUpdate,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -288,61 +288,60 @@ class SettingsContent extends GetView<SettingsController> {
       SettingsTile(
         onPressed: (_) => controller.resetTasksTemplate(),
         leading: const Icon(Icons.featured_play_list_outlined),
-        title: Text('tasksTemplate'.tr),
+        title: Text(l10n.tasksTemplate),
       ),
       // 保存当前任务为模板
       SettingsTile(
         onPressed: (_) {
-          final homeController = Get.find<HomeController>();
-          homeController.saveAsTemplate();
+          ref.read(homeControllerProvider.notifier).saveAsTemplate();
         },
         leading: const Icon(Icons.save_alt),
-        title: Text('saveCurrentAsTemplate'.tr),
-        description: Text('saveCurrentAsTemplateDescription'.tr),
+        title: Text(l10n.saveCurrentAsTemplate),
+        description: Text(l10n.saveCurrentAsTemplateDescription),
       ),
       // 背景设置
       SettingsTile(
         onPressed: (_) => _showBackgroundImageDialog(),
         leading: const Icon(Icons.image_outlined),
-        title: Text('backgroundSetting'.tr),
-        description: Obx(() {
-          final hasBackground =
-              controller.appCtrl.appConfig.value.backgroundImagePath != null &&
-                  GetPlatform.isDesktop &&
-                  controller
-                      .appCtrl.appConfig.value.backgroundImagePath!.isNotEmpty;
+        title: Text(l10n.backgroundSetting),
+        description: Consumer(builder: (context, ref, _) {
+          final backgroundImagePath =
+              ref.watch(appControllerProvider).backgroundImagePath;
+          final hasBackground = backgroundImagePath != null &&
+              AppPlatform.isDesktop &&
+              backgroundImagePath.isNotEmpty;
           return Text(hasBackground
-              ? 'backgroundImageSet'.tr
-              : 'backgroundImageNotSet'.tr);
+              ? l10n.backgroundImageSet
+              : l10n.backgroundImageNotSet);
         }),
       ),
       SettingsTile.switchTile(
         onToggle: (_) {
           // 禁用功能，显示开发中提示
           showToast(
-            "featureInDevelopment".tr,
+            l10n.featureInDevelopment,
             toastStyleType: TodoCatToastStyleType.warning,
           );
         },
         onPressed: (_) {
           // 禁用功能，显示开发中提示
           showToast(
-            "featureInDevelopment".tr,
+            l10n.featureInDevelopment,
             toastStyleType: TodoCatToastStyleType.warning,
           );
         },
         initialValue: false, // 强制设为false，禁用状态
         leading: Tooltip(
-          message: "featureInDevelopment".tr,
+          message: l10n.featureInDevelopment,
           child: const Icon(
             Icons.mark_email_unread_outlined,
             color: Colors.grey, // 灰色表示禁用状态
           ),
         ),
         title: Tooltip(
-          message: "featureInDevelopment".tr,
+          message: l10n.featureInDevelopment,
           child: Text(
-            'emailReminder'.tr,
+            l10n.emailReminder,
             style: const TextStyle(
               color: Colors.grey, // 灰色表示禁用状态
             ),
@@ -353,53 +352,54 @@ class SettingsContent extends GetView<SettingsController> {
       SettingsTile.switchTile(
         onToggle: (_) => controller.toggleShowTodoImage(),
         onPressed: (_) => controller.toggleShowTodoImage(),
-        initialValue: controller.showTodoImageEnabled.value,
+        initialValue: settings.showTodoImageEnabled,
         leading: const Icon(Icons.image_outlined),
-        title: Text('showTodoImage'.tr),
-        description: Text('showTodoImageDescription'.tr),
+        title: Text(l10n.showTodoImage),
+        description: Text(l10n.showTodoImageDescription),
       ),
       // 开机自启动开关（仅桌面端）
-      if (GetPlatform.isDesktop)
+      if (AppPlatform.isDesktop)
         SettingsTile.switchTile(
           onToggle: (_) => controller.toggleLaunchAtStartup(),
           onPressed: (_) => controller.toggleLaunchAtStartup(),
-          initialValue: controller.launchAtStartupEnabled.value,
+          initialValue: settings.launchAtStartupEnabled,
           leading: const Icon(Icons.power_settings_new),
-          title: Text('launchAtStartup'.tr),
-          description: Text('launchAtStartupDescription'.tr),
+          title: Text(l10n.launchAtStartup),
+          description: Text(l10n.launchAtStartupDescription),
         ),
     ];
   }
 
-  void _showResetSettingsToast() {
+  void _showResetSettingsToast(WidgetRef ref) {
     showToast(
-      'confirmResetSettings'.tr,
+      l10n.confirmResetSettings,
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
       onYesCallback: () {
-        controller.resetConfig();
-        showSuccessNotification('settingsResetSuccess'.tr);
+        ref.read(settingsControllerProvider.notifier).resetConfig();
+        showSuccessNotification(l10n.settingsResetSuccess);
       },
     );
   }
 
   /// 构建数据管理的设置项
-  List<SettingsTile> _buildDataManagementTiles(BuildContext context) {
+  List<SettingsTile> _buildDataManagementTiles(
+      BuildContext context, WidgetRef ref) {
     return [
       // 数据导入导出（合并为一个选项）
       SettingsTile(
         leading: const Icon(Icons.cloud_sync_outlined),
-        title: Text('syncConfiguration'.tr),
-        description: Text('syncConfigurationDescription'.tr),
+        title: Text(l10n.syncConfiguration),
+        description: Text(l10n.syncConfigurationDescription),
         trailing: const Icon(Icons.chevron_right),
         onPressed: (_) => _showSyncConfigDialog(),
       ),
       // 数据导入导出（合并为一个选项）
       SettingsTile(
         leading: const Icon(Icons.import_export),
-        title: Text('dataImportExport'.tr),
-        description: Text('dataImportExportDescription'.tr),
+        title: Text(l10n.dataImportExport),
+        description: Text(l10n.dataImportExportDescription),
         trailing: const Icon(Icons.chevron_right),
         onPressed: (_) => _showDataImportExportDialog(),
       ),
@@ -407,17 +407,17 @@ class SettingsContent extends GetView<SettingsController> {
       SettingsTile(
         leading: const Icon(Icons.restart_alt_rounded, color: Colors.red),
         title:
-            Text('resetSettings'.tr, style: const TextStyle(color: Colors.red)),
-        description: Text('resetSettingsDescription'.tr),
-        onPressed: (_) => _showResetSettingsToast(),
+            Text(l10n.resetSettings, style: const TextStyle(color: Colors.red)),
+        description: Text(l10n.resetSettingsDescription),
+        onPressed: (_) => _showResetSettingsToast(ref),
       ),
       // 清除所有数据
       SettingsTile(
         leading: const Icon(Icons.delete_forever_rounded, color: Colors.red),
         title:
-            Text('clearAllData'.tr, style: const TextStyle(color: Colors.red)),
-        description: Text('clearAllDataDescription'.tr),
-        onPressed: (_) => _showClearAllDataDialog(),
+            Text(l10n.clearAllData, style: const TextStyle(color: Colors.red)),
+        description: Text(l10n.clearAllDataDescription),
+        onPressed: (_) => _showClearAllDataDialog(ref),
       ),
     ];
   }
@@ -457,30 +457,31 @@ class SettingsContent extends GetView<SettingsController> {
   }
 
   /// 显示清除所有数据确认对话框
-  void _showClearAllDataDialog() {
+  void _showClearAllDataDialog(WidgetRef ref) {
     showToast(
-      'confirmClearAllData'.tr,
+      l10n.confirmClearAllData,
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.error,
       onYesCallback: () async {
         // 显示加载提示
-        SmartDialog.showLoading(msg: 'clearingData'.tr);
+        SmartDialog.showLoading(msg: l10n.clearingData);
 
         try {
-          final success = await controller.clearAllData();
+          final success =
+              await ref.read(settingsControllerProvider.notifier).clearAllData();
           SmartDialog.dismiss();
 
           if (success) {
-            showSuccessNotification('clearAllDataSuccess'.tr);
+            showSuccessNotification(l10n.clearAllDataSuccess);
             // 关闭设置页面
             SmartDialog.dismiss(tag: 'settings');
           } else {
-            showErrorNotification('clearAllDataFailed'.tr);
+            showErrorNotification(l10n.clearAllDataFailed);
           }
         } catch (e) {
           SmartDialog.dismiss();
-          showErrorNotification('clearAllDataFailed'.tr);
+          showErrorNotification(l10n.clearAllDataFailed);
         }
       },
     );

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 同名项处理方式枚举
 enum DuplicateNameAction {
   merge,      // 合并
@@ -64,7 +65,7 @@ class DuplicateNameDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'duplicateNameTitle'.tr,
+                  l10n.duplicateNameTitle,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -91,11 +92,12 @@ class DuplicateNameDialog extends StatelessWidget {
                 children: [
                   // 提示信息
                   Text(
-                    'duplicateNameMessage'.tr
-                        .replaceAll('{itemType}', itemType.tr)
-                        .replaceAll('{itemName}', itemName)
-                        .replaceAll('{source}', sourceWorkspaceName)
-                        .replaceAll('{target}', targetWorkspaceName),
+                    l10n.duplicateNameMessage(
+                      targetWorkspaceName,
+                      dynTr(itemType),
+                      itemName,
+                      sourceWorkspaceName,
+                    ),
                     style: TextStyle(
                       fontSize: 14,
                       color: context.theme.textTheme.bodyMedium?.color,
@@ -110,8 +112,8 @@ class DuplicateNameDialog extends StatelessWidget {
                         context: context,
                         icon: Icons.merge_type,
                         iconColor: Colors.blueAccent.shade400,
-                        title: 'duplicateNameMerge'.tr,
-                        description: 'duplicateNameMergeDesc'.tr,
+                        title: l10n.duplicateNameMerge,
+                        description: l10n.duplicateNameMergeDesc,
                         onTap: () {
                           SmartDialog.dismiss(tag: duplicateNameDialogTag);
                           onActionSelected(DuplicateNameAction.merge);
@@ -123,10 +125,9 @@ class DuplicateNameDialog extends StatelessWidget {
                         context: context,
                         icon: Icons.drive_file_rename_outline,
                         iconColor: Colors.orangeAccent.shade400,
-                        title: 'duplicateNameRename'.tr,
-                        description: 'duplicateNameRenameDesc'.tr
-                            .replaceAll('{itemName}', itemName)
-                            .replaceAll('{source}', sourceWorkspaceName),
+                        title: l10n.duplicateNameRename,
+                        description: l10n.duplicateNameRenameDesc(
+                            itemName, sourceWorkspaceName),
                         onTap: () {
                           SmartDialog.dismiss(tag: duplicateNameDialogTag);
                           onActionSelected(DuplicateNameAction.rename);
@@ -138,8 +139,8 @@ class DuplicateNameDialog extends StatelessWidget {
                         context: context,
                         icon: Icons.check_circle_outline,
                         iconColor: Colors.greenAccent.shade700,
-                        title: 'duplicateNameAllow'.tr,
-                        description: 'duplicateNameAllowDesc'.tr,
+                        title: l10n.duplicateNameAllow,
+                        description: l10n.duplicateNameAllowDesc,
                         onTap: () {
                           SmartDialog.dismiss(tag: duplicateNameDialogTag);
                           onActionSelected(DuplicateNameAction.allow);

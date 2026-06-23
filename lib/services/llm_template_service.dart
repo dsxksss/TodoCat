@@ -1,15 +1,25 @@
 import 'dart:convert';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:todo_cat/config/ai_config.dart';
 import 'package:todo_cat/data/schemas/custom_template.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:uuid/uuid.dart';
 
-class LlmTemplateService extends GetxService {
-  static LlmTemplateService get to => Get.find();
+/// LLM 任务模板生成服务。
+///
+/// 原 GetX `GetxService` + `Get.find()` 单例已移除，改为普通 Dart 单例。
+/// 调用点 `LlmTemplateService.to.generateTemplate(...)` 保持不变。
+class LlmTemplateService {
+  LlmTemplateService._();
+
+  static final LlmTemplateService _instance = LlmTemplateService._();
+
+  /// 全局单例（替代原 `Get.find()`）。
+  static LlmTemplateService get to => _instance;
+
   final _uuid = const Uuid();
 
   Future<CustomTemplate?> generateTemplate(String userPrompt) async {
@@ -74,7 +84,7 @@ Rules:
       );
 
       final completion = await OpenAI.instance.chat.create(
-        model: "qwen3-max",
+        model: AiConfig.model,
         messages: [systemMessage, userMessage],
         temperature: 0.7,
         maxTokens: 4000,

@@ -2,13 +2,13 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
+import 'package:todo_cat/core/utils/platform.dart';
 /// 视频缩略图组件
 /// 从视频中截取一帧作为缩略图显示
 /// Windows 平台会自动使用 video_player_win 以获得更好的性能
@@ -129,7 +129,7 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
       }
       // 检查是否是 assets 路径
       else if (widget.videoPath.startsWith('assets/')) {
-        if (GetPlatform.isWindows) {
+        if (AppPlatform.isWindows) {
           // Windows 平台不支持 assets，需要先复制到临时目录
           try {
             // 去掉 'assets/' 前缀，Flutter 的 rootBundle.load 需要不带 'assets/' 的路径

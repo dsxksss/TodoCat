@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
-import 'package:get/get.dart';
+
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
 enum ConflictAction {
   skip,     // 跳过重复任务
@@ -70,7 +72,7 @@ class ImportConflictDialog extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'importConflictTitle'.tr,
+                    l10n.importConflictTitle,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -87,7 +89,7 @@ class ImportConflictDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'conflictTasksDetected'.tr,
+                  l10n.conflictTasksDetected,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -122,7 +124,7 @@ class ImportConflictDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'selectHandlingMethod'.tr,
+                  l10n.selectHandlingMethod,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -136,16 +138,16 @@ class ImportConflictDialog extends StatelessWidget {
                     _buildActionButton(
                       context,
                       icon: Icons.skip_next,
-                      title: 'skipDuplicateTasks'.tr,
-                      description: 'skipDuplicateTasksDesc'.tr,
+                      title: l10n.skipDuplicateTasks,
+                      description: l10n.skipDuplicateTasksDesc,
                       onTap: onSkip,
                     ),
                     const SizedBox(height: 12),
                     _buildActionButton(
                       context,
                       icon: Icons.swap_horiz,
-                      title: 'replaceExistingTasks'.tr,
-                      description: 'replaceExistingTasksDesc'.tr,
+                      title: l10n.replaceExistingTasks,
+                      description: l10n.replaceExistingTasksDesc,
                       onTap: onReplace,
                     ),
                     const SizedBox(height: 16),
@@ -155,7 +157,7 @@ class ImportConflictDialog extends StatelessWidget {
                         LabelBtn(
                           ghostStyle: true,
                           label: Text(
-                            "cancel".tr,
+                            l10n.cancel,
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class StartPage extends StatefulWidget {
   const StartPage({super.key});
@@ -40,8 +40,8 @@ class _StartPageState extends State<StartPage> {
       stopwatch.stop();
       if (mounted) {
         setState(() => _isLoading = false);
+        context.go('/');
       }
-      Get.offAllNamed("/");
     }
   }
 

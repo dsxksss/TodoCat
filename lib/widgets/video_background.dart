@@ -2,11 +2,11 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:logger/logger.dart';
 
+import 'package:todo_cat/core/utils/platform.dart';
 /// 视频背景组件
 /// 支持高帧率视频循环播放，自动静音
 /// Windows 平台会自动使用 video_player_win 以获得更好的性能和硬件加速
@@ -46,7 +46,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
 
       // 检查是否是 assets 路径
       if (widget.videoPath.startsWith('assets/')) {
-        if (GetPlatform.isWindows) {
+        if (AppPlatform.isWindows) {
           // Windows 平台不支持 assets，需要先复制到临时目录
           try {
             // 去掉 'assets/' 前缀，Flutter 的 rootBundle.load 需要不带 'assets/' 的路径

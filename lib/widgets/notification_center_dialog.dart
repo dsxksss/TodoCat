@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/core/notification_center_manager.dart';
 import 'package:todo_cat/data/schemas/notification_history.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
-class NotificationCenterDialog extends StatelessWidget {
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
+class NotificationCenterDialog extends ConsumerWidget {
   const NotificationCenterDialog({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final notificationCenter = Get.find<NotificationCenterManager>();
-
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       width: context.isPhone ? 1.sw : 550,
       height: context.isPhone ? 0.7.sh : 600,
@@ -37,17 +38,17 @@ class NotificationCenterDialog extends StatelessWidget {
       child: Column(
         children: [
           // 标题栏
-          _buildHeader(context, notificationCenter),
+          _buildHeader(context, ref),
           // 通知列表
           Expanded(
-            child: _buildNotificationList(context, notificationCenter),
+            child: _buildNotificationList(context, ref),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, NotificationCenterManager manager) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       decoration: BoxDecoration(
@@ -79,19 +80,22 @@ class NotificationCenterDialog extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'notificationCenter'.tr,
+                        l10n.notificationCenter,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Obx(() {
-                        final unreadCount = manager.unreadCount;
+                      Consumer(builder: (context, ref, _) {
+                        ref.watch(notificationCenterManagerProvider);
+                        final unreadCount = ref
+                            .read(notificationCenterManagerProvider.notifier)
+                            .unreadCount;
                         return Text(
                           unreadCount > 0
-                              ? '$unreadCount ${'unreadMessages'.tr}'
-                              : 'allMessagesRead'.tr,
+                              ? '$unreadCount ${l10n.unreadMessages}'
+                              : l10n.allMessagesRead,
                           style: TextStyle(
                             fontSize: 12,
                             color: context.theme.textTheme.bodySmall?.color
@@ -110,12 +114,15 @@ class NotificationCenterDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // 标记全部已读按钮
-              Obx(() {
-                if (manager.unreadCount > 0) {
+              Consumer(builder: (context, ref, _) {
+                ref.watch(notificationCenterManagerProvider);
+                final notifier =
+                    ref.read(notificationCenterManagerProvider.notifier);
+                if (notifier.unreadCount > 0) {
                   return LabelBtn(
                     ghostStyle: true,
                     label: Text(
-                      'markAllRead'.tr,
+                      l10n.markAllRead,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -125,7 +132,7 @@ class NotificationCenterDialog extends StatelessWidget {
                       horizontal: 12,
                       vertical: 2,
                     ),
-                    onPressed: () => manager.markAllAsRead(),
+                    onPressed: () => notifier.markAllAsRead(),
                   );
                 }
                 return const SizedBox.shrink();
@@ -135,7 +142,7 @@ class NotificationCenterDialog extends StatelessWidget {
               LabelBtn(
                 ghostStyle: true,
                 label: Text(
-                  'clearAllNotifications'.tr,
+                  l10n.clearAllNotifications,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -148,14 +155,16 @@ class NotificationCenterDialog extends StatelessWidget {
                 onPressed: () {
                   // 使用 Toast 确认清空所有通知
                   showToast(
-                    'confirmClearAllNotificationsDesc'.tr,
+                    l10n.confirmClearAllNotificationsDesc,
                     confirmMode: true,
                     alwaysShow: true,
                     toastStyleType: TodoCatToastStyleType.warning,
                     onYesCallback: () {
-                      manager.clearAll();
+                      ref
+                          .read(notificationCenterManagerProvider.notifier)
+                          .clearAll();
                       // 使用 Toast 显示操作成功信息，而不是添加新通知
-                      showToast('notificationsCleared'.tr);
+                      showToast(l10n.notificationsCleared);
                     },
                   );
                 },
@@ -176,37 +185,34 @@ class NotificationCenterDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildNotificationList(
-      BuildContext context, NotificationCenterManager manager) {
-    return Obx(() {
-      final allNotifications = manager.notifications;
+  Widget _buildNotificationList(BuildContext context, WidgetRef ref) {
+    final allNotifications = ref.watch(notificationCenterManagerProvider);
 
-      // 过滤掉不重要的通知，只显示错误和警告级别，以及未读信息
-      final filteredNotifications = allNotifications.where((notification) {
-        // 显示所有未读通知
-        if (!notification.isRead) return true;
-        // 显示错误和警告级别的通知
-        return notification.level == NotificationLevel.error ||
-            notification.level == NotificationLevel.warning;
-      }).toList();
+    // 过滤掉不重要的通知，只显示错误和警告级别，以及未读信息
+    final filteredNotifications = allNotifications.where((notification) {
+      // 显示所有未读通知
+      if (!notification.isRead) return true;
+      // 显示错误和警告级别的通知
+      return notification.level == NotificationLevel.error ||
+          notification.level == NotificationLevel.warning;
+    }).toList();
 
-      if (filteredNotifications.isEmpty) {
-        return _buildEmptyState(context);
-      }
+    if (filteredNotifications.isEmpty) {
+      return _buildEmptyState(context);
+    }
 
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
-        child: Column(
-          children: filteredNotifications
-              .map((notification) =>
-                  _buildNotificationItem(context, notification, manager))
-              .toList(),
-        ),
-      );
-    });
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      child: Column(
+        children: filteredNotifications
+            .map((notification) =>
+                _buildNotificationItem(context, notification, ref))
+            .toList(),
+      ),
+    );
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -223,7 +229,7 @@ class NotificationCenterDialog extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'noNotifications'.tr,
+            l10n.noNotifications,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -232,7 +238,7 @@ class NotificationCenterDialog extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'noNotificationsDesc'.tr,
+            l10n.noNotificationsDesc,
             style: TextStyle(
               fontSize: 12,
               color: context.theme.disabledColor,
@@ -245,7 +251,7 @@ class NotificationCenterDialog extends StatelessWidget {
   }
 
   Widget _buildNotificationItem(BuildContext context,
-      NotificationHistoryItem notification, NotificationCenterManager manager) {
+      NotificationHistoryItem notification, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -347,7 +353,9 @@ class NotificationCenterDialog extends StatelessWidget {
                   ),
                 ),
                 padding: const EdgeInsets.all(4),
-                onPressed: () => manager.removeNotification(notification.id),
+                onPressed: () => ref
+                    .read(notificationCenterManagerProvider.notifier)
+                    .removeNotification(notification.id),
               ),
             ],
           ),

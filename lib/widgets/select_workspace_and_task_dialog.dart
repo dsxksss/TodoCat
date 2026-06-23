@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/services/dialog_service.dart';
@@ -8,9 +8,11 @@ import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/data/schemas/task.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 选择工作空间和任务对话框
-class SelectWorkspaceAndTaskDialog extends StatefulWidget {
+class SelectWorkspaceAndTaskDialog extends ConsumerStatefulWidget {
   final String currentTaskId;
   final String currentWorkspaceId;
   final Function(String workspaceId, String taskId) onSelected;
@@ -23,10 +25,12 @@ class SelectWorkspaceAndTaskDialog extends StatefulWidget {
   });
 
   @override
-  State<SelectWorkspaceAndTaskDialog> createState() => _SelectWorkspaceAndTaskDialogState();
+  ConsumerState<SelectWorkspaceAndTaskDialog> createState() =>
+      _SelectWorkspaceAndTaskDialogState();
 }
 
-class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDialog> {
+class _SelectWorkspaceAndTaskDialogState
+    extends ConsumerState<SelectWorkspaceAndTaskDialog> {
   String? _selectedWorkspaceId;
   String? _selectedTaskId;
   List<Task> _tasks = [];
@@ -63,16 +67,9 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
 
   @override
   Widget build(BuildContext context) {
-    if (!Get.isRegistered<WorkspaceController>()) {
-      return const SizedBox.shrink();
-    }
+    final workspaces = ref.watch(workspaceControllerProvider).workspaces;
 
-    final workspaceCtrl = Get.find<WorkspaceController>();
-
-    return Obx(() {
-      final workspaces = workspaceCtrl.workspaces;
-      
-      if (workspaces.isEmpty) {
+    if (workspaces.isEmpty) {
         return Container(
           width: context.isPhone ? 1.sw : 500,
           height: context.isPhone ? 0.4.sh : 200,
@@ -88,7 +85,7 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
           ),
           child: Center(
             child: Text(
-              'noWorkspaces'.tr,
+              l10n.noWorkspaces,
               style: TextStyle(
                 fontSize: 16,
                 color: context.theme.textTheme.bodyLarge?.color,
@@ -128,7 +125,7 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'selectTargetTask'.tr,
+                    l10n.selectTargetTask,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -176,7 +173,7 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
                           ),
                           title: Text(
                             workspace.uuid == 'default' 
-                                ? 'defaultWorkspace'.tr 
+                                ? l10n.defaultWorkspace 
                                 : workspace.name,
                             style: TextStyle(
                               color: isSelected 
@@ -187,7 +184,7 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
                           ),
                           subtitle: isCurrent 
                               ? Text(
-                                  'currentWorkspace'.tr,
+                                  l10n.currentWorkspace,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -216,7 +213,7 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
                         : _tasks.isEmpty
                             ? Center(
                                 child: Text(
-                                  'noTasksInWorkspace'.tr,
+                                  l10n.noTasksInWorkspace,
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: context.theme.textTheme.bodyLarge?.color,
@@ -252,7 +249,7 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
                                     ),
                                     subtitle: isCurrent 
                                         ? Text(
-                                            'currentTask'.tr,
+                                            l10n.currentTask,
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey.shade600,
@@ -292,7 +289,7 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
                   LabelBtn(
                     ghostStyle: true,
                     label: Text(
-                      'cancel'.tr,
+                      l10n.cancel,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -307,7 +304,7 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
                   const SizedBox(width: 8),
                   LabelBtn(
                     label: Text(
-                      'confirm'.tr,
+                      l10n.confirm,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.white,
@@ -336,7 +333,6 @@ class _SelectWorkspaceAndTaskDialogState extends State<SelectWorkspaceAndTaskDia
           ],
         ),
       );
-    });
   }
 }
 
