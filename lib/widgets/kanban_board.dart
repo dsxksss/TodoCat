@@ -289,28 +289,48 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
               widget.onTaskContextReady?.call(task.uuid, columnContext);
             }
           });
-          // 顶部对齐：横向列表会把列项拉满视口高，这里让列背景只包住内容、
-          // 下方留空（壁纸），从而空列/短列不再有多余的深色块。
-          return Align(
-            alignment: Alignment.topCenter,
-            child: Container(
-              decoration: BoxDecoration(
-                color: _columnBackgroundColor(context),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildColumnHeader(task, index, isPhone),
-                  Flexible(
-                    fit: FlexFit.loose,
-                    child: _buildTodoList(task, todos, isPhone),
+          // 整列作为 todo 投放区：拖到该 task 任意位置都能放入；落在某张卡片上时由
+          // 卡片自身的精确槽位处理（更内层优先），其余区域追加到该 task 末尾。
+          return DragTarget<_TodoDrag>(
+            onWillAcceptWithDetails: (_) => true,
+            onAcceptWithDetails: (d) =>
+                _handleTodoDrop(d.data, task.uuid, todos.length),
+            builder: (context, candidate, rejected) {
+              final todoHover = candidate.isNotEmpty;
+              // 顶部对齐：横向列表会把列项拉满视口高，这里让列背景只包住内容、
+              // 下方留空（壁纸），从而空列/短列不再有多余的深色块。
+              return Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _columnBackgroundColor(context),
+                    borderRadius: BorderRadius.circular(10),
+                    // 拖拽 todo 悬停该列时高亮整列边框（提示将放入此 task）。
+                    border: Border.all(
+                      color: todoHover
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.transparent,
+                      width: 2,
+                    ),
                   ),
-                ],
-              ),
-            ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildColumnHeader(task, index, isPhone),
+                      Flexible(
+                        // 拖拽时让「空列」的投放区填满整列高度，否则空列投放区太小、难命中。
+                        fit: (todos.isEmpty && _isDragging)
+                            ? FlexFit.tight
+                            : FlexFit.loose,
+                        child: _buildTodoList(task, todos, isPhone),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -395,28 +415,35 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
       onAcceptWithDetails: (d) => _handleTodoDrop(d.data, taskId, count),
       builder: (context, candidate, rejected) {
         final active = candidate.isNotEmpty;
-        // 拖拽时给一块可投放的尾部区域；悬停放大成槽位；空闲时收起。
+        // 拖拽时给一块更大的尾部投放区（便于"拖到最后"命中）；悬停放大成槽位。
         if (active) return _slot(active: true);
-        return SizedBox(height: _isDragging ? 24 : 0);
+        return SizedBox(height: _isDragging ? 48 : 0);
       },
     );
   }
 
-  /// 空列的投放区。
+  /// 空列的投放区：空闲时不占位；拖拽时填满整列高度，作为大投放区（便于命中）。
   Widget _emptyTodoTarget(String taskId) {
+    if (!_isDragging) return const SizedBox.shrink();
     return DragTarget<_TodoDrag>(
       onWillAcceptWithDetails: (_) => true,
       onAcceptWithDetails: (d) => _handleTodoDrop(d.data, taskId, 0),
       builder: (context, candidate, rejected) {
         final active = candidate.isNotEmpty;
-        final h = active ? 96.0 : (_isDragging ? 72.0 : 0.0);
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          height: h,
-          margin: h > 0
-              ? const EdgeInsets.symmetric(horizontal: 10, vertical: 5)
-              : EdgeInsets.zero,
-          decoration: h > 0 ? _slotDecoration() : null,
+        final primary = Theme.of(context).colorScheme.primary;
+        // 外层 Flexible 在「空列 + 拖拽」时为 tight，这个 Container 会填满整列高度。
+        return Container(
+          margin: const EdgeInsets.fromLTRB(10, 5, 10, 10),
+          decoration: BoxDecoration(
+            color: active
+                ? primary.withValues(alpha: 0.10)
+                : Colors.white.withValues(alpha: 0.04),
+            border: Border.all(
+              color: active ? primary : Colors.white.withValues(alpha: 0.20),
+              width: active ? 1.5 : 1,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
         );
       },
     );
@@ -427,17 +454,6 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       height: active ? 84 : 0,
-    );
-  }
-
-  /// 仅用于空列的投放提示（空列没有卡片可让位，给一个淡淡的占位提示）。
-  BoxDecoration _slotDecoration() {
-    return BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.05),
-      border: Border.all(
-        color: Colors.white.withValues(alpha: 0.22),
-      ),
-      borderRadius: BorderRadius.circular(8),
     );
   }
 
