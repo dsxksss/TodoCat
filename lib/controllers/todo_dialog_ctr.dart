@@ -258,6 +258,15 @@ class AddTodoDialogController extends _$AddTodoDialogController
     );
   }
 
+  /// 新增模式初始化：由对话框在 initState 中调用（与编辑模式对称）。
+  /// 明确确立“新增”模式并恢复草稿，避免与上一次的编辑态混淆。
+  void initForAdding(String taskId) {
+    this.taskId = taskId;
+    exitEditing();
+    state = state.copyWith(isEditing: false);
+    restoreCacheIfAny();
+  }
+
   void initForEditing(String taskId, Todo todo) {
     this.taskId = taskId;
 

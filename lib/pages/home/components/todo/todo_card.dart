@@ -8,9 +8,7 @@ import 'package:todo_cat/pages/home/components/tag.dart';
 import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
-import 'package:todo_cat/widgets/todo_dialog.dart';
+import 'package:todo_cat/widgets/show_toast.dart';import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/widgets/todo_detail_dialog.dart';
 import 'package:todo_cat/widgets/select_workspace_and_task_dialog.dart';
@@ -268,16 +266,13 @@ class _TodoCardState extends ConsumerState<TodoCard> {
                                   iconData: FontAwesomeIcons.penToSquare,
                                   callback: () async {
                                     final dialogTag = todo.uuid;
-                                    final todoDialogController = ref
-                                        .read(addTodoDialogControllerProvider(
-                                                dialogTag)
-                                            .notifier);
-                                    todoDialogController.initForEditing(
-                                        taskId, todo);
-
                                     DialogService.showFormDialog(
                                       tag: dialogTag,
-                                      dialog: TodoDialog(dialogTag: dialogTag),
+                                      dialog: TodoDialog(
+                                        dialogTag: dialogTag,
+                                        intent: TodoDialogIntent.edit(
+                                            taskId: taskId, todo: todo),
+                                      ),
                                       useFixedSize:
                                           false, // TodoDialog 需要动态调整宽度以支持预览窗口
                                     );

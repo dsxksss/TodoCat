@@ -31,13 +31,29 @@ class _PasteImageIntent extends Intent {
   const _PasteImageIntent();
 }
 
+/// 新增/编辑待办对话框的意图：决定对话框自初始化为「新增」还是「编辑」。
+@immutable
+class TodoDialogIntent {
+  const TodoDialogIntent.add({required this.taskId})
+      : todo = null,
+        isEdit = false;
+  const TodoDialogIntent.edit({required this.taskId, required this.todo})
+      : isEdit = true;
+
+  final String taskId;
+  final Todo? todo;
+  final bool isEdit;
+}
+
 class TodoDialog extends ConsumerStatefulWidget {
   const TodoDialog({
     super.key,
     required this.dialogTag,
+    required this.intent,
   });
 
   final String dialogTag;
+  final TodoDialogIntent intent;
 
   @override
   ConsumerState<TodoDialog> createState() => _TodoDialogState();
@@ -54,6 +70,7 @@ class _TodoDialogState extends ConsumerState<TodoDialog>
   bool _shouldOffset = false; // 控制 dialog 是否应该偏移
   bool _showArrowHint = true; // 控制是否显示箭头提示
   final GlobalKey _toolbarKey = GlobalKey(); // 用于获取工具栏位置
+  bool _didInit = false; // 一次性初始化守卫（每次打开新建 State，自动复位）
 
   @override
   void initState() {
@@ -102,6 +119,22 @@ class _TodoDialogState extends ConsumerState<TodoDialog>
         }
       }
     });
+
+    // 对话框挂载后(此时已 ref.watch 订阅同一 tag 的 provider)再初始化控制器：
+    // 编辑/新增上下文由 widget.intent 携带，避免“先 ref.read 改、再弹窗”造成的
+    // tag 不一致与 autoDispose 间隙导致状态丢失。
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initOnce());
+  }
+
+  void _initOnce() {
+    if (_didInit || !mounted) return;
+    _didInit = true;
+    final c = controller;
+    if (widget.intent.isEdit) {
+      c.initForEditing(widget.intent.taskId, widget.intent.todo!);
+    } else {
+      c.initForAdding(widget.intent.taskId);
+    }
   }
 
   @override

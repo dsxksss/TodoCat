@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:todo_cat/data/schemas/task.dart';
-import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
-import 'package:todo_cat/services/dialog_service.dart';
+import 'package:todo_cat/data/schemas/task.dart';import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -23,16 +21,13 @@ class AddTodoCardBtn extends ConsumerWidget {
     ref.read(homeControllerProvider.notifier).selectTask(task);
 
     final dialogTag = 'add_todo_card_btn_${task.uuid}';
-    final todoDialogController =
-        ref.read(addTodoDialogControllerProvider(dialogTag).notifier);
-    todoDialogController.taskId = task.uuid;
-
-    // 先尝试恢复缓存（只保留输入，不直接创建）
-    todoDialogController.restoreCacheIfAny();
-
     DialogService.showFormDialog(
       tag: dialogTag,
-      dialog: TodoDialog(dialogTag: dialogTag),
+      dialog: TodoDialog(
+        dialogTag: dialogTag,
+        // 新增模式：taskId 与草稿恢复由控制器 initForAdding 处理。
+        intent: TodoDialogIntent.add(taskId: task.uuid),
+      ),
       useFixedSize: false, // TodoDialog 需要动态调整宽度以支持预览窗口
     );
   }

@@ -916,7 +916,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   void _showTaskDialog(BuildContext context) {
     PlatformDialogWrapper.show(
       tag: addTaskDialogTag,
-      content: const TaskDialog(dialogTag: addTaskDialogTag),
+      content: const TaskDialog(
+        dialogTag: addTaskDialogTag,
+        intent: TaskDialogIntent.add(),
+      ),
       useSystem: false,
       debounce: true,
       keepSingle: true,

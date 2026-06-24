@@ -5,6 +5,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/controllers/task_dialog_ctr.dart';
+import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/config/task_icons.dart';
 import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
@@ -14,19 +15,60 @@ import 'package:todo_cat/widgets/show_toast.dart';
 
 import 'package:todo_cat/core/utils/l10n.dart';
 
-class TaskDialog extends ConsumerWidget {
+/// 新增/编辑任务对话框的意图：决定对话框自初始化为「新增」还是「编辑」。
+@immutable
+class TaskDialogIntent {
+  const TaskDialogIntent.add()
+      : task = null,
+        isEdit = false;
+  const TaskDialogIntent.edit({required this.task}) : isEdit = true;
+
+  final Task? task;
+  final bool isEdit;
+}
+
+class TaskDialog extends ConsumerStatefulWidget {
   const TaskDialog({
     super.key,
     required this.dialogTag,
+    required this.intent,
   });
 
   final String dialogTag;
+  final TaskDialogIntent intent;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final formState = ref.watch(taskDialogControllerProvider(dialogTag));
+  ConsumerState<TaskDialog> createState() => _TaskDialogState();
+}
+
+class _TaskDialogState extends ConsumerState<TaskDialog> {
+  bool _didInit = false; // 一次性初始化守卫（每次打开新建 State，自动复位）
+
+  @override
+  void initState() {
+    super.initState();
+    // 对话框挂载后(已 ref.watch 订阅同一 tag)再初始化控制器，编辑/新增上下文由
+    // widget.intent 携带，避免“先 ref.read 改、再弹窗”的 tag 不一致与 autoDispose 间隙。
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initOnce());
+  }
+
+  void _initOnce() {
+    if (_didInit || !mounted) return;
+    _didInit = true;
+    final c = ref.read(taskDialogControllerProvider(widget.dialogTag).notifier);
+    if (widget.intent.isEdit) {
+      c.initForEditing(widget.intent.task!);
+    } else {
+      c.initForAdding();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final formState =
+        ref.watch(taskDialogControllerProvider(widget.dialogTag));
     final controller =
-        ref.read(taskDialogControllerProvider(dialogTag).notifier);
+        ref.read(taskDialogControllerProvider(widget.dialogTag).notifier);
 
     return Container(
       width: context.isPhone ? 1.sw : 430,
@@ -47,8 +89,8 @@ class TaskDialog extends ConsumerWidget {
           children: [
             DialogHeader(
               title: formState.isEditing ? l10n.editTask : l10n.addTask,
-              onCancel: () => _handleClose(ref),
-              onConfirm: () => _handleSubmit(ref),
+              onCancel: () => _handleClose(),
+              onConfirm: () => _handleSubmit(),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -298,9 +340,9 @@ class TaskDialog extends ConsumerWidget {
     );
   }
 
-  void _handleClose(WidgetRef ref) {
+  void _handleClose() {
     final controller =
-        ref.read(taskDialogControllerProvider(dialogTag).notifier);
+        ref.read(taskDialogControllerProvider(widget.dialogTag).notifier);
     if (controller.hasUnsavedChanges()) {
       showToast(
         "${l10n.saveEditing}?",
@@ -309,24 +351,24 @@ class TaskDialog extends ConsumerWidget {
         confirmMode: true,
         onYesCallback: () async {
           if (await controller.submitTask()) {
-            SmartDialog.dismiss(tag: dialogTag);
+            SmartDialog.dismiss(tag: widget.dialogTag);
           }
         },
         onNoCallback: () {
           controller.revertChanges();
-          SmartDialog.dismiss(tag: dialogTag);
+          SmartDialog.dismiss(tag: widget.dialogTag);
         },
       );
     } else {
-      SmartDialog.dismiss(tag: dialogTag);
+      SmartDialog.dismiss(tag: widget.dialogTag);
     }
   }
 
-  void _handleSubmit(WidgetRef ref) async {
+  void _handleSubmit() async {
     final controller =
-        ref.read(taskDialogControllerProvider(dialogTag).notifier);
+        ref.read(taskDialogControllerProvider(widget.dialogTag).notifier);
     if (await controller.submitTask()) {
-      SmartDialog.dismiss(tag: dialogTag);
+      SmartDialog.dismiss(tag: widget.dialogTag);
     }
   }
 }

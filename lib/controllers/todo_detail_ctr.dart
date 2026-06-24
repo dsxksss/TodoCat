@@ -1,11 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/controllers/base/base_form_controller.dart';
-import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
-import 'package:todo_cat/widgets/todo_dialog.dart';
+import 'package:todo_cat/controllers/base/base_form_controller.dart';import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/routers/app_router.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -39,78 +37,63 @@ class TodoDetailState {
 class TodoDetailController extends _$TodoDetailController {
   bool _isNavigatingBack = false;
 
+  // params 由生成的基类 _$TodoDetailController 提供并在创建时设置（family 参数），
+  // 子类不要再声明/赋值，否则与基类的 late final 重复赋值会抛 LateInitializationError。
   String get todoId => params.todoId;
   String get taskId => params.taskId;
 
-  late final TodoDetailParams params;
-
   @override
   TodoDetailState build(TodoDetailParams params) {
-    this.params = params;
-
-    // 监听 HomeController 的任务列表变化，自动刷新详情。
+    // 任务列表变化时刷新详情（该回调在 build 之后触发，可安全读写 state）。
     ref.listen(homeControllerProvider, (_, __) {
-      if (!_isNavigatingBack) {
-        _loadTodoDetail();
-      }
+      if (!_isNavigatingBack) _loadTodoDetail();
     });
 
-    _loadTodoDetail();
-    return const TodoDetailState();
+    // 直接返回算好的初始 state：不要在 build 内读/写 state，
+    // 否则会触发 "Tried to read the state of an uninitialized provider"。
+    return TodoDetailState(todo: _resolveTodo());
   }
 
   bool get isPreview => false;
 
+  /// build 之后的刷新（监听回调 / 手动刷新）。
   void _loadTodoDetail() {
-    if (_isNavigatingBack) {
-      return;
-    }
+    if (_isNavigatingBack) return;
+    state = state.copyWith(todo: _resolveTodo());
+  }
 
+  /// 查找当前 todo；找不到则标记返回并延迟关闭详情。
+  /// 本方法不读写 state，因此可在 build 内安全调用。
+  Todo? _resolveTodo() {
+    if (_isNavigatingBack) return null;
     try {
       final tasks = ref.read(homeControllerProvider.notifier).tasks;
-      // 使用 firstWhereOrNull 避免找不到元素时抛出异常
-      final task = tasks.firstWhereOrNull(
-        (task) => task.uuid == taskId,
-      );
-
+      final task = tasks.firstWhereOrNull((t) => t.uuid == taskId);
       if (task == null) {
-        if (!_isNavigatingBack) {
-          FormControllerMixin.logger.w('Task not found: $taskId');
-          _isNavigatingBack = true;
-          _popIfDetailRoute();
-        }
-        return;
+        FormControllerMixin.logger.w('Task not found: $taskId');
+        _navigateBack();
+        return null;
       }
-
-      if (task.todos != null) {
-        final foundTodo = task.todos!.firstWhereOrNull(
-          (todo) => todo.uuid == todoId,
-        );
-
-        if (foundTodo != null) {
-          state = state.copyWith(todo: foundTodo);
-        } else {
-          if (!_isNavigatingBack) {
-            FormControllerMixin.logger
-                .w('Todo not found: $todoId in task $taskId');
-            _isNavigatingBack = true;
-            _popIfDetailRoute();
-          }
-        }
-      } else {
-        if (!_isNavigatingBack) {
-          FormControllerMixin.logger.w('Task todos is null: $taskId');
-          _isNavigatingBack = true;
-          _popIfDetailRoute();
-        }
+      final foundTodo = (task.todos ?? const <Todo>[])
+          .firstWhereOrNull((t) => t.uuid == todoId);
+      if (foundTodo == null) {
+        FormControllerMixin.logger.w('Todo not found: $todoId in task $taskId');
+        _navigateBack();
+        return null;
       }
+      return foundTodo;
     } catch (e) {
-      if (!_isNavigatingBack) {
-        FormControllerMixin.logger.e('Error loading todo detail: $e');
-        _isNavigatingBack = true;
-        _popIfDetailRoute();
-      }
+      FormControllerMixin.logger.e('Error loading todo detail: $e');
+      _navigateBack();
+      return null;
     }
+  }
+
+  void _navigateBack() {
+    if (_isNavigatingBack) return;
+    _isNavigatingBack = true;
+    // 延迟到帧结束再关闭，避免在 build/layout 期间导航。
+    WidgetsBinding.instance.addPostFrameCallback((_) => _popIfDetailRoute());
   }
 
   void _popIfDetailRoute() {
@@ -128,17 +111,16 @@ class TodoDetailController extends _$TodoDetailController {
     final todo = state.todo;
     if (todo == null) return;
 
-    ref
-        .read(addTodoDialogControllerProvider(_editTodoDetailDialogTag).notifier)
-        .initForEditing(taskId, todo);
-
+    // 编辑上下文由 TodoDialog 自己在 initState 初始化（同一 tag、无 autoDispose 间隙），
+    // 这里不再预调用 initForEditing。
     DialogService.showFormDialog(
       tag: _editTodoDetailDialogTag,
-      dialog: const TodoDialog(dialogTag: _editTodoDetailDialogTag),
+      dialog: TodoDialog(
+        dialogTag: _editTodoDetailDialogTag,
+        intent: TodoDialogIntent.edit(taskId: taskId, todo: todo),
+      ),
       useFixedSize: false, // TodoDialog 需要动态调整宽度以支持预览窗口
     );
-
-    // 由于已经有自动监听机制，不需要手动刷新
   }
 
   void deleteTodo() async {

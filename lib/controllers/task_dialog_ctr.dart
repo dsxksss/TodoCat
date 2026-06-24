@@ -74,6 +74,13 @@ class TaskDialogController extends _$TaskDialogController
   @override
   void markDirty() => state = state.copyWith(isDirty: true);
 
+  /// 新增模式初始化：由对话框在 initState 中调用（与编辑模式对称），
+  /// 明确确立“新增”模式,避免残留上一次的编辑态。
+  void initForAdding() {
+    exitEditing();
+    state = const TaskFormState();
+  }
+
   void initForEditing(Task task) {
     // 从 HomeController 的任务列表中获取最新的 task 数据
     Task latestTask = task;

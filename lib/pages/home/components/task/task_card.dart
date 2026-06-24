@@ -12,9 +12,7 @@ import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/pages/home/components/todo/add_todo_card_btn.dart';
 import 'package:todo_cat/pages/home/components/todo/todo_card.dart';
-import 'package:todo_cat/widgets/show_toast.dart';
-import 'package:todo_cat/controllers/task_dialog_ctr.dart';
-import 'package:todo_cat/widgets/task_dialog.dart';
+import 'package:todo_cat/widgets/show_toast.dart';import 'package:todo_cat/widgets/task_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/widgets/select_workspace_dialog.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
@@ -255,14 +253,15 @@ class _TaskCardState extends ConsumerState<TaskCard> {
                       title: 'edit',
                       iconData: FontAwesomeIcons.penToSquare,
                       callback: () async {
-                        final taskDialogController = ref
-                            .read(taskDialogControllerProvider(widget._task.uuid)
-                                .notifier);
-                        taskDialogController.initForEditing(widget._task);
-
+                        // 编辑用专属 tag，且 init 与弹窗使用同一 tag（对话框自初始化），
+                        // 避免与“新增任务”(addTaskDialogTag) 共享同一实例。
+                        final editTag = 'edit_task_${widget._task.uuid}';
                         DialogService.showFormDialog(
-                          tag: addTaskDialogTag,
-                          dialog: const TaskDialog(dialogTag: addTaskDialogTag),
+                          tag: editTag,
+                          dialog: TaskDialog(
+                            dialogTag: editTag,
+                            intent: TaskDialogIntent.edit(task: widget._task),
+                          ),
                         );
                       },
                     ),
