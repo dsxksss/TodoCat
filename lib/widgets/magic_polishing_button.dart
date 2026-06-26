@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/routers/app_router.dart';
 import 'package:todo_cat/services/llm_polishing_service.dart';
+import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'dart:ui';
 import 'dart:math' as math;
 
 import 'package:todo_cat/core/utils/l10n.dart';
@@ -167,134 +167,70 @@ class _PolishingResultPopupState extends State<_PolishingResultPopup> {
           Transform.translate(
             offset: _offset,
             child: Container(
-              width: 300,
-              // ... rest of container content
+              width: 320,
               margin: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
+                color: context.theme.dialogTheme.backgroundColor,
                 borderRadius: BorderRadius.circular(12),
+                border:
+                    Border.all(width: 0.3, color: context.theme.dividerColor),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
                 ],
-                border: Border.all(
-                  color: Colors.blue.withValues(alpha: 0.3),
-                  width: 1,
-                ),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onPanUpdate: (details) {
-                      setState(() {
-                        _offset += details.delta;
-                      });
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header (Draggable Area)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
-                            border: Border(
-                              bottom: BorderSide(
-                                color: Colors.blue.withValues(alpha: 0.1),
-                              ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 头部（可拖拽移动）：与其它对话框统一使用 DialogHeader。
+                    GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onPanUpdate: (details) {
+                        setState(() {
+                          _offset += details.delta;
+                        });
+                      },
+                      child: DialogHeader(
+                        titleWidget: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.auto_fix_high,
+                                size: 18,
+                                color: context.theme.colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Text(
+                              l10n.aiPolishResult,
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.stars,
-                                  color: Colors.blue, size: 16),
-                              const SizedBox(width: 8),
-                              const Text(
-                                "AI 润色结果",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: Colors.blue,
-                                ),
-                              ),
-                              const Spacer(),
-                              IconButton(
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                icon: Icon(Icons.close,
-                                    size: 16,
-                                    color: Theme.of(context).dividerColor),
-                                onPressed: widget.onCancel,
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
-
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 300),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.polishedText,
-                                    style: const TextStyle(
-                                        height: 1.5, fontSize: 14),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Footer Actions
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(
-                                onPressed: widget.onCancel,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.grey,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
-                                ),
-                                child: const Text("取消"),
-                              ),
-                              const SizedBox(width: 8),
-                              // 移除 "替换" 按钮
-                              ElevatedButton.icon(
-                                onPressed: widget.onApply,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                icon: const Icon(Icons.check, size: 16),
-                                label: const Text("替换"),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        onCancel: widget.onCancel,
+                        onConfirm: widget.onApply,
+                        confirmText: l10n.aiReplace,
+                      ),
                     ),
-                  ),
+
+                    // 内容
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 300),
+                        child: SingleChildScrollView(
+                          child: Text(
+                            widget.polishedText,
+                            style: const TextStyle(height: 1.5, fontSize: 14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

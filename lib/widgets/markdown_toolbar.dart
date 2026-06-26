@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/widgets/magic_polishing_button.dart';
+import 'package:todo_cat/services/ai_settings_service.dart';
 
 import 'package:todo_cat/core/utils/l10n.dart';
 /// Markdown 工具栏组件
@@ -142,12 +143,14 @@ class MarkdownToolbar extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // AI 润色按钮 - 显示在最前面
-            MagicPolishingButton(
-              controller: controller,
-              isMultiline: true,
-            ),
-            const SizedBox(width: 8),
+            // AI 润色按钮 - 显示在最前面（仅在已配置 AI 时显示）
+            if (AiSettingsService.to.isConfigured) ...[
+              MagicPolishingButton(
+                controller: controller,
+                isMultiline: true,
+              ),
+              const SizedBox(width: 8),
+            ],
             // 预览按钮（眼睛图标）- 显示在最前面
             if (onPreview != null) ...[
               _buildToolbarButton(

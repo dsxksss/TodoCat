@@ -7,6 +7,7 @@ import 'package:todo_cat/data/schemas/custom_template.dart';
 import 'package:todo_cat/data/services/repositorys/custom_template.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:todo_cat/utils/font_utils.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/pages/home/components/task/task_card.dart';
@@ -19,6 +20,7 @@ import 'package:todo_cat/widgets/video_background.dart';
 import 'package:todo_cat/services/video_download_service.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 import 'package:todo_cat/services/llm_template_service.dart';
+import 'package:todo_cat/services/ai_settings_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:todo_cat/core/utils/l10n.dart';
@@ -315,9 +317,11 @@ class _TemplateSelectorDialogState
                             context.theme.dividerColor.withValues(alpha: 0.3)),
                     const SizedBox(height: 12),
                   ],
-                  // AI 生成按钮
-                  _buildAiGenerateOption(context),
-                  const SizedBox(height: 24),
+                  // AI 生成按钮（仅在已配置 AI 时显示，未配置则隐藏以免误用）
+                  if (AiSettingsService.to.isConfigured) ...[
+                    _buildAiGenerateOption(context),
+                    const SizedBox(height: 24),
+                  ],
 
                   Text(
                     _customTemplates.isNotEmpty
@@ -1857,151 +1861,88 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
         width: 500,
         margin: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: context.theme.dialogTheme.backgroundColor,
+          border: Border.all(width: 0.3, color: context.theme.dividerColor),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
-          border: Border.all(
-            color: Colors.blue.withValues(alpha: 0.3),
-            width: 1,
-          ),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header (Draggable)
-                GestureDetector(
-                  onPanUpdate: (details) {
-                    setState(() {
-                      _offset += details.delta;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.blue.withValues(alpha: 0.1),
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.auto_awesome,
-                            color: Colors.blue, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          l10n.aiGenerateTemplate,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: Icon(Icons.close,
-                              size: 16, color: Theme.of(context).dividerColor),
-                          onPressed: widget.onCancel,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 头部（可拖拽移动）：与其它对话框统一使用 DialogHeader。
+              GestureDetector(
+                onPanUpdate: (details) {
+                  setState(() {
+                    _offset += details.delta;
+                  });
+                },
+                child: DialogHeader(
+                  titleWidget: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextField(
-                        controller: _controller,
-                        decoration: InputDecoration(
-                          hintText: l10n.aiGenerateHint,
-                          hintStyle: TextStyle(
-                              color: Colors.grey.withValues(alpha: 0.5),
-                              fontSize: 13),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                                color: context.theme.dividerColor
-                                    .withValues(alpha: 0.5)),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                                color: context.theme.dividerColor
-                                    .withValues(alpha: 0.3)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Colors.blue),
-                          ),
-                          contentPadding: const EdgeInsets.all(12),
-                          filled: true,
-                          fillColor: context.theme.cardColor,
-                        ),
-                        maxLines: 4,
-                        maxLength: 200,
-                        autofocus: true,
-                        style: TextStyle(
-                            color: context.theme.textTheme.bodyMedium?.color),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Footer Actions
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: widget.onCancel,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                        ),
-                        child: Text(l10n.cancel),
-                      ),
+                      Icon(Icons.auto_awesome,
+                          size: 18, color: context.theme.colorScheme.primary),
                       const SizedBox(width: 8),
-                      // AI Generate Button
-                      ElevatedButton.icon(
-                        onPressed: () => widget.onGenerate(_controller.text),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: const Icon(Icons.auto_awesome, size: 16),
-                        label: Text(l10n.aiGenerateButton),
+                      Text(
+                        l10n.aiGenerateTemplate,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
+                  onCancel: widget.onCancel,
+                  onConfirm: () => widget.onGenerate(_controller.text),
+                  confirmText: l10n.aiGenerateButton,
                 ),
-              ],
-            ),
+              ),
+
+              // 内容
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    hintText: l10n.aiGenerateHint,
+                    hintStyle:
+                        TextStyle(color: context.theme.hintColor, fontSize: 13),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                          color: context.theme.dividerColor
+                              .withValues(alpha: 0.5)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                          color: context.theme.dividerColor
+                              .withValues(alpha: 0.3)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                          BorderSide(color: context.theme.colorScheme.primary),
+                    ),
+                    contentPadding: const EdgeInsets.all(12),
+                    filled: true,
+                    fillColor: context.theme.cardColor,
+                  ),
+                  maxLines: 4,
+                  maxLength: 200,
+                  autofocus: true,
+                  style: TextStyle(
+                      color: context.theme.textTheme.bodyMedium?.color),
+                ),
+              ),
+            ],
           ),
         ),
       ),
