@@ -221,7 +221,7 @@ void showDpdMenu({
     debounce: true,
     keepSingle: true,
     usePenetrate: true,
-    animationTime: 100.ms,
+    animationTime: 150.ms,
     controller: controller,
     alignment: Alignment.bottomRight,
     animationBuilder: (controller, child, animationParam) => child

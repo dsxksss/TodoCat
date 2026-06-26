@@ -562,9 +562,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       ),
     )
+        // 入场改为克制的"弹入"(轻微回弹缩放 + 淡入),替代原来 1 秒整圈旋转的浮夸效果。
         .animate(delay: 200.ms)
-        .rotate(begin: 1, duration: 1000.ms, curve: Curves.easeOut)
-        .moveX(begin: 100, duration: 1000.ms, curve: Curves.easeOut);
+        .scaleXY(begin: 0.6, end: 1.0, duration: 360.ms, curve: Curves.easeOutBack)
+        .fadeIn(duration: 260.ms, curve: Curves.easeOut);
   }
 
   /// 构建标题

@@ -64,7 +64,7 @@ class DropdownManuBtn extends StatelessWidget {
           debounce: true, // 防抖动
           keepSingle: true, // 保持单一实例
           usePenetrate: true, // 允许点击穿透
-          animationTime: 100.ms, // 动画持续时间
+          animationTime: 150.ms, // 动画持续时间（菜单弹出更顺，不至于太突兀）
           controller: _controller, // SmartDialog 控制器
           alignment: _alignment, // 对齐方式
           animationBuilder: (controller, child, animationParam) => child
