@@ -1382,6 +1382,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiGenerateButton => '立即生成';
 
   @override
+  String get aiDepthLabel => '生成深度';
+
+  @override
+  String get aiDepthConcise => '简洁';
+
+  @override
+  String get aiDepthStandard => '标准';
+
+  @override
+  String get aiDepthDetailed => '详细';
+
+  @override
+  String get aiDepthComprehensive => '全面';
+
+  @override
+  String get aiDepthHint => '从左到右,生成的步骤更多、描述更详细';
+
+  @override
   String get aiPreview => 'AI 生成结果预览';
 
   @override

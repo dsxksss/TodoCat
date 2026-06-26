@@ -83,10 +83,10 @@ class _TemplateSelectorDialogState
       builder: (_) {
         return _AiTemplateGeneratorPopup(
           onCancel: () => SmartDialog.dismiss(tag: 'ai_template_input'),
-          onGenerate: (prompt) {
+          onGenerate: (prompt, depth) {
             if (prompt.isNotEmpty) {
               SmartDialog.dismiss(tag: 'ai_template_input');
-              _generateTemplate(prompt);
+              _generateTemplate(prompt, depth);
             }
           },
         );
@@ -102,7 +102,8 @@ class _TemplateSelectorDialogState
     );
   }
 
-  Future<void> _generateTemplate(String prompt) async {
+  Future<void> _generateTemplate(
+      String prompt, TemplateGenerationDepth depth) async {
     SmartDialog.show(
         tag: 'loading_ai',
         clickMaskDismiss: false,
@@ -148,7 +149,8 @@ class _TemplateSelectorDialogState
 
     try {
       // 单例服务（替代 GetX 的 Get.put / Get.isRegistered / Get.find）。
-      final template = await LlmTemplateService.to.generateTemplate(prompt);
+      final template =
+          await LlmTemplateService.to.generateTemplate(prompt, depth: depth);
       SmartDialog.dismiss(tag: 'loading_ai');
 
       if (template != null) {
@@ -163,7 +165,7 @@ class _TemplateSelectorDialogState
         confirmMode: true,
         toastStyleType: TodoCatToastStyleType.error,
         onYesCallback: () {
-          _generateTemplate(prompt);
+          _generateTemplate(prompt, depth);
         },
       );
     }
@@ -1507,7 +1509,7 @@ void showTemplateSelectorDialog({
 /// AI 模板生成弹窗
 class _AiTemplateGeneratorPopup extends StatefulWidget {
   final VoidCallback onCancel;
-  final Function(String) onGenerate;
+  final void Function(String prompt, TemplateGenerationDepth depth) onGenerate;
 
   const _AiTemplateGeneratorPopup({
     required this.onCancel,
@@ -1811,11 +1813,57 @@ class _GeneratedTemplatePreviewState
 class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
   final TextEditingController _controller = TextEditingController();
   Offset _offset = Offset.zero;
+  TemplateGenerationDepth _depth = TemplateGenerationDepth.standard;
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  String _depthLabel(TemplateGenerationDepth d) {
+    switch (d) {
+      case TemplateGenerationDepth.concise:
+        return l10n.aiDepthConcise;
+      case TemplateGenerationDepth.standard:
+        return l10n.aiDepthStandard;
+      case TemplateGenerationDepth.detailed:
+        return l10n.aiDepthDetailed;
+      case TemplateGenerationDepth.comprehensive:
+        return l10n.aiDepthComprehensive;
+    }
+  }
+
+  Widget _depthPill(TemplateGenerationDepth d) {
+    final selected = _depth == d;
+    final primary = context.theme.colorScheme.primary;
+    return GestureDetector(
+      onTap: () => setState(() => _depth = d),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? primary.withValues(alpha: 0.12) : context.theme.cardColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selected
+                ? primary
+                : context.theme.dividerColor.withValues(alpha: 0.4),
+            width: selected ? 1.4 : 1,
+          ),
+        ),
+        child: Text(
+          _depthLabel(d),
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected
+                ? primary
+                : context.theme.textTheme.bodyMedium?.color,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -1865,14 +1913,65 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                     ],
                   ),
                   onCancel: widget.onCancel,
-                  onConfirm: () => widget.onGenerate(_controller.text),
+                  onConfirm: () =>
+                      widget.onGenerate(_controller.text, _depth),
                   confirmText: l10n.aiGenerateButton,
+                ),
+              ),
+
+              // 生成深度选择
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.tune,
+                            size: 15,
+                            color: context.theme.textTheme.bodySmall?.color
+                                ?.withValues(alpha: 0.7)),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.aiDepthLabel,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: context.theme.textTheme.bodyMedium?.color
+                                ?.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        for (int i = 0;
+                            i < TemplateGenerationDepth.values.length;
+                            i++) ...[
+                          if (i > 0) const SizedBox(width: 8),
+                          Expanded(
+                              child: _depthPill(
+                                  TemplateGenerationDepth.values[i])),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.aiDepthHint,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: context.theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
               // 内容
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 child: TextField(
                   controller: _controller,
                   decoration: InputDecoration(

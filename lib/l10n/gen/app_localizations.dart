@@ -2829,6 +2829,42 @@ abstract class AppLocalizations {
   /// **'Generate Now'**
   String get aiGenerateButton;
 
+  /// No description provided for @aiDepthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail level'**
+  String get aiDepthLabel;
+
+  /// No description provided for @aiDepthConcise.
+  ///
+  /// In en, this message translates to:
+  /// **'Concise'**
+  String get aiDepthConcise;
+
+  /// No description provided for @aiDepthStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get aiDepthStandard;
+
+  /// No description provided for @aiDepthDetailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed'**
+  String get aiDepthDetailed;
+
+  /// No description provided for @aiDepthComprehensive.
+  ///
+  /// In en, this message translates to:
+  /// **'In-depth'**
+  String get aiDepthComprehensive;
+
+  /// No description provided for @aiDepthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Left to right: more steps and richer detail'**
+  String get aiDepthHint;
+
   /// No description provided for @aiPreview.
   ///
   /// In en, this message translates to:

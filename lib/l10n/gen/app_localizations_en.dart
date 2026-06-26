@@ -1429,6 +1429,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiGenerateButton => 'Generate Now';
 
   @override
+  String get aiDepthLabel => 'Detail level';
+
+  @override
+  String get aiDepthConcise => 'Concise';
+
+  @override
+  String get aiDepthStandard => 'Standard';
+
+  @override
+  String get aiDepthDetailed => 'Detailed';
+
+  @override
+  String get aiDepthComprehensive => 'In-depth';
+
+  @override
+  String get aiDepthHint => 'Left to right: more steps and richer detail';
+
+  @override
   String get aiPreview => 'AI Generation Preview';
 
   @override

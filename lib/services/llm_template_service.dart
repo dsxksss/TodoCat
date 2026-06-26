@@ -8,6 +8,9 @@ import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:uuid/uuid.dart';
 
+/// AI 模板生成深度：越往后步骤越多、描述越详细。
+enum TemplateGenerationDepth { concise, standard, detailed, comprehensive }
+
 /// LLM 任务模板生成服务。
 ///
 /// 原 GetX `GetxService` + `Get.find()` 单例已移除，改为普通 Dart 单例。
@@ -22,52 +25,70 @@ class LlmTemplateService {
 
   final _uuid = const Uuid();
 
-  Future<CustomTemplate?> generateTemplate(String userPrompt) async {
+  /// 不同深度对应的输出 token 上限（深度越高，给模型越多空间；DeepSeek 输出上限约 8192）。
+  int _maxTokensFor(TemplateGenerationDepth depth) {
+    switch (depth) {
+      case TemplateGenerationDepth.concise:
+        return 2000;
+      case TemplateGenerationDepth.standard:
+        return 4000;
+      case TemplateGenerationDepth.detailed:
+        return 6000;
+      case TemplateGenerationDepth.comprehensive:
+        return 8000;
+    }
+  }
+
+  /// 不同深度注入到系统提示词里的「数量 + 详细程度」要求。
+  String _depthInstruction(TemplateGenerationDepth depth) {
+    switch (depth) {
+      case TemplateGenerationDepth.concise:
+        return 'CONCISE — generate 4-6 high-level steps. Keep each description to a single short sentence.';
+      case TemplateGenerationDepth.standard:
+        return 'STANDARD — generate 8-12 steps. Each description is 1-2 sentences covering the key how-to.';
+      case TemplateGenerationDepth.detailed:
+        return 'DETAILED — generate 14-20 steps. Break the goal into clear sub-tasks; each description (2-4 sentences) lists concrete sub-points and what "done" looks like. Order carefully by dependency.';
+      case TemplateGenerationDepth.comprehensive:
+        return 'COMPREHENSIVE — generate 22-35 fine-grained steps covering every phase end-to-end (preparation, setup, core execution, testing/review, wrap-up). Each description must be thorough and actionable: it MAY include a short markdown bullet list of sub-steps or a checklist, should note prerequisites/dependencies, and should state acceptance criteria. Do not omit setup, edge cases or finishing work.';
+    }
+  }
+
+  /// 构建系统提示词（已优化：要求步骤具体可执行、按依赖排序、覆盖全生命周期，并按深度伸缩）。
+  String _buildSystemPrompt(TemplateGenerationDepth depth) {
+    return '''
+You are an expert project planner and task-management coach. Given the user's goal, produce a structured Kanban template that someone could realistically follow to achieve it.
+
+OUTPUT: Return ONLY a valid JSON array of exactly 3 task objects — no markdown code fences, no commentary. Schema:
+[
+  { "title": "待办", "type": "todo", "description": "short summary of the plan", "todos": [ {"title": "actionable step", "description": "the how / key sub-points / acceptance criteria", "priority": "highLevel" | "mediumLevel" | "lowLevel", "tags": ["tag"]} ] },
+  { "title": "进行中", "type": "inProgress", "description": "Tasks currently being worked on", "todos": [] },
+  { "title": "已完成", "type": "done", "description": "Completed tasks", "todos": [] }
+]
+
+QUALITY RULES:
+1. Output ONLY the JSON array — no ```json fences, no extra text.
+2. Exactly 3 task objects, using the fixed titles/types shown above.
+3. Put ALL generated steps into the "待办" task; keep "进行中" and "已完成" todos empty.
+4. Every step must be SPECIFIC and ACTIONABLE (start with a verb) and concrete to THIS user's goal — never generic filler like "do research" without specifics.
+5. Order steps logically by dependency / chronology (prerequisites first).
+6. Give each todo a clear title, a genuinely useful description, a realistic priority (do NOT make everything highLevel — reserve highLevel for critical-path / blocking items), and 1-3 relevant tags.
+7. Cover the full lifecycle of the goal: preparation → core execution → review / finishing.
+8. Use the SAME LANGUAGE as the user's description for every title, description and tag.
+
+DEPTH: ${_depthInstruction(depth)}
+''';
+  }
+
+  Future<CustomTemplate?> generateTemplate(
+    String userPrompt, {
+    TemplateGenerationDepth depth = TemplateGenerationDepth.standard,
+  }) async {
     if (userPrompt.trim().isEmpty) {
       return null;
     }
 
     try {
-      const systemPrompt = """
-You are a professional task management expert. Your goal is to generate a structured Kanban task template based on the user's description.
-Output Format:
-You MUST return ONLY a valid JSON string representing a list of Tasks.
-Structure:
-[
-  {
-    "title": "待办", // Fixed title for Kanban "To Do" column
-    "type": "todo", // MUST be "todo"
-    "description": "Planned tasks",
-    "todos": [ 
-      {
-        "title": "Step 1",
-        "description": "Details...",
-        "priority": "mediumLevel",
-        "tags": ["Tag1"]
-      } 
-    ]
-  },
-  {
-    "title": "进行中", // Fixed title for Kanban "In Progress" column
-    "type": "inProgress", // MUST be "inProgress"
-    "description": "Tasks currently being worked on",
-    "todos": []
-  },
-  {
-    "title": "已完成", // Fixed title for Kanban "Done" column
-    "type": "done", // MUST be "done"
-    "description": "Completed tasks",
-    "todos": []
-  }
-]
-Rules:
-1. Return ONLY the JSON. No markdown backticks (```json ... ```), no explanatory text.
-2. You MUST generate exactly 3 Tasks.
-3. Analyze the user's request. Break it down into AT LEAST 5-10 actionable steps (todos) for a complete plan.
-4. Place ALL these steps into the "待办" (To Do) list todos array.
-5. Do NOT return an empty "todos" array for the "待办" task. You must generate content.
-6. Use the user's language for Todo titles and descriptions.
-""";
+      final systemPrompt = _buildSystemPrompt(depth);
 
       final systemMessage = OpenAIChatCompletionChoiceMessageModel(
         content: [
@@ -87,7 +108,7 @@ Rules:
         model: AiSettingsService.to.model,
         messages: [systemMessage, userMessage],
         temperature: 0.7,
-        maxTokens: 4000,
+        maxTokens: _maxTokensFor(depth),
       );
 
       if (completion.choices.isNotEmpty) {
