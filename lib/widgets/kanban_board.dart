@@ -138,9 +138,12 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
           taskId: entry.value.taskId,
           index: entry.value.index,
         );
-        // 动画结束后从队列移除并刷新（动画 ~260ms，这里留出余量）。
+        // 动画结束后从队列移除并刷新（动画 ~260ms，这里留出余量）；
+        // 同时清理入场相关集合，避免 _seenTodoIds 随会话不断增长（删除即彻底遗忘该 uuid）。
         Future.delayed(const Duration(milliseconds: 300), () {
           if (!mounted) return;
+          _seenTodoIds.remove(uuid);
+          _pendingEntranceIds.remove(uuid);
           if (_exiting.remove(uuid) != null) setState(() {});
         });
       }

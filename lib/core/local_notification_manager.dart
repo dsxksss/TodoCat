@@ -23,6 +23,10 @@ class LocalNotificationManager {
   final FlutterLocalNotificationsPlugin _flutterLocalNotifications =
       FlutterLocalNotificationsPlugin();
 
+  /// Windows 定时器：local_notifier 不支持定时调度，用 Timer 在到点时才弹出。
+  /// 按 noticeId 索引，便于取消/避免重复。仅在 App 运行期间有效。
+  final Map<String, Timer> _windowsTimers = {};
+
   LocalNotificationManager._();
 
   /// 获取单例实例
@@ -108,6 +112,11 @@ class LocalNotificationManager {
   /// 销毁所有本地通知
   Future<void> destroyLocalNotification() async {
     try {
+      // 取消所有未触发的 Windows 定时提醒。
+      for (final timer in _windowsTimers.values) {
+        timer.cancel();
+      }
+      _windowsTimers.clear();
       await _flutterLocalNotifications.cancelAll();
     } catch (e) {
       _logger.e('Error destroying all notifications: $e');
@@ -176,12 +185,19 @@ class LocalNotificationManager {
     if (notificationTime.isBefore(DateTime.now())) return;
 
     if (Platform.isWindows) {
-      final notification = LocalNotification(
-        identifier: notice.noticeId,
-        title: notice.title,
-        body: notice.description,
-      );
-      notification.show();
+      // local_notifier 没有定时调度能力，之前是立即 show()，导致「未来的提醒」
+      // 在保存时/每次启动时就立刻弹出。改为用 Timer 在到点时才弹出。
+      // 注意：Timer 不跨进程，App 关闭后会丢失（启动时 checkAllLocalNotification 会重排）。
+      _windowsTimers.remove(notice.noticeId)?.cancel();
+      final delay = notificationTime.difference(DateTime.now());
+      _windowsTimers[notice.noticeId] = Timer(delay, () {
+        _windowsTimers.remove(notice.noticeId);
+        LocalNotification(
+          identifier: notice.noticeId,
+          title: notice.title,
+          body: notice.description,
+        ).show();
+      });
     } else if (Platform.isAndroid ||
         Platform.isIOS ||
         Platform.isLinux ||
@@ -225,7 +241,8 @@ class LocalNotificationManager {
   /// 取消本地通知
   Future<void> _cancelLocalNotification(String noticeId) async {
     if (Platform.isWindows) {
-      // Windows平台不需要特别处理，通知会自动消失
+      // 取消尚未触发的定时提醒（已弹出的系统通知会自行消失）。
+      _windowsTimers.remove(noticeId)?.cancel();
     } else {
       await _flutterLocalNotifications.cancel(noticeId.hashCode);
     }

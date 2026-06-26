@@ -121,11 +121,13 @@ void main() async {
         return;
       }
 
-      // 检查是否是 Windows 平台线程通信错误（仅在应用退出时）
+      // 检查是否是 Windows 平台线程通信错误（仅在应用退出时）。
+      // 注意运算符优先级：&& 比 || 紧，必须给 (close || dispose) 加括号，否则会退化成
+      // 「stack 含 'dispose' 就静默」——而几乎所有 Flutter 栈都含 'dispose'，会把真正的崩溃也吞掉。
       if (errorString.contains('Failed to post message to main thread') ||
           (errorString.contains('task_runner_window') &&
-                  stackString.contains('close') ||
-              stackString.contains('dispose'))) {
+              (stackString.contains('close') ||
+                  stackString.contains('dispose')))) {
         // 静默忽略 Windows 线程通信错误（通常发生在应用退出时，无害）
         debugPrint(
             '⚠️ Ignoring Windows thread communication error during shutdown: $error');
