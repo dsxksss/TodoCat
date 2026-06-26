@@ -66,6 +66,12 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   final Set<String> _pendingEntranceIds = {};
   bool _seeded = false;
 
+  // 卡片退场动画：删除一个 todo 时，先用淡出 + 高度收拢动画把卡片"送走"，再从列表移除。
+  // 仅对**软删除**(deletedAt != 0)生效，不影响拖拽移动/重排（那些不会触发退场）。
+  // key = todo.uuid。_prevActive 记录上一帧各 todo 的所属列与索引，用于 diff 出被删除项。
+  final Map<String, _ExitingTodo> _exiting = {};
+  Map<String, _ActiveRef> _prevActive = {};
+
   static const double _columnGap = 8.0;
 
   ScrollController _columnScroller(String id) =>
@@ -99,6 +105,59 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
 
   List<Todo> _activeTodos(Task task) =>
       (task.todos ?? const <Todo>[]).where((t) => t.deletedAt == 0).toList();
+
+  // ---------------------------------------------------------------------------
+  // 删除退场动画
+  // ---------------------------------------------------------------------------
+
+  /// 每帧对比上一帧的"可见 todo"，找出本帧消失且属于**软删除**的项，登记为退场卡片。
+  void _trackDeletionsForExit() {
+    final current = <String, _ActiveRef>{};
+    for (final t in widget.tasks) {
+      final list = _activeTodos(t);
+      for (var i = 0; i < list.length; i++) {
+        current[list[i].uuid] = _ActiveRef(t.uuid, i);
+      }
+    }
+
+    // 重新出现（如撤销删除）的项，若还在退场队列里，撤回退场。
+    for (final uuid in current.keys) {
+      _exiting.remove(uuid);
+    }
+
+    // 仅在已有"上一帧"时做 diff（跳过首帧，避免初次加载误判）。
+    if (_prevActive.isNotEmpty) {
+      for (final entry in _prevActive.entries) {
+        final uuid = entry.key;
+        if (current.containsKey(uuid)) continue; // 仍可见
+        if (_exiting.containsKey(uuid)) continue; // 已在退场
+        final deleted = _findSoftDeletedTodo(uuid);
+        if (deleted == null) continue; // 不是删除（可能是移动到别处），不做退场
+        _exiting[uuid] = _ExitingTodo(
+          todo: deleted,
+          taskId: entry.value.taskId,
+          index: entry.value.index,
+        );
+        // 动画结束后从队列移除并刷新（动画 ~260ms，这里留出余量）。
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (!mounted) return;
+          if (_exiting.remove(uuid) != null) setState(() {});
+        });
+      }
+    }
+
+    _prevActive = current;
+  }
+
+  /// 在所有 task 中查找已被软删除（deletedAt != 0）的指定 todo。
+  Todo? _findSoftDeletedTodo(String uuid) {
+    for (final t in widget.tasks) {
+      for (final td in (t.todos ?? const <Todo>[])) {
+        if (td.uuid == uuid && td.deletedAt != 0) return td;
+      }
+    }
+    return null;
+  }
 
   // ---------------------------------------------------------------------------
   // 拖拽结果处理
@@ -221,6 +280,8 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
       }
       _seeded = true;
     }
+
+    _trackDeletionsForExit();
 
     return Listener(
       onPointerMove: (e) {
@@ -377,7 +438,11 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
 
   Widget _buildTodoList(
       Task task, List<Todo> todos, bool isPhone, bool columnHovered) {
-    if (todos.isEmpty) {
+    // 本列正在退场（删除收拢中）的卡片，按删除前索引排序。
+    final exiting = _exiting.values.where((e) => e.taskId == task.uuid).toList()
+      ..sort((a, b) => a.index.compareTo(b.index));
+
+    if (todos.isEmpty && exiting.isEmpty) {
       // 空列：空闲时高度 0（不留深色块）；仅当拖拽悬停本列时张开投放区。
       return _emptyTodoTarget(task.uuid, columnHovered);
     }
@@ -386,6 +451,10 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
     for (var i = 0; i < todos.length; i++) {
       // 每张卡片整体是投放区：悬停时其上方张开卡片大小的槽位，卡片随之让位。
       children.add(_todoItem(task.uuid, i, _buildTodoCard(task, todos, i, isPhone)));
+    }
+    // 把退场卡片插回它删除前的位置，让它原地淡出收拢、下方卡片随之顺滑上移。
+    for (final e in exiting) {
+      children.insert(e.index.clamp(0, children.length), _buildExitingCard(e, isPhone));
     }
     // 末尾投放区：投放到列表最后（仅在拖拽悬停本列时占位，避免其它列多出高度）。
     children.add(_todoTailTarget(task.uuid, todos.length, columnHovered));
@@ -551,6 +620,25 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
     });
   }
 
+  /// 退场卡片：纯展示、不可交互（IgnorePointer），自带淡出 + 高度收拢动画。
+  Widget _buildExitingCard(_ExitingTodo e, bool isPhone) {
+    final card = ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: isPhone ? 460 : 380),
+      child: ClipRect(
+        child: TodoCard(
+          taskId: e.taskId,
+          todo: e.todo,
+          compact: true,
+          outerMargin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        ),
+      ),
+    );
+    return _ExitingCardView(
+      key: ValueKey('todo_out_${e.todo.uuid}'),
+      child: IgnorePointer(child: card),
+    );
+  }
+
   Widget _buildFeedback({required double width, required Widget child}) {
     // 浮起的卡片：实心 + 阴影，像被“拎起”，与列拖拽的浮起效果一致。
     return Material(
@@ -579,4 +667,60 @@ class _TodoDrag {
   final String fromTaskId;
   final Todo todo;
   final int fromIndex;
+}
+
+/// 上一帧某个可见 todo 的所属列与索引（用于 diff 出被删除项）。
+class _ActiveRef {
+  const _ActiveRef(this.taskId, this.index);
+  final String taskId;
+  final int index;
+}
+
+/// 一个正在退场（删除收拢中）的 todo 及其删除前的位置。
+class _ExitingTodo {
+  const _ExitingTodo({
+    required this.todo,
+    required this.taskId,
+    required this.index,
+  });
+  final Todo todo;
+  final String taskId;
+  final int index;
+}
+
+/// 退场动画包裹：淡出 + 沿垂直方向高度收拢（下方卡片随之顺滑上移）。
+class _ExitingCardView extends StatefulWidget {
+  const _ExitingCardView({super.key, required this.child});
+  final Widget child;
+
+  @override
+  State<_ExitingCardView> createState() => _ExitingCardViewState();
+}
+
+class _ExitingCardViewState extends State<_ExitingCardView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+  )..forward();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final curve = CurvedAnimation(parent: _controller, curve: Curves.easeInCubic);
+    final shrink = Tween<double>(begin: 1.0, end: 0.0).animate(curve);
+    return FadeTransition(
+      opacity: shrink,
+      child: SizeTransition(
+        sizeFactor: shrink,
+        axisAlignment: -1.0,
+        child: widget.child,
+      ),
+    );
+  }
 }

@@ -902,23 +902,39 @@ class _TodoCardState extends ConsumerState<TodoCard> {
                           ],
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor().withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: _getStatusColor(),
-                            width: 0.8,
+                      // 状态徽标：状态变化（如标记完成）时做交叉淡入 + 轻微缩放，
+                      // 比直接换色更有"状态切换"的反馈感。
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 240),
+                        switchInCurve: Curves.easeOut,
+                        switchOutCurve: Curves.easeIn,
+                        transitionBuilder: (child, anim) => FadeTransition(
+                          opacity: anim,
+                          child: ScaleTransition(
+                            scale: Tween<double>(begin: 0.85, end: 1.0)
+                                .animate(anim),
+                            child: child,
                           ),
                         ),
-                        child: Text(
-                          _getStatusText(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: _getStatusColor(),
-                            fontWeight: FontWeight.w600,
+                        child: Container(
+                          key: ValueKey('${_getStatusText()}_${_isOverdue()}'),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _getStatusColor().withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _getStatusColor(),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            _getStatusText(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: _getStatusColor(),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
