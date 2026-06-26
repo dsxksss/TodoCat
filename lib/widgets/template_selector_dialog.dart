@@ -1628,86 +1628,51 @@ class _GeneratedTemplatePreviewState
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 标题栏
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 15),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: context.theme.dividerColor
-                                .withValues(alpha: 0.3),
-                            width: 0.5,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // 标题栏：与其它对话框统一使用 DialogHeader（应用 / 关闭）。
+                    DialogHeader(
+                      titleWidget: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    l10n.aiPreview,
-                                    style: FontUtils.getBoldStyle(fontSize: 18),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                if (!context.isPhone) // 移动端隐藏标签以节省空间
-                                  Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                          color: Colors.blue
-                                              .withValues(alpha: 0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(4)),
-                                      child: Text(
-                                          widget.template.description ?? "",
-                                          style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.blue)))
-                              ],
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 360),
+                            child: Text(
+                              l10n.aiPreview,
+                              style: FontUtils.getBoldStyle(fontSize: 18),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              LabelBtn(
-                                label: Text(l10n.apply,
-                                    style:
-                                        const TextStyle(color: Colors.white)),
-                                onPressed: widget.onApply,
-                                bgColor: Colors.blue,
-                              ),
-                              const SizedBox(width: 12),
-                              MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: GestureDetector(
-                                  onTap: widget.onCancel,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: context.theme.dividerColor
-                                          .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Icon(
-                                      Icons.close,
-                                      size: 18,
-                                      color: context
-                                          .theme.textTheme.bodyMedium?.color,
-                                    ),
-                                  ),
+                          if (!context.isPhone &&
+                              (widget.template.description ?? "")
+                                  .isNotEmpty) ...[
+                            const SizedBox(width: 12),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 320),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: context.theme.colorScheme.primary
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  widget.template.description ?? "",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color:
+                                          context.theme.colorScheme.primary),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ],
                       ),
+                      onCancel: widget.onCancel,
+                      onConfirm: widget.onApply,
+                      confirmText: l10n.apply,
                     ),
                     // 预览内容 - 水平滚动
                     Expanded(
