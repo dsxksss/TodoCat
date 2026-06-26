@@ -128,6 +128,9 @@ class TimePanelState extends ConsumerState<TimePanel> {
           ? (selectedHour == 11 ? 0 : selectedHour + 1)
           : (selectedHour == 11 ? 12 : selectedHour + 13);
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // 防抖定时器已触发但帧回调尚未执行时，面板可能已被关闭/销毁；
+        // 加 mounted 守卫，避免回调到已销毁组件再写状态。
+        if (!mounted) return;
         widget.onTimeSelected(TimeOfDay(hour: hour, minute: selectedMinute));
       });
     });

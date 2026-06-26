@@ -855,6 +855,13 @@ class HomeController extends _$HomeController {
         },
       );
 
+      // 防御：目标与源是同一个 task 时直接返回，避免 fromTask/toTask 指向同一对象、
+      // 以及对同一 uuid 并发双写造成的竞态（UI 已禁止选中当前 task，这里兜底）。
+      if (targetTaskId == fromTaskId) {
+        _logger.w('Target task is the same as source; nothing to move');
+        return false;
+      }
+
       Task? toTask;
       if (targetWorkspaceId == fromTask.workspaceId) {
         toTask = allTasks.firstWhereOrNull((task) => task.uuid == targetTaskId);

@@ -109,26 +109,27 @@ class SyncManager {
           await _webDavService!.downloadFile('TodoCat/manifest.json');
 
       if (manifestContent == null) {
-        // 云端没有manifest，如果有本地数据则视为本地更改
-        return hasLocalChanges ? 'localChanges' : 'synced'; // 或者 'notSynced'
+        // 云端没有 manifest（从未上传过）：绝不能报告 'synced'，否则会误导用户以为
+        // 数据已备份。无本地改动则为 notSynced，有改动则为待推送的 localChanges。
+        return hasLocalChanges ? 'localChanges' : 'notSynced';
       }
 
       final manifest = jsonDecode(manifestContent);
       final workspaces = manifest['workspaces'] as List?;
       if (workspaces == null)
-        return hasLocalChanges ? 'localChanges' : 'synced';
+        return hasLocalChanges ? 'localChanges' : 'notSynced';
 
       final remoteWorkspace =
           workspaces.firstWhereOrNull((w) => w['uuid'] == workspaceUuid);
 
       // 云端不存在此工作空间
       if (remoteWorkspace == null) {
-        return hasLocalChanges ? 'localChanges' : 'synced';
+        return hasLocalChanges ? 'localChanges' : 'notSynced';
       }
 
       final remoteTime = remoteWorkspace['syncedAt'] as int?;
       if (remoteTime == null)
-        return hasLocalChanges ? 'localChanges' : 'synced';
+        return hasLocalChanges ? 'localChanges' : 'notSynced';
 
       final hasRemoteUpdate = remoteTime > localSyncTime;
 
