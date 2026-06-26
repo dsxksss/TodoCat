@@ -528,7 +528,8 @@ class _TodoDialogState extends ConsumerState<TodoDialog>
                         TextFormFieldItem(
                           textInputAction: TextInputAction.next,
                           autofocus: true,
-                          focusNode: FocusNode(),
+                          // 不再每次 build 新建 FocusNode（会泄漏且无人释放）；
+                          // 不传则由内部 TextFormField 自行创建并管理/释放。
                           maxLength: 200,
                           maxLines: 1,
                           radius: 6,
@@ -811,7 +812,8 @@ class _TodoDialogState extends ConsumerState<TodoDialog>
                           TextFormFieldItem(
                             textInputAction: TextInputAction.next,
                             autofocus: true,
-                            focusNode: FocusNode(),
+                            // 不再每次 build 新建 FocusNode（会泄漏且无人释放）；
+                            // 不传则由内部 TextFormField 自行创建并管理/释放。
                             maxLength: 200,
                             maxLines: 1,
                             radius: 6,

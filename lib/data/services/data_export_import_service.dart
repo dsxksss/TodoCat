@@ -288,8 +288,8 @@ class DataExportImportService {
                 tasksSkipped++;
                 continue;
               } else if (conflictAction == ConflictAction.replace) {
-                // 先删除原有任务
-                await taskRepository.delete(existingTask.uuid);
+                // 彻底删除原有任务（用户选择「替换」，应真正覆盖而非留在回收站）。
+                await taskRepository.permanentDelete(existingTask.uuid);
                 // 然后写入新任务
                 await taskRepository.write(task.uuid, task);
                 existingTaskMap[task.title.toLowerCase()] = task;
@@ -315,8 +315,8 @@ class DataExportImportService {
               tasksSkipped++;
               continue;
             } else if (conflictAction == ConflictAction.replace) {
-              // 先删除原有任务
-              await taskRepository.delete(existingTask.uuid);
+              // 彻底删除原有任务（用户选择「替换」，应真正覆盖而非留在回收站）。
+              await taskRepository.permanentDelete(existingTask.uuid);
               // 然后写入新任务
               await taskRepository.write(task.uuid, task);
               existingTaskMap[task.title.toLowerCase()] = task; // 更新映射

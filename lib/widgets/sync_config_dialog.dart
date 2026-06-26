@@ -47,6 +47,12 @@ class _SyncConfigDialogState extends ConsumerState<SyncConfigDialog> {
     _initConnection();
   }
 
+  @override
+  void dispose() {
+    _importKeyController.dispose();
+    super.dispose();
+  }
+
   Future<void> _initConnection() async {
     // Initialize SyncManager (loads config and status)
     await SyncManager().init();
@@ -66,6 +72,7 @@ class _SyncConfigDialogState extends ConsumerState<SyncConfigDialog> {
   }
 
   Future<void> _useDefaultConfig() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final config = WebDavConfig(
@@ -78,7 +85,7 @@ class _SyncConfigDialogState extends ConsumerState<SyncConfigDialog> {
     } catch (e) {
       // Ignore
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

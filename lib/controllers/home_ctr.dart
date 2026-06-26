@@ -773,10 +773,14 @@ class HomeController extends _$HomeController {
       fromTodos.removeWhere((todo) => todo.uuid == todoId);
       fromTask.todos = fromTodos;
 
-      final toTodos = List<Todo>.from(toTask.todos ?? []);
-      targetIndex = targetIndex.clamp(0, toTodos.length);
-      toTodos.insert(targetIndex, todoToMove);
-      toTask.todos = toTodos;
+      // targetIndex 是目标列「可见列表」的索引；toTask.todos 仍含软删除项，
+      // 故拆成可见 + 已删除，按可见索引插入后再把已删除项接到末尾（不可见，位置无关）。
+      final toFull = List<Todo>.from(toTask.todos ?? []);
+      final toDeleted = toFull.where((t) => t.deletedAt != 0).toList();
+      final toActive = toFull.where((t) => t.deletedAt == 0).toList();
+      targetIndex = targetIndex.clamp(0, toActive.length);
+      toActive.insert(targetIndex, todoToMove);
+      toTask.todos = [...toActive, ...toDeleted];
 
       await Future.wait([
         _taskManager.updateTask(fromTaskId, fromTask),
@@ -1127,17 +1131,21 @@ class HomeController extends _$HomeController {
         return;
       }
 
-      final todoIndex = task.todos!.indexWhere((t) => t.uuid == todo.uuid);
-      if (todoIndex == -1) {
+      // newIndex 来自看板，是「可见（未删除）列表」的索引；而 task.todos 里仍保留着
+      // 软删除项（deletedAt != 0）。直接对全量列表用可见索引插入会错位，因此这里拆成
+      // 可见 + 已删除两部分，对可见列表按其索引重排，再把已删除项接到末尾（不可见，位置无关）。
+      final full = List<Todo>.from(task.todos!);
+      final deleted = full.where((t) => t.deletedAt != 0).toList();
+      final active = full.where((t) => t.deletedAt == 0).toList();
+      final oldActiveIndex = active.indexWhere((t) => t.uuid == todo.uuid);
+      if (oldActiveIndex == -1) {
         _logger.w('Todo ${todo.uuid} not found in task');
         return;
       }
-
-      final newTodos = List<Todo>.from(task.todos!);
-      newTodos.removeAt(todoIndex);
-      newIndex = newIndex.clamp(0, newTodos.length);
-      newTodos.insert(newIndex, todo);
-      task.todos = newTodos;
+      active.removeAt(oldActiveIndex);
+      newIndex = newIndex.clamp(0, active.length);
+      active.insert(newIndex, todo);
+      task.todos = [...active, ...deleted];
 
       await _taskManager.updateTask(taskId, task);
       _logger.d('Todo reordered in same task successfully');

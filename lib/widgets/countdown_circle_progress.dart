@@ -81,9 +81,10 @@ class _CountdownCircleProgressState extends State<CountdownCircleProgress> {
         // 等待进度真正为0或接近0时才触发完成回调，确保与通知的显示时间同步
         if (newProgress <= 0.0) {
           timer.cancel();
-          // 延迟一小段时间，确保通知的displayTime也到了
+          // 延迟一小段时间，确保通知的displayTime也到了；
+          // 加 mounted 守卫，避免组件已销毁（通知已被其它方式关闭）后仍回调导致重复移除。
           Future.delayed(const Duration(milliseconds: 50), () {
-            widget.onComplete();
+            if (mounted) widget.onComplete();
           });
         }
       }

@@ -135,8 +135,11 @@ class TaskRepository {
         task.id = existing.id;
         task.order = existing.order;
       } else {
-        // 获取当前任务数量作为新任务的 order
-        final countQuery = db.selectOnly(db.tasks)..addColumns([db.tasks.id.count()]);
+        // 获取当前「未删除」任务数量作为新任务的 order（与 readAll 的 deletedAt==0
+        // 过滤保持一致，避免回收站里的任务把 order 不断撑大、产生空洞）。
+        final countQuery = db.selectOnly(db.tasks)
+          ..addColumns([db.tasks.id.count()])
+          ..where(db.tasks.deletedAt.equals(0));
         final count = await countQuery.getSingle();
         task.order = count.read(db.tasks.id.count()) ?? 0;
       }

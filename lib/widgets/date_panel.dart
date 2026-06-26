@@ -127,8 +127,10 @@ class _DatePanelState extends ConsumerState<DatePanel> {
     
     List<DateTime> days = [];
     
-    // 添加上个月的日期来填充第一周
-    final prevMonth = DateTime(firstDay.year, firstDay.month - 1, 0);
+    // 添加上个月的日期来填充第一周。
+    // DateTime(year, month, 0) = 上个月最后一天（day 0 回退到上月末），
+    // 之前写成 month-1 会回退到「上上个月」末尾，导致填充日期错位一个月。
+    final prevMonth = DateTime(firstDay.year, firstDay.month, 0);
     for (int i = firstWeekday - 1; i >= 0; i--) {
       days.add(DateTime(prevMonth.year, prevMonth.month, prevMonth.day - i));
     }

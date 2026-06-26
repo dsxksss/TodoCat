@@ -52,12 +52,14 @@ class _SelectWorkspaceAndTaskDialogState
     try {
       final repository = await TaskRepository.getInstance();
       final tasks = await repository.readAll(workspaceId: workspaceId);
-      
+
+      if (!mounted) return;
       setState(() {
         _tasks = tasks;
         _loadingTasks = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _tasks = [];
         _loadingTasks = false;
