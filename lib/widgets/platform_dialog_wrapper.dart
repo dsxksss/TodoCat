@@ -29,7 +29,7 @@ class PlatformDialogWrapper {
     bool debounce = true,
     bool keepSingle = true,
     SmartBackType backType = SmartBackType.normal,
-    Duration animationTime = const Duration(milliseconds: 150),
+    Duration animationTime = const Duration(milliseconds: 180),
     bool clickMaskDismiss = false,
     Color? maskColor,
     VoidCallback? onDismiss,
@@ -108,15 +108,16 @@ class PlatformDialogWrapper {
             ),
           );
         } else {
-          // 桌面端：缩放和淡入
-          final animation = child
+          // 桌面端：淡入 + 轻缩放（入场用 easeOut 系曲线，begin 收到 0.95 更可感知）。
+          return child
               .animate(controller: controller)
-              .fade(duration: controller.duration);
-          return animation.scaleXY(
-            begin: 0.98,
-            duration: controller.duration,
-            curve: Curves.easeIn,
-          );
+              .fade(duration: controller.duration, curve: Curves.easeOut)
+              .scaleXY(
+                begin: 0.95,
+                end: 1.0,
+                duration: controller.duration,
+                curve: Curves.easeOutCubic,
+              );
         }
       },
     );

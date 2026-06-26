@@ -55,16 +55,28 @@ List _getIconData(TodoCatToastStyleType type) {
 List<Effect<dynamic>> _getToastAnimationEffect(
     AnimationController controller, TodoCatToastStyleType? toastStyleType) {
   return [
+    // 轻柔上浮（不再用 easeInOutBack 的回弹过冲，位移也收小）。
     MoveEffect(
       begin: Platform.isAndroid || Platform.isIOS
-          ? const Offset(0, -150)
-          : const Offset(0, 150),
+          ? const Offset(0, -40)
+          : const Offset(0, 40),
+      end: Offset.zero,
       duration: controller.duration,
-      curve: Curves.easeInOutBack,
+      curve: Curves.easeOutCubic,
     ),
+    // 渐显：用 easeOut，避免在透明度上用回弹曲线导致的闪烁。
     FadeEffect(
+      begin: 0.0,
+      end: 1.0,
+      duration: controller.duration! * 0.7,
+      curve: Curves.easeOut,
+    ),
+    // 轻微缩放，让弹出更自然。
+    ScaleEffect(
+      begin: const Offset(0.96, 0.96),
+      end: const Offset(1.0, 1.0),
       duration: controller.duration,
-      curve: Curves.easeInOutBack,
+      curve: Curves.easeOutCubic,
     ),
   ];
 }
@@ -255,7 +267,7 @@ void showToast(
         : (alwaysShow ? const Duration(days: 365) : displayTime ?? 3000.ms),
     animationTime: isBottomLeft
         ? (animationTime ?? 400.ms) // 左下角动画更快
-        : (animationTime ?? 600.ms),
+        : (animationTime ?? 450.ms), // 主 Toast 收紧时长，配合轻柔曲线更利落
     tag: tag,
     keepSingle: keepSingle ?? !isBottomLeft, // 左下角允许多个通知并存
     alignment: isBottomLeft

@@ -92,7 +92,7 @@ class _StartPageState extends State<StartPage> {
             ],
           ),
         ),
-      ).animate().fade(duration: 800.ms, curve: Curves.easeInSine),
+      ).animate().fade(duration: 700.ms, curve: Curves.easeOutCubic),
     );
   }
 }

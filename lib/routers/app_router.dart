@@ -51,32 +51,38 @@ final appRouter = GoRouter(
 String get currentRoutePath =>
     appRouter.routerDelegate.currentConfiguration.uri.path;
 
-/// 淡入过渡（原 Transition.fadeIn / 200ms）。
+/// 淡入过渡（带 easeOutCubic 缓出，比线性更柔和）。
 CustomTransitionPage<T> _fadePage<T>(Widget child, GoRouterState state) {
   return CustomTransitionPage<T>(
     key: state.pageKey,
-    transitionDuration: const Duration(milliseconds: 200),
+    transitionDuration: const Duration(milliseconds: 220),
+    reverseTransitionDuration: const Duration(milliseconds: 180),
     child: child,
     transitionsBuilder: (context, animation, secondary, child) =>
-        FadeTransition(opacity: animation, child: child),
+        FadeTransition(
+      opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+      child: child,
+    ),
   );
 }
 
-/// 右进过渡（原 Transition.rightToLeft / 250ms）。
+/// 右进过渡：滑入 + 淡入组合，统一 easeOutCubic（入场更跟手、不拖沓）。
 CustomTransitionPage<T> _slidePage<T>(Widget child, GoRouterState state) {
   return CustomTransitionPage<T>(
     key: state.pageKey,
-    transitionDuration: const Duration(milliseconds: 250),
+    transitionDuration: const Duration(milliseconds: 260),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
     child: child,
-    transitionsBuilder: (context, animation, secondary, child) =>
-        SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(1, 0),
-        end: Offset.zero,
-      ).animate(
-        CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-      ),
-      child: child,
-    ),
+    transitionsBuilder: (context, animation, secondary, child) {
+      final curved =
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1, 0),
+          end: Offset.zero,
+        ).animate(curved),
+        child: FadeTransition(opacity: curved, child: child),
+      );
+    },
   );
 }

@@ -230,7 +230,7 @@ void showDpdMenu({
         .scaleXY(
           begin: 0.9,
           end: 1,
-          curve: Curves.easeInOut,
+          curve: Curves.easeOutCubic,
           duration: controller.duration,
         ),
     builder: (context) => DPDMenuContent(menuItems: menuItems, tag: tag),

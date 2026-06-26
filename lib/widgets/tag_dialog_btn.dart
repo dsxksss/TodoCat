@@ -58,7 +58,7 @@ class TagDialogBtn extends StatelessWidget {
               .animate(controller: controller)
               .fade(duration: controller.duration)
               .scaleXY(
-                begin: 0.99,
+                begin: 0.96,
                 duration: controller.duration,
                 curve: Curves.easeOutCubic,
               ),

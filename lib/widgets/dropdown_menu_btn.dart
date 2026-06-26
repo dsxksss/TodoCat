@@ -73,7 +73,7 @@ class DropdownManuBtn extends StatelessWidget {
               .scaleXY(
                 begin: 0.9, // 动画开始时的缩放比例
                 end: 1, // 动画结束时的缩放比例
-                curve: Curves.easeInOut, // 动画曲线
+                curve: Curves.easeOutCubic, // 入场用缓出曲线，菜单弹出更跟手
                 duration: controller.duration, // 动画持续时间
               ),
           builder: (_) => _content, // 下拉菜单的内容组件

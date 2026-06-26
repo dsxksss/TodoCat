@@ -113,11 +113,12 @@ class _AnimationBtnState extends State<AnimationBtn> {
         behavior: HitTestBehavior.opaque,
         onTap: () async {
           if (!widget.disable) {
+            // 立即触发动作（先播放缩放再同步回调），避免被动画时长拖慢点击手感；
+            // 缩放动画并行播放，结束后自动复位。
             _playClickAnimation();
-            await Future.delayed(
-                (widget.clickScaleDuration ?? _defaultDuration) - 50.ms);
-            _closeAllAnimation();
             widget.onPressed();
+            await Future.delayed(widget.clickScaleDuration ?? _defaultDuration);
+            _closeAllAnimation();
           } else {
             _playDisableAnimation();
           }
@@ -139,7 +140,7 @@ class _AnimationBtnState extends State<AnimationBtn> {
             .scaleXY(
               end: widget.onHoverScale,
               duration: widget.hoverScaleDuration ?? _defaultDuration,
-              curve: Curves.easeIn,
+              curve: Curves.easeOut,
             )
             .animate(target: _onHoverbgColorChange ? 1 : 0)
             .tint(
