@@ -260,20 +260,16 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
     widget.onDragEnded?.call();
   }
 
-  /// 列拖动时的浮动样式：整列带阴影浮起，背景透明（不盖白底）。
+  /// 列拖动时的浮动样式：背景透明、无阴影。
+  ///
+  /// 不能用 Material 的 elevation 画阴影：拖拽代理是「整列项」，而列项高度被撑满
+  /// 整个视口（内容顶对齐、下方留空透出壁纸），elevation 会沿整列高度画出一大块
+  /// 深色阴影矩形（一直延伸到卡片下方的空白区）。这里直接去掉阴影，仅保留圆角裁剪。
   Widget _columnProxyDecorator(
       Widget child, int index, Animation<double> animation) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, _) {
-        return Material(
-          color: Colors.transparent,
-          elevation: 10 * animation.value,
-          shadowColor: Colors.black54,
-          borderRadius: BorderRadius.circular(10),
-          child: child,
-        );
-      },
+    return Material(
+      type: MaterialType.transparency,
+      child: child,
     );
   }
 
@@ -319,12 +315,10 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildColumnHeader(task, index, isPhone),
+                      // 列高随内容收缩（FlexFit.loose）：空列悬停时只张开一个
+                      // 卡片大小的投放区，不再撑满整列——靠蓝色边框提示即可。
                       Flexible(
-                        // 拖拽时让「空列」的投放区填满整列高度，否则空列投放区太小、难命中。
-                        fit: (todos.isEmpty && _isDragging)
-                            ? FlexFit.tight
-                            : FlexFit.loose,
-                        child: _buildTodoList(task, todos, isPhone),
+                        child: _buildTodoList(task, todos, isPhone, todoHover),
                       ),
                     ],
                   ),
@@ -363,10 +357,11 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
     return TaskCard(task: task, showTodos: false);
   }
 
-  Widget _buildTodoList(Task task, List<Todo> todos, bool isPhone) {
+  Widget _buildTodoList(
+      Task task, List<Todo> todos, bool isPhone, bool columnHovered) {
     if (todos.isEmpty) {
-      // 空列：空闲时高度 0（不留深色块）；拖拽时张开投放区。
-      return _emptyTodoTarget(task.uuid);
+      // 空列：空闲时高度 0（不留深色块）；仅当拖拽悬停本列时张开投放区。
+      return _emptyTodoTarget(task.uuid, columnHovered);
     }
 
     final children = <Widget>[];
@@ -374,8 +369,8 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
       // 每张卡片整体是投放区：悬停时其上方张开卡片大小的槽位，卡片随之让位。
       children.add(_todoItem(task.uuid, i, _buildTodoCard(task, todos, i, isPhone)));
     }
-    // 末尾投放区：投放到列表最后。
-    children.add(_todoTailTarget(task.uuid, todos.length));
+    // 末尾投放区：投放到列表最后（仅在拖拽悬停本列时占位，避免其它列多出高度）。
+    children.add(_todoTailTarget(task.uuid, todos.length, columnHovered));
 
     // shrinkWrap：列表高度随内容收缩（由外层 Flexible 限高，超出则滚动）。
     // 外层 Container 带 Key 用于拖拽时定位该列可视区域并做纵向自动滚动。
@@ -409,30 +404,35 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   }
 
   /// 列表末尾的投放区（插入到最后）。
-  Widget _todoTailTarget(String taskId, int count) {
+  ///
+  /// [columnHovered] 为 true（拖拽悬停在本列）时才占一块更大的尾部投放区，
+  /// 便于「拖到最后」命中；否则高度为 0——这样未被悬停的其它列不会凭空变高。
+  Widget _todoTailTarget(String taskId, int count, bool columnHovered) {
     return DragTarget<_TodoDrag>(
       onWillAcceptWithDetails: (_) => true,
       onAcceptWithDetails: (d) => _handleTodoDrop(d.data, taskId, count),
       builder: (context, candidate, rejected) {
         final active = candidate.isNotEmpty;
-        // 拖拽时给一块更大的尾部投放区（便于"拖到最后"命中）；悬停放大成槽位。
+        // 直接悬停在尾部区域上时放大成槽位；否则按是否悬停本列决定占位高度。
         if (active) return _slot(active: true);
-        return SizedBox(height: _isDragging ? 48 : 0);
+        return SizedBox(height: columnHovered ? 48 : 0);
       },
     );
   }
 
-  /// 空列的投放区：空闲时不占位；拖拽时填满整列高度，作为大投放区（便于命中）。
-  Widget _emptyTodoTarget(String taskId) {
-    if (!_isDragging) return const SizedBox.shrink();
+  /// 空列的投放区：仅当拖拽悬停在本列时显示一个卡片大小的投放框（便于命中）；
+  /// 否则不占位。列已有蓝色边框作整列高亮，这里不再撑满整列高度。
+  Widget _emptyTodoTarget(String taskId, bool columnHovered) {
+    if (!columnHovered) return const SizedBox.shrink();
     return DragTarget<_TodoDrag>(
       onWillAcceptWithDetails: (_) => true,
       onAcceptWithDetails: (d) => _handleTodoDrop(d.data, taskId, 0),
       builder: (context, candidate, rejected) {
         final active = candidate.isNotEmpty;
         final primary = Theme.of(context).colorScheme.primary;
-        // 外层 Flexible 在「空列 + 拖拽」时为 tight，这个 Container 会填满整列高度。
+        // 固定一个卡片大小的高度，而非填满整列。
         return Container(
+          height: 84,
           margin: const EdgeInsets.fromLTRB(10, 5, 10, 10),
           decoration: BoxDecoration(
             color: active
@@ -450,9 +450,13 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   }
 
   /// 让位间隙：拖拽悬停时卡片让开、露出列背景的空档（与列拖拽一致，无高亮框）。
+  ///
+  /// 仅在「拖拽进行中」才用 150ms 平滑张开/合拢；一旦拖拽结束（投放完成），
+  /// 让位间隙立即归零、不再做收拢过渡——否则卡片落位后会再多一段「换位」动画。
   Widget _slot({required bool active}) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+      duration:
+          _isDragging ? const Duration(milliseconds: 150) : Duration.zero,
       height: active ? 84 : 0,
     );
   }
