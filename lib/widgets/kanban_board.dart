@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/core/utils/responsive.dart';
@@ -57,6 +58,13 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   bool _isDragging = false;
   Offset? _pointer;
   Timer? _autoScrollTimer;
+
+  // 卡片入场动画：初次加载的 todo 全部"标记为已见"（不逐卡动画，交给页面切换动画），
+  // 之后**新增**的 todo 才做一次淡入上滑入场。动画结束后标记为已见并解除包裹，
+  // 此时已停在终态、视觉无跳变，且不影响拖拽逻辑。
+  final Set<String> _seenTodoIds = {};
+  final Set<String> _pendingEntranceIds = {};
+  bool _seeded = false;
 
   static const double _columnGap = 8.0;
 
@@ -203,6 +211,16 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
   @override
   Widget build(BuildContext context) {
     final isPhone = context.isPhone;
+
+    // 首帧把现有 todo 全部标记为已见，避免初次加载逐卡入场（由页面切换动画统一处理）。
+    if (!_seeded) {
+      for (final t in widget.tasks) {
+        for (final td in _activeTodos(t)) {
+          _seenTodoIds.add(td.uuid);
+        }
+      }
+      _seeded = true;
+    }
 
     return Listener(
       onPointerMove: (e) {
@@ -490,7 +508,7 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
         onDragEnd: (_) => _onDragFinish(),
         onDraggableCanceled: (_, __) => _onDragFinish(),
         childWhenDragging: const SizedBox.shrink(),
-        child: card,
+        child: _entranceCard(todo.uuid, card),
       );
     }
     return Draggable<_TodoDrag>(
@@ -500,8 +518,36 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
       onDragEnd: (_) => _onDragFinish(),
       onDraggableCanceled: (_, __) => _onDragFinish(),
       childWhenDragging: const SizedBox.shrink(),
-      child: card,
+      child: _entranceCard(todo.uuid, card),
     );
+  }
+
+  /// 新增卡片的一次性入场动画（淡入 + 轻微上滑）；已见过的卡片直接返回原样。
+  /// 只包裹「就地显示」的卡片，不包裹拖拽浮层(feedback)，因此不影响拖拽手感。
+  Widget _entranceCard(String uuid, Widget card) {
+    if (_seenTodoIds.contains(uuid)) return card;
+    _scheduleEntranceDone(uuid);
+    return card
+        .animate(key: ValueKey('todo_in_$uuid'))
+        .fadeIn(duration: 220.ms, curve: Curves.easeOut)
+        .slideY(
+          begin: 0.12,
+          end: 0,
+          duration: 260.ms,
+          curve: Curves.easeOutCubic,
+        );
+  }
+
+  /// 入场动画结束后（超过动画时长）把卡片标记为已见并解除包裹：此时动画已停在终态，
+  /// 解除包裹无视觉跳变，也避免之后拖拽该卡时重复触发入场。
+  void _scheduleEntranceDone(String uuid) {
+    if (_pendingEntranceIds.contains(uuid)) return;
+    _pendingEntranceIds.add(uuid);
+    Future.delayed(const Duration(milliseconds: 360), () {
+      if (!mounted) return;
+      _pendingEntranceIds.remove(uuid);
+      setState(() => _seenTodoIds.add(uuid));
+    });
   }
 
   Widget _buildFeedback({required double width, required Widget child}) {
