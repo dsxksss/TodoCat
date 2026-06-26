@@ -326,12 +326,12 @@ class SyncManager {
       await _updateManifestWithHistory(workspace, syncTime, historyPath);
 
       _lastSyncTimes[workspaceUuid] = syncTime;
-      // Sync complete, clear local change flag (by making modification time same as sync time or ensuring syncTime is later)
-      // Actually strictly speaking, modification time should be <= syncTime if we just synced everything.
-      // We don't delete the key, just ensure logic handles it.
-      // But clearing it is safer to avoid confusion if clocks drift slightly.
-      // Or set it to syncTime.
-      _lastLocalChangeTimes[workspaceUuid] = syncTime;
+      // 只更新「已同步时间」，不要把「最后本地修改时间」也强行改成 syncTime。
+      // syncTime 在上传开始前就已采样；若用户在（耗时的网络）上传期间又改了数据，
+      // notifyLocalChange 会把 localChangeTime 置为 > syncTime。若这里再强行写回
+      // syncTime，就会抹掉那次改动的「待同步」标记——它既没进本次上传快照、又被判为已同步
+      // = 丢失更新。不写它即可：无并发改动时 localChangeTime(<syncTime) 自然判为已同步；
+      // 有并发改动时 localChangeTime(>syncTime) 仍为待同步，下次会重新上传。
       await saveSyncStatus();
 
       _logger.i('Workspace $workspaceUuid synced successfully');
