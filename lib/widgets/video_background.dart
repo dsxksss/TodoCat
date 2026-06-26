@@ -196,10 +196,8 @@ class _VideoBackgroundState extends State<VideoBackground> {
           !value.isCompleted) {
         _controller!.play();
       }
-      // 触发 UI 更新
-      if (mounted) {
-        setState(() {});
-      }
+      // 不在此处 setState：画面更新由下方的 ValueListenableBuilder 负责。
+      // 之前每帧 setState 会整树重建（Opacity/模糊层等），是持续的无谓重建/耗电。
     }
   }
 

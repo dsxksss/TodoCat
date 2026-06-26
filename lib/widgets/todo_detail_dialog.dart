@@ -9,6 +9,7 @@ import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/core/utils/date_time.dart';
 import 'package:todo_cat/pages/home/components/tag.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
+import 'package:todo_cat/widgets/attachment_image.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 import 'package:todo_cat/widgets/label_btn.dart';
@@ -702,27 +703,7 @@ class TodoDetailDialog extends ConsumerWidget {
             children: todo.images.map((imagePath) {
               return ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  imagePath,
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.broken_image,
-                        size: 50,
-                        color: Colors.grey.shade400,
-                      ),
-                    );
-                  },
-                ),
+                child: AttachmentImage(imagePath, size: 150),
               );
             }).toList(),
           ),

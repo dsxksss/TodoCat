@@ -821,14 +821,14 @@ class SettingsController extends _$SettingsController {
   /// 清除背景图片
   Future<void> clearBackgroundImage() async {
     try {
-      // 直接设置backgroundImagePath为null，因为copyWith方法无法正确处理null值
+      // 用 copyWith 的 clearBackgroundImagePath 生成一个**新实例**（背景置 null）。
+      // 之前是就地把当前 state 对象的字段改成 null 再 updateConfig，由于传回的是同一个
+      // 实例，Riverpod 的 updateShouldNotify 判定 identical 不刷新，导致背景看起来没清除
+      // （要重启才生效）。
       final currentConfig = ref.read(appControllerProvider);
-      currentConfig.backgroundImagePath = null; // 清除背景图片路径
-
-      // 触发更新，这会自动保存到数据库
-      await ref
-          .read(appControllerProvider.notifier)
-          .updateConfig(currentConfig);
+      await ref.read(appControllerProvider.notifier).updateConfig(
+            currentConfig.copyWith(clearBackgroundImagePath: true),
+          );
 
       showToast(l10n.backgroundImageCleared);
       _logger.i('背景图片已清除');

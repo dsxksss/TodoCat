@@ -65,7 +65,9 @@ class AppConfig {
     countryCode = newLocale.countryCode ?? '';
   }
 
-  // 复制方法
+  // 复制方法。
+  // 注意：[backgroundImagePath] / [primaryColorValue] 是可空字段，普通的 `x ?? this.x`
+  // 无法把它们清空成 null。需要清空时用 [clearBackgroundImagePath] / [clearPrimaryColor]。
   AppConfig copyWith({
     String? configName,
     bool? isDarkMode,
@@ -73,7 +75,9 @@ class AppConfig {
     bool? emailReminderEnabled,
     bool? isDebugMode,
     String? backgroundImagePath,
+    bool clearBackgroundImagePath = false,
     int? primaryColorValue,
+    bool clearPrimaryColor = false,
     double? backgroundImageOpacity,
     double? backgroundImageBlur,
     bool? backgroundAffectsNavBar,
@@ -86,8 +90,11 @@ class AppConfig {
       ..countryCode = locale?.countryCode ?? countryCode
       ..emailReminderEnabled = emailReminderEnabled ?? this.emailReminderEnabled
       ..isDebugMode = isDebugMode ?? this.isDebugMode
-      ..backgroundImagePath = backgroundImagePath ?? this.backgroundImagePath
-      ..primaryColorValue = primaryColorValue ?? this.primaryColorValue
+      ..backgroundImagePath = clearBackgroundImagePath
+          ? null
+          : (backgroundImagePath ?? this.backgroundImagePath)
+      ..primaryColorValue =
+          clearPrimaryColor ? null : (primaryColorValue ?? this.primaryColorValue)
       ..backgroundImageOpacity = backgroundImageOpacity ?? this.backgroundImageOpacity
       ..backgroundImageBlur = backgroundImageBlur ?? this.backgroundImageBlur
       ..backgroundAffectsNavBar = backgroundAffectsNavBar ?? this.backgroundAffectsNavBar
