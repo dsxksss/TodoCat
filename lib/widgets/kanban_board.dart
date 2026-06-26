@@ -438,15 +438,16 @@ class _KanbanBoardState extends ConsumerState<KanbanBoard> {
     );
   }
 
-  /// 空列的投放区：仅当拖拽悬停在本列时显示一个卡片大小的投放框（便于命中）；
-  /// 否则不占位。列已有蓝色边框作整列高亮，这里不再撑满整列高度。
+  /// 空列的投放区：**整段拖拽期间**都显示一个卡片大小的投放框（尺寸固定，不随
+  /// 悬停增删，避免列高在悬停边界处反复跳动造成抖动）；悬停本列时只改高亮配色。
   Widget _emptyTodoTarget(String taskId, bool columnHovered) {
-    if (!columnHovered) return const SizedBox.shrink();
+    if (!_isDragging) return const SizedBox.shrink();
     return DragTarget<_TodoDrag>(
       onWillAcceptWithDetails: (_) => true,
       onAcceptWithDetails: (d) => _handleTodoDrop(d.data, taskId, 0),
       builder: (context, candidate, rejected) {
-        final active = candidate.isNotEmpty;
+        // 高亮只影响配色/边框,不影响尺寸：悬停本列或正落在投放框上时点亮。
+        final active = candidate.isNotEmpty || columnHovered;
         final primary = Theme.of(context).colorScheme.primary;
         // 固定一个卡片大小的高度，而非填满整列。
         return Container(
