@@ -158,6 +158,7 @@ class WorkspaceController extends _$WorkspaceController {
         ..order = state.workspaces.length
         ..deletedAt = 0;
 
+      _repository ??= await WorkspaceRepository.getInstance();
       await _repository!.write(workspace.uuid, workspace);
       _setWorkspaces([...state.workspaces, workspace]);
       _logger.d('创建工作空间成功: ${workspace.name}');
@@ -186,6 +187,7 @@ class WorkspaceController extends _$WorkspaceController {
         return false;
       }
       workspace.name = newName.trim();
+      _repository ??= await WorkspaceRepository.getInstance();
       await _repository!.update(uuid, workspace);
       _setWorkspaces(state.workspaces);
       _logger.d('更新工作空间成功: ${workspace.name}');
@@ -209,6 +211,7 @@ class WorkspaceController extends _$WorkspaceController {
         await switchWorkspace(nextWorkspace.uuid);
       }
 
+      _repository ??= await WorkspaceRepository.getInstance();
       await _repository!.delete(uuid);
       _setWorkspaces(state.workspaces.where((w) => w.uuid != uuid).toList());
       _logger.d('删除工作空间成功: $uuid');
@@ -222,6 +225,7 @@ class WorkspaceController extends _$WorkspaceController {
   /// 恢复已删除的工作空间
   Future<bool> restoreWorkspace(String uuid) async {
     try {
+      _repository ??= await WorkspaceRepository.getInstance();
       await _repository!.restore(uuid);
       await loadWorkspaces();
       _logger.d('恢复工作空间成功: $uuid');
