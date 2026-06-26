@@ -1,7 +1,7 @@
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:todo_cat/config/ai_config.dart';
+import 'package:todo_cat/services/ai_settings_service.dart';
 
 /// LLM 文案润色服务。
 ///
@@ -46,7 +46,7 @@ class LlmPolishingService {
 
       // 调用 OpenAI 接口
       final completion = await OpenAI.instance.chat.create(
-        model: AiConfig.model,
+        model: AiSettingsService.to.model,
         messages: [systemMessage, userMessage],
         temperature: 0.7,
         maxTokens: 8000, // DeepSeek 输出上限 8192，留余量

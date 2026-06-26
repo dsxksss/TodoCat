@@ -216,7 +216,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sureDeleteTodo => 'Would you like to delete the todo ?';
 
   @override
-  String get sureDeleteWorkspace => 'Are you sure you want to delete workspace?';
+  String get sureDeleteWorkspace =>
+      'Are you sure you want to delete workspace?';
 
   @override
   String get settings => 'Settings';
@@ -231,13 +232,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get launchAtStartup => 'Launch at startup';
 
   @override
-  String get launchAtStartupDescription => 'Automatically run TodoCat after system startup/login (desktop only)';
+  String get launchAtStartupDescription =>
+      'Automatically run TodoCat after system startup/login (desktop only)';
 
   @override
   String get showTodoImage => 'Show Todo Image Cover';
 
   @override
-  String get showTodoImageDescription => 'Display the first image of todo items as a cover in the todo card on the home page (between title and tags)';
+  String get showTodoImageDescription =>
+      'Display the first image of todo items as a cover in the todo card on the home page (between title and tags)';
 
   @override
   String get emailReminder => 'Email reminder';
@@ -249,7 +252,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common => 'Common';
 
   @override
-  String get emailReminderSentSuccessfully => 'Email reminder sent successfully';
+  String get emailReminderSentSuccessfully =>
+      'Email reminder sent successfully';
 
   @override
   String get emailReminderSendingFailed => 'Email reminder sent failed';
@@ -297,10 +301,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noDateTime => 'Clear';
 
   @override
-  String get isResetTasksTemplate => 'The task is empty, do you want to add a task example template?';
+  String get isResetTasksTemplate =>
+      'The task is empty, do you want to add a task example template?';
 
   @override
-  String get areYouSureResetTasksTemplate => 'Are you sure you want to reset the tasks template?';
+  String get areYouSureResetTasksTemplate =>
+      'Are you sure you want to reset the tasks template?';
 
   @override
   String get tasksTemplateResetSuccess => 'Tasks template reset successfully';
@@ -414,7 +420,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataImportExport => 'Data Import/Export';
 
   @override
-  String get dataImportExportDescription => 'Import or export tasks and settings data';
+  String get dataImportExportDescription =>
+      'Import or export tasks and settings data';
 
   @override
   String get exportData => 'Export Data';
@@ -423,13 +430,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importData => 'Import Data';
 
   @override
-  String get exportDataDescription => 'Export all tasks and settings to JSON file';
+  String get exportDataDescription =>
+      'Export all tasks and settings to JSON file';
 
   @override
-  String get importDataDescription => 'Import tasks and settings from JSON file';
+  String get importDataDescription =>
+      'Import tasks and settings from JSON file';
 
   @override
-  String get resetSettingsDescription => 'Reset application settings to default values';
+  String get resetSettingsDescription =>
+      'Reset application settings to default values';
 
   @override
   String get notificationCenter => 'Notification Center';
@@ -456,10 +466,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmClearAllNotifications => 'Confirm Clear All Notifications';
 
   @override
-  String get clickDescriptionInputToOpenBrowseWindow => 'Click description input to open browse window';
+  String get clickDescriptionInputToOpenBrowseWindow =>
+      'Click description input to open browse window';
 
   @override
-  String get confirmClearAllNotificationsDesc => 'Are you sure you want to clear all notifications? This action cannot be undone.';
+  String get confirmClearAllNotificationsDesc =>
+      'Are you sure you want to clear all notifications? This action cannot be undone.';
 
   @override
   String get notificationsCleared => 'All notifications cleared';
@@ -471,7 +483,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importConflictTitle => 'Import Conflict Handling';
 
   @override
-  String get conflictTasksDetected => 'The following tasks already exist (including system default tasks):';
+  String get conflictTasksDetected =>
+      'The following tasks already exist (including system default tasks):';
 
   @override
   String get selectHandlingMethod => 'Please select handling method:';
@@ -480,13 +493,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get skipDuplicateTasks => 'Skip Duplicate Tasks';
 
   @override
-  String get skipDuplicateTasksDesc => 'Keep existing tasks, import only new tasks';
+  String get skipDuplicateTasksDesc =>
+      'Keep existing tasks, import only new tasks';
 
   @override
   String get replaceExistingTasks => 'Replace Existing Tasks';
 
   @override
-  String get replaceExistingTasksDesc => 'Replace existing tasks with imported tasks of the same name';
+  String get replaceExistingTasksDesc =>
+      'Replace existing tasks with imported tasks of the same name';
 
   @override
   String get confirmImport => 'Confirm Import';
@@ -504,7 +519,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keepExistingData => 'Keep existing data without deletion';
 
   @override
-  String get importWarning => 'Note: If imported data contains tasks with the same UUID, existing tasks will be overwritten.';
+  String get importWarning =>
+      'Note: If imported data contains tasks with the same UUID, existing tasks will be overwritten.';
 
   @override
   String get userCancelledImport => 'User cancelled import operation';
@@ -513,7 +529,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get userCancelledOperation => 'User cancelled operation';
 
   @override
-  String get invalidFileFormat => 'Invalid file format, please select a valid TodoCat data file';
+  String get invalidFileFormat =>
+      'Invalid file format, please select a valid TodoCat data file';
 
   @override
   String get importFailed => 'Import failed';
@@ -573,16 +590,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get estimatedSize => 'Estimated Size';
 
   @override
-  String get exportDataNotice => 'The exported file contains all your data. Please keep it safe.';
+  String get exportDataNotice =>
+      'The exported file contains all your data. Please keep it safe.';
 
   @override
   String get clearAllData => 'Clear All Data';
 
   @override
-  String get clearAllDataDescription => 'Delete all tasks, config and notification data';
+  String get clearAllDataDescription =>
+      'Delete all tasks, config and notification data';
 
   @override
-  String get confirmClearAllData => 'Are you sure you want to clear all data? This cannot be undone!';
+  String get confirmClearAllData =>
+      'Are you sure you want to clear all data? This cannot be undone!';
 
   @override
   String get clearingData => 'Clearing data...';
@@ -624,7 +644,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteTemplate => 'Delete Template';
 
   @override
-  String get confirmDeleteTemplate => 'Are you sure you want to delete this template?';
+  String get confirmDeleteTemplate =>
+      'Are you sure you want to delete this template?';
 
   @override
   String get templateDeleted => 'Template deleted';
@@ -651,7 +672,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveCurrentAsTemplate => 'Save Current as Template';
 
   @override
-  String get saveCurrentAsTemplateDescription => 'Save all current tasks as a custom template';
+  String get saveCurrentAsTemplateDescription =>
+      'Save all current tasks as a custom template';
 
   @override
   String get january => 'January';
@@ -699,37 +721,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectTaskTemplate => 'Select Task Template';
 
   @override
-  String get selectTemplateType => 'Please select the task template type to use:';
+  String get selectTemplateType =>
+      'Please select the task template type to use:';
 
   @override
   String get emptyTemplate => 'Empty Template';
 
   @override
-  String get emptyTemplateDescription => 'Create empty todo, inProgress, done, another tasks';
+  String get emptyTemplateDescription =>
+      'Create empty todo, inProgress, done, another tasks';
 
   @override
   String get studentScheduleTemplate => 'Student Schedule Template';
 
   @override
-  String get studentScheduleTemplateDescription => 'Contains specific todo items for study, programming, music, and life tasks';
+  String get studentScheduleTemplateDescription =>
+      'Contains specific todo items for study, programming, music, and life tasks';
 
   @override
   String get workManagementTemplate => 'Work Management Template';
 
   @override
-  String get workManagementTemplateDescription => 'Project management, team collaboration, work progress tracking';
+  String get workManagementTemplateDescription =>
+      'Project management, team collaboration, work progress tracking';
 
   @override
   String get fitnessTrainingTemplate => 'Fitness Training Template';
 
   @override
-  String get fitnessTrainingTemplateDescription => 'Create fitness plans and track training progress';
+  String get fitnessTrainingTemplateDescription =>
+      'Create fitness plans and track training progress';
 
   @override
   String get travelPlanTemplate => 'Travel Plan Template';
 
   @override
-  String get travelPlanTemplateDescription => 'Plan travel itinerary, book hotels and flights';
+  String get travelPlanTemplateDescription =>
+      'Plan travel itinerary, book hotels and flights';
 
   @override
   String get backgroundSetting => 'Background Setting';
@@ -801,13 +829,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backgroundTemplateApplied => 'Background template applied';
 
   @override
-  String get applyDefaultTemplateFailed => 'Failed to apply default background template';
+  String get applyDefaultTemplateFailed =>
+      'Failed to apply default background template';
 
   @override
   String get selectBackgroundImageFailed => 'Failed to select background image';
 
   @override
-  String get confirmApplyTemplate => 'Are you sure you want to apply template? This will clear all existing tasks.';
+  String get confirmApplyTemplate =>
+      'Are you sure you want to apply template? This will clear all existing tasks.';
 
   @override
   String get taskTemplateApplied => 'Task template has been applied';
@@ -837,7 +867,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkForUpdates => 'Check for Updates';
 
   @override
-  String get checkForUpdatesDescription => 'Check if a new version is available';
+  String get checkForUpdatesDescription =>
+      'Check if a new version is available';
 
   @override
   String get update => 'Update';
@@ -900,13 +931,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectUpdateMethod => 'Select Update Method';
 
   @override
-  String get selectUpdateMethodDesc => 'Please select your preferred update method:';
+  String get selectUpdateMethodDesc =>
+      'Please select your preferred update method:';
 
   @override
   String get updateViaDownload => 'Download Update';
 
   @override
-  String get updateViaDownloadDesc => 'Download and install the update package locally';
+  String get updateViaDownloadDesc =>
+      'Download and install the update package locally';
 
   @override
   String get updateViaStore => 'Update via Microsoft Store';
@@ -951,13 +984,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sureRestoreTodo => 'Are you sure you want to restore todo?';
 
   @override
-  String get surePermanentDeleteTask => 'Are you sure you want to permanently delete task? This action cannot be undone!';
+  String get surePermanentDeleteTask =>
+      'Are you sure you want to permanently delete task? This action cannot be undone!';
 
   @override
-  String get surePermanentDeleteTodo => 'Are you sure you want to permanently delete todo? This action cannot be undone!';
+  String get surePermanentDeleteTodo =>
+      'Are you sure you want to permanently delete todo? This action cannot be undone!';
 
   @override
-  String get sureEmptyTrash => 'Are you sure you want to empty the trash? This will permanently delete all deleted items and cannot be undone!';
+  String get sureEmptyTrash =>
+      'Are you sure you want to empty the trash? This will permanently delete all deleted items and cannot be undone!';
 
   @override
   String get undo => 'Undo';
@@ -993,7 +1029,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyTrashFailed => 'Empty trash failed';
 
   @override
-  String get allUpdateSourcesFailed => 'All update sources failed to initialize';
+  String get allUpdateSourcesFailed =>
+      'All update sources failed to initialize';
 
   @override
   String get unableToGetCurrentVersion => 'Unable to get current version';
@@ -1128,10 +1165,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deletedTasks => 'Deleted Tasks';
 
   @override
-  String get sureRestoreWorkspace => 'Are you sure you want to restore workspace?';
+  String get sureRestoreWorkspace =>
+      'Are you sure you want to restore workspace?';
 
   @override
-  String get surePermanentDeleteWorkspace => 'Are you sure you want to permanently delete workspace? This action cannot be undone!';
+  String get surePermanentDeleteWorkspace =>
+      'Are you sure you want to permanently delete workspace? This action cannot be undone!';
 
   @override
   String get workspacePermanentlyDeleted => 'Workspace permanently deleted';
@@ -1176,7 +1215,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duplicateNameTitle => 'Duplicate Name Found';
 
   @override
-  String duplicateNameMessage(String target, String itemType, String itemName, String source) {
+  String duplicateNameMessage(
+      String target, String itemType, String itemName, String source) {
     return 'The target workspace \"$target\" already contains a $itemType named \"$itemName\" (from workspace \"$source\"). Please choose how to handle this:';
   }
 
@@ -1184,7 +1224,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duplicateNameMerge => 'Merge';
 
   @override
-  String get duplicateNameMergeDesc => 'Merge content into existing item and delete source item';
+  String get duplicateNameMergeDesc =>
+      'Merge content into existing item and delete source item';
 
   @override
   String get duplicateNameRename => 'Rename';
@@ -1198,7 +1239,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duplicateNameAllow => 'Allow Duplicate';
 
   @override
-  String get duplicateNameAllowDesc => 'Move directly, allow multiple items with the same name';
+  String get duplicateNameAllowDesc =>
+      'Move directly, allow multiple items with the same name';
 
   @override
   String get doubleTapToZoom => 'Double tap to zoom in/out';
@@ -1216,7 +1258,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncConfiguration => 'Cloud Sync';
 
   @override
-  String get syncConfigurationDescription => 'Sync workspaces across devices securely';
+  String get syncConfigurationDescription =>
+      'Sync workspaces across devices securely';
 
   @override
   String get syncKey => 'Sync Key';
@@ -1318,16 +1361,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmSyncToCloud => 'Confirm Sync to Cloud?';
 
   @override
-  String get confirmSyncToCloudDesc => 'This will overwrite existing data on the cloud. Please confirm you want to upload current local status.';
+  String get confirmSyncToCloudDesc =>
+      'This will overwrite existing data on the cloud. Please confirm you want to upload current local status.';
 
   @override
   String get confirmDownloadFromCloud => 'Confirm Download from Cloud?';
 
   @override
-  String get confirmDownloadFromCloudDesc => 'This will overwrite existing local data. Please confirm you want to restore cloud status.';
+  String get confirmDownloadFromCloudDesc =>
+      'This will overwrite existing local data. Please confirm you want to restore cloud status.';
 
   @override
-  String get remoteUpdateAvailable => 'New version detected on cloud, update now?';
+  String get remoteUpdateAvailable =>
+      'New version detected on cloud, update now?';
 
   @override
   String get syncCompleted => 'Sync completed';
@@ -1345,7 +1391,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyVersions => 'History Versions';
 
   @override
-  String get confirmRestoreHistory => 'Are you sure you want to restore to this version?\nThis will overwrite current local data.';
+  String get confirmRestoreHistory =>
+      'Are you sure you want to restore to this version?\nThis will overwrite current local data.';
 
   @override
   String get noHistoryVersions => 'No history versions';
@@ -1354,7 +1401,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiGenerate => 'AI Generate';
 
   @override
-  String get aiGenerateDesc => 'Enter description, AI will generate a custom task template for you';
+  String get aiGenerateDesc =>
+      'Enter description, AI will generate a custom task template for you';
 
   @override
   String get aiPlanning => 'AI is planning...';
@@ -1374,13 +1422,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiGenerateTemplate => 'AI Generate Template';
 
   @override
-  String get aiGenerateHint => 'Describe the task list you want, e.g.:\n- \"7-day travel plan to Yunnan\"\n- \"Marathon training plan\"\n- \"New house decoration process\"';
+  String get aiGenerateHint =>
+      'Describe the task list you want, e.g.:\n- \"7-day travel plan to Yunnan\"\n- \"Marathon training plan\"\n- \"New house decoration process\"';
 
   @override
   String get aiGenerateButton => 'Generate Now';
 
   @override
   String get aiPreview => 'AI Generation Preview';
+
+  @override
+  String get aiConfiguration => 'AI Configuration';
+
+  @override
+  String get aiConfigurationDescription =>
+      'Configure your DeepSeek API key to enable AI features';
+
+  @override
+  String get aiApiKey => 'API Key';
+
+  @override
+  String get aiApiKeyHint => 'sk-...';
+
+  @override
+  String get aiBaseUrl => 'API Base URL';
+
+  @override
+  String get aiModel => 'Model';
+
+  @override
+  String get aiConfigStoredHint =>
+      'Stored in plain text on this device only. Requests are sent directly to the endpoint above.';
+
+  @override
+  String get aiConfigSaved => 'AI configuration saved';
+
+  @override
+  String get aiConfigCleared => 'AI configuration reset to default';
+
+  @override
+  String get aiApiKeyRequired => 'Please enter your API Key';
+
+  @override
+  String get aiConfigured => 'Configured';
+
+  @override
+  String get aiNotConfigured => 'Not configured';
+
+  @override
+  String get aiPolishResult => 'AI Polished Result';
+
+  @override
+  String get aiReplace => 'Replace';
 
   @override
   String get success => 'Success';

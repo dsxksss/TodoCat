@@ -21,10 +21,10 @@ class AiConfig {
     defaultValue: 'https://api.deepseek.com',
   );
 
-  /// 模型 id（DeepSeek 原生：deepseek-chat / deepseek-reasoner）。
+  /// 模型 id（DeepSeek 原生：deepseek-v4-flash / deepseek-chat / deepseek-reasoner）。
   static const String model = String.fromEnvironment(
     'DEEPSEEK_MODEL',
-    defaultValue: 'deepseek-chat',
+    defaultValue: 'deepseek-v4-flash',
   );
 
   /// 是否已配置 API Key。

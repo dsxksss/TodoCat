@@ -62,7 +62,8 @@ import 'app_localizations_zh.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,7 +84,8 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -2433,7 +2436,8 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'The target workspace \"{target}\" already contains a {itemType} named \"{itemName}\" (from workspace \"{source}\"). Please choose how to handle this:'**
-  String duplicateNameMessage(String target, String itemType, String itemName, String source);
+  String duplicateNameMessage(
+      String target, String itemType, String itemName, String source);
 
   /// No description provided for @duplicateNameMerge.
   ///
@@ -2831,6 +2835,90 @@ abstract class AppLocalizations {
   /// **'AI Generation Preview'**
   String get aiPreview;
 
+  /// No description provided for @aiConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Configuration'**
+  String get aiConfiguration;
+
+  /// No description provided for @aiConfigurationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure your DeepSeek API key to enable AI features'**
+  String get aiConfigurationDescription;
+
+  /// No description provided for @aiApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key'**
+  String get aiApiKey;
+
+  /// No description provided for @aiApiKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'sk-...'**
+  String get aiApiKeyHint;
+
+  /// No description provided for @aiBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'API Base URL'**
+  String get aiBaseUrl;
+
+  /// No description provided for @aiModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get aiModel;
+
+  /// No description provided for @aiConfigStoredHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored in plain text on this device only. Requests are sent directly to the endpoint above.'**
+  String get aiConfigStoredHint;
+
+  /// No description provided for @aiConfigSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'AI configuration saved'**
+  String get aiConfigSaved;
+
+  /// No description provided for @aiConfigCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'AI configuration reset to default'**
+  String get aiConfigCleared;
+
+  /// No description provided for @aiApiKeyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your API Key'**
+  String get aiApiKeyRequired;
+
+  /// No description provided for @aiConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Configured'**
+  String get aiConfigured;
+
+  /// No description provided for @aiNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get aiNotConfigured;
+
+  /// No description provided for @aiPolishResult.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Polished Result'**
+  String get aiPolishResult;
+
+  /// No description provided for @aiReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get aiReplace;
+
   /// No description provided for @success.
   ///
   /// In en, this message translates to:
@@ -2862,7 +2950,8 @@ abstract class AppLocalizations {
   String get backgroundVideoSet;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -2871,25 +2960,25 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'zh'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'zh': return AppLocalizationsZh();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

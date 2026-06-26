@@ -14,6 +14,8 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 import 'package:todo_cat/widgets/sync_config_dialog.dart';
+import 'package:todo_cat/widgets/ai_config_dialog.dart';
+import 'package:todo_cat/services/ai_settings_service.dart';
 
 import 'package:todo_cat/core/utils/l10n.dart';
 import 'package:todo_cat/core/utils/platform.dart';
@@ -299,6 +301,29 @@ class SettingsContent extends ConsumerWidget {
         title: Text(l10n.saveCurrentAsTemplate),
         description: Text(l10n.saveCurrentAsTemplateDescription),
       ),
+      // AI 配置（DeepSeek API Key 等）
+      SettingsTile(
+        onPressed: (_) => _showAiConfigDialog(),
+        leading: const Icon(Icons.smart_toy_outlined),
+        title: Text(l10n.aiConfiguration),
+        description: Text(l10n.aiConfigurationDescription),
+        trailing: Builder(builder: (context) {
+          final configured = AiSettingsService.to.isConfigured;
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                configured ? l10n.aiConfigured : l10n.aiNotConfigured,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: configured ? Colors.green : Colors.orange,
+                ),
+              ),
+              const Icon(Icons.chevron_right),
+            ],
+          );
+        }),
+      ),
       // 背景设置
       SettingsTile(
         onPressed: (_) => _showBackgroundImageDialog(),
@@ -429,6 +454,17 @@ class SettingsContent extends ConsumerWidget {
       content: const SyncConfigDialog(),
       width: 500,
       height: 600,
+      clickMaskDismiss: true,
+    );
+  }
+
+  /// 显示 AI 配置对话框
+  void _showAiConfigDialog() {
+    PlatformDialogWrapper.show(
+      tag: AiConfigDialog.tag,
+      content: const AiConfigDialog(),
+      width: 500,
+      height: 620,
       clickMaskDismiss: true,
     );
   }

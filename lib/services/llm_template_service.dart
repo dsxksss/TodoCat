@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:todo_cat/config/ai_config.dart';
+import 'package:todo_cat/services/ai_settings_service.dart';
 import 'package:todo_cat/data/schemas/custom_template.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
@@ -84,7 +84,7 @@ Rules:
       );
 
       final completion = await OpenAI.instance.chat.create(
-        model: AiConfig.model,
+        model: AiSettingsService.to.model,
         messages: [systemMessage, userMessage],
         temperature: 0.7,
         maxTokens: 4000,

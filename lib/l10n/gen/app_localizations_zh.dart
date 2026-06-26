@@ -1176,7 +1176,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get duplicateNameTitle => '发现同名项';
 
   @override
-  String duplicateNameMessage(String target, String itemType, String itemName, String source) {
+  String duplicateNameMessage(
+      String target, String itemType, String itemName, String source) {
     return '目标工作空间「$target」中已存在同名的$itemType「$itemName」（来自「$source」工作空间）。请选择处理方式：';
   }
 
@@ -1374,13 +1375,56 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiGenerateTemplate => 'AI 智能生成模板';
 
   @override
-  String get aiGenerateHint => '描述你想要的任务列表，例如：\n- \"为期7天的云南旅游计划\"\n- \"准备一场马拉松的训练计划\"\n- \"新房装修全流程\"';
+  String get aiGenerateHint =>
+      '描述你想要的任务列表，例如：\n- \"为期7天的云南旅游计划\"\n- \"准备一场马拉松的训练计划\"\n- \"新房装修全流程\"';
 
   @override
   String get aiGenerateButton => '立即生成';
 
   @override
   String get aiPreview => 'AI 生成结果预览';
+
+  @override
+  String get aiConfiguration => 'AI 配置';
+
+  @override
+  String get aiConfigurationDescription => '配置 DeepSeek API Key 以启用 AI 功能';
+
+  @override
+  String get aiApiKey => 'API Key';
+
+  @override
+  String get aiApiKeyHint => 'sk-...';
+
+  @override
+  String get aiBaseUrl => 'API 地址 (Base URL)';
+
+  @override
+  String get aiModel => '模型';
+
+  @override
+  String get aiConfigStoredHint => '仅以明文形式保存在本机。请求会直接发送到上方配置的接口地址。';
+
+  @override
+  String get aiConfigSaved => 'AI 配置已保存';
+
+  @override
+  String get aiConfigCleared => 'AI 配置已重置为默认值';
+
+  @override
+  String get aiApiKeyRequired => '请填写 API Key';
+
+  @override
+  String get aiConfigured => '已配置';
+
+  @override
+  String get aiNotConfigured => '未配置';
+
+  @override
+  String get aiPolishResult => 'AI 润色结果';
+
+  @override
+  String get aiReplace => '替换';
 
   @override
   String get success => '成功';
