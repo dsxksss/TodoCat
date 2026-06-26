@@ -206,9 +206,13 @@ class TaskRepository {
         await (db.update(db.tasks)..where((t) => t.id.equals(taskRow.id)))
           .write(drift_db.TasksCompanion(deletedAt: Value(deletedAt)));
 
-        // 更新所有相关的 todos
-        await (db.update(db.todos)..where((t) => t.taskUuid.equals(uuid)))
-          .write(drift_db.TodosCompanion(deletedAt: Value(deletedAt)));
+        // 只软删除「当前仍可见」的 todos：保留之前被单独删除的 todo 的原始时间戳，
+        // 这样恢复任务时才能据时间戳只复活「与任务同批删除」的项，而非把先前
+        // 用户主动删掉的 todo 一并复活。
+        await (db.update(db.todos)
+              ..where(
+                  (t) => t.taskUuid.equals(uuid) & t.deletedAt.equals(0)))
+            .write(drift_db.TodosCompanion(deletedAt: Value(deletedAt)));
       }
     });
   }
@@ -334,13 +338,29 @@ class TaskRepository {
   /// 恢复已删除的任务
   Future<void> restore(String uuid) async {
     await db.transaction(() async {
-      // 恢复任务
-      await (db.update(db.tasks)..where((t) => t.uuid.equals(uuid)))
-        .write(const drift_db.TasksCompanion(deletedAt: Value(0)));
+      final taskRow = await (db.select(db.tasks)
+            ..where((t) => t.uuid.equals(uuid)))
+          .getSingleOrNull();
+      if (taskRow == null) return;
+      final ts = taskRow.deletedAt;
 
-      // 恢复所有相关的 todos
-      await (db.update(db.todos)..where((t) => t.taskUuid.equals(uuid)))
-        .write(const drift_db.TodosCompanion(deletedAt: Value(0)));
+      // 恢复任务本身
+      await (db.update(db.tasks)..where((t) => t.uuid.equals(uuid)))
+          .write(const drift_db.TasksCompanion(deletedAt: Value(0)));
+
+      if (ts > 0) {
+        // 整个任务被删除：只恢复与任务「同批删除」(deletedAt == ts) 的 todos，
+        // 不复活之前被单独删掉的 todo。
+        await (db.update(db.todos)
+              ..where((t) => t.taskUuid.equals(uuid) & t.deletedAt.equals(ts)))
+            .write(const drift_db.TodosCompanion(deletedAt: Value(0)));
+      } else {
+        // 任务本身未删除（仅因含已删除 todo 才出现在回收站）：恢复它名下的全部已删除 todo。
+        await (db.update(db.todos)
+              ..where((t) =>
+                  t.taskUuid.equals(uuid) & t.deletedAt.isBiggerThanValue(0)))
+            .write(const drift_db.TodosCompanion(deletedAt: Value(0)));
+      }
     });
   }
 }

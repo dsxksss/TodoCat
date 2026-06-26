@@ -304,11 +304,16 @@ class HomeController extends _$HomeController {
         return false;
       }
 
+      // 撤销任务删除：只复活与任务「同批删除」(deletedAt == 任务的 deletedAt) 的 todos，
+      // 不复活之前被用户单独删除的 todo（ts==0 兜底则恢复全部已删除项）。
+      final ts = task.deletedAt;
       task.deletedAt = 0;
       if (task.todos != null && task.todos!.isNotEmpty) {
         final newTodos = List<Todo>.from(task.todos!);
         for (var todo in newTodos) {
-          todo.deletedAt = 0;
+          if (ts > 0 ? todo.deletedAt == ts : todo.deletedAt > 0) {
+            todo.deletedAt = 0;
+          }
         }
         task.todos = newTodos;
       }
