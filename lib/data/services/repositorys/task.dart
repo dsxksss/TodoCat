@@ -200,8 +200,20 @@ class TaskRepository {
           .getSingleOrNull();
 
       if (taskRow != null) {
-        final deletedAt = DateTime.now().millisecondsSinceEpoch;
-        
+        // 批次时间戳：必须与该任务下「之前已被单独删除的 todo」的 deletedAt 都不相同，
+        // 否则按时间戳区分批次时会把那些 todo 误判为同批、恢复时一并复活。
+        // 跨两次用户操作落在同一毫秒几乎不可能，这里仍兜底：碰撞就 +1。
+        final existingTs = (await (db.select(db.todos)
+                  ..where((t) => t.taskUuid.equals(uuid)))
+                .get())
+            .map((t) => t.deletedAt)
+            .where((v) => v > 0)
+            .toSet();
+        var deletedAt = DateTime.now().millisecondsSinceEpoch;
+        while (existingTs.contains(deletedAt)) {
+          deletedAt++;
+        }
+
         // 更新任务
         await (db.update(db.tasks)..where((t) => t.id.equals(taskRow.id)))
           .write(drift_db.TasksCompanion(deletedAt: Value(deletedAt)));
