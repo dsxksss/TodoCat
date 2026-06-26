@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todo_cat/controllers/trash_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
@@ -8,18 +8,21 @@ import 'package:todo_cat/widgets/todocat_scaffold.dart';
 import 'package:todo_cat/widgets/animation_btn.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 回收站页面
-class TrashPage extends GetView<TrashController> {
+class TrashPage extends ConsumerWidget {
   const TrashPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final trashState = ref.watch(trashControllerProvider);
     return TodoCatScaffold(
-      title: 'trash'.tr,
+      title: l10n.trash,
       leftWidgets: [
         AnimationBtn(
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
           child: Icon(
             Icons.arrow_back,
             size: 24,
@@ -29,12 +32,9 @@ class TrashPage extends GetView<TrashController> {
         const SizedBox(width: 12),
       ],
       rightWidgets: [
-        Obx(() {
-          if (controller.deletedTasks.isEmpty) {
-            return const SizedBox.shrink();
-          }
-          return AnimationBtn(
-            onPressed: () => _showEmptyTrashDialog(context),
+        if (trashState.deletedTasks.isNotEmpty)
+          AnimationBtn(
+            onPressed: () => _showEmptyTrashDialog(context, ref),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -51,7 +51,7 @@ class TrashPage extends GetView<TrashController> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'emptyTrash'.tr,
+                    l10n.emptyTrash,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
@@ -61,16 +61,15 @@ class TrashPage extends GetView<TrashController> {
                 ],
               ),
             ),
-          );
-        }),
+          ),
         const SizedBox(width: 8),
       ],
-      body: Obx(() {
-        if (controller.isLoading.value) {
+      body: Builder(builder: (context) {
+        if (trashState.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (controller.deletedTasks.isEmpty) {
+        if (trashState.deletedTasks.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -82,7 +81,7 @@ class TrashPage extends GetView<TrashController> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'trashEmpty'.tr,
+                  l10n.trashEmpty,
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.grey.shade600,
@@ -90,7 +89,7 @@ class TrashPage extends GetView<TrashController> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'trashEmptyDesc'.tr,
+                  l10n.trashEmptyDesc,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade500,
@@ -103,17 +102,17 @@ class TrashPage extends GetView<TrashController> {
 
         return ListView.builder(
           padding: const EdgeInsets.all(20),
-          itemCount: controller.deletedTasks.length,
+          itemCount: trashState.deletedTasks.length,
           itemBuilder: (context, index) {
-            final task = controller.deletedTasks[index];
-            return _buildDeletedTaskCard(context, task);
+            final task = trashState.deletedTasks[index];
+            return _buildDeletedTaskCard(context, ref, task);
           },
         );
       }),
     );
   }
 
-  Widget _buildDeletedTaskCard(BuildContext context, Task task) {
+  Widget _buildDeletedTaskCard(BuildContext context, WidgetRef ref, Task task) {
     // 如果task本身被删除，使用task的删除时间；否则使用最早被删除的todo的时间
     int displayDeletedAt = task.deletedAt;
     if (displayDeletedAt == 0 && task.todos != null && task.todos!.isNotEmpty) {
@@ -123,7 +122,9 @@ class TrashPage extends GetView<TrashController> {
         displayDeletedAt = deletedTodos.map((t) => t.deletedAt).reduce((a, b) => a < b ? a : b);
       }
     }
-    final deletedTime = controller.formatDeletedAt(displayDeletedAt);
+    final deletedTime = ref
+        .read(trashControllerProvider.notifier)
+        .formatDeletedAt(displayDeletedAt);
     final deletedTodos = task.todos ?? [];
     final hasTodos = deletedTodos.isNotEmpty;
 
@@ -169,7 +170,7 @@ class TrashPage extends GetView<TrashController> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${'deletedAt'.tr}: $deletedTime',
+                            '${l10n.deletedAt}: $deletedTime',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade600,
@@ -193,7 +194,7 @@ class TrashPage extends GetView<TrashController> {
                         children: [
                           const Icon(FontAwesomeIcons.rotateLeft, size: 14),
                           const SizedBox(width: 8),
-                          Text('restore'.tr),
+                          Text(l10n.restore),
                         ],
                       ),
                     ),
@@ -203,16 +204,16 @@ class TrashPage extends GetView<TrashController> {
                         children: [
                           const Icon(FontAwesomeIcons.trashCan, size: 14, color: Colors.red),
                           const SizedBox(width: 8),
-                          Text('permanentDelete'.tr, style: const TextStyle(color: Colors.red)),
+                          Text(l10n.permanentDelete, style: const TextStyle(color: Colors.red)),
                         ],
                       ),
                     ),
                   ],
                   onSelected: (value) {
                     if (value == 'restore') {
-                      _restoreTask(context, task);
+                      _restoreTask(context, ref, task);
                     } else if (value == 'delete') {
-                      _permanentDeleteTask(context, task);
+                      _permanentDeleteTask(context, ref, task);
                     }
                   },
                 ),
@@ -229,7 +230,7 @@ class TrashPage extends GetView<TrashController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${'deletedTodos'.tr} (${deletedTodos.length})',
+                    '${l10n.deletedTodos} (${deletedTodos.length})',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -237,7 +238,8 @@ class TrashPage extends GetView<TrashController> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...deletedTodos.map((todo) => _buildDeletedTodoItem(context, task, todo)),
+                  ...deletedTodos.map(
+                      (todo) => _buildDeletedTodoItem(context, ref, task, todo)),
                 ],
               ),
             ),
@@ -247,8 +249,10 @@ class TrashPage extends GetView<TrashController> {
     );
   }
 
-  Widget _buildDeletedTodoItem(BuildContext context, Task task, Todo todo) {
-    final deletedTime = controller.formatDeletedAt(todo.deletedAt);
+  Widget _buildDeletedTodoItem(
+      BuildContext context, WidgetRef ref, Task task, Todo todo) {
+    final deletedTime =
+        ref.read(trashControllerProvider.notifier).formatDeletedAt(todo.deletedAt);
     
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -301,15 +305,15 @@ class TrashPage extends GetView<TrashController> {
               IconButton(
                 icon: const Icon(FontAwesomeIcons.rotateLeft, size: 16),
                 color: Colors.blue,
-                onPressed: () => _restoreTodo(context, task, todo),
-                tooltip: 'restore'.tr,
+                onPressed: () => _restoreTodo(context, ref, task, todo),
+                tooltip: l10n.restore,
               ),
               // 永久删除按钮
               IconButton(
                 icon: const Icon(FontAwesomeIcons.trashCan, size: 16),
                 color: Colors.red,
-                onPressed: () => _permanentDeleteTodo(context, task, todo),
-                tooltip: 'permanentDelete'.tr,
+                onPressed: () => _permanentDeleteTodo(context, ref, task, todo),
+                tooltip: l10n.permanentDelete,
               ),
             ],
           ),
@@ -318,98 +322,106 @@ class TrashPage extends GetView<TrashController> {
     );
   }
 
-  void _restoreTask(BuildContext context, Task task) {
+  void _restoreTask(BuildContext context, WidgetRef ref, Task task) {
     showToast(
-      '${'sureRestoreTask'.tr}「${task.title}」',
+      '${l10n.sureRestoreTask}「${task.title}」',
       alwaysShow: true,
       confirmMode: true,
       onYesCallback: () async {
-        final success = await controller.restoreTask(task.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .restoreTask(task.uuid);
         if (success) {
-          showSuccessNotification('taskRestored'.tr);
+          showSuccessNotification(l10n.taskRestored);
           // 刷新主页数据
           try {
-            final homeCtrl = Get.find<HomeController>();
-            await homeCtrl.refreshData();
+            await ref.read(homeControllerProvider.notifier).refreshData();
           } catch (e) {
             // HomeController可能未初始化，忽略错误
           }
         } else {
-          showErrorNotification('restoreFailed'.tr);
+          showErrorNotification(l10n.restoreFailed);
         }
       },
     );
   }
 
-  void _permanentDeleteTask(BuildContext context, Task task) {
+  void _permanentDeleteTask(BuildContext context, WidgetRef ref, Task task) {
     showToast(
-      '${'surePermanentDeleteTask'.tr}「${task.title}」',
+      '${l10n.surePermanentDeleteTask}「${task.title}」',
       alwaysShow: true,
       confirmMode: true,
       toastStyleType: TodoCatToastStyleType.error,
       onYesCallback: () async {
-        final success = await controller.permanentDeleteTask(task.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .permanentDeleteTask(task.uuid);
         if (success) {
-          showSuccessNotification('taskPermanentlyDeleted'.tr);
+          showSuccessNotification(l10n.taskPermanentlyDeleted);
         } else {
-          showErrorNotification('permanentDeleteFailed'.tr);
+          showErrorNotification(l10n.permanentDeleteFailed);
         }
       },
     );
   }
 
-  void _restoreTodo(BuildContext context, Task task, Todo todo) {
+  void _restoreTodo(BuildContext context, WidgetRef ref, Task task, Todo todo) {
     showToast(
-      '${'sureRestoreTodo'.tr}「${todo.title}」',
+      '${l10n.sureRestoreTodo}「${todo.title}」',
       alwaysShow: true,
       confirmMode: true,
       onYesCallback: () async {
-        final success = await controller.restoreTodo(task.uuid, todo.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .restoreTodo(task.uuid, todo.uuid);
         if (success) {
-          showSuccessNotification('todoRestored'.tr);
+          showSuccessNotification(l10n.todoRestored);
           // 如果任务也恢复了，刷新主页数据
           try {
-            final homeCtrl = Get.find<HomeController>();
-            await homeCtrl.refreshData();
+            await ref.read(homeControllerProvider.notifier).refreshData();
           } catch (e) {
             // HomeController可能未初始化，忽略错误
           }
         } else {
-          showErrorNotification('restoreFailed'.tr);
+          showErrorNotification(l10n.restoreFailed);
         }
       },
     );
   }
 
-  void _permanentDeleteTodo(BuildContext context, Task task, Todo todo) {
+  void _permanentDeleteTodo(
+      BuildContext context, WidgetRef ref, Task task, Todo todo) {
     showToast(
-      '${'surePermanentDeleteTodo'.tr}「${todo.title}」',
+      '${l10n.surePermanentDeleteTodo}「${todo.title}」',
       alwaysShow: true,
       confirmMode: true,
       toastStyleType: TodoCatToastStyleType.error,
       onYesCallback: () async {
-        final success = await controller.permanentDeleteTodo(task.uuid, todo.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .permanentDeleteTodo(task.uuid, todo.uuid);
         if (success) {
-          showSuccessNotification('todoPermanentlyDeleted'.tr);
+          showSuccessNotification(l10n.todoPermanentlyDeleted);
         } else {
-          showErrorNotification('permanentDeleteFailed'.tr);
+          showErrorNotification(l10n.permanentDeleteFailed);
         }
       },
     );
   }
 
-  void _showEmptyTrashDialog(BuildContext context) {
+  void _showEmptyTrashDialog(BuildContext context, WidgetRef ref) {
     showToast(
-      'sureEmptyTrash'.tr,
+      l10n.sureEmptyTrash,
       alwaysShow: true,
       confirmMode: true,
       toastStyleType: TodoCatToastStyleType.error,
       onYesCallback: () async {
-        final success = await controller.emptyTrash();
+        final success =
+            await ref.read(trashControllerProvider.notifier).emptyTrash();
         if (success) {
-          showSuccessNotification('trashEmptied'.tr);
+          showSuccessNotification(l10n.trashEmptied);
         } else {
-          showErrorNotification('emptyTrashFailed'.tr);
+          showErrorNotification(l10n.emptyTrashFailed);
         }
       },
     );

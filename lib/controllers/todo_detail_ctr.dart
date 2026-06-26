@@ -1,103 +1,104 @@
-import 'package:get/get.dart';
+import 'package:flutter/widgets.dart';
+import 'package:collection/collection.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
-import 'package:todo_cat/controllers/base/base_form_controller.dart';
-import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
-import 'package:todo_cat/widgets/todo_dialog.dart';
+import 'package:todo_cat/controllers/base/base_form_controller.dart';import 'package:todo_cat/widgets/todo_dialog.dart';
 import 'package:todo_cat/services/dialog_service.dart';
+import 'package:todo_cat/routers/app_router.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
-class TodoDetailController extends BaseFormController {
-  final String todoId;
-  final String taskId;
-  final Todo? previewTodo;
+import 'package:todo_cat/core/utils/l10n.dart';
 
-  final todo = Rx<Todo?>(null);
-  final HomeController _homeController = Get.find();
-  bool _isDisposed = false;
+part 'todo_detail_ctr.g.dart';
+
+/// 待办详情参数（family key）。
+typedef TodoDetailParams = ({String todoId, String taskId});
+
+const _editTodoDetailDialogTag = 'edit_todo_detail_dialog';
+
+/// 待办详情状态：当前展示的 [Todo]（null 表示加载中或已消失）。
+@immutable
+class TodoDetailState {
+  final Todo? todo;
+
+  const TodoDetailState({this.todo});
+
+  TodoDetailState copyWith({Todo? todo}) =>
+      TodoDetailState(todo: todo ?? this.todo);
+}
+
+/// 待办详情控制器（autoDispose family，按 (todoId, taskId) 分实例）。
+/// 生成 `todoDetailControllerProvider(params)`。
+///
+/// 预览模式（原 `previewTodo` 构造参数）由独立的
+/// [previewTodoDetailControllerProvider] 提供，避免与从数据源加载的逻辑混淆。
+@riverpod
+class TodoDetailController extends _$TodoDetailController {
   bool _isNavigatingBack = false;
 
-  TodoDetailController({
-    required this.todoId,
-    required this.taskId,
-    this.previewTodo,
-  });
+  // params 由生成的基类 _$TodoDetailController 提供并在创建时设置（family 参数），
+  // 子类不要再声明/赋值，否则与基类的 late final 重复赋值会抛 LateInitializationError。
+  String get todoId => params.todoId;
+  String get taskId => params.taskId;
 
   @override
-  void onInit() {
-    super.onInit();
-
-    if (previewTodo != null) {
-      todo.value = previewTodo;
-      return;
-    }
-
-    _loadTodoDetail();
-
-    // 监听HomeController的响应式任务列表变化，自动刷新详情
-    ever(_homeController.reactiveTasks, (_) {
-      if (!_isDisposed && !_isNavigatingBack) {
-        _loadTodoDetail();
-      }
+  TodoDetailState build(TodoDetailParams params) {
+    // 任务列表变化时刷新详情（该回调在 build 之后触发，可安全读写 state）。
+    ref.listen(homeControllerProvider, (_, __) {
+      if (!_isNavigatingBack) _loadTodoDetail();
     });
+
+    // 直接返回算好的初始 state：不要在 build 内读/写 state，
+    // 否则会触发 "Tried to read the state of an uninitialized provider"。
+    return TodoDetailState(todo: _resolveTodo());
   }
 
-  @override
-  void onClose() {
-    _isDisposed = true;
-    super.onClose();
-  }
+  bool get isPreview => false;
 
-  bool get isPreview => previewTodo != null;
-
+  /// build 之后的刷新（监听回调 / 手动刷新）。
   void _loadTodoDetail() {
-    if (_isDisposed || _isNavigatingBack || isPreview) {
-      return;
-    }
+    if (_isNavigatingBack) return;
+    state = state.copyWith(todo: _resolveTodo());
+  }
 
+  /// 查找当前 todo；找不到则标记返回并延迟关闭详情。
+  /// 本方法不读写 state，因此可在 build 内安全调用。
+  Todo? _resolveTodo() {
+    if (_isNavigatingBack) return null;
     try {
-      // 使用 firstWhereOrNull 避免找不到元素时抛出异常
-      final task = _homeController.tasks.firstWhereOrNull(
-        (task) => task.uuid == taskId,
-      );
-
+      final tasks = ref.read(homeControllerProvider.notifier).tasks;
+      final task = tasks.firstWhereOrNull((t) => t.uuid == taskId);
       if (task == null) {
-        if (!_isNavigatingBack) {
-          BaseFormController.logger.w('Task not found: $taskId');
-          _isNavigatingBack = true;
-          Get.back();
-        }
-        return;
+        FormControllerMixin.logger.w('Task not found: $taskId');
+        _navigateBack();
+        return null;
       }
-
-      if (task.todos != null) {
-        final foundTodo = task.todos!.firstWhereOrNull(
-          (todo) => todo.uuid == todoId,
-        );
-
-        if (foundTodo != null) {
-          todo.value = foundTodo;
-        } else {
-          if (!_isNavigatingBack) {
-            BaseFormController.logger
-                .w('Todo not found: $todoId in task $taskId');
-            _isNavigatingBack = true;
-            Get.back();
-          }
-        }
-      } else {
-        if (!_isNavigatingBack) {
-          BaseFormController.logger.w('Task todos is null: $taskId');
-          _isNavigatingBack = true;
-          Get.back();
-        }
+      final foundTodo = (task.todos ?? const <Todo>[])
+          .firstWhereOrNull((t) => t.uuid == todoId);
+      if (foundTodo == null) {
+        FormControllerMixin.logger.w('Todo not found: $todoId in task $taskId');
+        _navigateBack();
+        return null;
       }
+      return foundTodo;
     } catch (e) {
-      if (!_isNavigatingBack) {
-        BaseFormController.logger.e('Error loading todo detail: $e');
-        _isNavigatingBack = true;
-        Get.back();
-      }
+      FormControllerMixin.logger.e('Error loading todo detail: $e');
+      _navigateBack();
+      return null;
+    }
+  }
+
+  void _navigateBack() {
+    if (_isNavigatingBack) return;
+    _isNavigatingBack = true;
+    // 延迟到帧结束再关闭，避免在 build/layout 期间导航。
+    WidgetsBinding.instance.addPostFrameCallback((_) => _popIfDetailRoute());
+  }
+
+  void _popIfDetailRoute() {
+    if (currentRoutePath == '/todo-detail') {
+      appRouter.pop();
     }
   }
 
@@ -107,37 +108,34 @@ class TodoDetailController extends BaseFormController {
   }
 
   void editTodo() {
-    if (todo.value == null) return;
+    final todo = state.todo;
+    if (todo == null) return;
 
-    final todoDialogController = Get.put(
-      AddTodoDialogController(),
-      tag: 'edit_todo_detail_dialog',
-      permanent: true,
-    );
-
-    todoDialogController.initForEditing(taskId, todo.value!);
-
+    // 编辑上下文由 TodoDialog 自己在 initState 初始化（同一 tag、无 autoDispose 间隙），
+    // 这里不再预调用 initForEditing。
     DialogService.showFormDialog(
-      tag: 'edit_todo_detail_dialog',
-      dialog: const TodoDialog(dialogTag: 'edit_todo_detail_dialog'),
+      tag: _editTodoDetailDialogTag,
+      dialog: TodoDialog(
+        dialogTag: _editTodoDetailDialogTag,
+        intent: TodoDialogIntent.edit(taskId: taskId, todo: todo),
+      ),
       useFixedSize: false, // TodoDialog 需要动态调整宽度以支持预览窗口
     );
-
-    // 由于已经有自动监听机制，不需要手动刷新
   }
 
   void deleteTodo() async {
-    if (todo.value == null) return;
+    final todo = state.todo;
+    if (todo == null) return;
 
-    BaseFormController.logger.d('Deleting todo: $todoId');
+    FormControllerMixin.logger.d('Deleting todo: $todoId');
 
-    // 设置标志，防止自动监听器触发 Get.back()
+    // 设置标志，防止自动监听器触发导航
     _isNavigatingBack = true;
 
     // 执行删除操作
-    await _homeController.deleteTodo(taskId, todoId);
+    await ref.read(homeControllerProvider.notifier).deleteTodo(taskId, todoId);
 
-    BaseFormController.logger.d('Todo deleted, closing dialog/page...');
+    FormControllerMixin.logger.d('Todo deleted, closing dialog/page...');
 
     // 添加短暂延迟，确保确认toast完全关闭后再关闭页面
     await Future.delayed(const Duration(milliseconds: 150));
@@ -149,51 +147,81 @@ class TodoDetailController extends BaseFormController {
 
       // 尝试关闭SmartDialog（对话框模式）
       SmartDialog.dismiss(tag: dialogTag);
-      BaseFormController.logger.d('Dialog dismissed with tag: $dialogTag');
+      FormControllerMixin.logger.d('Dialog dismissed with tag: $dialogTag');
 
       // 如果是页面模式（/todo-detail路由），也需要关闭页面
-      if (Get.currentRoute == '/todo-detail') {
-        Get.back();
-        BaseFormController.logger.d('Page also closed with Get.back()');
+      if (currentRoutePath == '/todo-detail') {
+        appRouter.pop();
+        FormControllerMixin.logger.d('Page also closed');
       }
-
-      // 清理controller
-      if (Get.isRegistered<TodoDetailController>(tag: dialogTag)) {
-        Get.delete<TodoDetailController>(tag: dialogTag);
-      }
+      // controller 由 autoDispose 自动回收，无需手动删除
     } catch (e) {
-      BaseFormController.logger.e('Error closing dialog/page: $e');
+      FormControllerMixin.logger.e('Error closing dialog/page: $e');
     }
   }
 
   String getPriorityText(TodoPriority priority) {
     switch (priority) {
       case TodoPriority.lowLevel:
-        return 'lowLevel'.tr;
+        return l10n.lowLevel;
       case TodoPriority.mediumLevel:
-        return 'mediumLevel'.tr;
+        return l10n.mediumLevel;
       case TodoPriority.highLevel:
-        return 'highLevel'.tr;
+        return l10n.highLevel;
     }
   }
 
   String getStatusText(TodoStatus status) {
     switch (status) {
       case TodoStatus.todo:
-        return 'todo'.tr;
+        return l10n.todo;
       case TodoStatus.inProgress:
-        return 'inProgress'.tr;
+        return l10n.inProgress;
       case TodoStatus.done:
-        return 'done'.tr;
+        return l10n.done;
+    }
+  }
+}
+
+/// 预览模式的待办详情控制器（autoDispose family，按预览的 [Todo] 分实例）。
+/// 生成 `previewTodoDetailControllerProvider(previewTodo)`。
+///
+/// 与 [TodoDetailController] 共享同样的文本辅助方法（[getPriorityText] /
+/// [getStatusText]），但不从数据源加载、不监听变化、不导航。
+@riverpod
+class PreviewTodoDetailController extends _$PreviewTodoDetailController {
+  @override
+  TodoDetailState build(Todo previewTodo) {
+    return TodoDetailState(todo: previewTodo);
+  }
+
+  bool get isPreview => true;
+
+  void refreshTodoDetail() {}
+
+  void editTodo() {}
+
+  void deleteTodo() {}
+
+  String getPriorityText(TodoPriority priority) {
+    switch (priority) {
+      case TodoPriority.lowLevel:
+        return l10n.lowLevel;
+      case TodoPriority.mediumLevel:
+        return l10n.mediumLevel;
+      case TodoPriority.highLevel:
+        return l10n.highLevel;
     }
   }
 
-  bool checkFieldChanges() {
-    // 详细信息页面不需要检查表单更改
-    return false;
-  }
-
-  void restoreFields() {
-    // 详细信息页面不需要恢复表单字段
+  String getStatusText(TodoStatus status) {
+    switch (status) {
+      case TodoStatus.todo:
+        return l10n.todo;
+      case TodoStatus.inProgress:
+        return l10n.inProgress;
+      case TodoStatus.done:
+        return l10n.done;
+    }
   }
 }

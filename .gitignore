@@ -43,6 +43,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Kotlin 编译器会话缓存（构建产物，勿提交）
+.kotlin/
+
 TodoCatLog.txt
 TodoCat-HomeCtrlLog.txt
 
@@ -53,3 +56,6 @@ TodoCat-HomeCtrlLog.txt
 dist/
 
 AppFlowyCodes/
+
+# 密钥配置（通过 --dart-define-from-file 注入，切勿提交）
+secrets.json

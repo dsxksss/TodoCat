@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 选择工作空间对话框
-class SelectWorkspaceDialog extends StatelessWidget {
+class SelectWorkspaceDialog extends ConsumerWidget {
   final String currentWorkspaceId;
   final Function(String workspaceId) onWorkspaceSelected;
 
@@ -19,17 +21,10 @@ class SelectWorkspaceDialog extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    if (!Get.isRegistered<WorkspaceController>()) {
-      return const SizedBox.shrink();
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final workspaces = ref.watch(workspaceControllerProvider).workspaces;
 
-    final workspaceCtrl = Get.find<WorkspaceController>();
-
-    return Obx(() {
-      final workspaces = workspaceCtrl.workspaces;
-      
-      if (workspaces.isEmpty) {
+    if (workspaces.isEmpty) {
         return Container(
           width: context.isPhone ? 1.sw : 430,
           height: context.isPhone ? 0.4.sh : 200,
@@ -45,7 +40,7 @@ class SelectWorkspaceDialog extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              'noWorkspaces'.tr,
+              l10n.noWorkspaces,
               style: TextStyle(
                 fontSize: 16,
                 color: context.theme.textTheme.bodyLarge?.color,
@@ -85,7 +80,7 @@ class SelectWorkspaceDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'selectTargetWorkspace'.tr,
+                    l10n.selectTargetWorkspace,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -119,7 +114,7 @@ class SelectWorkspaceDialog extends StatelessWidget {
                     ),
                     title: Text(
                       workspace.uuid == 'default' 
-                          ? 'defaultWorkspace'.tr 
+                          ? l10n.defaultWorkspace 
                           : workspace.name,
                       style: TextStyle(
                         color: isCurrent 
@@ -130,7 +125,7 @@ class SelectWorkspaceDialog extends StatelessWidget {
                     ),
                     subtitle: isCurrent 
                         ? Text(
-                            'currentWorkspace'.tr,
+                            l10n.currentWorkspace,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade600,
@@ -153,7 +148,6 @@ class SelectWorkspaceDialog extends StatelessWidget {
           ],
         ),
       );
-    });
   }
 }
 

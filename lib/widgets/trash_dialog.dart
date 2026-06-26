@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todo_cat/controllers/trash_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
@@ -12,25 +12,24 @@ import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/core/utils/date_time.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 回收站对话框
-class TrashDialog extends StatefulWidget {
+class TrashDialog extends ConsumerStatefulWidget {
   const TrashDialog({super.key});
 
   @override
-  State<TrashDialog> createState() => _TrashDialogState();
+  ConsumerState<TrashDialog> createState() => _TrashDialogState();
 }
 
-class _TrashDialogState extends State<TrashDialog> {
-  late final TrashController controller;
-
+class _TrashDialogState extends ConsumerState<TrashDialog> {
   @override
   void initState() {
     super.initState();
-    controller = Get.put(TrashController());
     // 打开对话框时刷新数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.refresh();
+      ref.read(trashControllerProvider.notifier).refresh();
     });
   }
 
@@ -52,17 +51,18 @@ class _TrashDialogState extends State<TrashDialog> {
       child: Column(
         children: [
           // 标题栏
-          _buildHeader(context, controller),
+          _buildHeader(context),
           // 回收站内容
           Expanded(
-            child: _buildContent(context, controller),
+            child: _buildContent(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, TrashController controller) {
+  Widget _buildHeader(BuildContext context) {
+    final deletedTasks = ref.watch(trashControllerProvider).deletedTasks;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       decoration: BoxDecoration(
@@ -94,18 +94,18 @@ class _TrashDialogState extends State<TrashDialog> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'trash'.tr,
+                        l10n.trash,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Obx(() {
-                        final count = controller.deletedTasks.length;
+                      Builder(builder: (context) {
+                        final count = deletedTasks.length;
                         if (count == 0) {
                           return Text(
-                            'trashEmpty'.tr,
+                            l10n.trashEmpty,
                             style: TextStyle(
                               fontSize: 12,
                               color: context.theme.textTheme.bodySmall?.color
@@ -134,11 +134,8 @@ class _TrashDialogState extends State<TrashDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // 清空回收站按钮
-              Obx(() {
-                if (controller.deletedTasks.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
+              if (deletedTasks.isNotEmpty)
+                Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: LabelBtn(
                     ghostStyle: true,
@@ -152,7 +149,7 @@ class _TrashDialogState extends State<TrashDialog> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'emptyTrash'.tr,
+                          l10n.emptyTrash,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.red.shade400,
@@ -162,10 +159,9 @@ class _TrashDialogState extends State<TrashDialog> {
                     ),
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    onPressed: () => _showEmptyTrashDialog(context, controller),
+                    onPressed: () => _showEmptyTrashDialog(context),
                   ),
-                );
-              }),
+                ),
               // 关闭按钮
               LabelBtn(
                 ghostStyle: true,
@@ -187,14 +183,16 @@ class _TrashDialogState extends State<TrashDialog> {
     );
   }
 
-  Widget _buildContent(BuildContext context, TrashController controller) {
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
+  Widget _buildContent(BuildContext context) {
+    final trashState = ref.watch(trashControllerProvider);
+    final deletedTasks = trashState.deletedTasks;
+    final deletedWorkspaces = trashState.deletedWorkspaces;
 
-      if (controller.deletedTasks.isEmpty &&
-          controller.deletedWorkspaces.isEmpty) {
+    if (trashState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (deletedTasks.isEmpty && deletedWorkspaces.isEmpty) {
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -206,7 +204,7 @@ class _TrashDialogState extends State<TrashDialog> {
               ),
               const SizedBox(height: 16),
               Text(
-                'trashEmpty'.tr,
+                l10n.trashEmpty,
                 style: TextStyle(
                   fontSize: 18,
                   color: context.theme.textTheme.bodyLarge?.color
@@ -217,7 +215,7 @@ class _TrashDialogState extends State<TrashDialog> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
-                  'trashEmptyDesc'.tr,
+                  l10n.trashEmptyDesc,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -231,72 +229,68 @@ class _TrashDialogState extends State<TrashDialog> {
         );
       }
 
-      final hasDeletedWorkspaces = controller.deletedWorkspaces.isNotEmpty;
-      final hasDeletedTasks = controller.deletedTasks.isNotEmpty;
-      final totalItems = controller.deletedTasks.length +
-          (hasDeletedWorkspaces ? controller.deletedWorkspaces.length + 1 : 0) +
-          (hasDeletedWorkspaces && hasDeletedTasks ? 1 : 0); // 任务标题
+    final hasDeletedWorkspaces = deletedWorkspaces.isNotEmpty;
+    final hasDeletedTasks = deletedTasks.isNotEmpty;
+    final totalItems = deletedTasks.length +
+        (hasDeletedWorkspaces ? deletedWorkspaces.length + 1 : 0) +
+        (hasDeletedWorkspaces && hasDeletedTasks ? 1 : 0); // 任务标题
 
-      return ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: totalItems,
-        itemBuilder: (context, index) {
-          // 先显示已删除的工作空间
-          if (hasDeletedWorkspaces) {
-            if (index == 0) {
-              // 工作空间标题
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  'deletedWorkspaces'.tr,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: context.theme.textTheme.titleLarge?.color,
-                  ),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: totalItems,
+      itemBuilder: (context, index) {
+        // 先显示已删除的工作空间
+        if (hasDeletedWorkspaces) {
+          if (index == 0) {
+            // 工作空间标题
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                l10n.deletedWorkspaces,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: context.theme.textTheme.titleLarge?.color,
                 ),
-              );
-            }
-            if (index <= controller.deletedWorkspaces.length) {
-              final workspace = controller.deletedWorkspaces[index - 1];
-              return _buildDeletedWorkspaceCard(context, controller, workspace);
-            }
-            // 任务标题
-            if (hasDeletedTasks &&
-                index == controller.deletedWorkspaces.length + 1) {
-              return Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 12),
-                child: Text(
-                  'deletedTasks'.tr,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: context.theme.textTheme.titleLarge?.color,
-                  ),
-                ),
-              );
-            }
-            // 任务项
-            final taskIndex = index -
-                controller.deletedWorkspaces.length -
-                (hasDeletedTasks ? 2 : 1);
-            if (taskIndex >= 0 && taskIndex < controller.deletedTasks.length) {
-              final task = controller.deletedTasks[taskIndex];
-              return _buildDeletedTaskCard(context, controller, task);
-            }
-          } else {
-            // 没有已删除的工作空间，直接显示任务
-            final task = controller.deletedTasks[index];
-            return _buildDeletedTaskCard(context, controller, task);
+              ),
+            );
           }
-          return const SizedBox.shrink();
-        },
-      );
-    });
+          if (index <= deletedWorkspaces.length) {
+            final workspace = deletedWorkspaces[index - 1];
+            return _buildDeletedWorkspaceCard(context, workspace);
+          }
+          // 任务标题
+          if (hasDeletedTasks && index == deletedWorkspaces.length + 1) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 12),
+              child: Text(
+                l10n.deletedTasks,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: context.theme.textTheme.titleLarge?.color,
+                ),
+              ),
+            );
+          }
+          // 任务项
+          final taskIndex =
+              index - deletedWorkspaces.length - (hasDeletedTasks ? 2 : 1);
+          if (taskIndex >= 0 && taskIndex < deletedTasks.length) {
+            final task = deletedTasks[taskIndex];
+            return _buildDeletedTaskCard(context, task);
+          }
+        } else {
+          // 没有已删除的工作空间，直接显示任务
+          final task = deletedTasks[index];
+          return _buildDeletedTaskCard(context, task);
+        }
+        return const SizedBox.shrink();
+      },
+    );
   }
 
-  Widget _buildDeletedTaskCard(
-      BuildContext context, TrashController controller, Task task) {
+  Widget _buildDeletedTaskCard(BuildContext context, Task task) {
     // 如果task本身被删除，使用task的删除时间；否则使用最早被删除的todo的时间
     int displayDeletedAt = task.deletedAt;
     if (displayDeletedAt == 0 && task.todos != null && task.todos!.isNotEmpty) {
@@ -308,7 +302,9 @@ class _TrashDialogState extends State<TrashDialog> {
             .reduce((a, b) => a < b ? a : b);
       }
     }
-    final deletedTime = controller.formatDeletedAt(displayDeletedAt);
+    final deletedTime = ref
+        .read(trashControllerProvider.notifier)
+        .formatDeletedAt(displayDeletedAt);
     final deletedTodos = task.todos ?? [];
     final hasTodos = deletedTodos.isNotEmpty;
 
@@ -357,7 +353,7 @@ class _TrashDialogState extends State<TrashDialog> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  task.title.tr,
+                                  dynTr(task.title),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -377,7 +373,7 @@ class _TrashDialogState extends State<TrashDialog> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '${'deletedAt'.tr}: $deletedTime',
+                                '${l10n.deletedAt}: $deletedTime',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: context
@@ -399,14 +395,12 @@ class _TrashDialogState extends State<TrashDialog> {
                           MenuItem(
                             title: 'restore',
                             iconData: FontAwesomeIcons.rotateLeft,
-                            callback: () =>
-                                _restoreTask(context, controller, task),
+                            callback: () => _restoreTask(context, task),
                           ),
                           MenuItem(
                             title: 'permanentDelete',
                             iconData: FontAwesomeIcons.trashCan,
-                            callback: () =>
-                                _permanentDeleteTask(context, controller, task),
+                            callback: () => _permanentDeleteTask(context, task),
                           ),
                         ],
                       ),
@@ -428,7 +422,7 @@ class _TrashDialogState extends State<TrashDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${'deletedTodos'.tr} (${deletedTodos.length})',
+                    '${l10n.deletedTodos} (${deletedTodos.length})',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -437,8 +431,8 @@ class _TrashDialogState extends State<TrashDialog> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...deletedTodos.map((todo) =>
-                      _buildDeletedTodoItem(context, controller, task, todo)),
+                  ...deletedTodos.map(
+                      (todo) => _buildDeletedTodoItem(context, task, todo)),
                 ],
               ),
             ),
@@ -453,14 +447,13 @@ class _TrashDialogState extends State<TrashDialog> {
     return todo.title;
   }
 
-  Widget _buildDeletedTodoItem(
-      BuildContext context, TrashController controller, Task task, Todo todo) {
+  Widget _buildDeletedTodoItem(BuildContext context, Task task, Todo todo) {
     // 使用精确的删除时间（包含时分秒）
     final deletedTime =
         todo.deletedAt > 0 ? timestampToDateTime(todo.deletedAt) : '';
 
     // 获取显示标题（如果有同名todo，加上创建时间）
-    final displayTitle = _getDisplayTitle(todo, controller.deletedTasks);
+    final displayTitle = _getDisplayTitle(todo, const []);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -511,7 +504,7 @@ class _TrashDialogState extends State<TrashDialog> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${'deletedAt'.tr}: $deletedTime',
+                        '${l10n.deletedAt}: $deletedTime',
                         style: TextStyle(
                           fontSize: 11,
                           color: context.theme.textTheme.bodySmall?.color
@@ -532,13 +525,12 @@ class _TrashDialogState extends State<TrashDialog> {
                 MenuItem(
                   title: 'restore',
                   iconData: FontAwesomeIcons.rotateLeft,
-                  callback: () => _restoreTodo(context, controller, task, todo),
+                  callback: () => _restoreTodo(context, task, todo),
                 ),
                 MenuItem(
                   title: 'permanentDelete',
                   iconData: FontAwesomeIcons.trashCan,
-                  callback: () =>
-                      _permanentDeleteTodo(context, controller, task, todo),
+                  callback: () => _permanentDeleteTodo(context, task, todo),
                 ),
               ],
             ),
@@ -550,8 +542,10 @@ class _TrashDialogState extends State<TrashDialog> {
 
   /// 构建已删除的工作空间卡片
   Widget _buildDeletedWorkspaceCard(
-      BuildContext context, TrashController controller, Workspace workspace) {
-    final deletedTime = controller.formatDeletedAt(workspace.deletedAt);
+      BuildContext context, Workspace workspace) {
+    final deletedTime = ref
+        .read(trashControllerProvider.notifier)
+        .formatDeletedAt(workspace.deletedAt);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -614,14 +608,12 @@ class _TrashDialogState extends State<TrashDialog> {
                 MenuItem(
                   title: 'restore',
                   iconData: FontAwesomeIcons.rotateLeft,
-                  callback: () =>
-                      _restoreWorkspace(context, controller, workspace),
+                  callback: () => _restoreWorkspace(context, workspace),
                 ),
                 MenuItem(
                   title: 'permanentDelete',
                   iconData: FontAwesomeIcons.trashCan,
-                  callback: () =>
-                      _permanentDeleteWorkspace(context, controller, workspace),
+                  callback: () => _permanentDeleteWorkspace(context, workspace),
                 ),
               ],
             ),
@@ -646,156 +638,159 @@ class _TrashDialogState extends State<TrashDialog> {
     }
   }
 
-  void _restoreWorkspace(
-      BuildContext context, TrashController controller, Workspace workspace) {
+  void _restoreWorkspace(BuildContext context, Workspace workspace) {
     showToast(
-      '${'sureRestoreWorkspace'.tr}「${workspace.name}」',
+      '${l10n.sureRestoreWorkspace}「${workspace.name}」',
       alwaysShow: true,
       confirmMode: true,
       keepSingle: true,
       onYesCallback: () async {
-        final success = await controller.restoreWorkspace(workspace.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .restoreWorkspace(workspace.uuid);
         SmartDialog.dismiss(tag: 'trash_workspace_menu_${workspace.uuid}');
         if (success) {
-          showSuccessNotification('workspaceRestored'.tr);
+          showSuccessNotification(l10n.workspaceRestored);
         } else {
-          showErrorNotification('workspaceRestoreFailed'.tr);
+          showErrorNotification(l10n.workspaceRestoreFailed);
         }
       },
     );
   }
 
-  void _permanentDeleteWorkspace(
-      BuildContext context, TrashController controller, Workspace workspace) {
+  void _permanentDeleteWorkspace(BuildContext context, Workspace workspace) {
     showToast(
-      '${'surePermanentDeleteWorkspace'.tr}「${workspace.name}」',
+      '${l10n.surePermanentDeleteWorkspace}「${workspace.name}」',
       alwaysShow: true,
       confirmMode: true,
       keepSingle: true,
       onYesCallback: () async {
-        final success =
-            await controller.permanentDeleteWorkspace(workspace.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .permanentDeleteWorkspace(workspace.uuid);
         SmartDialog.dismiss(tag: 'trash_workspace_menu_${workspace.uuid}');
         if (success) {
-          showSuccessNotification('workspacePermanentlyDeleted'.tr);
+          showSuccessNotification(l10n.workspacePermanentlyDeleted);
         } else {
-          showErrorNotification('permanentDeleteFailed'.tr);
+          showErrorNotification(l10n.permanentDeleteFailed);
         }
       },
     );
   }
 
-  void _restoreTask(
-      BuildContext context, TrashController controller, Task task) {
+  void _restoreTask(BuildContext context, Task task) {
     showToast(
-      '${'sureRestoreTask'.tr}「${task.title}」',
+      '${l10n.sureRestoreTask}「${task.title}」',
       alwaysShow: true,
       confirmMode: true,
       keepSingle: true,
       onYesCallback: () async {
-        final success = await controller.restoreTask(task.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .restoreTask(task.uuid);
         // 关闭对应的菜单
         SmartDialog.dismiss(tag: 'trash_task_menu_${task.uuid}');
         if (success) {
           // 刷新主页数据
           try {
-            final homeCtrl = Get.find<HomeController>();
             // 直接刷新TaskManager，确保数据同步
-            await homeCtrl.refreshData();
+            await ref.read(homeControllerProvider.notifier).refreshData();
             // 成功时不添加消息到消息中心
           } catch (e) {
             // HomeController可能未初始化，忽略错误
           }
         } else {
           // 只在失败时显示通知
-          showErrorNotification('restoreFailed'.tr);
+          showErrorNotification(l10n.restoreFailed);
         }
       },
     );
   }
 
-  void _permanentDeleteTask(
-      BuildContext context, TrashController controller, Task task) {
+  void _permanentDeleteTask(BuildContext context, Task task) {
     showToast(
-      '${'surePermanentDeleteTask'.tr}「${task.title}」',
+      '${l10n.surePermanentDeleteTask}「${task.title}」',
       alwaysShow: true,
       confirmMode: true,
       keepSingle: true,
       toastStyleType: TodoCatToastStyleType.error,
       onYesCallback: () async {
-        final success = await controller.permanentDeleteTask(task.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .permanentDeleteTask(task.uuid);
         // 关闭对应的菜单
         SmartDialog.dismiss(tag: 'trash_task_menu_${task.uuid}');
         // 只在失败时显示通知，成功时不添加消息到消息中心
         if (!success) {
-          showErrorNotification('permanentDeleteFailed'.tr);
+          showErrorNotification(l10n.permanentDeleteFailed);
         }
       },
     );
   }
 
-  void _restoreTodo(
-      BuildContext context, TrashController controller, Task task, Todo todo) {
+  void _restoreTodo(BuildContext context, Task task, Todo todo) {
     showToast(
-      '${'sureRestoreTodo'.tr}「${todo.title}」',
+      '${l10n.sureRestoreTodo}「${todo.title}」',
       alwaysShow: true,
       confirmMode: true,
       keepSingle: true,
       onYesCallback: () async {
-        final success = await controller.restoreTodo(task.uuid, todo.uuid);
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .restoreTodo(task.uuid, todo.uuid);
         // 关闭对应的菜单
         SmartDialog.dismiss(tag: 'trash_todo_menu_${todo.uuid}');
         if (success) {
           // 刷新主页数据
           try {
-            final homeCtrl = Get.find<HomeController>();
             // 直接刷新TaskManager，确保数据同步
-            await homeCtrl.refreshData();
+            await ref.read(homeControllerProvider.notifier).refreshData();
             // 成功时不添加消息到消息中心
           } catch (e) {
             // HomeController可能未初始化，忽略错误
           }
         } else {
           // 只在失败时显示通知
-          showErrorNotification('restoreFailed'.tr);
+          showErrorNotification(l10n.restoreFailed);
         }
       },
     );
   }
 
-  void _permanentDeleteTodo(
-      BuildContext context, TrashController controller, Task task, Todo todo) {
+  void _permanentDeleteTodo(BuildContext context, Task task, Todo todo) {
     showToast(
-      '${'surePermanentDeleteTodo'.tr}「${todo.title}」',
+      '${l10n.surePermanentDeleteTodo}「${todo.title}」',
+      alwaysShow: true,
+      confirmMode: true,
+      keepSingle: true,
+      toastStyleType: TodoCatToastStyleType.error,
+      onYesCallback: () async {
+        final success = await ref
+            .read(trashControllerProvider.notifier)
+            .permanentDeleteTodo(task.uuid, todo.uuid);
+        // 关闭对应的菜单
+        SmartDialog.dismiss(tag: 'trash_todo_menu_${todo.uuid}');
+        // 只在失败时显示通知，成功时不添加消息到消息中心
+        if (!success) {
+          showErrorNotification(l10n.permanentDeleteFailed);
+        }
+      },
+    );
+  }
+
+  void _showEmptyTrashDialog(BuildContext context) {
+    showToast(
+      l10n.sureEmptyTrash,
       alwaysShow: true,
       confirmMode: true,
       keepSingle: true,
       toastStyleType: TodoCatToastStyleType.error,
       onYesCallback: () async {
         final success =
-            await controller.permanentDeleteTodo(task.uuid, todo.uuid);
-        // 关闭对应的菜单
-        SmartDialog.dismiss(tag: 'trash_todo_menu_${todo.uuid}');
+            await ref.read(trashControllerProvider.notifier).emptyTrash();
         // 只在失败时显示通知，成功时不添加消息到消息中心
         if (!success) {
-          showErrorNotification('permanentDeleteFailed'.tr);
-        }
-      },
-    );
-  }
-
-  void _showEmptyTrashDialog(BuildContext context, TrashController controller) {
-    showToast(
-      'sureEmptyTrash'.tr,
-      alwaysShow: true,
-      confirmMode: true,
-      keepSingle: true,
-      toastStyleType: TodoCatToastStyleType.error,
-      onYesCallback: () async {
-        final success = await controller.emptyTrash();
-        // 只在失败时显示通知，成功时不添加消息到消息中心
-        if (!success) {
-          showErrorNotification('emptyTrashFailed'.tr);
+          showErrorNotification(l10n.emptyTrashFailed);
         }
       },
     );

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/services/auto_update_service.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
 /// 更新进度对话框
 class UpdateProgressDialog extends StatefulWidget {
@@ -19,7 +21,7 @@ class UpdateProgressDialog extends StatefulWidget {
 
 class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
   double _progress = 0.0;
-  String _status = 'checkingForUpdates'.tr;
+  String _status = l10n.checkingForUpdates;
   bool _isDownloading = false;
   bool _isInstalling = false;
 
@@ -48,7 +50,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
     widget.updateService.onUpdateAvailable = (version, changelog) {
       if (mounted) {
         setState(() {
-          _status = '${'newVersionAvailable'.tr}: $version';
+          _status = '${l10n.newVersionAvailable}: $version';
           _progress = 1.0;
         });
       }
@@ -58,7 +60,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
     widget.updateService.onUpdateComplete = () {
       if (mounted) {
         setState(() {
-          _status = 'updateComplete'.tr;
+          _status = l10n.updateComplete;
           _progress = 1.0;
           _isDownloading = false;
           _isInstalling = false;
@@ -70,7 +72,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
     widget.updateService.onUpdateError = (error) {
       if (mounted) {
         setState(() {
-          _status = 'updateError'.tr;
+          _status = l10n.updateError;
           _isDownloading = false;
           _isInstalling = false;
         });
@@ -81,7 +83,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
     widget.updateService.onAlreadyLatestVersion = () {
       if (mounted) {
         setState(() {
-          _status = 'alreadyLatestVersion'.tr;
+          _status = l10n.alreadyLatestVersion;
           _progress = 1.0;
         });
       }
@@ -91,7 +93,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
   Future<void> _checkForUpdates() async {
     try {
       setState(() {
-        _status = 'checkingForUpdates'.tr;
+        _status = l10n.checkingForUpdates;
         _progress = 0.0;
       });
 
@@ -100,7 +102,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _status = 'updateError'.tr;
+          _status = l10n.updateError;
         });
       }
     }
@@ -125,7 +127,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'checkingForUpdates'.tr,
+                    l10n.checkingForUpdates,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -187,7 +189,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
                       widget.updateService.cancelDownload();
                       setState(() {
                         _isDownloading = false;
-                        _status = 'downloadCancelled'.tr;
+                        _status = l10n.downloadCancelled;
                       });
                     } else {
                       Navigator.of(context).pop();
@@ -204,7 +206,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
                         const Icon(Icons.stop, size: 18),
                         const SizedBox(width: 8),
                       ],
-                      Text(_isDownloading ? 'stop'.tr : 'cancel'.tr),
+                      Text(_isDownloading ? l10n.stop : l10n.cancel),
                     ],
                   ),
                 ),

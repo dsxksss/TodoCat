@@ -1,10 +1,10 @@
-import 'package:get/get.dart';
+import 'package:todo_cat/core/utils/l10n.dart';
 
 const int _minTimestampLength = 1000000000000;
 
 String timestampToDate(int timestamp) {
-  if (timestamp.isLowerThan(_minTimestampLength)) {
-    return "unknownDate".tr;
+  if (timestamp < _minTimestampLength) {
+    return l10n.unknownDate;
   }
 
   // 将时间戳转换为 DateTime 对象
@@ -63,25 +63,25 @@ int firstDayWeek(DateTime date) {
 
 String getWeekName(DateTime date) {
   Map<int, String> weekMap = {
-    1: 'monday'.tr,
-    2: 'tuesday'.tr,
-    3: 'wednesday'.tr,
-    4: 'thursday'.tr,
-    5: 'friday'.tr,
-    6: 'saturday'.tr,
-    7: 'sunday'.tr,
+    1: l10n.monday,
+    2: l10n.tuesday,
+    3: l10n.wednesday,
+    4: l10n.thursday,
+    5: l10n.friday,
+    6: l10n.saturday,
+    7: l10n.sunday,
   };
 
-  return weekMap[date.weekday] ?? 'unknown'.tr;
+  return weekMap[date.weekday] ?? l10n.unknown;
 }
 
 String getTimeString(DateTime date) =>
-    "${date.hour}${"hour".tr} ${date.minute}${"minute".tr}";
+    "${date.hour}${l10n.hour} ${date.minute}${l10n.minute}";
 
 /// 将时间戳转换为完整的日期时间字符串（包含时分秒）
 String timestampToDateTime(int timestamp) {
-  if (timestamp.isLowerThan(_minTimestampLength)) {
-    return "unknownDate".tr;
+  if (timestamp < _minTimestampLength) {
+    return l10n.unknownDate;
   }
 
   // 将时间戳转换为 DateTime 对象

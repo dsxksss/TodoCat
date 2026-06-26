@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DatePanel extends StatefulWidget {
+import 'package:todo_cat/core/utils/l10n.dart';
+
+class DatePanel extends ConsumerStatefulWidget {
   const DatePanel({
     super.key,
     required this.onDateSelected,
@@ -12,10 +14,10 @@ class DatePanel extends StatefulWidget {
   final DateTime? selectedDate;
 
   @override
-  State<DatePanel> createState() => _DatePanelState();
+  ConsumerState<DatePanel> createState() => _DatePanelState();
 }
 
-class _DatePanelState extends State<DatePanel> {
+class _DatePanelState extends ConsumerState<DatePanel> {
   late DateTime _currentMonth;
   DateTime? _selectedDate;
   
@@ -192,14 +194,14 @@ class _DatePanelState extends State<DatePanel> {
   Widget build(BuildContext context) {
     final days = _getDaysInMonth();
     final monthNames = [
-      'january'.tr, 'february'.tr, 'march'.tr, 'april'.tr,
-      'may'.tr, 'june'.tr, 'july'.tr, 'august'.tr,
-      'september'.tr, 'october'.tr, 'november'.tr, 'december'.tr
+      l10n.january, l10n.february, l10n.march, l10n.april,
+      l10n.may, l10n.june, l10n.july, l10n.august,
+      l10n.september, l10n.october, l10n.november, l10n.december
     ];
     
     final weekDays = [
-      'monday'.tr, 'tuesday'.tr, 'wednesday'.tr, 'thursday'.tr,
-      'friday'.tr, 'saturday'.tr, 'sunday'.tr
+      l10n.monday, l10n.tuesday, l10n.wednesday, l10n.thursday,
+      l10n.friday, l10n.saturday, l10n.sunday
     ];
 
     return Container(

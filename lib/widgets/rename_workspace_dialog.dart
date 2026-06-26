@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/widgets/dialog_header.dart';
@@ -9,9 +9,11 @@ import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/data/schemas/workspace.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 重命名工作空间对话框
-class RenameWorkspaceDialog extends StatefulWidget {
+class RenameWorkspaceDialog extends ConsumerStatefulWidget {
   final Workspace workspace;
 
   const RenameWorkspaceDialog({
@@ -20,10 +22,11 @@ class RenameWorkspaceDialog extends StatefulWidget {
   });
 
   @override
-  State<RenameWorkspaceDialog> createState() => _RenameWorkspaceDialogState();
+  ConsumerState<RenameWorkspaceDialog> createState() =>
+      _RenameWorkspaceDialogState();
 }
 
-class _RenameWorkspaceDialogState extends State<RenameWorkspaceDialog> {
+class _RenameWorkspaceDialogState extends ConsumerState<RenameWorkspaceDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   bool _isRenaming = false;
@@ -58,30 +61,28 @@ class _RenameWorkspaceDialogState extends State<RenameWorkspaceDialog> {
     });
 
     try {
-      if (Get.isRegistered<WorkspaceController>()) {
-        final workspaceCtrl = Get.find<WorkspaceController>();
-        final success = await workspaceCtrl.updateWorkspace(
-          widget.workspace.uuid,
-          newName,
-        );
-        
-        if (mounted) {
-          if (success) {
-            showSuccessNotification('workspaceRenamed'.tr);
-            SmartDialog.dismiss(tag: renameWorkspaceDialogTag);
-            // 关闭工作空间选择器的下拉菜单
-            SmartDialog.dismiss(tag: 'workspace_selector');
-          } else {
-            showErrorNotification('workspaceRenameFailed'.tr);
-            setState(() {
-              _isRenaming = false;
-            });
-          }
+      final workspaceCtrl = ref.read(workspaceControllerProvider.notifier);
+      final success = await workspaceCtrl.updateWorkspace(
+        widget.workspace.uuid,
+        newName,
+      );
+
+      if (mounted) {
+        if (success) {
+          showSuccessNotification(l10n.workspaceRenamed);
+          SmartDialog.dismiss(tag: renameWorkspaceDialogTag);
+          // 关闭工作空间选择器的下拉菜单
+          SmartDialog.dismiss(tag: 'workspace_selector');
+        } else {
+          showErrorNotification(l10n.workspaceRenameFailed);
+          setState(() {
+            _isRenaming = false;
+          });
         }
       }
     } catch (e) {
       if (mounted) {
-        showErrorNotification('workspaceRenameFailed'.tr);
+        showErrorNotification(l10n.workspaceRenameFailed);
         setState(() {
           _isRenaming = false;
         });
@@ -110,10 +111,10 @@ class _RenameWorkspaceDialogState extends State<RenameWorkspaceDialog> {
           children: [
             // 标题栏
             DialogHeader(
-              title: 'renameWorkspace'.tr,
+              title: l10n.renameWorkspace,
               onCancel: () => SmartDialog.dismiss(tag: renameWorkspaceDialogTag),
               onConfirm: _isRenaming ? null : _renameWorkspace,
-              confirmText: _isRenaming ? 'renaming'.tr : 'rename'.tr,
+              confirmText: _isRenaming ? l10n.renaming : l10n.rename,
             ),
             // 内容区域
             Expanded(
@@ -128,10 +129,10 @@ class _RenameWorkspaceDialogState extends State<RenameWorkspaceDialog> {
                       maxLength: 50,
                       maxLines: 1,
                       radius: 6,
-                      fieldTitle: 'workspaceName'.tr,
+                      fieldTitle: l10n.workspaceName,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'workspaceNameRequired'.tr;
+                          return l10n.workspaceNameRequired;
                         }
                         return null;
                       },

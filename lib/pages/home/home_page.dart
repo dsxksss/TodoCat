@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
@@ -26,7 +26,7 @@ import 'dart:ui';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/config/default_backgrounds.dart';
-import 'package:todo_cat/widgets/appflowy_board_adapter.dart';
+import 'package:todo_cat/widgets/kanban_board.dart';
 import 'package:todo_cat/controllers/trash_ctr.dart';
 import 'package:todo_cat/widgets/trash_dialog.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
@@ -34,131 +34,149 @@ import 'package:todo_cat/widgets/video_background.dart';
 import 'package:todo_cat/services/video_download_service.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
-/// 首页类，继承自 GetView<HomeController>
-class HomePage extends GetView<HomeController> {
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/platform.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+/// 首页类（Riverpod ConsumerStatefulWidget）。
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  // 页面自己持有 ScrollController（原 HomeController.scrollController 已移除）。
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // 在构建页面时就初始化 SettingsController
-    Get.put(SettingsController(), permanent: true);
+    final appConfig = ref.watch(appControllerProvider);
+    final backgroundImagePath = appConfig.backgroundImagePath;
+    final isDefaultTemplate = backgroundImagePath != null &&
+        backgroundImagePath.startsWith('default_template:');
+    final isCustomImage = backgroundImagePath != null &&
+        !isDefaultTemplate &&
+        backgroundImagePath.isNotEmpty &&
+        AppPlatform.isDesktop &&
+        File(backgroundImagePath).existsSync();
+    final hasBackground = isDefaultTemplate || isCustomImage;
+    final affectsNavBar =
+        hasBackground ? appConfig.backgroundAffectsNavBar : false;
+    final opacity = appConfig.backgroundImageOpacity;
+    final blur = appConfig.backgroundImageBlur;
 
-    // 获取 AppController 以读取背景图片设置
-    final appCtrl = Get.find<AppController>();
-
-    return Obx(() {
-      final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
-      final isDefaultTemplate = backgroundImagePath != null &&
-          backgroundImagePath.startsWith('default_template:');
-      final isCustomImage = backgroundImagePath != null &&
-          !isDefaultTemplate &&
-          backgroundImagePath.isNotEmpty &&
-          GetPlatform.isDesktop &&
-          File(backgroundImagePath).existsSync();
-      final hasBackground = isDefaultTemplate || isCustomImage;
-      final affectsNavBar = hasBackground
-          ? appCtrl.appConfig.value.backgroundAffectsNavBar
-          : false;
-      final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-      final blur = appCtrl.appConfig.value.backgroundImageBlur;
-
-      return Scaffold(
-        floatingActionButton: _buildFloatingActionButton(context),
-        body: hasBackground && affectsNavBar
-            ? _buildWithBackground(backgroundImagePath, opacity, blur)
-            : hasBackground && !affectsNavBar
-                ? _buildWithBackgroundNavOnly(
-                    backgroundImagePath, opacity, blur)
-                : TodoCatScaffold(
-                    title: _buildTitle(context),
-                    leftWidgets: _buildLeftWidgets(),
-                    rightWidgets: _buildRightWidgets(context),
-                    body: context.isPhone
-                        ? Obx(
-                            () {
-                              final isSwitching =
-                                  controller.isSwitchingWorkspace.value;
-                              return AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                switchOutCurve: Curves.easeIn,
-                                switchInCurve: Curves.easeOut,
-                                transitionBuilder: (child, animation) {
-                                  final fadeAnimation = animation.status ==
-                                          AnimationStatus.reverse
-                                      ? animation
-                                      : animation;
-                                  return FadeTransition(
-                                    opacity: fadeAnimation,
-                                    child: SlideTransition(
-                                      position: Tween<Offset>(
-                                        begin: const Offset(0.1, 0),
-                                        end: Offset.zero,
-                                      ).animate(CurvedAnimation(
-                                        parent: fadeAnimation,
-                                        curve: fadeAnimation.status ==
-                                                AnimationStatus.reverse
-                                            ? Curves.easeIn
-                                            : Curves.easeOut,
-                                      )),
-                                      child: child,
+    return Scaffold(
+      floatingActionButton: _buildFloatingActionButton(context),
+      body: hasBackground && affectsNavBar
+          ? _buildWithBackground(backgroundImagePath, opacity, blur)
+          : hasBackground && !affectsNavBar
+              ? _buildWithBackgroundNavOnly(backgroundImagePath, opacity, blur)
+              : TodoCatScaffold(
+                  title: _buildTitle(context),
+                  leftWidgets: _buildLeftWidgets(),
+                  rightWidgets: _buildRightWidgets(context),
+                  body: context.isPhone
+                      ? Consumer(
+                          builder: (context, ref, _) {
+                            final isSwitching = ref
+                                .watch(homeControllerProvider)
+                                .isSwitchingWorkspace;
+                            return AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              switchOutCurve: Curves.easeIn,
+                              switchInCurve: Curves.easeOut,
+                              transitionBuilder: (child, animation) {
+                                final fadeAnimation = animation.status ==
+                                        AnimationStatus.reverse
+                                    ? animation
+                                    : animation;
+                                return FadeTransition(
+                                  opacity: fadeAnimation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0.1, 0),
+                                      end: Offset.zero,
+                                    ).animate(CurvedAnimation(
+                                      parent: fadeAnimation,
+                                      curve: fadeAnimation.status ==
+                                              AnimationStatus.reverse
+                                          ? Curves.easeIn
+                                          : Curves.easeOut,
+                                    )),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: isSwitching
+                                  ? const SizedBox.shrink(
+                                      key: ValueKey('switching'))
+                                  : _TaskHorizontalListMobile(
+                                      tasks: ref
+                                          .watch(homeControllerProvider)
+                                          .tasks,
+                                      key: const ValueKey('mobile_task_list'),
                                     ),
-                                  );
-                                },
-                                child: isSwitching
-                                    ? const SizedBox.shrink(
-                                        key: ValueKey('switching'))
-                                    : _TaskHorizontalListMobile(
-                                        tasks: controller.reactiveTasks,
-                                        key: const ValueKey('mobile_task_list'),
-                                      ),
-                              );
-                            },
-                          )
-                        : Obx(
-                            () {
-                              // 强制建立对 RxList 的依赖，避免 GetX 提示未使用可观察对象
-                              final _ = controller.reactiveTasks.length;
-                              final isSwitching =
-                                  controller.isSwitchingWorkspace.value;
-                              return AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                switchOutCurve: Curves.easeIn,
-                                switchInCurve: Curves.easeOut,
-                                transitionBuilder: (child, animation) {
-                                  // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
-                                  final fadeAnimation = animation.status ==
-                                          AnimationStatus.reverse
-                                      ? animation
-                                      : animation;
-                                  return FadeTransition(
-                                    opacity: fadeAnimation,
-                                    child: SlideTransition(
-                                      position: Tween<Offset>(
-                                        begin: const Offset(0.1, 0),
-                                        end: Offset.zero,
-                                      ).animate(CurvedAnimation(
-                                        parent: fadeAnimation,
-                                        curve: fadeAnimation.status ==
-                                                AnimationStatus.reverse
-                                            ? Curves.easeIn
-                                            : Curves.easeOut,
-                                      )),
-                                      child: child,
+                            );
+                          },
+                        )
+                      : Consumer(
+                          builder: (context, ref, _) {
+                            final isSwitching = ref
+                                .watch(homeControllerProvider)
+                                .isSwitchingWorkspace;
+                            final tasks =
+                                ref.watch(homeControllerProvider).tasks;
+                            return AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              switchOutCurve: Curves.easeIn,
+                              switchInCurve: Curves.easeOut,
+                              transitionBuilder: (child, animation) {
+                                // 使用 reverseAnimation 来控制淡出，animation 来控制淡入
+                                final fadeAnimation = animation.status ==
+                                        AnimationStatus.reverse
+                                    ? animation
+                                    : animation;
+                                return FadeTransition(
+                                  opacity: fadeAnimation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0.1, 0),
+                                      end: Offset.zero,
+                                    ).animate(CurvedAnimation(
+                                      parent: fadeAnimation,
+                                      curve: fadeAnimation.status ==
+                                              AnimationStatus.reverse
+                                          ? Curves.easeIn
+                                          : Curves.easeOut,
+                                    )),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: isSwitching
+                                  ? const SizedBox.shrink(
+                                      key: ValueKey('switching'))
+                                  : _TaskHorizontalList(
+                                      tasks: tasks,
                                     ),
-                                  );
-                                },
-                                child: isSwitching
-                                    ? const SizedBox.shrink(
-                                        key: ValueKey('switching'))
-                                    : _TaskHorizontalList(
-                                        tasks: controller.reactiveTasks,
-                                      ),
-                              );
-                            },
-                          ),
-                  ),
-      );
-    });
+                            );
+                          },
+                        ),
+                ),
+    );
   }
 
   /// 获取背景装饰
@@ -169,9 +187,9 @@ class HomePage extends GetView<HomeController> {
     }
 
     // 获取背景设置
-    final appCtrl = Get.find<AppController>();
-    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    final appConfig = ref.read(appControllerProvider);
+    final opacity = appConfig.backgroundImageOpacity;
+    final blur = appConfig.backgroundImageBlur;
 
     // 检查是否是默认模板
     if (backgroundPath.startsWith('default_template:')) {
@@ -180,7 +198,7 @@ class HomePage extends GetView<HomeController> {
 
       if (template != null) {
         // 移动端不支持视频背景，如果是视频模板，返回空容器
-        if (template.isVideo && GetPlatform.isMobile) {
+        if (template.isVideo && AppPlatform.isMobile) {
           return Container(color: Colors.transparent);
         }
         // 检查是否为视频模板
@@ -287,7 +305,7 @@ class HomePage extends GetView<HomeController> {
     } else {
       // 自定义图片或视频
       // 检查文件是否存在
-      if (GetPlatform.isDesktop && File(backgroundPath).existsSync()) {
+      if (AppPlatform.isDesktop && File(backgroundPath).existsSync()) {
         // 检查是否是视频文件
         final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
             backgroundPath.toLowerCase().endsWith('.mov') ||
@@ -296,7 +314,7 @@ class HomePage extends GetView<HomeController> {
             backgroundPath.toLowerCase().endsWith('.webm');
 
         // 移动端不支持视频背景
-        if (isVideo && GetPlatform.isMobile) {
+        if (isVideo && AppPlatform.isMobile) {
           return Container(color: Colors.transparent);
         }
 
@@ -393,9 +411,9 @@ class HomePage extends GetView<HomeController> {
           ),
         // 内容层（完全透明）
         TodoCatScaffold(
-          title: _buildTitle(Get.context!),
+          title: _buildTitle(context),
           leftWidgets: _buildLeftWidgets(),
-          rightWidgets: _buildRightWidgets(Get.context!),
+          rightWidgets: _buildRightWidgets(context),
           body: _buildBody(),
         ),
       ],
@@ -408,7 +426,7 @@ class HomePage extends GetView<HomeController> {
     // 直接构建，不包裹在TodoCatScaffold中，手动处理导航栏和内容区域
     return Scaffold(
       backgroundColor: Colors.transparent,
-      floatingActionButton: _buildFloatingActionButton(Get.context!),
+      floatingActionButton: _buildFloatingActionButton(context),
       body: SafeArea(
         minimum: EdgeInsets.zero,
         bottom: false,
@@ -417,9 +435,9 @@ class HomePage extends GetView<HomeController> {
             if (Platform.isMacOS) 15.verticalSpace,
             // 导航栏（无背景，保持清晰）
             NavBar(
-              title: _buildTitle(Get.context!),
+              title: _buildTitle(context),
               leftWidgets: _buildLeftWidgets(),
-              rightWidgets: _buildRightWidgets(Get.context!),
+              rightWidgets: _buildRightWidgets(context),
             ),
             5.verticalSpace,
             // 内容区域（有背景和模糊）- 使用ClipRect限制模糊范围
@@ -463,11 +481,12 @@ class HomePage extends GetView<HomeController> {
 
   /// 构建主体内容
   Widget _buildBody() {
-    return Obx(
-      () {
-        final isSwitching = controller.isSwitchingWorkspace.value;
+    return Consumer(
+      builder: (context, ref, _) {
+        final homeState = ref.watch(homeControllerProvider);
+        final isSwitching = homeState.isSwitchingWorkspace;
         return Animate(
-          target: controller.tasks.isEmpty ? 1 : 0,
+          target: homeState.tasks.isEmpty ? 1 : 0,
           effects: [
             SwapEffect(
               builder: (_, __) => SizedBox(
@@ -514,7 +533,7 @@ class HomePage extends GetView<HomeController> {
             child: isSwitching
                 ? const SizedBox.shrink(key: ValueKey('switching'))
                 : _TaskHorizontalList(
-                    tasks: controller.reactiveTasks,
+                    tasks: homeState.tasks,
                   ),
           ),
         );
@@ -551,7 +570,7 @@ class HomePage extends GetView<HomeController> {
   /// 构建标题
   String? _buildTitle(BuildContext context) {
     // 移动端不显示title，只显示logo
-    return context.isPhone ? null : "todoCat".tr;
+    return context.isPhone ? null : l10n.todoCat;
   }
 
   /// 构建左侧控件列表
@@ -580,14 +599,9 @@ class HomePage extends GetView<HomeController> {
 
   /// 构建工作空间选择器
   Widget _buildWorkspaceSelector() {
-    if (!Get.isRegistered<WorkspaceController>()) {
-      return const SizedBox.shrink();
-    }
-
-    final workspaceCtrl = Get.find<WorkspaceController>();
-
-    return Obx(() {
-      final workspaces = workspaceCtrl.workspaces;
+    return Consumer(builder: (context, ref, _) {
+      final workspaceState = ref.watch(workspaceControllerProvider);
+      final workspaces = workspaceState.workspaces;
 
       if (workspaces.isEmpty) {
         return const SizedBox.shrink();
@@ -595,10 +609,9 @@ class HomePage extends GetView<HomeController> {
 
       return Builder(
         builder: (context) {
-          // 使用 Obx 确保菜单项能够响应 currentWorkspaceId 的变化
-          return Obx(() {
+          {
             final menuItems = <MenuItem>[];
-            final currentWorkspaceId = workspaceCtrl.currentWorkspaceId.value;
+            final currentWorkspaceId = workspaceState.currentWorkspaceId;
 
             // 添加工作空间选项
             for (var workspace in workspaces) {
@@ -637,31 +650,31 @@ class HomePage extends GetView<HomeController> {
                         onTap: () {
                           SmartDialog.dismiss(tag: 'workspace_selector');
                           showToast(
-                            '${'sureDeleteWorkspace'.tr}「${workspace.name}」',
+                            '${l10n.sureDeleteWorkspace}「${workspace.name}」',
                             alwaysShow: true,
                             confirmMode: true,
                             toastStyleType: TodoCatToastStyleType.error,
                             onYesCallback: () async {
-                              final deleted = await workspaceCtrl
+                              final deleted = await ref
+                                  .read(workspaceControllerProvider.notifier)
                                   .deleteWorkspace(workspace.uuid);
                               if (deleted) {
                                 // 刷新回收站数据
-                                if (Get.isRegistered<TrashController>()) {
-                                  final trashCtrl = Get.find<TrashController>();
-                                  await trashCtrl.refresh();
-                                }
+                                await ref
+                                    .read(trashControllerProvider.notifier)
+                                    .refresh();
                                 // 显示撤销通知
                                 showUndoToast(
-                                  '${'workspaceDeleted'.tr}「${workspace.name}」',
+                                  '${l10n.workspaceDeleted}「${workspace.name}」',
                                   () async {
-                                    await workspaceCtrl
+                                    await ref
+                                        .read(workspaceControllerProvider
+                                            .notifier)
                                         .restoreWorkspace(workspace.uuid);
                                     // 刷新回收站数据
-                                    if (Get.isRegistered<TrashController>()) {
-                                      final trashCtrl =
-                                          Get.find<TrashController>();
-                                      await trashCtrl.refresh();
-                                    }
+                                    await ref
+                                        .read(trashControllerProvider.notifier)
+                                        .refresh();
                                   },
                                 );
                               }
@@ -688,7 +701,9 @@ class HomePage extends GetView<HomeController> {
                   title: workspace.name,
                   iconData: isCurrent ? Icons.check : null,
                   callback: () {
-                    workspaceCtrl.switchWorkspace(workspace.uuid);
+                    ref
+                        .read(workspaceControllerProvider.notifier)
+                        .switchWorkspace(workspace.uuid);
                   },
                   trailingWidget: trailingWidget,
                 ),
@@ -732,11 +747,11 @@ class HomePage extends GetView<HomeController> {
               child: Padding(
                 // 添加内边距以扩大可点击区域，特别是左右边缘
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Obx(() {
-                  final currentWorkspace = workspaceCtrl.currentWorkspace;
+                child: Builder(builder: (context) {
+                  final currentWorkspace = workspaceState.currentWorkspace;
                   final displayName = currentWorkspace?.uuid == 'default'
-                      ? 'defaultWorkspace'.tr
-                      : (currentWorkspace?.name ?? 'defaultWorkspace'.tr);
+                      ? l10n.defaultWorkspace
+                      : (currentWorkspace?.name ?? l10n.defaultWorkspace);
 
                   return Row(
                     mainAxisSize: MainAxisSize.min,
@@ -764,7 +779,7 @@ class HomePage extends GetView<HomeController> {
                 }),
               ),
             );
-          });
+          }
         },
       );
     });
@@ -782,9 +797,7 @@ class HomePage extends GetView<HomeController> {
       // 设置按钮
       NavBarBtn(
         onPressed: () {
-          // 获取已初始化的控制器
-          final settingsController = Get.find<SettingsController>();
-          settingsController.showSettings();
+          ref.read(settingsControllerProvider.notifier).showSettings();
         },
         child: Builder(
           builder: (context) => Icon(
@@ -799,53 +812,47 @@ class HomePage extends GetView<HomeController> {
 
   /// 构建回收站按钮
   Widget _buildTrashButton() {
-    return GetBuilder<TrashController>(
-      init: Get.isRegistered<TrashController>()
-          ? Get.find<TrashController>()
-          : TrashController(),
-      builder: (trashCtrl) {
-        return Obx(() {
-          final deletedCount = trashCtrl.deletedTasks.length +
-              trashCtrl.deletedWorkspaces.length;
-          return badges.Badge(
-            showBadge: deletedCount > 0,
-            badgeContent: Text(
-              deletedCount > 99 ? '99+' : deletedCount.toString(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
+    return Consumer(builder: (context, ref, _) {
+      final trashState = ref.watch(trashControllerProvider);
+      final deletedCount =
+          trashState.deletedTasks.length + trashState.deletedWorkspaces.length;
+      return badges.Badge(
+        showBadge: deletedCount > 0,
+        badgeContent: Text(
+          deletedCount > 99 ? '99+' : deletedCount.toString(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        badgeStyle: const badges.BadgeStyle(
+          badgeColor: Colors.orange,
+          padding: EdgeInsets.all(4),
+          elevation: 0,
+        ),
+        position: badges.BadgePosition.topEnd(top: -4, end: -4),
+        child: NavBarBtn(
+          onPressed: () {
+            _showTrashDialog(context);
+          },
+          child: Builder(
+            builder: (context) => Icon(
+              Icons.delete_outline,
+              size: 24,
+              color: context.theme.iconTheme.color,
             ),
-            badgeStyle: const badges.BadgeStyle(
-              badgeColor: Colors.orange,
-              padding: EdgeInsets.all(4),
-              elevation: 0,
-            ),
-            position: badges.BadgePosition.topEnd(top: -4, end: -4),
-            child: NavBarBtn(
-              onPressed: () {
-                _showTrashDialog(Get.context!);
-              },
-              child: Builder(
-                builder: (context) => Icon(
-                  Icons.delete_outline,
-                  size: 24,
-                  color: context.theme.iconTheme.color,
-                ),
-              ),
-            ),
-          );
-        });
-      },
-    );
+          ),
+        ),
+      );
+    });
   }
 
   /// 构建通知中心按钮
   Widget _buildNotificationCenterButton() {
-    final notificationCenter = Get.find<NotificationCenterManager>();
-    return Obx(() {
-      final unreadCount = notificationCenter.unreadCount;
+    return Consumer(builder: (context, ref, _) {
+      final notifications = ref.watch(notificationCenterManagerProvider);
+      final unreadCount = notifications.where((n) => !n.isRead).length;
       // Badge 放在 NavBarBtn 外面，这样 hover 不会影响 badge 的颜色
       return badges.Badge(
         showBadge: unreadCount > 0,
@@ -909,7 +916,10 @@ class HomePage extends GetView<HomeController> {
   void _showTaskDialog(BuildContext context) {
     PlatformDialogWrapper.show(
       tag: addTaskDialogTag,
-      content: const TaskDialog(dialogTag: addTaskDialogTag),
+      content: const TaskDialog(
+        dialogTag: addTaskDialogTag,
+        intent: TaskDialogIntent.add(),
+      ),
       useSystem: false,
       debounce: true,
       keepSingle: true,
@@ -922,9 +932,9 @@ class HomePage extends GetView<HomeController> {
 
 /// Task横向列表组件，支持拖拽排序和边缘自动滚动
 class _TaskHorizontalList extends StatefulWidget {
-  final RxList<Task> tasks;
+  final List<Task> tasks;
 
-  const _TaskHorizontalList({required this.tasks});
+  const _TaskHorizontalList({required this.tasks, super.key});
 
   @override
   State<_TaskHorizontalList> createState() => _TaskHorizontalListState();
@@ -1091,15 +1101,11 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
             const EdgeInsets.only(top: 20, left: 20, bottom: 20, right: 20),
         child: Align(
           alignment: Alignment.topLeft, // 使用 start-start 对齐（左上角）
-          child: Obx(() {
-            // 强制建立对 RxList 的依赖，避免 GetX 提示未使用可观察对象
-            final _ = widget.tasks.length;
-            // 使用 AppFlowyBoard 的拖拽逻辑，保持原 Task/Todo UI
-            return AppFlowyTodosBoard(
-              tasks: widget.tasks,
-              listWidth: 270.0,
-            );
-          }),
+          // 自研看板：列内独立滚动 + 拖拽重排/跨列移动
+          child: KanbanBoard(
+            tasks: widget.tasks,
+            listWidth: 270.0,
+          ),
         ),
       ),
     );
@@ -1108,7 +1114,7 @@ class _TaskHorizontalListState extends State<_TaskHorizontalList> {
 
 /// 移动端Task横向列表组件，使用AppFlowyBoard布局，支持锚点吸附
 class _TaskHorizontalListMobile extends StatefulWidget {
-  final RxList<Task> tasks;
+  final List<Task> tasks;
 
   const _TaskHorizontalListMobile({required this.tasks, super.key});
 
@@ -1419,26 +1425,24 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      // 强制建立对 RxList 的依赖
-      final taskCount = widget.tasks.length;
+    final taskCount = widget.tasks.length;
 
-      if (widget.tasks.isEmpty) {
-        return Center(
-          child: Text(
-            "Do It Now !",
-            style: GoogleFonts.getFont(
-              'Ubuntu',
-              textStyle: const TextStyle(
-                fontSize: 60,
-              ),
+    if (widget.tasks.isEmpty) {
+      return Center(
+        child: Text(
+          "Do It Now !",
+          style: GoogleFonts.getFont(
+            'Ubuntu',
+            textStyle: const TextStyle(
+              fontSize: 60,
             ),
           ),
-        );
-      }
+        ),
+      );
+    }
 
-      // 使用 Column 布局，上方是任务列表，下方是圆点指示器
-      return Column(
+    // 使用 Column 布局，上方是任务列表，下方是圆点指示器
+    return Column(
         children: [
           // 任务列表
           Expanded(
@@ -1487,7 +1491,6 @@ class _TaskHorizontalListMobileState extends State<_TaskHorizontalListMobile> {
             ),
         ],
       );
-    });
   }
 }
 
@@ -1534,7 +1537,7 @@ class _DotIndicator extends StatelessWidget {
 
 /// 带吸附功能的AppFlowyBoard包装器
 class _AppFlowyBoardWithSnap extends StatelessWidget {
-  final RxList<Task> tasks;
+  final List<Task> tasks;
   final double listWidth;
   final ScrollController scrollController;
   final void Function(String taskId, BuildContext context)? onTaskContextReady;
@@ -1550,7 +1553,7 @@ class _AppFlowyBoardWithSnap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppFlowyTodosBoard(
+    return KanbanBoard(
       tasks: tasks,
       listWidth: listWidth,
       scrollController: scrollController,

@@ -7,7 +7,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:get/get.dart' hide Value;
+import 'package:collection/collection.dart';
 import 'package:todo_cat/widgets/import_conflict_dialog.dart';
 import 'package:crypto/crypto.dart';
 import '../data/database/database.dart';

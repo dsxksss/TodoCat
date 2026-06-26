@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+import 'package:todo_cat/routers/app_router.dart';
 
 /// 平台适配的Dialog包装器
 /// 根据平台自动选择显示底部页（移动端）或dialog（桌面端）
@@ -34,7 +35,7 @@ class PlatformDialogWrapper {
     VoidCallback? onDismiss,
     bool useFixedSize = true,
   }) {
-    final context = Get.context!;
+    final context = rootNavigatorKey.currentContext!;
     final isPhone = context.isPhone;
 
     // 移动端：如果是百分比(<=1)则使用百分比，否则(>1，通常是传入了桌面端的固定高度)使用默认0.75
@@ -42,10 +43,10 @@ class PlatformDialogWrapper {
     final double mobileHeightRatio =
         (height != null && height <= 1.0) ? height : 0.75;
     final dialogHeight =
-        isPhone ? mobileHeightRatio * Get.height : (height ?? 540.0);
+        isPhone ? mobileHeightRatio * context.height : (height ?? 540.0);
 
     // 桌面端使用指定宽度，移动端占满宽度
-    final dialogWidth = isPhone ? Get.width : (width ?? 430.0);
+    final dialogWidth = isPhone ? context.width : (width ?? 430.0);
 
     SmartDialog.show(
       tag: tag,

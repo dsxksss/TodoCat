@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/services/webdav_service.dart';
 import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
@@ -19,14 +19,17 @@ import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 import 'package:todo_cat/widgets/sync_history_dialog.dart';
 import 'package:todo_cat/data/database/database.dart' show AppDatabase;
 
-class SyncConfigDialog extends StatefulWidget {
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
+class SyncConfigDialog extends ConsumerStatefulWidget {
   const SyncConfigDialog({super.key});
 
   @override
-  State<SyncConfigDialog> createState() => _SyncConfigDialogState();
+  ConsumerState<SyncConfigDialog> createState() => _SyncConfigDialogState();
 }
 
-class _SyncConfigDialogState extends State<SyncConfigDialog> {
+class _SyncConfigDialogState extends ConsumerState<SyncConfigDialog> {
   // Default Credentials (Hidden from User)
   final _defaultUrl = 'https://dav.jianguoyun.com/dav/';
   final _defaultUser = '2546650292@qq.com';
@@ -87,14 +90,14 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
       if (mounted) {
         setState(() {
           _isConnected = success;
-          _connectionStatus = success ? 'connected'.tr : 'syncFailed'.tr;
+          _connectionStatus = success ? l10n.connected : l10n.syncFailed;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isConnected = false;
-          _connectionStatus = 'syncFailed'.tr;
+          _connectionStatus = l10n.syncFailed;
         });
       }
     }
@@ -105,12 +108,12 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
         WebDavConfig(
             url: _defaultUrl, username: _defaultUser, password: _defaultPass);
 
-    final wsCtrl = Get.find<WorkspaceController>();
-    final wsId = wsCtrl.currentWorkspaceId.value;
+    final wsState = ref.read(workspaceControllerProvider);
+    final wsId = wsState.currentWorkspaceId;
     // Find workspace name safely
     String wsName = 'Unknown';
     try {
-      final ws = wsCtrl.workspaces.firstWhere((w) => w.uuid == wsId,
+      final ws = wsState.workspaces.firstWhere((w) => w.uuid == wsId,
           orElse: () => Workspace()..name = 'Unknown');
       wsName = ws.name;
     } catch (_) {}
@@ -128,16 +131,16 @@ class _SyncConfigDialogState extends State<SyncConfigDialog> {
           .format(DateTime.fromMillisecondsSinceEpoch(lastSyncTime));
     }
 
-    return '''${'shareContentWorkspace'.tr}: "$wsName"
-${'shareContentId'.tr}: $wsId
-${'shareContentLastSynced'.tr}: $lastSyncStr
-${'shareContentKey'.tr}: $base64Key''';
+    return '''${l10n.shareContentWorkspace}: "$wsName"
+${l10n.shareContentId}: $wsId
+${l10n.shareContentLastSynced}: $lastSyncStr
+${l10n.shareContentKey}: $base64Key''';
   }
 
   void _copyWorkspaceKey() {
     final key = _generateWorkspaceKey();
     Clipboard.setData(ClipboardData(text: key));
-    showToast('keyCopied'.tr, toastStyleType: TodoCatToastStyleType.success);
+    showToast(l10n.keyCopied, toastStyleType: TodoCatToastStyleType.success);
   }
 
   Future<void> _importWorkspaceKey() async {
@@ -204,7 +207,7 @@ ${'shareContentKey'.tr}: $base64Key''';
             toastStyleType: TodoCatToastStyleType.error);
       }
     } catch (e) {
-      showToast('invalidKey'.tr, toastStyleType: TodoCatToastStyleType.error);
+      showToast(l10n.invalidKey, toastStyleType: TodoCatToastStyleType.error);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -212,22 +215,23 @@ ${'shareContentKey'.tr}: $base64Key''';
 
   Future<void> _syncToCloud() async {
     showToast(
-      '${'confirmSyncToCloud'.tr}\n${'confirmSyncToCloudDesc'.tr}',
+      '${l10n.confirmSyncToCloud}\n${l10n.confirmSyncToCloudDesc}',
       confirmMode: true,
       alwaysShow: true,
       onYesCallback: () async {
         if (!mounted) return;
         setState(() => _isLoading = true);
         try {
-          final wsCtrl = Get.find<WorkspaceController>();
-          await SyncManager().syncWorkspace(wsCtrl.currentWorkspaceId.value);
-          showToast('syncSuccess'.tr,
+          final currentWsId =
+              ref.read(workspaceControllerProvider).currentWorkspaceId;
+          await SyncManager().syncWorkspace(currentWsId);
+          showToast(l10n.syncSuccess,
               toastStyleType: TodoCatToastStyleType.success);
           if (mounted) {
             setState(() {}); // Refresh UI including last sync time
           }
         } catch (e) {
-          showToast('${'syncFailed'.tr}: $e',
+          showToast('${l10n.syncFailed}: $e',
               toastStyleType: TodoCatToastStyleType.error);
         } finally {
           if (mounted) {
@@ -240,35 +244,31 @@ ${'shareContentKey'.tr}: $base64Key''';
 
   Future<void> _downloadFromCloud() async {
     showToast(
-      '${'confirmDownloadFromCloud'.tr}\n${'confirmDownloadFromCloudDesc'.tr}',
+      '${l10n.confirmDownloadFromCloud}\n${l10n.confirmDownloadFromCloudDesc}',
       confirmMode: true,
       alwaysShow: true,
       onYesCallback: () async {
         if (!mounted) return;
         setState(() => _isLoading = true);
         try {
-          final wsCtrl = Get.find<WorkspaceController>();
-          await SyncManager().restoreWorkspace(wsCtrl.currentWorkspaceId.value);
+          final currentWsId =
+              ref.read(workspaceControllerProvider).currentWorkspaceId;
+          await SyncManager().restoreWorkspace(currentWsId);
           // 刷新工作空间数据
-          if (Get.isRegistered<WorkspaceController>()) {
-            await Get.find<WorkspaceController>().loadWorkspaces();
-          }
-          if (Get.isRegistered<HomeController>()) {
-            await Get.find<HomeController>()
-                .refreshData(showEmptyPrompt: false, clearBeforeRefresh: true);
-          }
+          await ref.read(workspaceControllerProvider.notifier).loadWorkspaces();
+          await ref
+              .read(homeControllerProvider.notifier)
+              .refreshData(showEmptyPrompt: false, clearBeforeRefresh: true);
           // 刷新回收站数据
-          if (Get.isRegistered<TrashController>()) {
-            await Get.find<TrashController>().refresh();
-          }
+          await ref.read(trashControllerProvider.notifier).refresh();
 
-          showToast('restoreSuccess'.tr,
+          showToast(l10n.restoreSuccess,
               toastStyleType: TodoCatToastStyleType.success);
           if (mounted) {
             setState(() {}); // Refresh UI including last sync time
           }
         } catch (e) {
-          showToast('${'syncFailed'.tr}: $e',
+          showToast('${l10n.syncFailed}: $e',
               toastStyleType: TodoCatToastStyleType.error);
         } finally {
           if (mounted) {
@@ -283,32 +283,23 @@ ${'shareContentKey'.tr}: $base64Key''';
     try {
       await SyncManager().restoreWorkspace(uuid);
 
-      if (Get.isRegistered<WorkspaceController>()) {
-        await Get.find<WorkspaceController>().loadWorkspaces();
-      }
-
-      final workspaceCtrl = Get.find<WorkspaceController>();
+      final workspaceCtrl = ref.read(workspaceControllerProvider.notifier);
+      await workspaceCtrl.loadWorkspaces();
 
       // 导入成功后自动切换到该工作空间
-      if (Get.isRegistered<HomeController>()) {
-        final homeCtrl = Get.find<HomeController>();
+      // 切换到新导入的工作空间
+      await workspaceCtrl.switchWorkspace(uuid);
 
-        // 切换到新导入的工作空间
-        await workspaceCtrl.switchWorkspace(uuid);
+      // 刷新数据以显示新工作空间的内容
+      await ref.read(homeControllerProvider.notifier).refreshData(
+            showEmptyPrompt: false,
+            clearBeforeRefresh: true,
+          );
 
-        // 刷新数据以显示新工作空间的内容
-        await homeCtrl.refreshData(
-          showEmptyPrompt: false,
-          clearBeforeRefresh: true,
-        );
+      // 刷新回收站数据
+      await ref.read(trashControllerProvider.notifier).refresh();
 
-        // 刷新回收站数据
-        if (Get.isRegistered<TrashController>()) {
-          await Get.find<TrashController>().refresh();
-        }
-      }
-
-      showToast('restoreSuccess'.tr,
+      showToast(l10n.restoreSuccess,
           toastStyleType: TodoCatToastStyleType.success);
       setState(() {}); // Refresh UI including last sync time
     } catch (e) {
@@ -317,11 +308,11 @@ ${'shareContentKey'.tr}: $base64Key''';
   }
 
   void _showHistoryDialog() {
-    final wsCtrl = Get.find<WorkspaceController>();
+    final currentWsId =
+        ref.read(workspaceControllerProvider).currentWorkspaceId;
     PlatformDialogWrapper.show(
       tag: 'sync_history_dialog',
-      content:
-          SyncHistoryDialog(workspaceUuid: wsCtrl.currentWorkspaceId.value),
+      content: SyncHistoryDialog(workspaceUuid: currentWsId),
       clickMaskDismiss: true,
       useFixedSize: false,
     );
@@ -358,7 +349,7 @@ ${'shareContentKey'.tr}: $base64Key''';
             mainAxisSize: MainAxisSize.min, // 自适应高度
             children: [
               DialogHeader(
-                title: 'syncConfiguration'.tr,
+                title: l10n.syncConfiguration,
                 onCancel: () => SmartDialog.dismiss(tag: 'sync_config_dialog'),
                 showConfirm: false,
               ),
@@ -375,7 +366,7 @@ ${'shareContentKey'.tr}: $base64Key''';
                       const SizedBox(height: 24),
 
                       // Import Section (Moved here)
-                      Text('importWorkspace'.tr,
+                      Text(l10n.importWorkspace,
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -386,7 +377,7 @@ ${'shareContentKey'.tr}: $base64Key''';
                       const SizedBox(height: 24),
 
                       // Sync Info Section
-                      Text('syncInfo'.tr,
+                      Text(l10n.syncInfo,
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -397,7 +388,7 @@ ${'shareContentKey'.tr}: $base64Key''';
                       const SizedBox(height: 24),
 
                       // Share/Current Workspace Section
-                      Text('workspaceShare'.tr,
+                      Text(l10n.workspaceShare,
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -458,7 +449,7 @@ ${'shareContentKey'.tr}: $base64Key''';
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('webDavDetails'.tr,
+              Text(l10n.webDavDetails,
                   style: TextStyle(
                     fontSize: 12,
                     color: context.theme.textTheme.bodySmall?.color,
@@ -480,7 +471,7 @@ ${'shareContentKey'.tr}: $base64Key''';
                 // Upload (Push)
                 IconButton(
                   onPressed: _syncToCloud,
-                  tooltip: 'syncToCloud'.tr,
+                  tooltip: l10n.syncToCloud,
                   icon: const Icon(Icons.cloud_upload_outlined, size: 22),
                   style: IconButton.styleFrom(
                     foregroundColor: Colors.orange,
@@ -490,7 +481,7 @@ ${'shareContentKey'.tr}: $base64Key''';
                 // Download (Pull)
                 IconButton(
                   onPressed: _downloadFromCloud,
-                  tooltip: 'restoreFromCloud'.tr,
+                  tooltip: l10n.restoreFromCloud,
                   icon: const Icon(Icons.cloud_download_outlined, size: 22),
                   style: IconButton.styleFrom(
                     foregroundColor: Colors.green,
@@ -532,7 +523,7 @@ ${'shareContentKey'.tr}: $base64Key''';
                   color: context.theme.iconTheme.color?.withValues(alpha: 0.7),
                   size: 18),
               const SizedBox(width: 8),
-              Text('syncKey'.tr,
+              Text(l10n.syncKey,
                   style: const TextStyle(
                       fontWeight: FontWeight.w600, fontSize: 13)),
             ],
@@ -566,7 +557,7 @@ ${'shareContentKey'.tr}: $base64Key''';
                     onPressed: _copyWorkspaceKey,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     label: Text(
-                      'copy'.tr,
+                      l10n.copy,
                       style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
@@ -575,7 +566,7 @@ ${'shareContentKey'.tr}: $base64Key''';
             ),
           ),
           const SizedBox(height: 8),
-          Text('syncKeyHint'.tr,
+          Text(l10n.syncKeyHint,
               style: TextStyle(
                   fontSize: 12,
                   color: context.theme.textTheme.bodySmall?.color)),
@@ -593,7 +584,7 @@ ${'shareContentKey'.tr}: $base64Key''';
             controller: _importKeyController,
             style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
-              hintText: 'syncKeyHint'.tr,
+              hintText: l10n.syncKeyHint,
               hintStyle:
                   TextStyle(color: context.theme.hintColor, fontSize: 13),
               filled: true,
@@ -629,7 +620,7 @@ ${'shareContentKey'.tr}: $base64Key''';
             padding: const EdgeInsets.symmetric(horizontal: 16),
             icon: const Icon(Icons.download, size: 16, color: Colors.white),
             label: Text(
-              'import'.tr,
+              l10n.importLabel,
               style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -642,18 +633,18 @@ ${'shareContentKey'.tr}: $base64Key''';
   }
 
   Widget _buildSyncInfoSection(BuildContext context) {
-    if (Get.find<WorkspaceController>().workspaces.isEmpty) {
+    final wsState = ref.read(workspaceControllerProvider);
+    if (wsState.workspaces.isEmpty) {
       return const SizedBox();
     }
 
-    final wsCtrl = Get.find<WorkspaceController>();
-    final currentWsId = wsCtrl.currentWorkspaceId.value;
+    final currentWsId = wsState.currentWorkspaceId;
     final lastSyncTime = SyncManager().getLastSyncTime(currentWsId);
 
     // Find workspace name safely
     String wsName = 'Unknown';
     try {
-      final ws = wsCtrl.workspaces.firstWhere((w) => w.uuid == currentWsId,
+      final ws = wsState.workspaces.firstWhere((w) => w.uuid == currentWsId,
           orElse: () => Workspace()..name = 'Unknown');
       wsName = ws.name;
     } catch (_) {}
@@ -671,9 +662,9 @@ ${'shareContentKey'.tr}: $base64Key''';
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(context, 'workspaceName'.tr, wsName),
+          _buildInfoRow(context, l10n.workspaceName, wsName),
           const SizedBox(height: 8),
-          _buildInfoRow(context, 'workspaceId'.tr, currentWsId),
+          _buildInfoRow(context, l10n.workspaceId, currentWsId),
           const SizedBox(height: 8),
           FutureBuilder<int>(
             future: () async {
@@ -685,9 +676,7 @@ ${'shareContentKey'.tr}: $base64Key''';
             }(),
             builder: (context, snapshot) {
               final dbCount = snapshot.data ?? -1;
-              final homeCount = Get.isRegistered<HomeController>()
-                  ? Get.find<HomeController>().allTasks.length
-                  : -1;
+              final homeCount = ref.read(homeControllerProvider).tasks.length;
               return _buildInfoRow(
                   context, 'Debug Tasks', 'UI: $homeCount / DB: $dbCount');
             },
@@ -701,7 +690,7 @@ ${'shareContentKey'.tr}: $base64Key''';
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return _buildInfoRow(
                   context,
-                  'syncStatus'.tr,
+                  l10n.syncStatus,
                   '检查中...',
                   valueColor: Colors.grey,
                 );
@@ -714,32 +703,32 @@ ${'shareContentKey'.tr}: $base64Key''';
 
               switch (status) {
                 case 'synced':
-                  statusText = 'synced'.tr;
+                  statusText = l10n.synced;
                   statusColor = Colors.green;
                   statusIcon = Icons.cloud_done;
                   break;
                 case 'notSynced':
-                  statusText = 'notSynced'.tr;
+                  statusText = l10n.notSynced;
                   statusColor = Colors.orange;
                   statusIcon = Icons.cloud_off;
                   break;
                 case 'localChanges':
-                  statusText = 'statusLocalChanges'.tr;
+                  statusText = l10n.statusLocalChanges;
                   statusColor = Colors.blue;
                   statusIcon = Icons.cloud_upload;
                   break;
                 case 'remoteUpdate':
-                  statusText = 'statusRemoteUpdate'.tr;
+                  statusText = l10n.statusRemoteUpdate;
                   statusColor = Colors.purple;
                   statusIcon = Icons.cloud_download;
                   break;
                 case 'conflict':
-                  statusText = 'statusConflict'.tr;
+                  statusText = l10n.statusConflict;
                   statusColor = Colors.red;
                   statusIcon = Icons.sync_problem;
                   break;
                 default:
-                  statusText = 'unknown'.tr;
+                  statusText = l10n.unknown;
                   statusColor = Colors.grey;
                   statusIcon = Icons.help_outline;
               }
@@ -750,7 +739,7 @@ ${'shareContentKey'.tr}: $base64Key''';
                   SizedBox(
                     width: 80,
                     child: Text(
-                      'syncStatus'.tr,
+                      l10n.syncStatus,
                       style: TextStyle(
                         fontSize: 12,
                         color: context.theme.textTheme.bodySmall?.color,
@@ -782,7 +771,7 @@ ${'shareContentKey'.tr}: $base64Key''';
             const SizedBox(height: 8),
             _buildInfoRow(
                 context,
-                'lastSyncedAt'.tr,
+                l10n.lastSyncedAt,
                 DateFormat('yyyy-MM-dd HH:mm:ss')
                     .format(DateTime.fromMillisecondsSinceEpoch(lastSyncTime))),
           ],

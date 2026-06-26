@@ -1,7 +1,7 @@
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// NotificationHistory 数据模型
 /// 注意：已迁移到 Drift，不再使用 Isar 注解
 class NotificationHistory {
@@ -92,20 +92,20 @@ class NotificationHistoryItem {
     final diff = now.difference(timestamp);
     
     if (diff.inMinutes < 1) {
-      return 'justNow'.tr;
+      return l10n.justNow;
     } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} ${'minutesAgo'.tr}';
+      return '${diff.inMinutes} ${l10n.minutesAgo}';
     } else if (diff.inHours < 24) {
-      return '${diff.inHours} ${'hoursAgo'.tr}';
+      return '${diff.inHours} ${l10n.hoursAgo}';
     } else if (diff.inDays < 7) {
-      return '${diff.inDays} ${'daysAgo'.tr}';
+      return '${diff.inDays} ${l10n.daysAgo}';
     } else {
       // 格式化为 "11月4日" 或 "Nov 4"
       final monthNames = [
         'january', 'february', 'march', 'april', 'may', 'june',
         'july', 'august', 'september', 'october', 'november', 'december'
       ];
-      final monthName = monthNames[timestamp.month - 1].tr;
+      final monthName = dynTr(monthNames[timestamp.month - 1]);
       return '$monthName ${timestamp.day}';
     }
   }

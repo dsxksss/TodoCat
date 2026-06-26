@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/utils/font_utils.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 颜色选择器对话框
-class ColorPickerDialog extends StatelessWidget {
+class ColorPickerDialog extends ConsumerWidget {
   final Color? initialColor;
   final Function(Color) onColorSelected;
 
@@ -40,7 +42,7 @@ class ColorPickerDialog extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       width: context.isPhone ? 0.9.sw : 320,
       decoration: BoxDecoration(
@@ -78,12 +80,12 @@ class ColorPickerDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'selectTagColor'.tr,
+                  l10n.selectTagColor,
                   style: FontUtils.getBoldStyle(fontSize: 18),
                 ),
                 LabelBtn(
                   ghostStyle: true,
-                  label: Text('cancel'.tr),
+                  label: Text(l10n.cancel),
                   onPressed: () => SmartDialog.dismiss(tag: 'color_picker'),
                 ),
               ],

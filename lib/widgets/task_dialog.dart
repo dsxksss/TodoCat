@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/controllers/task_dialog_ctr.dart';
+import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/config/task_icons.dart';
 import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
@@ -11,16 +13,63 @@ import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/widgets/dialog_header.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
-class TaskDialog extends GetView<TaskDialogController> {
+import 'package:todo_cat/core/utils/l10n.dart';
+
+/// 新增/编辑任务对话框的意图：决定对话框自初始化为「新增」还是「编辑」。
+@immutable
+class TaskDialogIntent {
+  const TaskDialogIntent.add()
+      : task = null,
+        isEdit = false;
+  const TaskDialogIntent.edit({required this.task}) : isEdit = true;
+
+  final Task? task;
+  final bool isEdit;
+}
+
+class TaskDialog extends ConsumerStatefulWidget {
   const TaskDialog({
     super.key,
     required this.dialogTag,
+    required this.intent,
   });
 
   final String dialogTag;
+  final TaskDialogIntent intent;
+
+  @override
+  ConsumerState<TaskDialog> createState() => _TaskDialogState();
+}
+
+class _TaskDialogState extends ConsumerState<TaskDialog> {
+  bool _didInit = false; // 一次性初始化守卫（每次打开新建 State，自动复位）
+
+  @override
+  void initState() {
+    super.initState();
+    // 对话框挂载后(已 ref.watch 订阅同一 tag)再初始化控制器，编辑/新增上下文由
+    // widget.intent 携带，避免“先 ref.read 改、再弹窗”的 tag 不一致与 autoDispose 间隙。
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initOnce());
+  }
+
+  void _initOnce() {
+    if (_didInit || !mounted) return;
+    _didInit = true;
+    final c = ref.read(taskDialogControllerProvider(widget.dialogTag).notifier);
+    if (widget.intent.isEdit) {
+      c.initForEditing(widget.intent.task!);
+    } else {
+      c.initForAdding();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final formState =
+        ref.watch(taskDialogControllerProvider(widget.dialogTag));
+    final controller =
+        ref.read(taskDialogControllerProvider(widget.dialogTag).notifier);
+
     return Container(
       width: context.isPhone ? 1.sw : 430,
       height: context.isPhone ? 0.6.sh : 500,
@@ -33,24 +82,16 @@ class TaskDialog extends GetView<TaskDialogController> {
                 topRight: Radius.circular(10),
               )
             : BorderRadius.circular(10),
-        // 移除阴影效果，避免亮主题下的亮光高亮
-        // boxShadow: <BoxShadow>[
-        //   BoxShadow(
-        //     color: context.theme.dividerColor,
-        //     blurRadius: context.isDarkMode ? 1 : 2,
-        //   ),
-        // ],
       ),
       child: Form(
         key: controller.formKey,
         child: Column(
           children: [
-            Obx(() => DialogHeader(
-                  title:
-                      controller.isEditing.value ? "editTask".tr : "addTask".tr,
-                  onCancel: _handleClose,
-                  onConfirm: _handleSubmit,
-                )),
+            DialogHeader(
+              title: formState.isEditing ? l10n.editTask : l10n.addTask,
+              onCancel: () => _handleClose(),
+              onConfirm: () => _handleSubmit(),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -65,7 +106,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                       maxLength: 200,
                       maxLines: 1,
                       radius: 6,
-                      fieldTitle: "taskTitle".tr,
+                      fieldTitle: l10n.taskTitle,
                       editingController: controller.titleController,
                       validator: controller.validateTitle,
                       onFieldSubmitted: (_) {},
@@ -76,13 +117,14 @@ class TaskDialog extends GetView<TaskDialogController> {
                       maxLength: 50,
                       maxLines: 1,
                       radius: 6,
-                      fieldTitle: "tag".tr,
+                      fieldTitle: l10n.tag,
                       validator: (_) => null,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                       editingController: controller.tagController,
-                      selectedTags: controller.selectedTags,
+                      selectedTags: formState.selectedTags,
                       onDeleteTag: controller.removeTag,
                       onAddTagWithColor: controller.addTagWithColor,
+                      onEditTag: controller.editTagAt,
                     ),
                     const SizedBox(height: 15),
 
@@ -90,12 +132,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "taskColor".tr,
-                        // Fallback title if 'taskColor' key doesn't exist yet,
-                        // effectively assuming the user accepts 'taskColor' key or I should use hardcoded text.
-                        // Since I can't easily add keys, I'll use a hardcoded text or try to find a similar key.
-                        // "Color" might exist. Let's assume "color".tr or use "Side Bar Color".
-                        // Better: just "Color" or "Theme".
+                        l10n.taskColor,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -104,9 +141,8 @@ class TaskDialog extends GetView<TaskDialogController> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Obx(() {
-                      final selectedColor =
-                          controller.selectedCustomColor.value;
+                    Builder(builder: (context) {
+                      final selectedColor = formState.selectedCustomColor;
                       final colors = [
                         Colors.grey,
                         Colors.red,
@@ -126,7 +162,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                           // Default (Clear) option
                           GestureDetector(
                             onTap: () =>
-                                controller.selectedCustomColor.value = null,
+                                controller.setSelectedCustomColor(null),
                             child: Container(
                               width: 32,
                               height: 32,
@@ -153,7 +189,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                             final isSelected = selectedColor == color.value;
                             return GestureDetector(
                               onTap: () => controller
-                                  .selectedCustomColor.value = color.value,
+                                  .setSelectedCustomColor(color.value),
                               child: Container(
                                 width: 32,
                                 height: 32,
@@ -198,7 +234,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "taskIcon".tr,
+                        l10n.taskIcon,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -207,9 +243,8 @@ class TaskDialog extends GetView<TaskDialogController> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Obx(() {
-                      final selectedIconCode =
-                          controller.selectedCustomIcon.value;
+                    Builder(builder: (context) {
+                      final selectedIconCode = formState.selectedCustomIcon;
                       final icons = TaskIcons.icons;
 
                       return Wrap(
@@ -219,7 +254,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                           // Default (Clear) option
                           GestureDetector(
                             onTap: () =>
-                                controller.selectedCustomIcon.value = null,
+                                controller.setSelectedCustomIcon(null),
                             child: Container(
                               width: 32,
                               height: 32,
@@ -246,8 +281,8 @@ class TaskDialog extends GetView<TaskDialogController> {
                             final isSelected =
                                 selectedIconCode == icon.codePoint;
                             return GestureDetector(
-                              onTap: () => controller.selectedCustomIcon.value =
-                                  icon.codePoint,
+                              onTap: () => controller
+                                  .setSelectedCustomIcon(icon.codePoint),
                               child: Container(
                                 width: 32,
                                 height: 32,
@@ -290,7 +325,7 @@ class TaskDialog extends GetView<TaskDialogController> {
                       maxLength: 400,
                       maxLines: 8,
                       radius: 6,
-                      fieldTitle: "taskDescription".tr,
+                      fieldTitle: l10n.taskDescription,
                       validator: (_) => null,
                       editingController: controller.descriptionController,
                       onFieldSubmitted: (_) {},
@@ -306,30 +341,34 @@ class TaskDialog extends GetView<TaskDialogController> {
   }
 
   void _handleClose() {
+    final controller =
+        ref.read(taskDialogControllerProvider(widget.dialogTag).notifier);
     if (controller.hasUnsavedChanges()) {
       showToast(
-        "${"saveEditing".tr}?",
+        "${l10n.saveEditing}?",
         tag: confirmDialogTag,
         alwaysShow: true,
         confirmMode: true,
         onYesCallback: () async {
           if (await controller.submitTask()) {
-            SmartDialog.dismiss(tag: dialogTag);
+            SmartDialog.dismiss(tag: widget.dialogTag);
           }
         },
         onNoCallback: () {
           controller.revertChanges();
-          SmartDialog.dismiss(tag: dialogTag);
+          SmartDialog.dismiss(tag: widget.dialogTag);
         },
       );
     } else {
-      SmartDialog.dismiss(tag: dialogTag);
+      SmartDialog.dismiss(tag: widget.dialogTag);
     }
   }
 
   void _handleSubmit() async {
+    final controller =
+        ref.read(taskDialogControllerProvider(widget.dialogTag).notifier);
     if (await controller.submitTask()) {
-      SmartDialog.dismiss(tag: dialogTag);
+      SmartDialog.dismiss(tag: widget.dialogTag);
     }
   }
 }

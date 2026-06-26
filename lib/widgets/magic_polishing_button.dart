@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
+import 'package:todo_cat/routers/app_router.dart';
 import 'package:todo_cat/services/llm_polishing_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import 'dart:math' as math;
 
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 class MagicPolishingButton extends StatefulWidget {
   final TextEditingController controller;
   final bool isMultiline;
@@ -25,13 +27,8 @@ class _MagicPolishingButtonState extends State<MagicPolishingButton>
   late AnimationController _animController;
   bool _isLoading = false;
 
-  // 确保 Service 可用
-  LlmPolishingService get _llmService {
-    if (!Get.isRegistered<LlmPolishingService>()) {
-      Get.put(LlmPolishingService());
-    }
-    return Get.find<LlmPolishingService>();
-  }
+  // 单例服务（替代 GetX 的 Get.put / Get.find）。
+  LlmPolishingService get _llmService => LlmPolishingService.to;
 
   @override
   void initState() {
@@ -49,7 +46,7 @@ class _MagicPolishingButtonState extends State<MagicPolishingButton>
   void _handlePolish() async {
     final originalText = widget.controller.text;
     if (originalText.trim().isEmpty) {
-      SmartDialog.showToast("pleaseCompleteItProperly".tr);
+      SmartDialog.showToast(l10n.pleaseCompleteItProperly);
       return;
     }
 
@@ -77,7 +74,7 @@ class _MagicPolishingButtonState extends State<MagicPolishingButton>
   }
 
   void _showResultPopover(String polishedText) {
-    final isPhone = Get.context?.isPhone ?? false;
+    final isPhone = rootNavigatorKey.currentContext?.isPhone ?? false;
 
     SmartDialog.show(
       alignment: Alignment.center,

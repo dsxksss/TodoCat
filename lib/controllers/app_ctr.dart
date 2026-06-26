@@ -1,64 +1,65 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/pages/app_lifecycle_observer.dart';
 import 'package:todo_cat/config/smart_dialog.dart';
 import 'package:todo_cat/data/schemas/app_config.dart';
 import 'package:todo_cat/data/services/repositorys/app_config.dart';
 import 'package:todo_cat/core/local_notification_manager.dart';
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/platform.dart';
 import 'package:todo_cat/themes/theme_mode.dart';
 import 'package:todo_cat/services/auto_update_service.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:logger/logger.dart';
 import 'package:todo_cat/services/sync_manager.dart';
 
-class AppController extends GetxController {
+part 'app_ctr.g.dart';
+
+/// 全局应用控制器（原 GetxController -> Riverpod Notifier）。
+/// state 即当前 [AppConfig]；外部通过 [updateConfig] 更新并持久化。
+@Riverpod(keepAlive: true)
+class AppController extends _$AppController {
   static final _logger = Logger();
   LocalNotificationManager? _localNotificationManager;
-  late final AppConfigRepository appConfigRepository;
+  AppConfigRepository? _appConfigRepository;
   final _autoUpdateService = AutoUpdateService();
 
-  /// 获取本地通知管理器（可能为null如果初始化失败）
   LocalNotificationManager? get localNotificationManager =>
       _localNotificationManager;
-
-  /// 获取自动更新服务（供外部访问）
   AutoUpdateService get autoUpdateService => _autoUpdateService;
-  final appConfig = Rx<AppConfig>(defaultAppConfig);
-  final isMaximize = false.obs;
-  final isFullScreen = false.obs;
 
-  bool get _isMobilePlatform => Platform.isAndroid || Platform.isIOS;
+  bool get _isMobilePlatform => AppPlatform.isMobile;
 
   @override
-  void onInit() async {
+  AppConfig build() {
+    // 启动时确保全局 l10n 为默认配置语言。
+    updateGlobalLocalizations(defaultAppConfig.locale);
+    _init();
+    return defaultAppConfig.copyWith();
+  }
+
+  Future<void> _init() async {
     _logger.i('Initializing AppController');
     try {
       await initConfig();
     } catch (e, stack) {
       _logger.e('Failed to initialize config: $e', error: e, stackTrace: stack);
-      // 配置初始化失败不应该阻止应用启动，使用默认配置
     }
-
     try {
       await initLocalNotification();
     } catch (e, stack) {
       _logger.e('Failed to initialize local notification: $e',
           error: e, stackTrace: stack);
-      // 通知服务初始化失败不应该阻止应用启动
-      // _localNotificationManager 保持为 null，后续访问时需要检查
     }
-
     try {
       await initAutoUpdate();
     } catch (e, stack) {
       _logger.e('Failed to initialize auto update: $e',
           error: e, stackTrace: stack);
-      // 更新服务初始化失败不应该阻止应用启动
     }
-
     try {
       _logger.d('Initializing Sync Manager');
       await SyncManager().init();
@@ -66,7 +67,40 @@ class AppController extends GetxController {
       _logger.e('Failed to initialize Sync Manager: $e');
     }
 
-    super.onInit();
+    // 原 onReady 的逻辑
+    changeSystemOverlayUI();
+    initSmartDialogConfiguration();
+    WidgetsBinding.instance.addObserver(AppLifecycleObserver());
+  }
+
+  Future<void> initConfig() async {
+    _logger.d('Initializing app configuration');
+    _appConfigRepository = await AppConfigRepository.getInstance();
+    final AppConfig? currentAppConfig =
+        await _appConfigRepository!.read(state.configName);
+
+    if (currentAppConfig != null) {
+      state = currentAppConfig;
+      await changeLanguage(state.locale);
+    } else {
+      await _appConfigRepository!.write(state.configName, state);
+      updateGlobalLocalizations(state.locale);
+    }
+  }
+
+  Future<void> _persist() async {
+    try {
+      _logger.d('AppConfig changed, updating local storage');
+      await _appConfigRepository?.update(state.configName, state);
+    } catch (e) {
+      _logger.e('Error updating app config: $e');
+    }
+  }
+
+  /// 通用配置更新（替代原 `appConfig.value = x; appConfig.refresh()`）。
+  Future<void> updateConfig(AppConfig config) async {
+    state = config;
+    await _persist();
   }
 
   Future<void> initLocalNotification() async {
@@ -75,13 +109,12 @@ class AppController extends GetxController {
     _localNotificationManager?.checkAllLocalNotification();
   }
 
-  /// 初始化自动更新服务
   Future<void> initAutoUpdate() async {
-    // 仅在桌面平台初始化
-    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+    if (!AppPlatform.isWindows &&
+        !AppPlatform.isMacOS &&
+        !AppPlatform.isLinux) {
       return;
     }
-
     try {
       _logger.d('Initializing auto update service');
       await _autoUpdateService.initialize();
@@ -91,58 +124,14 @@ class AppController extends GetxController {
     }
   }
 
-  /// 手动检查更新
   Future<void> checkForUpdates({bool silent = false}) async {
     await _autoUpdateService.checkForUpdates(silent: silent);
   }
 
-  Future<void> initConfig() async {
-    _logger.d('Initializing app configuration');
-    appConfigRepository = await AppConfigRepository.getInstance();
-    final AppConfig? currentAppConfig = await appConfigRepository.read(
-      appConfig.value.configName,
-    );
-
-    if (currentAppConfig != null) {
-      appConfig.value = currentAppConfig;
-      await changeLanguage(appConfig.value.locale);
-    } else {
-      await appConfigRepository.write(
-          appConfig.value.configName, appConfig.value);
-    }
-
-    ever(
-      appConfig,
-      (value) async {
-        try {
-          _logger.d('AppConfig changed, updating local storage');
-          await appConfigRepository.update(value.configName, value);
-        } catch (e) {
-          _logger.e('Error updating app config: $e');
-          // 配置更新失败不应该导致应用崩溃
-        }
-      },
-    );
-  }
-
-  @override
-  void onReady() {
-    _logger.d('AppController is ready');
-    changeSystemOverlayUI();
-    initSmartDialogConfiguration();
-    WidgetsBinding.instance.addObserver(AppLifecycleObserver());
-
-    // 不再自动检查更新，用户可以在设置页面手动检查更新
-    // 这样可以避免应用启动时自动触发更新检查，提升启动体验
-    // 如果需要自动检查更新，可以在设置页面添加相关选项
-
-    super.onReady();
-  }
-
   void changeThemeMode(TodoCatThemeMode mode) {
     _logger.d('Changing theme mode to: $mode');
-    appConfig.value.isDarkMode = mode == TodoCatThemeMode.dark;
-    appConfig.refresh();
+    state = state.copyWith(isDarkMode: mode == TodoCatThemeMode.dark);
+    _persist();
   }
 
   Future<void> changeSystemOverlayUI() async {
@@ -152,10 +141,10 @@ class AppController extends GetxController {
         SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness:
-              appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
+              state.isDarkMode ? Brightness.light : Brightness.dark,
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarIconBrightness:
-              appConfig.value.isDarkMode ? Brightness.light : Brightness.dark,
+              state.isDarkMode ? Brightness.light : Brightness.dark,
         ),
       );
     }
@@ -163,46 +152,58 @@ class AppController extends GetxController {
 
   void targetThemeMode() {
     _logger.d('Toggling theme mode');
-    appConfig.value.isDarkMode = !appConfig.value.isDarkMode;
-    appConfig.refresh();
+    state = state.copyWith(isDarkMode: !state.isDarkMode);
     if (_isMobilePlatform) {
       changeSystemOverlayUI();
     }
+    _persist();
   }
 
   Future<void> changeLanguage(Locale language) async {
     _logger.d('Changing language to: ${language.languageCode}');
-    await Get.updateLocale(language);
-    appConfig.value.updateLocale(Get.locale!);
-    appConfig.refresh();
+    // 同步全局 l10n 与 currentLocale（替代 GetX 的 Get.updateLocale）。
+    updateGlobalLocalizations(language);
+    state = state.copyWith(locale: language);
+    await _persist();
   }
+}
+
+/// 窗口状态（桌面端最大化/全屏），原 AppController 的 isMaximize/isFullScreen。
+@immutable
+class WindowState {
+  final bool isMaximize;
+  final bool isFullScreen;
+  const WindowState({this.isMaximize = false, this.isFullScreen = false});
+
+  WindowState copyWith({bool? isMaximize, bool? isFullScreen}) => WindowState(
+        isMaximize: isMaximize ?? this.isMaximize,
+        isFullScreen: isFullScreen ?? this.isFullScreen,
+      );
+}
+
+/// 窗口控制器（桌面端窗口管理）。
+@Riverpod(keepAlive: true)
+class WindowController extends _$WindowController {
+  static final _logger = Logger();
 
   @override
-  void onClose() {
-    _logger.d('Cleaning up AppController resources');
-    try {
-      _localNotificationManager?.destroyLocalNotification();
-    } catch (e) {
-      _logger.e('Error cleaning up AppController: $e');
-      // 清理失败不应该阻止应用关闭
-    }
-    super.onClose();
-  }
+  WindowState build() => const WindowState();
 
-  // Window management methods
   Future<void> minimizeWindow() async {
     _logger.d('Minimizing window');
     await windowManager.minimize();
   }
 
   Future<void> updateWindowStatus() async {
-    isMaximize.value = await windowManager.isMaximized();
-    isFullScreen.value = await windowManager.isFullScreen();
+    state = state.copyWith(
+      isMaximize: await windowManager.isMaximized(),
+      isFullScreen: await windowManager.isFullScreen(),
+    );
   }
 
   Future<void> targetMaximizeWindow() async {
     _logger.d('Toggling window maximize state');
-    if (isMaximize.value) {
+    if (state.isMaximize) {
       await windowManager.unmaximize();
       return;
     }

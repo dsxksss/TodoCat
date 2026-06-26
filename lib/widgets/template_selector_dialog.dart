@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/config/template_generator.dart';
 import 'package:todo_cat/data/schemas/task.dart';
 import 'package:todo_cat/data/schemas/custom_template.dart';
@@ -21,6 +21,9 @@ import 'package:todo_cat/widgets/platform_dialog_wrapper.dart';
 import 'package:todo_cat/services/llm_template_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/platform.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 enum TaskTemplateType {
   empty, // 空模板
   content, // 学生日程模板
@@ -29,7 +32,7 @@ enum TaskTemplateType {
   travel, // 旅行计划模板
 }
 
-class TemplateSelectorDialog extends StatefulWidget {
+class TemplateSelectorDialog extends ConsumerStatefulWidget {
   final Function(TaskTemplateType) onTemplateSelected;
   final Function(CustomTemplate)? onCustomTemplateSelected;
 
@@ -40,10 +43,12 @@ class TemplateSelectorDialog extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<TemplateSelectorDialog> createState() => _TemplateSelectorDialogState();
+  ConsumerState<TemplateSelectorDialog> createState() =>
+      _TemplateSelectorDialogState();
 }
 
-class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
+class _TemplateSelectorDialogState
+    extends ConsumerState<TemplateSelectorDialog> {
   List<CustomTemplate> _customTemplates = [];
 
   @override
@@ -123,12 +128,12 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                         strokeWidth: 3, color: Colors.blue)),
                 const SizedBox(height: 24),
                 Text(
-                  'aiPlanning'.tr,
+                  l10n.aiPlanning,
                   style: FontUtils.getMediumStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'aiGeneratingTasks'.tr,
+                  l10n.aiGeneratingTasks,
                   style: TextStyle(
                       fontSize: 13,
                       color: context.theme.textTheme.bodyMedium?.color
@@ -140,22 +145,19 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
         });
 
     try {
-      if (!Get.isRegistered<LlmTemplateService>()) {
-        Get.put(LlmTemplateService());
-      }
-
+      // 单例服务（替代 GetX 的 Get.put / Get.isRegistered / Get.find）。
       final template = await LlmTemplateService.to.generateTemplate(prompt);
       SmartDialog.dismiss(tag: 'loading_ai');
 
       if (template != null) {
         _showCustomTemplatePreview(template);
       } else {
-        SmartDialog.showToast('aiGenerateFailed'.tr);
+        SmartDialog.showToast(l10n.aiGenerateFailed);
       }
     } catch (e) {
       SmartDialog.dismiss(tag: 'loading_ai');
       showToast(
-        'aiGenerateFailedRetry'.trParams({'error': e.toString()}),
+        l10n.aiGenerateFailedRetry(e.toString()),
         confirmMode: true,
         toastStyleType: TodoCatToastStyleType.error,
         onYesCallback: () {
@@ -215,14 +217,14 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'aiGenerate'.tr,
+                    l10n.aiGenerate,
                     style: FontUtils.getMediumStyle(
                         fontSize: 16,
                         color: context.theme.textTheme.bodyLarge?.color),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'aiGenerateDesc'.tr,
+                    l10n.aiGenerateDesc,
                     style: FontUtils.getTextStyle(
                         fontSize: 13,
                         color: context.theme.textTheme.bodyMedium?.color
@@ -272,12 +274,12 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'selectTaskTemplate'.tr,
+                  l10n.selectTaskTemplate,
                   style: FontUtils.getBoldStyle(fontSize: 20),
                 ),
                 LabelBtn(
                   ghostStyle: true,
-                  label: Text('cancel'.tr),
+                  label: Text(l10n.cancel),
                   onPressed: () =>
                       SmartDialog.dismiss(tag: 'template_selector'),
                 ),
@@ -294,7 +296,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                   // 显示自定义模板（放在前面）
                   if (_customTemplates.isNotEmpty) ...[
                     Text(
-                      'customTemplates'.tr,
+                      l10n.customTemplates,
                       style: FontUtils.getTextStyle(
                         fontSize: 14,
                         color: context.theme.textTheme.bodyMedium?.color,
@@ -319,8 +321,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
 
                   Text(
                     _customTemplates.isNotEmpty
-                        ? 'default'.tr
-                        : 'selectTemplateType'.tr,
+                        ? l10n.defaultLabel
+                        : l10n.selectTemplateType,
                     style: FontUtils.getTextStyle(
                       fontSize: 14,
                       color: context.theme.textTheme.bodyMedium?.color,
@@ -330,8 +332,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                   _buildTemplateOption(
                     context,
                     TaskTemplateType.empty,
-                    'emptyTemplate'.tr,
-                    'emptyTemplateDescription'.tr,
+                    l10n.emptyTemplate,
+                    l10n.emptyTemplateDescription,
                     Icons.checklist_outlined,
                     Colors.blue,
                   ),
@@ -339,8 +341,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                   _buildTemplateOption(
                     context,
                     TaskTemplateType.content,
-                    'studentScheduleTemplate'.tr,
-                    'studentScheduleTemplateDescription'.tr,
+                    l10n.studentScheduleTemplate,
+                    l10n.studentScheduleTemplateDescription,
                     Icons.school_outlined,
                     Colors.green,
                   ),
@@ -348,8 +350,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                   _buildTemplateOption(
                     context,
                     TaskTemplateType.work,
-                    'workManagementTemplate'.tr,
-                    'workManagementTemplateDescription'.tr,
+                    l10n.workManagementTemplate,
+                    l10n.workManagementTemplateDescription,
                     Icons.work_outline,
                     Colors.orange,
                   ),
@@ -357,8 +359,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                   _buildTemplateOption(
                     context,
                     TaskTemplateType.fitness,
-                    'fitnessTrainingTemplate'.tr,
-                    'fitnessTrainingTemplateDescription'.tr,
+                    l10n.fitnessTrainingTemplate,
+                    l10n.fitnessTrainingTemplateDescription,
                     Icons.fitness_center,
                     Colors.purple,
                   ),
@@ -366,8 +368,8 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
                   _buildTemplateOption(
                     context,
                     TaskTemplateType.travel,
-                    'travelPlanTemplate'.tr,
-                    'travelPlanTemplateDescription'.tr,
+                    l10n.travelPlanTemplate,
+                    l10n.travelPlanTemplateDescription,
                     Icons.flight_takeoff,
                     Colors.teal,
                   ),
@@ -398,7 +400,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
 
   Future<void> _deleteCustomTemplate(CustomTemplate template) async {
     showToast(
-      'confirmDeleteTemplate'.tr,
+      l10n.confirmDeleteTemplate,
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.error,
@@ -407,7 +409,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
           if (template.id == null) return;
           final repository = await CustomTemplateRepository.getInstance();
           await repository.delete(template.id!);
-          showSuccessNotification('templateDeleted'.tr);
+          showSuccessNotification(l10n.templateDeleted);
           // 重新加载列表
           await _loadCustomTemplates();
         } catch (e) {
@@ -421,14 +423,11 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       BuildContext context, CustomTemplate template, bool shouldClosePreview) {
     // 检查当前工作空间是否有任务
     bool hasTasks = false;
-    if (Get.isRegistered<HomeController>()) {
-      try {
-        final homeCtrl = Get.find<HomeController>();
-        hasTasks = homeCtrl.tasks.isNotEmpty;
-      } catch (e) {
-        // 如果获取失败，默认显示确认对话框
-        hasTasks = true;
-      }
+    try {
+      hasTasks = ref.read(homeControllerProvider).tasks.isNotEmpty;
+    } catch (e) {
+      // 如果获取失败，默认显示确认对话框
+      hasTasks = true;
     }
 
     // 如果没有任务，直接应用模板，不显示确认提示
@@ -440,13 +439,13 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       }
       // 关闭空任务提示 toast
       SmartDialog.dismiss(tag: 'empty_task_prompt');
-      showSuccessNotification("taskTemplateApplied".tr);
+      showSuccessNotification(l10n.taskTemplateApplied);
       return;
     }
 
     // 如果有任务，显示确认对话框
     showToast(
-      "${'confirmApplyTemplate'.tr}「${template.name}」",
+      "${l10n.confirmApplyTemplate}「${template.name}」",
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
@@ -459,7 +458,7 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
         }
         // 关闭空任务提示 toast
         SmartDialog.dismiss(tag: 'empty_task_prompt');
-        showSuccessNotification("taskTemplateApplied".tr);
+        showSuccessNotification(l10n.taskTemplateApplied);
       },
     );
   }
@@ -488,14 +487,11 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       String title, bool shouldClosePreview) {
     // 检查当前工作空间是否有任务
     bool hasTasks = false;
-    if (Get.isRegistered<HomeController>()) {
-      try {
-        final homeCtrl = Get.find<HomeController>();
-        hasTasks = homeCtrl.tasks.isNotEmpty;
-      } catch (e) {
-        // 如果获取失败，默认显示确认对话框
-        hasTasks = true;
-      }
+    try {
+      hasTasks = ref.read(homeControllerProvider).tasks.isNotEmpty;
+    } catch (e) {
+      // 如果获取失败，默认显示确认对话框
+      hasTasks = true;
     }
 
     // 如果没有任务，直接应用模板，不显示确认提示
@@ -507,13 +503,13 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
       }
       // 关闭空任务提示 toast
       SmartDialog.dismiss(tag: 'empty_task_prompt');
-      showSuccessNotification("taskTemplateApplied".tr);
+      showSuccessNotification(l10n.taskTemplateApplied);
       return;
     }
 
     // 如果有任务，显示确认对话框
     showToast(
-      "${'confirmApplyTemplate'.tr}「$title」",
+      "${l10n.confirmApplyTemplate}「$title」",
       confirmMode: true,
       alwaysShow: true,
       toastStyleType: TodoCatToastStyleType.warning,
@@ -526,14 +522,14 @@ class _TemplateSelectorDialogState extends State<TemplateSelectorDialog> {
         }
         // 关闭空任务提示 toast
         SmartDialog.dismiss(tag: 'empty_task_prompt');
-        showSuccessNotification("taskTemplateApplied".tr);
+        showSuccessNotification(l10n.taskTemplateApplied);
       },
     );
   }
 }
 
 /// 自定义模板选项组件
-class _CustomTemplateOptionWidget extends StatefulWidget {
+class _CustomTemplateOptionWidget extends ConsumerStatefulWidget {
   final CustomTemplate template;
   final Function(bool) onTap;
   final VoidCallback onDelete;
@@ -545,12 +541,12 @@ class _CustomTemplateOptionWidget extends StatefulWidget {
   });
 
   @override
-  State<_CustomTemplateOptionWidget> createState() =>
+  ConsumerState<_CustomTemplateOptionWidget> createState() =>
       _CustomTemplateOptionWidgetState();
 }
 
 class _CustomTemplateOptionWidgetState
-    extends State<_CustomTemplateOptionWidget> {
+    extends ConsumerState<_CustomTemplateOptionWidget> {
   bool _isPreviewShowing = false;
   late final ScrollController _scrollController;
 
@@ -693,18 +689,18 @@ class _CustomTemplateOptionWidgetState
     final maxWidth = (screenWidth * 0.9).clamp(800.0, 1600.0);
 
     // 获取背景设置
-    final appCtrl = Get.find<AppController>();
-    final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
+    final appConfig = ref.read(appControllerProvider);
+    final backgroundImagePath = appConfig.backgroundImagePath;
     final isDefaultTemplate = backgroundImagePath != null &&
         backgroundImagePath.startsWith('default_template:');
     final isCustomImage = backgroundImagePath != null &&
         !isDefaultTemplate &&
         backgroundImagePath.isNotEmpty &&
-        GetPlatform.isDesktop &&
+        AppPlatform.isDesktop &&
         File(backgroundImagePath).existsSync();
     final hasBackground = isDefaultTemplate || isCustomImage;
-    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    final opacity = appConfig.backgroundImageOpacity;
+    final blur = appConfig.backgroundImageBlur;
 
     return Material(
       color: Colors.transparent,
@@ -769,14 +765,14 @@ class _CustomTemplateOptionWidgetState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'templatePreview'.tr,
+                          l10n.templatePreview,
                           style: FontUtils.getBoldStyle(fontSize: 18),
                         ),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             LabelBtn(
-                              label: Text('apply'.tr,
+                              label: Text(l10n.apply,
                                   style: const TextStyle(color: Colors.white)),
                               onPressed: _applyTemplate,
                               bgColor: Colors.lightBlue,
@@ -843,9 +839,9 @@ class _CustomTemplateOptionWidgetState
   /// 获取背景装饰
   Widget _getBackgroundWidget(String? backgroundPath) {
     // 获取背景设置
-    final appCtrl = Get.find<AppController>();
-    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    final appConfig = ref.read(appControllerProvider);
+    final opacity = appConfig.backgroundImageOpacity;
+    final blur = appConfig.backgroundImageBlur;
 
     // 检查是否是默认模板
     if (backgroundPath != null &&
@@ -948,7 +944,7 @@ class _CustomTemplateOptionWidgetState
     } else {
       // 自定义图片或视频
       if (backgroundPath != null &&
-          GetPlatform.isDesktop &&
+          AppPlatform.isDesktop &&
           File(backgroundPath).existsSync()) {
         final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
             backgroundPath.toLowerCase().endsWith('.mov') ||
@@ -1013,7 +1009,7 @@ List<Task> createTaskTemplate(TaskTemplateType type) {
 }
 
 /// 带预览的模板选项组件
-class _TemplateOptionWithPreview extends StatefulWidget {
+class _TemplateOptionWithPreview extends ConsumerStatefulWidget {
   final TaskTemplateType type;
   final String title;
   final String description;
@@ -1031,12 +1027,12 @@ class _TemplateOptionWithPreview extends StatefulWidget {
   });
 
   @override
-  State<_TemplateOptionWithPreview> createState() =>
+  ConsumerState<_TemplateOptionWithPreview> createState() =>
       _TemplateOptionWithPreviewState();
 }
 
 class _TemplateOptionWithPreviewState
-    extends State<_TemplateOptionWithPreview> {
+    extends ConsumerState<_TemplateOptionWithPreview> {
   bool _isPreviewShowing = false;
   final GlobalKey _key = GlobalKey();
   late final ScrollController _scrollController;
@@ -1178,18 +1174,18 @@ class _TemplateOptionWithPreviewState
     final maxHeight = context.isPhone ? screenHeight * 0.8 : 640.0;
 
     // 获取背景设置
-    final appCtrl = Get.find<AppController>();
-    final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
+    final appConfig = ref.read(appControllerProvider);
+    final backgroundImagePath = appConfig.backgroundImagePath;
     final isDefaultTemplate = backgroundImagePath != null &&
         backgroundImagePath.startsWith('default_template:');
     final isCustomImage = backgroundImagePath != null &&
         !isDefaultTemplate &&
         backgroundImagePath.isNotEmpty &&
-        GetPlatform.isDesktop &&
+        AppPlatform.isDesktop &&
         File(backgroundImagePath).existsSync();
     final hasBackground = isDefaultTemplate || isCustomImage;
-    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    final opacity = appConfig.backgroundImageOpacity;
+    final blur = appConfig.backgroundImageBlur;
 
     return Material(
       color: Colors.transparent,
@@ -1256,14 +1252,14 @@ class _TemplateOptionWithPreviewState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'templatePreview'.tr,
+                          l10n.templatePreview,
                           style: FontUtils.getBoldStyle(fontSize: 18),
                         ),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             LabelBtn(
-                              label: Text('apply'.tr,
+                              label: Text(l10n.apply,
                                   style: const TextStyle(color: Colors.white)),
                               onPressed: _applyTemplate,
                               bgColor: Colors.lightBlue,
@@ -1330,9 +1326,9 @@ class _TemplateOptionWithPreviewState
   /// 获取背景装饰
   Widget _getBackgroundWidget(String? backgroundPath) {
     // 获取背景设置
-    final appCtrl = Get.find<AppController>();
-    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    final appConfig = ref.read(appControllerProvider);
+    final opacity = appConfig.backgroundImageOpacity;
+    final blur = appConfig.backgroundImageBlur;
 
     // 检查是否是默认模板
     if (backgroundPath != null &&
@@ -1435,7 +1431,7 @@ class _TemplateOptionWithPreviewState
     } else {
       // 自定义图片或视频
       if (backgroundPath != null &&
-          GetPlatform.isDesktop &&
+          AppPlatform.isDesktop &&
           File(backgroundPath).existsSync()) {
         final isVideo = backgroundPath.toLowerCase().endsWith('.mp4') ||
             backgroundPath.toLowerCase().endsWith('.mov') ||
@@ -1519,7 +1515,7 @@ class _AiTemplateGeneratorPopup extends StatefulWidget {
       _AiTemplateGeneratorPopupState();
 }
 
-class _GeneratedTemplatePreview extends StatefulWidget {
+class _GeneratedTemplatePreview extends ConsumerStatefulWidget {
   final CustomTemplate template;
   final VoidCallback onApply;
   final VoidCallback onCancel;
@@ -1531,11 +1527,12 @@ class _GeneratedTemplatePreview extends StatefulWidget {
   });
 
   @override
-  State<_GeneratedTemplatePreview> createState() =>
+  ConsumerState<_GeneratedTemplatePreview> createState() =>
       _GeneratedTemplatePreviewState();
 }
 
-class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
+class _GeneratedTemplatePreviewState
+    extends ConsumerState<_GeneratedTemplatePreview> {
   late final ScrollController _scrollController;
 
   @override
@@ -1565,18 +1562,18 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
     final maxHeight = context.isPhone ? screenHeight * 0.8 : 640.0;
 
     // 获取背景设置
-    final appCtrl = Get.find<AppController>();
-    final backgroundImagePath = appCtrl.appConfig.value.backgroundImagePath;
+    final appConfig = ref.read(appControllerProvider);
+    final backgroundImagePath = appConfig.backgroundImagePath;
     final isDefaultTemplate = backgroundImagePath != null &&
         backgroundImagePath.startsWith('default_template:');
     final isCustomImage = backgroundImagePath != null &&
         !isDefaultTemplate &&
         backgroundImagePath.isNotEmpty &&
-        GetPlatform.isDesktop &&
+        AppPlatform.isDesktop &&
         File(backgroundImagePath).existsSync();
     final hasBackground = isDefaultTemplate || isCustomImage;
-    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    final opacity = appConfig.backgroundImageOpacity;
+    final blur = appConfig.backgroundImageBlur;
 
     return Center(
       child: Material(
@@ -1648,7 +1645,7 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
                               children: [
                                 Flexible(
                                   child: Text(
-                                    'aiPreview'.tr,
+                                    l10n.aiPreview,
                                     style: FontUtils.getBoldStyle(fontSize: 18),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1676,7 +1673,7 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               LabelBtn(
-                                label: Text('apply'.tr,
+                                label: Text(l10n.apply,
                                     style:
                                         const TextStyle(color: Colors.white)),
                                 onPressed: widget.onApply,
@@ -1757,9 +1754,9 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
     // However, the user wants it to look "like existing", so ideally it matches the current background.
 
     // 获取背景设置
-    final appCtrl = Get.find<AppController>();
-    final opacity = appCtrl.appConfig.value.backgroundImageOpacity;
-    final blur = appCtrl.appConfig.value.backgroundImageBlur;
+    final appConfig = ref.read(appControllerProvider);
+    final opacity = appConfig.backgroundImageOpacity;
+    final blur = appConfig.backgroundImageBlur;
 
     // 检查是否是默认模板
     if (backgroundPath != null &&
@@ -1824,7 +1821,7 @@ class _GeneratedTemplatePreviewState extends State<_GeneratedTemplatePreview> {
     } else {
       // 自定义图片或视频
       if (backgroundPath != null &&
-          GetPlatform.isDesktop &&
+          AppPlatform.isDesktop &&
           File(backgroundPath).existsSync()) {
         // ... simplified
         return Container(
@@ -1906,7 +1903,7 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                             color: Colors.blue, size: 16),
                         const SizedBox(width: 8),
                         Text(
-                          'aiGenerateTemplate'.tr,
+                          l10n.aiGenerateTemplate,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -1934,7 +1931,7 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                       TextField(
                         controller: _controller,
                         decoration: InputDecoration(
-                          hintText: 'aiGenerateHint'.tr,
+                          hintText: l10n.aiGenerateHint,
                           hintStyle: TextStyle(
                               color: Colors.grey.withValues(alpha: 0.5),
                               fontSize: 13),
@@ -1981,7 +1978,7 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
                         ),
-                        child: Text("cancel".tr),
+                        child: Text(l10n.cancel),
                       ),
                       const SizedBox(width: 8),
                       // AI Generate Button
@@ -1998,7 +1995,7 @@ class _AiTemplateGeneratorPopupState extends State<_AiTemplateGeneratorPopup> {
                           ),
                         ),
                         icon: const Icon(Icons.auto_awesome, size: 16),
-                        label: Text('aiGenerateButton'.tr),
+                        label: Text(l10n.aiGenerateButton),
                       ),
                     ],
                   ),

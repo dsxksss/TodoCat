@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class StatusPickerPanel extends StatelessWidget {
+import 'package:todo_cat/core/utils/l10n.dart';
+
+class StatusPickerPanel extends ConsumerWidget {
   const StatusPickerPanel({
     super.key,
     required this.initialStatus,
@@ -40,11 +43,11 @@ class StatusPickerPanel extends StatelessWidget {
   String _getStatusLabel(TodoStatus status) {
     switch (status) {
       case TodoStatus.todo:
-        return "statusTodo".tr;
+        return l10n.statusTodo;
       case TodoStatus.inProgress:
-        return "statusInProgress".tr;
+        return l10n.statusInProgress;
       case TodoStatus.done:
-        return "statusDone".tr;
+        return l10n.statusDone;
     }
   }
 
@@ -92,7 +95,7 @@ class StatusPickerPanel extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       width: 280,
       decoration: BoxDecoration(
@@ -121,7 +124,7 @@ class StatusPickerPanel extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "selectStatus".tr,
+                  l10n.selectStatus,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

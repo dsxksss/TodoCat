@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/controllers/todo_dialog_ctr.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/add_tag_with_color_screen.dart';
@@ -24,24 +25,42 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:todo_cat/services/image_paste_service.dart';
 import 'package:todo_cat/widgets/image_viewer.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 图片粘贴意图
 class _PasteImageIntent extends Intent {
   const _PasteImageIntent();
 }
 
-class TodoDialog extends StatefulWidget {
+/// 新增/编辑待办对话框的意图：决定对话框自初始化为「新增」还是「编辑」。
+@immutable
+class TodoDialogIntent {
+  const TodoDialogIntent.add({required this.taskId})
+      : todo = null,
+        isEdit = false;
+  const TodoDialogIntent.edit({required this.taskId, required this.todo})
+      : isEdit = true;
+
+  final String taskId;
+  final Todo? todo;
+  final bool isEdit;
+}
+
+class TodoDialog extends ConsumerStatefulWidget {
   const TodoDialog({
     super.key,
     required this.dialogTag,
+    required this.intent,
   });
 
   final String dialogTag;
+  final TodoDialogIntent intent;
 
   @override
-  State<TodoDialog> createState() => _TodoDialogState();
+  ConsumerState<TodoDialog> createState() => _TodoDialogState();
 }
 
-class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
+class _TodoDialogState extends ConsumerState<TodoDialog>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late AnimationController _hintAnimationController; // 提示动画控制器
@@ -51,6 +70,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
   bool _shouldOffset = false; // 控制 dialog 是否应该偏移
   bool _showArrowHint = true; // 控制是否显示箭头提示
   final GlobalKey _toolbarKey = GlobalKey(); // 用于获取工具栏位置
+  bool _didInit = false; // 一次性初始化守卫（每次打开新建 State，自动复位）
 
   @override
   void initState() {
@@ -83,13 +103,13 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
 
     _descriptionFocusNode.addListener(() {
       // 移动端：焦点变化时刷新 UI 以显示/隐藏工具栏
-      if (Get.context!.isPhone) {
+      if (context.isPhone) {
         setState(() {});
       }
 
       if (_descriptionFocusNode.hasFocus) {
         // 移动端不自动打开预览窗口
-        if (!Get.context!.isPhone && !_isPreviewVisible) {
+        if (!context.isPhone && !_isPreviewVisible) {
           setState(() {
             _isPreviewVisible = true;
             _shouldOffset = true; // 触发位置偏移
@@ -99,6 +119,22 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
         }
       }
     });
+
+    // 对话框挂载后(此时已 ref.watch 订阅同一 tag 的 provider)再初始化控制器：
+    // 编辑/新增上下文由 widget.intent 携带，避免“先 ref.read 改、再弹窗”造成的
+    // tag 不一致与 autoDispose 间隙导致状态丢失。
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initOnce());
+  }
+
+  void _initOnce() {
+    if (_didInit || !mounted) return;
+    _didInit = true;
+    final c = controller;
+    if (widget.intent.isEdit) {
+      c.initForEditing(widget.intent.taskId, widget.intent.todo!);
+    } else {
+      c.initForAdding(widget.intent.taskId);
+    }
   }
 
   @override
@@ -110,7 +146,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
   }
 
   AddTodoDialogController get controller =>
-      Get.find<AddTodoDialogController>(tag: widget.dialogTag);
+      ref.read(addTodoDialogControllerProvider(widget.dialogTag).notifier);
 
   /// 处理图片粘贴
   /// 返回是否成功粘贴图片
@@ -209,7 +245,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
     }
 
     // 移动端以底部页面的方式打开预览窗口
-    if (Get.context!.isPhone) {
+    if (context.isPhone) {
       _showPreviewBottomSheet();
     }
   }
@@ -224,7 +260,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
       _animationController.reverse();
 
       // 移动端关闭底部页面
-      if (Get.context!.isPhone) {
+      if (context.isPhone) {
         SmartDialog.dismiss(tag: 'todo_preview_bottom_sheet');
       }
     }
@@ -245,7 +281,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
         body: Align(
           alignment: Alignment.bottomCenter,
           child: _PreviewBottomSheet(
-            controller: controller,
+            descriptionController: controller.descriptionController,
             onClose: _closePreview,
           ),
         ),
@@ -271,7 +307,8 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
 
   void _handleSubmit() async {
     // 先获取编辑状态和标题，再提交表单
-    final isEditing = controller.isEditing.value;
+    final isEditing =
+        ref.read(addTodoDialogControllerProvider(widget.dialogTag)).isEditing;
     final todoTitle = controller.titleController.text;
 
     if (await controller.submitForm()) {
@@ -279,11 +316,11 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
 
       // 根据之前获取的编辑状态显示不同的提示
       final actionText =
-          isEditing ? "updatedSuccessfully".tr : "addedSuccessfully".tr;
+          isEditing ? l10n.updatedSuccessfully : l10n.addedSuccessfully;
 
       // 使用左下角通知显示成功信息
       showSuccessNotification(
-        "${"todo".tr} '$todoTitle' $actionText",
+        "${l10n.todo} '$todoTitle' $actionText",
       );
 
       // 清理表单状态（在显示提示后）
@@ -292,11 +329,13 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
   }
 
   void _handleClose() {
+    final isEditing =
+        ref.read(addTodoDialogControllerProvider(widget.dialogTag)).isEditing;
     if (controller.hasChanges) {
-      if (controller.isEditing.value) {
+      if (isEditing) {
         // 编辑模式：询问是否放弃更改
         showToast(
-          "discardChanges".tr, // "是否放弃更改？"
+          l10n.discardChanges, // "是否放弃更改？"
           tag: confirmDialogTag,
           alwaysShow: true,
           confirmMode: true,
@@ -312,7 +351,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
       } else {
         // 新建模式：询问是否保留输入
         showToast(
-          "keepInput".tr,
+          l10n.keepInput,
           tag: confirmDialogTag,
           alwaysShow: true,
           confirmMode: true,
@@ -336,11 +375,11 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
   String _getPriorityLabel(TodoPriority priority) {
     switch (priority) {
       case TodoPriority.lowLevel:
-        return "lowPriority".tr;
+        return l10n.lowPriority;
       case TodoPriority.mediumLevel:
-        return "mediumPriority".tr;
+        return l10n.mediumPriority;
       case TodoPriority.highLevel:
-        return "highPriority".tr;
+        return l10n.highPriority;
     }
   }
 
@@ -368,24 +407,24 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
 
   String _getReminderLabel(int reminderMinutes) {
     if (reminderMinutes == 0) {
-      return "noReminder".tr;
+      return l10n.noReminder;
     } else if (reminderMinutes < 60) {
-      return "$reminderMinutes${'minutesAgo'.tr}";
+      return "$reminderMinutes${l10n.minutesAgo}";
     } else if (reminderMinutes < 1440) {
-      return "${(reminderMinutes / 60).round()}${'hoursAgo'.tr}";
+      return "${(reminderMinutes / 60).round()}${l10n.hoursAgo}";
     } else {
-      return "${(reminderMinutes / 1440).round()}${'daysAgo'.tr}";
+      return "${(reminderMinutes / 1440).round()}${l10n.daysAgo}";
     }
   }
 
   String _getStatusLabel(TodoStatus status) {
     switch (status) {
       case TodoStatus.todo:
-        return "statusTodo".tr;
+        return l10n.statusTodo;
       case TodoStatus.inProgress:
-        return "statusInProgress".tr;
+        return l10n.statusInProgress;
       case TodoStatus.done:
-        return "statusDone".tr;
+        return l10n.statusDone;
     }
   }
 
@@ -413,19 +452,18 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<AddTodoDialogController>(
-      tag: widget.dialogTag,
-      builder: (_) => AnimatedBuilder(
-        animation: _fadeAnimation,
-        builder: (context, child) {
-          // 确保 _shouldOffset 变化时也能触发重建
-          return _buildDialog(context);
-        },
-      ),
+    // 监听表单状态变化，整体重建对话框（替代 GetBuilder + Obx）。
+    final formState = ref.watch(addTodoDialogControllerProvider(widget.dialogTag));
+    return AnimatedBuilder(
+      animation: _fadeAnimation,
+      builder: (context, child) {
+        // 确保 _shouldOffset 变化时也能触发重建
+        return _buildDialog(context, formState);
+      },
     );
   }
 
-  Widget _buildDialog(BuildContext context) {
+  Widget _buildDialog(BuildContext context, AddTodoFormState formState) {
     final dialogWidth = context.isPhone ? 1.sw : 430.0;
     final dialogHeight = context.isPhone ? 0.75.sh : 540.0;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -447,13 +485,13 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
           child: Column(
             children: [
               DialogHeader(
-                titleWidget: Obx(() => Text(
-                      controller.isEditing.value ? "editTodo".tr : "addTodo".tr,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )),
+                titleWidget: Text(
+                  formState.isEditing ? l10n.editTodo : l10n.addTodo,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 onCancel: _handleClose,
                 onConfirm: _handleSubmit,
               ),
@@ -469,143 +507,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                         physics: const AlwaysScrollableScrollPhysics(
                           parent: BouncingScrollPhysics(),
                         ),
-                        children: [
-                          // 日期选择器按钮
-                          Obx(() => TagDialogBtn(
-                                tag: controller.selectedDate.value != null
-                                    ? DateFormat('MM-dd HH:mm')
-                                        .format(controller.selectedDate.value!)
-                                    : "setDueDate".tr,
-                                tagColor: controller.selectedDate.value != null
-                                    ? const Color(0xFF3B82F6)
-                                    : Colors.grey[700]!,
-                                dialogTag: 'todo_date',
-                                showDelete: false,
-                                openDialog: DatePickerPanel(
-                                  dialogTag:
-                                      'todo_date', // 使用与 TagDialogBtn 相同的 tag
-                                  initialSelectedDate: controller
-                                      .selectedDate.value, // 传递当前选中的日期
-                                  onDateSelected: (date) {
-                                    controller.selectedDate.value = date;
-                                  },
-                                ),
-                                titleWidget: Row(
-                                  children: [
-                                    Text(
-                                      controller.selectedDate.value != null
-                                          ? DateFormat('MM-dd HH:mm').format(
-                                              controller.selectedDate.value!)
-                                          : "setDueDate".tr,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    const Icon(Icons.event_available_outlined,
-                                        size: 20),
-                                  ],
-                                ),
-                              )),
-                          const SizedBox(width: 10),
-                          Obx(() => TagDialogBtn(
-                                tag: _getPriorityLabel(
-                                    controller.selectedPriority.value),
-                                tagColor: _getPriorityColor(
-                                    controller.selectedPriority.value),
-                                dialogTag: 'todo_priority',
-                                showDelete: false,
-                                openDialog: PriorityPickerPanel(
-                                  initialPriority:
-                                      controller.selectedPriority.value,
-                                  onPrioritySelected: (priority) {
-                                    controller.selectedPriority.value =
-                                        priority;
-                                  },
-                                ),
-                                titleWidget: Row(
-                                  children: [
-                                    Text(
-                                      _getPriorityLabel(
-                                          controller.selectedPriority.value),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Icon(
-                                      _getPriorityIcon(
-                                          controller.selectedPriority.value),
-                                      size: 20,
-                                      color: _getPriorityColor(
-                                          controller.selectedPriority.value),
-                                    ),
-                                  ],
-                                ),
-                              )),
-                          const SizedBox(width: 10),
-                          Obx(() => TagDialogBtn(
-                                tag: _getReminderLabel(
-                                    controller.remindersValue.value),
-                                tagColor: controller.remindersValue.value > 0
-                                    ? const Color(0xFF3B82F6)
-                                    : Colors.grey[700]!,
-                                dialogTag: 'todo_reminder',
-                                showDelete: false,
-                                openDialog: ReminderPickerPanel(
-                                  initialReminder:
-                                      controller.remindersValue.value,
-                                  onReminderSelected: (reminder) {
-                                    controller.remindersValue.value = reminder;
-                                  },
-                                ),
-                                titleWidget: Row(
-                                  children: [
-                                    Text(
-                                      _getReminderLabel(
-                                          controller.remindersValue.value),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Icon(
-                                      controller.remindersValue.value > 0
-                                          ? Icons.alarm
-                                          : Icons.alarm_off,
-                                      size: 20,
-                                    ),
-                                  ],
-                                ),
-                              )),
-                          const SizedBox(width: 10),
-                          Obx(() => TagDialogBtn(
-                                tag: _getStatusLabel(
-                                    controller.selectedStatus.value),
-                                tagColor: _getStatusColor(
-                                    controller.selectedStatus.value),
-                                dialogTag: 'todo_status',
-                                showDelete: false,
-                                openDialog: StatusPickerPanel(
-                                  initialStatus:
-                                      controller.selectedStatus.value,
-                                  onStatusSelected: (status) {
-                                    controller.selectedStatus.value = status;
-                                  },
-                                ),
-                                titleWidget: Row(
-                                  children: [
-                                    Text(
-                                      _getStatusLabel(
-                                          controller.selectedStatus.value),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Icon(
-                                      _getStatusIcon(
-                                          controller.selectedStatus.value),
-                                      size: 20,
-                                      color: _getStatusColor(
-                                          controller.selectedStatus.value),
-                                    ),
-                                  ],
-                                ),
-                              )),
-                        ],
+                        children: _buildActionButtons(formState),
                       ),
                     ),
                   ),
@@ -615,7 +517,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                       15,
                       10,
                       15,
-                      Get.context!.isPhone ? 5 : 0, // 移动端减小底部间距
+                      context.isPhone ? 5 : 0, // 移动端减小底部间距
                     ),
                     physics: const AlwaysScrollableScrollPhysics(
                       parent: BouncingScrollPhysics(),
@@ -630,26 +532,27 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                           maxLength: 200,
                           maxLines: 1,
                           radius: 6,
-                          fieldTitle: "title".tr,
+                          fieldTitle: l10n.title,
                           validator: controller.validateTitle,
                           editingController: controller.titleController,
                           onFieldSubmitted: (_) {},
                         ),
                         SizedBox(
-                            height: Get.context!.isPhone ? 5 : 10), // 移动端减小间距
+                            height: context.isPhone ? 5 : 10), // 移动端减小间距
                         AddTagWithColorPicker(
                           textInputAction: TextInputAction.next,
                           maxLength: 50,
                           maxLines: 1,
                           radius: 6,
-                          fieldTitle: "tag".tr,
+                          fieldTitle: l10n.tag,
                           validator: (_) => null,
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 5),
                           editingController: controller.tagController,
-                          selectedTags: controller.selectedTags,
+                          selectedTags: formState.selectedTags,
                           onDeleteTag: controller.removeTag,
                           onAddTagWithColor: controller.addTagWithColor,
+                          onEditTag: controller.editTagAt,
                         ),
                       ],
                     ),
@@ -657,7 +560,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                 ],
               ),
               // 移动端：Description 在上，工具栏在下
-              if (Get.context!.isPhone) ...[
+              if (context.isPhone) ...[
                 Expanded(
                   child: Stack(
                     clipBehavior: Clip.none,
@@ -706,7 +609,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                     minLines: calculatedMaxLines,
                                     maxLines: calculatedMaxLines,
                                     radius: 6,
-                                    fieldTitle: "description".tr,
+                                    fieldTitle: l10n.description,
                                     validator: (_) => null,
                                     editingController:
                                         controller.descriptionController,
@@ -789,7 +692,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                     minLines: calculatedMaxLines,
                                     maxLines: calculatedMaxLines,
                                     radius: 6,
-                                    fieldTitle: "description".tr,
+                                    fieldTitle: l10n.description,
                                     validator: (_) => null,
                                     editingController:
                                         controller.descriptionController,
@@ -874,15 +777,13 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                 child: Column(
                   children: [
                     DialogHeader(
-                      titleWidget: Obx(() => Text(
-                            controller.isEditing.value
-                                ? "editTodo".tr
-                                : "addTodo".tr,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )),
+                      titleWidget: Text(
+                        formState.isEditing ? l10n.editTodo : l10n.addTodo,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       onCancel: _handleClose,
                       onConfirm: _handleSubmit,
                     ),
@@ -897,145 +798,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                           physics: const AlwaysScrollableScrollPhysics(
                             parent: BouncingScrollPhysics(),
                           ),
-                          children: [
-                            // 日期选择器按钮
-                            Obx(() => TagDialogBtn(
-                                  tag: controller.selectedDate.value != null
-                                      ? DateFormat('MM-dd HH:mm').format(
-                                          controller.selectedDate.value!)
-                                      : "setDueDate".tr,
-                                  tagColor:
-                                      controller.selectedDate.value != null
-                                          ? const Color(0xFF3B82F6)
-                                          : Colors.grey[700]!,
-                                  dialogTag: 'todo_date',
-                                  showDelete: false,
-                                  openDialog: DatePickerPanel(
-                                    dialogTag:
-                                        'todo_date', // 使用与 TagDialogBtn 相同的 tag
-                                    initialSelectedDate: controller
-                                        .selectedDate.value, // 传递当前选中的日期
-                                    onDateSelected: (date) {
-                                      controller.selectedDate.value = date;
-                                    },
-                                  ),
-                                  titleWidget: Row(
-                                    children: [
-                                      Text(
-                                        controller.selectedDate.value != null
-                                            ? DateFormat('MM-dd HH:mm').format(
-                                                controller.selectedDate.value!)
-                                            : "setDueDate".tr,
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      const Icon(Icons.event_available_outlined,
-                                          size: 20),
-                                    ],
-                                  ),
-                                )),
-                            const SizedBox(width: 10),
-                            Obx(() => TagDialogBtn(
-                                  tag: _getPriorityLabel(
-                                      controller.selectedPriority.value),
-                                  tagColor: _getPriorityColor(
-                                      controller.selectedPriority.value),
-                                  dialogTag: 'todo_priority',
-                                  showDelete: false,
-                                  openDialog: PriorityPickerPanel(
-                                    initialPriority:
-                                        controller.selectedPriority.value,
-                                    onPrioritySelected: (priority) {
-                                      controller.selectedPriority.value =
-                                          priority;
-                                    },
-                                  ),
-                                  titleWidget: Row(
-                                    children: [
-                                      Text(
-                                        _getPriorityLabel(
-                                            controller.selectedPriority.value),
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Icon(
-                                        _getPriorityIcon(
-                                            controller.selectedPriority.value),
-                                        size: 20,
-                                        color: _getPriorityColor(
-                                            controller.selectedPriority.value),
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                            const SizedBox(width: 10),
-                            Obx(() => TagDialogBtn(
-                                  tag: _getReminderLabel(
-                                      controller.remindersValue.value),
-                                  tagColor: controller.remindersValue.value > 0
-                                      ? const Color(0xFF3B82F6)
-                                      : Colors.grey[700]!,
-                                  dialogTag: 'todo_reminder',
-                                  showDelete: false,
-                                  openDialog: ReminderPickerPanel(
-                                    initialReminder:
-                                        controller.remindersValue.value,
-                                    onReminderSelected: (reminder) {
-                                      controller.remindersValue.value =
-                                          reminder;
-                                    },
-                                  ),
-                                  titleWidget: Row(
-                                    children: [
-                                      Text(
-                                        _getReminderLabel(
-                                            controller.remindersValue.value),
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Icon(
-                                        controller.remindersValue.value > 0
-                                            ? Icons.alarm
-                                            : Icons.alarm_off,
-                                        size: 20,
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                            const SizedBox(width: 10),
-                            Obx(() => TagDialogBtn(
-                                  tag: _getStatusLabel(
-                                      controller.selectedStatus.value),
-                                  tagColor: _getStatusColor(
-                                      controller.selectedStatus.value),
-                                  dialogTag: 'todo_status',
-                                  showDelete: false,
-                                  openDialog: StatusPickerPanel(
-                                    initialStatus:
-                                        controller.selectedStatus.value,
-                                    onStatusSelected: (status) {
-                                      controller.selectedStatus.value = status;
-                                    },
-                                  ),
-                                  titleWidget: Row(
-                                    children: [
-                                      Text(
-                                        _getStatusLabel(
-                                            controller.selectedStatus.value),
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Icon(
-                                        _getStatusIcon(
-                                            controller.selectedStatus.value),
-                                        size: 20,
-                                        color: _getStatusColor(
-                                            controller.selectedStatus.value),
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                          ],
+                          children: _buildActionButtons(formState),
                         ),
                       ),
                     ),
@@ -1052,7 +815,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                             maxLength: 200,
                             maxLines: 1,
                             radius: 6,
-                            fieldTitle: "title".tr,
+                            fieldTitle: l10n.title,
                             validator: controller.validateTitle,
                             editingController: controller.titleController,
                             onFieldSubmitted: (_) {},
@@ -1063,14 +826,15 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                             maxLength: 50,
                             maxLines: 1,
                             radius: 6,
-                            fieldTitle: "tag".tr,
+                            fieldTitle: l10n.tag,
                             validator: (_) => null,
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 5),
                             editingController: controller.tagController,
-                            selectedTags: controller.selectedTags,
+                            selectedTags: formState.selectedTags,
                             onDeleteTag: controller.removeTag,
                             onAddTagWithColor: controller.addTagWithColor,
+                            onEditTag: controller.editTagAt,
                           ),
                         ],
                       ),
@@ -1143,7 +907,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                         maxLines:
                                             calculatedMaxLines, // 使用计算出的最大行数
                                         radius: 6,
-                                        fieldTitle: "description".tr,
+                                        fieldTitle: l10n.description,
                                         validator: (_) => null,
                                         editingController:
                                             controller.descriptionController,
@@ -1213,7 +977,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'preview'.tr,
+                                l10n.preview,
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -1466,7 +1230,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                                     const SizedBox(height: 8),
                                                     Text(
                                                       config.alt ??
-                                                          'imageLoadFailed'.tr,
+                                                          l10n.imageLoadFailed,
                                                       style: TextStyle(
                                                         color: Colors
                                                             .grey.shade600,
@@ -1575,7 +1339,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                                                   const SizedBox(height: 8),
                                                   Text(
                                                     config.alt ??
-                                                        'imageLoadFailed'.tr,
+                                                        l10n.imageLoadFailed,
                                                     style: TextStyle(
                                                       color:
                                                           Colors.grey.shade600,
@@ -1651,6 +1415,124 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
     );
   }
 
+  /// 构建顶部功能按钮（日期/优先级/提醒/状态）。
+  List<Widget> _buildActionButtons(AddTodoFormState formState) {
+    return [
+      // 日期选择器按钮
+      TagDialogBtn(
+        tag: formState.selectedDate != null
+            ? DateFormat('MM-dd HH:mm').format(formState.selectedDate!)
+            : l10n.setDueDate,
+        tagColor: formState.selectedDate != null
+            ? const Color(0xFF3B82F6)
+            : Colors.grey[700]!,
+        dialogTag: 'todo_date',
+        showDelete: false,
+        openDialog: DatePickerPanel(
+          dialogTag: 'todo_date', // 使用与 TagDialogBtn 相同的 tag
+          initialSelectedDate: formState.selectedDate, // 传递当前选中的日期
+          onDateSelected: (date) {
+            controller.setSelectedDate(date);
+          },
+        ),
+        titleWidget: Row(
+          children: [
+            Text(
+              formState.selectedDate != null
+                  ? DateFormat('MM-dd HH:mm').format(formState.selectedDate!)
+                  : l10n.setDueDate,
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(width: 5),
+            const Icon(Icons.event_available_outlined, size: 20),
+          ],
+        ),
+      ),
+      const SizedBox(width: 10),
+      TagDialogBtn(
+        tag: _getPriorityLabel(formState.selectedPriority),
+        tagColor: _getPriorityColor(formState.selectedPriority),
+        dialogTag: 'todo_priority',
+        showDelete: false,
+        openDialog: PriorityPickerPanel(
+          initialPriority: formState.selectedPriority,
+          onPrioritySelected: (priority) {
+            controller.setSelectedPriority(priority);
+          },
+        ),
+        titleWidget: Row(
+          children: [
+            Text(
+              _getPriorityLabel(formState.selectedPriority),
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(width: 5),
+            Icon(
+              _getPriorityIcon(formState.selectedPriority),
+              size: 20,
+              color: _getPriorityColor(formState.selectedPriority),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(width: 10),
+      TagDialogBtn(
+        tag: _getReminderLabel(formState.remindersValue),
+        tagColor: formState.remindersValue > 0
+            ? const Color(0xFF3B82F6)
+            : Colors.grey[700]!,
+        dialogTag: 'todo_reminder',
+        showDelete: false,
+        openDialog: ReminderPickerPanel(
+          initialReminder: formState.remindersValue,
+          onReminderSelected: (reminder) {
+            controller.setRemindersValue(reminder);
+          },
+        ),
+        titleWidget: Row(
+          children: [
+            Text(
+              _getReminderLabel(formState.remindersValue),
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(width: 5),
+            Icon(
+              formState.remindersValue > 0 ? Icons.alarm : Icons.alarm_off,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(width: 10),
+      TagDialogBtn(
+        tag: _getStatusLabel(formState.selectedStatus),
+        tagColor: _getStatusColor(formState.selectedStatus),
+        dialogTag: 'todo_status',
+        showDelete: false,
+        openDialog: StatusPickerPanel(
+          initialStatus: formState.selectedStatus,
+          onStatusSelected: (status) {
+            controller.setSelectedStatus(status);
+          },
+        ),
+        titleWidget: Row(
+          children: [
+            Text(
+              _getStatusLabel(formState.selectedStatus),
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(width: 5),
+            Icon(
+              _getStatusIcon(formState.selectedStatus),
+              size: 20,
+              color: _getStatusColor(formState.selectedStatus),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+
   /// 构建箭头提示动画
   Widget _buildArrowHint(BuildContext context) {
     return Positioned(
@@ -1688,7 +1570,7 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'clickDescriptionInputToOpenBrowseWindow'.tr,
+                      l10n.clickDescriptionInputToOpenBrowseWindow,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -1707,11 +1589,11 @@ class _TodoDialogState extends State<TodoDialog> with TickerProviderStateMixin {
 }
 
 class _PreviewBottomSheet extends StatefulWidget {
-  final AddTodoDialogController controller;
+  final TextEditingController descriptionController;
   final VoidCallback onClose;
 
   const _PreviewBottomSheet({
-    required this.controller,
+    required this.descriptionController,
     required this.onClose,
   });
 
@@ -1760,7 +1642,7 @@ class _PreviewBottomSheetState extends State<_PreviewBottomSheet> {
                 Row(
                   children: [
                     Text(
-                      'preview'.tr,
+                      l10n.preview,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -1798,7 +1680,7 @@ class _PreviewBottomSheetState extends State<_PreviewBottomSheet> {
               child: Align(
                 alignment: Alignment.topLeft,
                 child: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: widget.controller.descriptionController,
+                  valueListenable: widget.descriptionController,
                   builder: (context, value, child) {
                     // 预处理 markdown 文本：将旧格式的 file:// 路径转换为标准格式
                     String processedText = value.text;

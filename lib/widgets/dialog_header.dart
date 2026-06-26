@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 统一的Dialog头部组件
 /// 所有dialog和底部页都使用这个组件，确保一致的UI和交互
 class DialogHeader extends StatelessWidget {
@@ -54,7 +55,7 @@ class DialogHeader extends StatelessWidget {
                 LabelBtn(
                   ghostStyle: true,
                   label: Text(
-                    cancelText ?? "cancel".tr,
+                    cancelText ?? l10n.cancel,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -70,7 +71,7 @@ class DialogHeader extends StatelessWidget {
               if (showConfirm && onConfirm != null)
                 LabelBtn(
                   label: Text(
-                    confirmText ?? "confirm".tr,
+                    confirmText ?? l10n.confirm,
                     style: const TextStyle(
                       fontSize: 13,
                       color: Colors.white,

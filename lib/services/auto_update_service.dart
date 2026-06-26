@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:dio/dio.dart';
@@ -9,8 +9,10 @@ import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:todo_cat/core/notification_center_manager.dart';
 import 'package:todo_cat/data/schemas/notification_history.dart';
+import 'package:todo_cat/routers/app_router.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 自动更新服务
 /// 支持 Windows、macOS 和 Linux 平台的应用内更新
 /// 支持多个更新源，自动回退
@@ -82,7 +84,7 @@ class AutoUpdateService {
         if (i < _appArchiveUrls.length - 1) {
           _logger.d('尝试下一个更新源...');
         } else {
-          _logger.e('allUpdateSourcesFailed'.tr);
+          _logger.e(l10n.allUpdateSourcesFailed);
         }
       }
     }
@@ -119,7 +121,7 @@ class AutoUpdateService {
     
     try {
       // 通知开始检查更新
-      onProgress?.call(0.0, 'checkingForUpdates'.tr);
+      onProgress?.call(0.0, l10n.checkingForUpdates);
       
       // 手动检查版本（用于显示进度和通知）
       await _checkUpdateManually();
@@ -127,7 +129,7 @@ class AutoUpdateService {
       if (!silent) {
         // 显示自定义 toast 提示
         showToast(
-          'checkingForUpdates'.tr,
+          l10n.checkingForUpdates,
           toastStyleType: TodoCatToastStyleType.info,
           position: TodoCatToastPosition.bottomLeft,
           displayTime: const Duration(seconds: 2),
@@ -142,7 +144,7 @@ class AutoUpdateService {
       if (!silent) {
         // 显示自定义 toast 错误提示
         showToast(
-          'updateError'.tr,
+          l10n.updateError,
           toastStyleType: TodoCatToastStyleType.error,
           position: TodoCatToastPosition.bottomLeft,
           displayTime: const Duration(seconds: 3),
@@ -158,18 +160,18 @@ class AutoUpdateService {
     try {
       final currentVersion = await getCurrentVersion();
       if (currentVersion == null) {
-        _logger.w('unableToGetCurrentVersion'.tr);
+        _logger.w(l10n.unableToGetCurrentVersion);
         return;
       }
       
       // 从当前使用的更新源获取更新信息
       final archiveUrl = currentUpdateSource;
       if (archiveUrl == null) {
-        _logger.w('updateSourceNotSet'.tr);
+        _logger.w(l10n.updateSourceNotSet);
         return;
       }
       
-      onProgress?.call(0.1, 'downloadingUpdateInfo'.tr);
+      onProgress?.call(0.1, l10n.downloadingUpdateInfo);
       
       // 下载并解析 app-archive.json
       final dio = Dio();
@@ -229,7 +231,7 @@ class AutoUpdateService {
               _logger.i('发现新版本 $newVersion');
             } else {
               // 已是最新版本
-              onProgress?.call(1.0, 'alreadyLatestVersion'.tr);
+              onProgress?.call(1.0, l10n.alreadyLatestVersion);
               onAlreadyLatestVersion?.call();
               _logger.i('当前已是最新版本: $currentVersion');
             }
@@ -250,9 +252,8 @@ class AutoUpdateService {
       return null;
     }
     
-    // 获取当前语言代码
-    final currentLocale = Get.locale;
-    final languageCode = currentLocale?.languageCode ?? 'en';
+    // 获取当前语言代码（替代 GetX 的 Get.locale）
+    final languageCode = currentLocale.languageCode;
     
     // 根据语言代码选择对应的消息字段
     final messageKey = languageCode == 'zh' ? 'message_zh' : 'message_en';
@@ -294,32 +295,41 @@ class AutoUpdateService {
   /// 使用版本号进行去重，避免重复通知
   Future<void> _notifyUpdateAvailable(String version, String? changelog) async {
     try {
-      if (Get.isRegistered<NotificationCenterManager>()) {
-        final notificationCenter = Get.find<NotificationCenterManager>();
-        
-        // 检查是否已经有相同版本的通知（基于消息中的版本号去重）
-        final now = DateTime.now();
-        final windowStart = now.subtract(const Duration(hours: 24)); // 24小时内相同版本不重复通知
-        
-        final hasVersionDuplicate = notificationCenter.notifications.any((n) {
-          return n.title == 'updateAvailable'.tr && 
-                 n.message.contains(version) &&
-                 n.timestamp.isAfter(windowStart);
-        });
-        
-        if (hasVersionDuplicate) {
-          _logger.d('版本 $version 的通知已存在，跳过重复通知');
-          return;
-        }
-        
-        await notificationCenter.addNotification(
-          title: 'updateAvailable'.tr,
-          message: '${'newVersionAvailable'.tr}: $version${changelog != null ? '\n\n$changelog' : ''}',
-          level: NotificationLevel.info,
-          skipDuplicateCheck: true, // 跳过通用的重复检查，因为我们用了版本号检查
-        );
-        _logger.i('已发送更新通知到通知中心: $version');
+      // 通过根导航器对应的 ProviderScope 容器读取通知中心（替代 GetX 的
+      // Get.isRegistered / Get.find<NotificationCenterManager>()）。
+      final context = rootNavigatorKey.currentContext;
+      if (context == null) {
+        _logger.w('无法获取根 context，跳过更新通知');
+        return;
       }
+      final container = ProviderScope.containerOf(context);
+      final notifications = container.read(notificationCenterManagerProvider);
+      final notificationCenter =
+          container.read(notificationCenterManagerProvider.notifier);
+
+      // 检查是否已经有相同版本的通知（基于消息中的版本号去重）
+      final now = DateTime.now();
+      final windowStart = now.subtract(const Duration(hours: 24)); // 24小时内相同版本不重复通知
+
+      final hasVersionDuplicate = notifications.any((n) {
+        return n.title == l10n.updateAvailable &&
+            n.message.contains(version) &&
+            n.timestamp.isAfter(windowStart);
+      });
+
+      if (hasVersionDuplicate) {
+        _logger.d('版本 $version 的通知已存在，跳过重复通知');
+        return;
+      }
+
+      await notificationCenter.addNotification(
+        title: l10n.updateAvailable,
+        message:
+            '${l10n.newVersionAvailable}: $version${changelog != null ? '\n\n$changelog' : ''}',
+        level: NotificationLevel.info,
+        skipDuplicateCheck: true, // 跳过通用的重复检查，因为我们用了版本号检查
+      );
+      _logger.i('已发送更新通知到通知中心: $version');
     } catch (e) {
       _logger.w('发送更新通知失败: $e');
     }
@@ -342,8 +352,8 @@ class AutoUpdateService {
   /// 下载并安装更新
   Future<void> downloadAndInstallUpdate() async {
     if (_currentUpdateInfo == null) {
-      _logger.e('noUpdateInformationAvailable'.tr);
-      onUpdateError?.call('noUpdateInformationAvailable'.tr);
+      _logger.e(l10n.noUpdateInformationAvailable);
+      onUpdateError?.call(l10n.noUpdateInformationAvailable);
       return;
     }
     
@@ -383,7 +393,7 @@ class AutoUpdateService {
       }
       
       _logger.d('开始下载更新: $downloadUrl');
-      onProgress?.call(0.0, 'downloadingUpdate'.tr);
+      onProgress?.call(0.0, l10n.downloadingUpdate);
       
       // 创建取消令牌
       _downloadCancelToken = CancelToken();
@@ -422,7 +432,7 @@ class AutoUpdateService {
                   now.difference(_lastProgressUpdate!) >= _progressUpdateInterval ||
                   progress >= 1.0) { // 完成时总是更新
                 _lastProgressUpdate = now;
-                onProgress?.call(progress, 'downloadingUpdate'.tr);
+                onProgress?.call(progress, l10n.downloadingUpdate);
                 
                 // 减少日志输出频率（每10%或完成时输出）
                 if (progress >= 1.0 || (progress * 10).floor() != ((progress - 0.01) * 10).floor()) {
@@ -464,7 +474,7 @@ class AutoUpdateService {
                         now.difference(_lastProgressUpdate!) >= _progressUpdateInterval ||
                         progress >= 1.0) {
                       _lastProgressUpdate = now;
-                      onProgress?.call(progress, 'downloadingUpdate'.tr);
+                      onProgress?.call(progress, l10n.downloadingUpdate);
                       
                       if (progress >= 1.0 || (progress * 10).floor() != ((progress - 0.01) * 10).floor()) {
                         _logger.d('下载进度: ${(progress * 100).toStringAsFixed(1)}%');
@@ -477,7 +487,7 @@ class AutoUpdateService {
               // 更新文件路径为 MSIX 文件路径
               final updatedFilePath = msixFilePath;
               _logger.d('下载完成: $updatedFilePath');
-              onProgress?.call(1.0, 'installingUpdate'.tr);
+              onProgress?.call(1.0, l10n.installingUpdate);
               await _installUpdate(updatedFilePath);
               onUpdateComplete?.call();
               return;
@@ -498,7 +508,7 @@ class AutoUpdateService {
       }
       
       _logger.d('下载完成: $filePath');
-      onProgress?.call(1.0, 'installingUpdate'.tr);
+      onProgress?.call(1.0, l10n.installingUpdate);
       
       // 跳过哈希验证，直接安装更新
       // 注意：Windows MSIX 包已有数字签名验证，哈希验证是额外的安全检查
@@ -511,8 +521,8 @@ class AutoUpdateService {
       
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) {
-        _logger.i('downloadCancelled'.tr);
-        onUpdateError?.call('downloadCancelled'.tr);
+        _logger.i(l10n.downloadCancelled);
+        onUpdateError?.call(l10n.downloadCancelled);
       } else {
         _logger.e('下载或安装更新失败: $e');
         onUpdateError?.call(e.toString());
@@ -609,7 +619,7 @@ class AutoUpdateService {
   /// 取消下载
   void cancelDownload() {
     if (_downloadCancelToken != null && !_downloadCancelToken!.isCancelled) {
-      _downloadCancelToken!.cancel('userCancelledDownload'.tr);
+      _downloadCancelToken!.cancel(l10n.userCancelledDownload);
       _logger.i('下载已取消');
     }
   }
@@ -642,7 +652,7 @@ class AutoUpdateService {
       }
       return '更新源 ${_currentSourceIndex + 1}';
     }
-    return 'unknown'.tr;
+    return l10n.unknown;
   }
   
   /// 打开微软商店进行更新

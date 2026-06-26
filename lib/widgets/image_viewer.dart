@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math;
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 显示图片查看器（使用 SmartDialog 避免 Navigator context 问题）
 void showImageViewer({
   required BuildContext context,
@@ -113,8 +113,8 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog>
       final dx = position.dx * (1 - scale);
       final dy = position.dy * (1 - scale);
       endMatrix = Matrix4.identity()
-        ..scaleByVector3(vector_math.Vector3(scale, scale, 1.0))
-        ..translateByVector3(vector_math.Vector3(dx / scale, dy / scale, 0.0));
+        ..scale(vector_math.Vector3(scale, scale, 1.0))
+        ..translate(vector_math.Vector3(dx / scale, dy / scale, 0.0));
     }
 
     _animation = Matrix4Tween(
@@ -194,7 +194,7 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog>
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh, color: Colors.white),
-                        tooltip: 'resetView'.tr,
+                        tooltip: l10n.resetView,
                         onPressed: _resetTransform,
                       ),
                     ],
@@ -240,7 +240,7 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog>
             right: 0,
             child: Center(
               child: Text(
-                'doubleTapToZoom'.tr,
+                l10n.doubleTapToZoom,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 12,
@@ -263,7 +263,7 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog>
               size: 64, color: Colors.white.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(
-            'imageLoadFailed'.tr,
+            l10n.imageLoadFailed,
             style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
           ),

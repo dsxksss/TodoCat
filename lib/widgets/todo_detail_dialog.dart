@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/controllers/todo_detail_ctr.dart';
 import 'package:todo_cat/data/schemas/todo.dart';
 import 'package:todo_cat/core/utils/date_time.dart';
@@ -17,7 +19,9 @@ import 'package:todo_cat/widgets/tag_edit_dialog.dart';
 import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 
-class TodoDetailDialog extends StatelessWidget {
+import 'package:todo_cat/core/utils/l10n.dart';
+
+class TodoDetailDialog extends ConsumerWidget {
   final String todoId;
   final String taskId;
   final Todo? previewTodo;
@@ -30,6 +34,8 @@ class TodoDetailDialog extends StatelessWidget {
   });
 
   String get _dialogTag => 'todo_detail_dialog_$todoId';
+
+  bool get _isPreview => previewTodo != null;
 
   // 预处理 markdown 文本：将旧格式的 file:// 路径转换为标准格式
   static String _preprocessMarkdown(String text) {
@@ -56,43 +62,66 @@ class TodoDetailDialog extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.put(
-      TodoDetailController(
-        todoId: todoId,
-        taskId: taskId,
-        previewTodo: previewTodo,
-      ),
-      tag: _dialogTag, // 使用唯一的 tag 创建独立的 controller
-    );
-
-    return _buildDialog(context, controller);
+  /// 当前展示的 todo（预览模式直接用传入的，否则从详情 provider 读取）。
+  Todo? _watchTodo(WidgetRef ref) {
+    if (_isPreview) {
+      return ref
+          .watch(previewTodoDetailControllerProvider(previewTodo!))
+          .todo;
+    }
+    return ref
+        .watch(todoDetailControllerProvider((todoId: todoId, taskId: taskId)))
+        .todo;
   }
 
-  Widget _buildDialog(BuildContext context, TodoDetailController controller) {
-    return Obx(() {
-      final todo = controller.todo.value;
-      if (todo == null) {
-        return Container(
-          height: 400,
-          decoration: BoxDecoration(
-            color: context.theme.dialogTheme.backgroundColor,
-            border: Border.all(width: 0.3, color: context.theme.dividerColor),
-            borderRadius: context.isPhone
-                ? const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                  )
-                : BorderRadius.circular(10),
-          ),
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-      }
+  /// 状态/优先级文案（统一从对应 notifier 取）。
+  String _statusText(WidgetRef ref, TodoStatus status) {
+    if (_isPreview) {
+      return ref
+          .read(previewTodoDetailControllerProvider(previewTodo!).notifier)
+          .getStatusText(status);
+    }
+    return ref
+        .read(todoDetailControllerProvider((todoId: todoId, taskId: taskId))
+            .notifier)
+        .getStatusText(status);
+  }
 
+  String _priorityText(WidgetRef ref, TodoPriority priority) {
+    if (_isPreview) {
+      return ref
+          .read(previewTodoDetailControllerProvider(previewTodo!).notifier)
+          .getPriorityText(priority);
+    }
+    return ref
+        .read(todoDetailControllerProvider((todoId: todoId, taskId: taskId))
+            .notifier)
+        .getPriorityText(priority);
+  }
+
+  void _editTodo(WidgetRef ref) {
+    if (_isPreview) return;
+    ref
+        .read(todoDetailControllerProvider((todoId: todoId, taskId: taskId))
+            .notifier)
+        .editTodo();
+  }
+
+  void _deleteTodo(WidgetRef ref) {
+    if (_isPreview) return;
+    ref
+        .read(todoDetailControllerProvider((todoId: todoId, taskId: taskId))
+            .notifier)
+        .deleteTodo();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todo = _watchTodo(ref);
+
+    if (todo == null) {
       return Container(
+        height: 400,
         decoration: BoxDecoration(
           color: context.theme.dialogTheme.backgroundColor,
           border: Border.all(width: 0.3, color: context.theme.dividerColor),
@@ -103,164 +132,179 @@ class TodoDetailDialog extends StatelessWidget {
                 )
               : BorderRadius.circular(10),
         ),
-        child: Column(
-          children: [
-            // 头部
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: context.theme.dialogTheme.backgroundColor,
+        border: Border.all(width: 0.3, color: context.theme.dividerColor),
+        borderRadius: context.isPhone
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+              )
+            : BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          // 头部
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: context.theme.dividerColor,
+                  width: 0.3,
+                ),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.todoDetail,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                LabelBtn(
+                  label: const Icon(Icons.close, size: 20),
+                  onPressed: () {
+                    SmartDialog.dismiss(tag: _dialogTag);
+                  },
+                  padding: EdgeInsets.zero,
+                  ghostStyle: true,
+                ),
+              ],
+            ),
+          ),
+          // 内容区域
+          Expanded(
+            child: SelectionArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(15),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 标题部分
+                    _buildTitleSection(context, todo),
+                    const SizedBox(height: 15),
+
+                    // 描述部分
+                    if (todo.description.isNotEmpty) ...[
+                      _buildDescriptionSection(context, todo),
+                      const SizedBox(height: 15),
+                    ],
+
+                    // 状态和优先级
+                    _buildStatusSection(context, ref, todo),
+                    const SizedBox(height: 15),
+
+                    // 标签部分
+                    if (todo.tagsWithColor.isNotEmpty ||
+                        todo.tags.isNotEmpty) ...[
+                      _buildTagsSection(context, ref, todo),
+                      const SizedBox(height: 15),
+                    ],
+
+                    // 时间信息
+                    _buildTimeSection(context, todo),
+
+                    // 提醒信息
+                    if (todo.reminders > 0) ...[
+                      const SizedBox(height: 15),
+                      _buildReminderSection(context, todo),
+                    ],
+
+                    // 图片部分
+                    if (todo.images.isNotEmpty) ...[
+                      const SizedBox(height: 15),
+                      _buildImagesSection(context, todo),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // 底部按钮
+          if (!_isPreview)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(
+                  top: BorderSide(
                     color: context.theme.dividerColor,
                     width: 0.3,
                   ),
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    'todoDetail'.tr,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                   LabelBtn(
-                    label: const Icon(Icons.close, size: 20),
-                    onPressed: () {
-                      SmartDialog.dismiss(tag: _dialogTag);
-                    },
-                    padding: EdgeInsets.zero,
                     ghostStyle: true,
+                    label: Text(
+                      l10n.edit,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 2,
+                    ),
+                    onPressed: () => _editTodo(ref),
+                  ),
+                  const SizedBox(width: 8),
+                  LabelBtn(
+                    label: Text(
+                      l10n.delete,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    bgColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 2,
+                    ),
+                    onPressed: () {
+                      showToast(
+                        l10n.sureDeleteTodo,
+                        alwaysShow: true,
+                        confirmMode: true,
+                        toastStyleType: TodoCatToastStyleType.error,
+                        onYesCallback: () => _deleteTodo(ref),
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-            // 内容区域
-            Expanded(
-              child: SelectionArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(15),
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 标题部分
-                      _buildTitleSection(todo),
-                      const SizedBox(height: 15),
-
-                      // 描述部分
-                      if (todo.description.isNotEmpty) ...[
-                        _buildDescriptionSection(todo),
-                        const SizedBox(height: 15),
-                      ],
-
-                      // 状态和优先级
-                      _buildStatusSection(todo, controller),
-                      const SizedBox(height: 15),
-
-                      // 标签部分
-                      if (todo.tagsWithColor.isNotEmpty ||
-                          todo.tags.isNotEmpty) ...[
-                        _buildTagsSection(todo),
-                        const SizedBox(height: 15),
-                      ],
-
-                      // 时间信息
-                      _buildTimeSection(todo),
-
-                      // 提醒信息
-                      if (todo.reminders > 0) ...[
-                        const SizedBox(height: 15),
-                        _buildReminderSection(todo),
-                      ],
-
-                      // 图片部分
-                      if (todo.images.isNotEmpty) ...[
-                        const SizedBox(height: 15),
-                        _buildImagesSection(todo),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // 底部按钮
-            if (!controller.isPreview)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: context.theme.dividerColor,
-                      width: 0.3,
-                    ),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    LabelBtn(
-                      ghostStyle: true,
-                      label: Text(
-                        'edit'.tr,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 2,
-                      ),
-                      onPressed: () => controller.editTodo(),
-                    ),
-                    const SizedBox(width: 8),
-                    LabelBtn(
-                      label: Text(
-                        'delete'.tr,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      bgColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 2,
-                      ),
-                      onPressed: () {
-                        showToast(
-                          "sureDeleteTodo".tr,
-                          alwaysShow: true,
-                          confirmMode: true,
-                          toastStyleType: TodoCatToastStyleType.error,
-                          onYesCallback: () => controller.deleteTodo(),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      );
-    });
+        ],
+      ),
+    );
   }
 
-  Widget _buildTitleSection(Todo todo) {
+  Widget _buildTitleSection(BuildContext context, Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Get.theme.cardColor,
+        color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Get.theme.dividerColor,
+          color: context.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -276,7 +320,7 @@ class TodoDetailDialog extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'title'.tr,
+                l10n.title,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -298,14 +342,14 @@ class TodoDetailDialog extends StatelessWidget {
     ).animate().fadeIn(duration: 200.ms);
   }
 
-  Widget _buildDescriptionSection(Todo todo) {
+  Widget _buildDescriptionSection(BuildContext context, Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Get.theme.cardColor,
+        color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Get.theme.dividerColor,
+          color: context.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -321,7 +365,7 @@ class TodoDetailDialog extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'description'.tr,
+                l10n.description,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -595,10 +639,11 @@ class TodoDetailDialog extends StatelessWidget {
               code: TextStyle(
                 fontSize: 14,
                 fontFamily: 'monospace',
-                backgroundColor: Get.theme.dividerColor.withValues(alpha: 0.1),
+                backgroundColor:
+                    context.theme.dividerColor.withValues(alpha: 0.1),
               ),
               codeblockDecoration: BoxDecoration(
-                color: Get.theme.dividerColor.withValues(alpha: 0.1),
+                color: context.theme.dividerColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               blockquote: TextStyle(
@@ -609,7 +654,7 @@ class TodoDetailDialog extends StatelessWidget {
               ),
               listBullet: TextStyle(
                 fontSize: 16,
-                color: Get.theme.colorScheme.primary,
+                color: context.theme.colorScheme.primary,
               ),
             ),
           ),
@@ -618,14 +663,14 @@ class TodoDetailDialog extends StatelessWidget {
     ).animate(delay: 50.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildImagesSection(Todo todo) {
+  Widget _buildImagesSection(BuildContext context, Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Get.theme.cardColor,
+        color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Get.theme.dividerColor,
+          color: context.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -641,7 +686,7 @@ class TodoDetailDialog extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'images'.tr,
+                l10n.images,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -686,14 +731,14 @@ class TodoDetailDialog extends StatelessWidget {
     ).animate(delay: 100.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildStatusSection(Todo todo, TodoDetailController controller) {
+  Widget _buildStatusSection(BuildContext context, WidgetRef ref, Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Get.theme.cardColor,
+        color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Get.theme.dividerColor,
+          color: context.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -712,7 +757,7 @@ class TodoDetailDialog extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'status'.tr,
+                      l10n.status,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -734,7 +779,7 @@ class TodoDetailDialog extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    controller.getStatusText(todo.status),
+                    _statusText(ref, todo.status),
                     style: TextStyle(
                       color: _getStatusColor(todo.status),
                       fontWeight: FontWeight.w600,
@@ -759,7 +804,7 @@ class TodoDetailDialog extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'priority'.tr,
+                      l10n.priority,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -782,7 +827,7 @@ class TodoDetailDialog extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    controller.getPriorityText(todo.priority),
+                    _priorityText(ref, todo.priority),
                     style: TextStyle(
                       color: _getPriorityColor(todo.priority),
                       fontWeight: FontWeight.w600,
@@ -798,14 +843,14 @@ class TodoDetailDialog extends StatelessWidget {
     ).animate(delay: 100.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildTagsSection(Todo todo) {
+  Widget _buildTagsSection(BuildContext context, WidgetRef ref, Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Get.theme.cardColor,
+        color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Get.theme.dividerColor,
+          color: context.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -821,7 +866,7 @@ class TodoDetailDialog extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'tags'.tr,
+                l10n.tags,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -847,7 +892,8 @@ class TodoDetailDialog extends StatelessWidget {
                     initialColor: tagWithColor.color,
                     onSave: (newName, newColor) async {
                       try {
-                        final homeCtrl = Get.find<HomeController>();
+                        final homeCtrl =
+                            ref.read(homeControllerProvider.notifier);
                         final taskRepository =
                             await TaskRepository.getInstance();
                         final task = await taskRepository.readOne(taskId);
@@ -879,10 +925,11 @@ class TodoDetailDialog extends StatelessWidget {
                               await homeCtrl.updateTask(taskId, task);
 
                               // 刷新详情页面的 controller
-                              final detailController =
-                                  Get.find<TodoDetailController>(
-                                      tag: _dialogTag);
-                              detailController.refreshTodoDetail();
+                              ref
+                                  .read(todoDetailControllerProvider(
+                                          (todoId: todoId, taskId: taskId))
+                                      .notifier)
+                                  .refreshTodoDetail();
                             }
                           }
                         }
@@ -904,14 +951,14 @@ class TodoDetailDialog extends StatelessWidget {
     ).animate(delay: 150.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildTimeSection(Todo todo) {
+  Widget _buildTimeSection(BuildContext context, Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Get.theme.cardColor,
+        color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Get.theme.dividerColor,
+          color: context.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -927,7 +974,7 @@ class TodoDetailDialog extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'timeInfo'.tr,
+                l10n.timeInfo,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -944,7 +991,7 @@ class TodoDetailDialog extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'createdAt'.tr,
+                      l10n.createdAt,
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -968,7 +1015,7 @@ class TodoDetailDialog extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'dueDate'.tr,
+                        l10n.dueDate,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -993,14 +1040,14 @@ class TodoDetailDialog extends StatelessWidget {
     ).animate(delay: 200.ms).fadeIn(duration: 200.ms);
   }
 
-  Widget _buildReminderSection(Todo todo) {
+  Widget _buildReminderSection(BuildContext context, Todo todo) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Get.theme.cardColor,
+        color: context.theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Get.theme.dividerColor,
+          color: context.theme.dividerColor,
           width: 0.5,
         ),
       ),
@@ -1016,7 +1063,7 @@ class TodoDetailDialog extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'reminderTime'.tr,
+                l10n.reminderTime,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -1027,7 +1074,7 @@ class TodoDetailDialog extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '${todo.reminders} ${'minute'.tr}',
+            '${todo.reminders} ${l10n.minute}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,

@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/config/default_data.dart';
 import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
@@ -15,6 +15,7 @@ import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/data/services/repositorys/app_config.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/settings/settings_page.dart';
+import 'package:todo_cat/routers/app_router.dart';
 import 'package:todo_cat/widgets/dpd_menu_btn.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:file_picker/file_picker.dart';
@@ -25,74 +26,122 @@ import 'package:todo_cat/config/default_backgrounds.dart';
 import 'package:todo_cat/services/sync_manager.dart';
 import 'package:logger/logger.dart';
 
-class SettingsController extends GetxController {
-  static final _logger = Logger();
-  final AppController appCtrl = Get.find();
-  final HomeController homeCtrl = Get.find();
-  late final Rx<String> currentLanguage;
-  var isAnimating = false.obs;
-  // 开机自启动状态（仅桌面端）
-  final RxBool launchAtStartupEnabled = false.obs;
-  // 显示 Todo 图片封面状态
-  final RxBool showTodoImageEnabled = false.obs;
-  // 当前应用版本号
-  final RxString appVersion = 'Loading...'.obs;
-  // 更新检查状态
-  final RxDouble updateProgress =
-      0.0.obs; // 0.0 = 未开始, 0.0-1.0 = 进行中, 1.0 = 完成, -1.0 = 错误
-  final RxString updateStatus = ''.obs; // 更新状态文本
-  final RxBool isDownloading = false.obs; // 是否正在下载更新
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/platform.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
-  @override
-  void onClose() {
-    // 取消下载（如果正在下载）
-    if (isDownloading.value) {
-      appCtrl.autoUpdateService.cancelDownload();
-    }
-    super.onClose();
+part 'settings_ctr.g.dart';
+
+/// 设置页状态（原 SettingsController 的各 `.obs` 字段合并为不可变 state）。
+@immutable
+class SettingsState {
+  /// 当前语言显示名（"English" / "中文"）。
+  final String currentLanguage;
+
+  /// 主题切换动画进行中。
+  final bool isAnimating;
+
+  /// 开机自启动状态（仅桌面端）。
+  final bool launchAtStartupEnabled;
+
+  /// 显示 Todo 图片封面状态。
+  final bool showTodoImageEnabled;
+
+  /// 当前应用版本号。
+  final String appVersion;
+
+  /// 更新进度：0.0 = 未开始, 0.0-1.0 = 进行中, 1.0 = 完成, -1.0 = 错误。
+  final double updateProgress;
+
+  /// 更新状态文本。
+  final String updateStatus;
+
+  /// 是否正在下载更新。
+  final bool isDownloading;
+
+  const SettingsState({
+    this.currentLanguage = 'unknown',
+    this.isAnimating = false,
+    this.launchAtStartupEnabled = false,
+    this.showTodoImageEnabled = false,
+    this.appVersion = 'Loading...',
+    this.updateProgress = 0.0,
+    this.updateStatus = '',
+    this.isDownloading = false,
+  });
+
+  SettingsState copyWith({
+    String? currentLanguage,
+    bool? isAnimating,
+    bool? launchAtStartupEnabled,
+    bool? showTodoImageEnabled,
+    String? appVersion,
+    double? updateProgress,
+    String? updateStatus,
+    bool? isDownloading,
+  }) {
+    return SettingsState(
+      currentLanguage: currentLanguage ?? this.currentLanguage,
+      isAnimating: isAnimating ?? this.isAnimating,
+      launchAtStartupEnabled:
+          launchAtStartupEnabled ?? this.launchAtStartupEnabled,
+      showTodoImageEnabled: showTodoImageEnabled ?? this.showTodoImageEnabled,
+      appVersion: appVersion ?? this.appVersion,
+      updateProgress: updateProgress ?? this.updateProgress,
+      updateStatus: updateStatus ?? this.updateStatus,
+      isDownloading: isDownloading ?? this.isDownloading,
+    );
   }
+}
+
+/// 设置控制器（原 GetxController -> Riverpod Notifier，常驻）。
+@Riverpod(keepAlive: true)
+class SettingsController extends _$SettingsController {
+  static final _logger = Logger();
 
   @override
-  void onInit() {
-    super.onInit();
-    // 初始化显示 Todo 图片状态
-    showTodoImageEnabled.value = appCtrl.appConfig.value.showTodoImage;
-    // 监听配置变化
-    ever(appCtrl.appConfig, (config) {
-      showTodoImageEnabled.value = config.showTodoImage;
-    });
-    // 监听语言变化
-    ever(appCtrl.appConfig, (_) {
-      currentLanguage.value = _getLanguageTitle(
-        appCtrl.appConfig.value.locale.languageCode,
+  SettingsState build() {
+    final config = ref.read(appControllerProvider);
+
+    // 监听配置变化：同步 showTodoImage 与当前语言显示名
+    // （替代原 `ever(appCtrl.appConfig, ...)` 两个 worker）。
+    ref.listen(appControllerProvider, (previous, next) {
+      state = state.copyWith(
+        showTodoImageEnabled: next.showTodoImage,
+        currentLanguage: _getLanguageTitle(next.locale.languageCode),
       );
     });
 
-    currentLanguage = _getLanguageTitle(
-      appCtrl.appConfig.value.locale.languageCode,
-    ).obs;
-
     // 初始化自启动状态（桌面端）
-    if (GetPlatform.isDesktop) {
+    if (AppPlatform.isDesktop) {
       _refreshLaunchAtStartupState();
     }
 
     // 加载应用版本号
     _loadAppVersion();
+
+    // 下载中途销毁时取消下载（替代原 onClose）。
+    ref.onDispose(() {
+      if (state.isDownloading) {
+        ref.read(appControllerProvider.notifier).autoUpdateService
+            .cancelDownload();
+      }
+    });
+
+    return SettingsState(
+      showTodoImageEnabled: config.showTodoImage,
+      currentLanguage: _getLanguageTitle(config.locale.languageCode),
+    );
   }
 
   /// 加载应用版本号
   Future<void> _loadAppVersion() async {
     try {
       final version = await AutoUpdateService.getCurrentVersion();
-      if (version != null) {
-        appVersion.value = version;
-      } else {
-        appVersion.value = 'Unknown';
-      }
+      state = state.copyWith(appVersion: version ?? 'Unknown');
     } catch (e) {
       _logger.e('获取版本号失败: $e');
-      appVersion.value = 'Unknown';
+      state = state.copyWith(appVersion: 'Unknown');
     }
   }
 
@@ -108,7 +157,8 @@ class SettingsController extends GetxController {
   }
 
   void showSettings() {
-    if (Get.context!.isPhone) {
+    final context = rootNavigatorKey.currentContext!;
+    if (context.isPhone) {
       SmartDialog.show(
         tag: 'settings',
         alignment: Alignment.bottomCenter,
@@ -117,14 +167,14 @@ class SettingsController extends GetxController {
         useAnimation: true,
         animationTime: const Duration(milliseconds: 200),
         builder: (_) => Container(
-          width: Get.width,
-          height: Get.height * 0.6,
+          width: context.width,
+          height: context.height * 0.6,
           margin: EdgeInsets.only(
-            top: MediaQuery.of(Get.context!).padding.top + 20,
+            top: MediaQuery.of(context).padding.top + 20,
           ),
           decoration: BoxDecoration(
             // ignore: deprecated_member_use
-            color: Get.theme.dialogTheme.backgroundColor,
+            color: context.theme.dialogTheme.backgroundColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: const ClipRRect(
@@ -164,7 +214,7 @@ class SettingsController extends GetxController {
                   onTap: () => SmartDialog.dismiss(tag: 'settings'),
                   // 拖拽遮罩移动窗口
                   onPanStart: (_) {
-                    if (GetPlatform.isDesktop) {
+                    if (AppPlatform.isDesktop) {
                       windowManager.startDragging();
                     }
                   },
@@ -198,7 +248,8 @@ class SettingsController extends GetxController {
   }
 
   void showLanguageMenu(BuildContext context) {
-    final currentLocale = appCtrl.appConfig.value.locale.languageCode;
+    final currentLocale =
+        ref.read(appControllerProvider).locale.languageCode;
 
     showDpdMenu(
       tag: settingsDropDownMenuBtnTag,
@@ -219,35 +270,37 @@ class SettingsController extends GetxController {
   }
 
   Future<void> changeLanguage(Locale local) async {
-    // 先更新系统语言
-    await Get.updateLocale(local);
-    // 更新配置
-    appCtrl.appConfig.value = appCtrl.appConfig.value.copyWith(locale: local);
-    appCtrl.appConfig.refresh();
+    // 更新系统语言并写入配置（替代 GetX 的 Get.updateLocale + appConfig 刷新）。
+    await ref.read(appControllerProvider.notifier).changeLanguage(local);
 
     // 关闭语言选择菜单
     SmartDialog.dismiss(tag: settingsDropDownMenuBtnTag);
   }
 
   void targetEmailReminder() {
-    final newConfig = appCtrl.appConfig.value.copyWith(
-      emailReminderEnabled: !appCtrl.appConfig.value.emailReminderEnabled,
-    );
-    appCtrl.appConfig.value = newConfig;
-    appCtrl.appConfig.refresh();
+    final appConfig = ref.read(appControllerProvider);
+    ref.read(appControllerProvider.notifier).updateConfig(
+          appConfig.copyWith(
+            emailReminderEnabled: !appConfig.emailReminderEnabled,
+          ),
+        );
   }
 
   // 以下为开机自启动相关逻辑（桌面端）
   Future<void> _refreshLaunchAtStartupState() async {
+    // 注意：必须先 await 再读 state——若在 build() 返回初始 state 之前同步读取
+    // state（如 `state.copyWith(... await ...)` 中 state 作为接收者会先被求值），
+    // 会抛 "Tried to read the state of an uninitialized provider"。
     try {
-      launchAtStartupEnabled.value = await launchAtStartup.isEnabled();
+      final enabled = await launchAtStartup.isEnabled();
+      state = state.copyWith(launchAtStartupEnabled: enabled);
     } catch (_) {
-      launchAtStartupEnabled.value = false;
+      state = state.copyWith(launchAtStartupEnabled: false);
     }
   }
 
   Future<void> toggleLaunchAtStartup() async {
-    if (!GetPlatform.isDesktop) return;
+    if (!AppPlatform.isDesktop) return;
     try {
       final enabled = await launchAtStartup.isEnabled();
       if (enabled) {
@@ -262,31 +315,34 @@ class SettingsController extends GetxController {
   }
 
   void toggleShowTodoImage() {
-    final newConfig = appCtrl.appConfig.value.copyWith(
-      showTodoImage: !appCtrl.appConfig.value.showTodoImage,
-    );
-    appCtrl.appConfig.value = newConfig;
-    appCtrl.appConfig.refresh();
-    // AppController 的 ever 监听器会自动保存配置
+    final appConfig = ref.read(appControllerProvider);
+    ref.read(appControllerProvider.notifier).updateConfig(
+          appConfig.copyWith(
+            showTodoImage: !appConfig.showTodoImage,
+          ),
+        );
+    // AppController 会自动保存配置；showTodoImageEnabled 由 build 内的 listen 同步
   }
 
   void resetConfig() {
-    appCtrl.appConfig.value = defaultAppConfig.copyWith();
+    ref.read(appControllerProvider.notifier).updateConfig(
+          defaultAppConfig.copyWith(),
+        );
     changeLanguage(defaultAppConfig.locale);
   }
 
   void resetTasksTemplate() {
-    homeCtrl.resetTasksTemplate();
+    ref.read(homeControllerProvider.notifier).resetTasksTemplate();
   }
 
   /// 检查更新（仅桌面端）
   Future<void> checkForUpdates() async {
-    if (!GetPlatform.isDesktop) {
+    if (!AppPlatform.isDesktop) {
       return;
     }
 
     // 如果正在下载，不允许再次检查更新
-    if (isDownloading.value) {
+    if (state.isDownloading) {
       _logger.w('正在下载更新，无法再次检查');
       return;
     }
@@ -298,19 +354,21 @@ class SettingsController extends GetxController {
         _setupUpdateProgressListeners();
 
         // 开始检查更新
-        await appCtrl.checkForUpdates(silent: false);
+        await ref
+            .read(appControllerProvider.notifier)
+            .checkForUpdates(silent: false);
       } catch (e) {
         _logger.e('检查更新失败: $e');
-        updateProgress.value = -1.0;
-        updateStatus.value = 'updateError'.tr;
-        showToast('updateError'.tr);
+        state = state.copyWith(
+            updateProgress: -1.0, updateStatus: l10n.updateError);
+        showToast(l10n.updateError);
       }
     }
   }
 
   /// 取消更新下载
   Future<void> cancelUpdate() async {
-    if (!isDownloading.value) {
+    if (!state.isDownloading) {
       return;
     }
 
@@ -318,15 +376,18 @@ class SettingsController extends GetxController {
       _logger.i('用户取消更新下载');
 
       // 重置状态
-      isDownloading.value = false;
-      updateProgress.value = 0.0;
-      updateStatus.value = '';
+      state = state.copyWith(
+        isDownloading: false,
+        updateProgress: 0.0,
+        updateStatus: '',
+      );
 
       // 取消下载
-      appCtrl.autoUpdateService.cancelDownload();
+      ref.read(appControllerProvider.notifier).autoUpdateService
+          .cancelDownload();
 
       showToast(
-        'updateCancelled'.tr,
+        l10n.updateCancelled,
         toastStyleType: TodoCatToastStyleType.info,
         position: TodoCatToastPosition.bottomLeft,
       );
@@ -337,24 +398,27 @@ class SettingsController extends GetxController {
 
   /// 设置更新进度监听
   void _setupUpdateProgressListeners() {
-    final updateService = appCtrl.autoUpdateService;
+    final updateService =
+        ref.read(appControllerProvider.notifier).autoUpdateService;
 
     // 重置状态
-    updateProgress.value = 0.0;
-    updateStatus.value = 'checkingForUpdates'.tr;
+    state = state.copyWith(
+        updateProgress: 0.0, updateStatus: l10n.checkingForUpdates);
 
     // 设置进度回调
     updateService.onProgress = (progress, status) {
-      updateProgress.value = progress;
-      updateStatus.value = status;
+      state =
+          state.copyWith(updateProgress: progress, updateStatus: status);
       _logger.d('更新进度: $progress, 状态: $status');
     };
 
     updateService.onUpdateAvailable = (version, changelog) {
       // 发现新版本，通知已通过 _notifyUpdateAvailable 发送到通知中心
       _logger.i('发现新版本: $version');
-      updateProgress.value = 1.0;
-      updateStatus.value = '${'newVersionAvailable'.tr}: $version';
+      state = state.copyWith(
+        updateProgress: 1.0,
+        updateStatus: '${l10n.newVersionAvailable}: $version',
+      );
 
       // 显示更新方式选择对话框
       _showUpdateMethodDialog(version);
@@ -362,37 +426,37 @@ class SettingsController extends GetxController {
 
     updateService.onUpdateComplete = () {
       // 重置下载状态
-      isDownloading.value = false;
-
       _logger.i('更新完成');
-      updateProgress.value = 1.0;
-      updateStatus.value = 'updateComplete'.tr;
-      showToast('updateComplete'.tr,
+      state = state.copyWith(
+        isDownloading: false,
+        updateProgress: 1.0,
+        updateStatus: l10n.updateComplete,
+      );
+      showToast(l10n.updateComplete,
           toastStyleType: TodoCatToastStyleType.success);
 
       // 3秒后重置状态
       Future.delayed(const Duration(seconds: 3), () {
-        if (updateProgress.value == 1.0) {
-          updateProgress.value = 0.0;
-          updateStatus.value = '';
+        if (state.updateProgress == 1.0) {
+          state = state.copyWith(updateProgress: 0.0, updateStatus: '');
         }
       });
     };
 
     updateService.onUpdateError = (error) {
       // 重置下载状态
-      isDownloading.value = false;
-
       _logger.e('更新错误: $error');
-      updateProgress.value = -1.0;
-      updateStatus.value = 'updateError'.tr;
-      showToast('updateError'.tr, toastStyleType: TodoCatToastStyleType.error);
+      state = state.copyWith(
+        isDownloading: false,
+        updateProgress: -1.0,
+        updateStatus: l10n.updateError,
+      );
+      showToast(l10n.updateError, toastStyleType: TodoCatToastStyleType.error);
 
       // 3秒后重置状态
       Future.delayed(const Duration(seconds: 3), () {
-        if (updateProgress.value == -1.0) {
-          updateProgress.value = 0.0;
-          updateStatus.value = '';
+        if (state.updateProgress == -1.0) {
+          state = state.copyWith(updateProgress: 0.0, updateStatus: '');
         }
       });
     };
@@ -400,16 +464,17 @@ class SettingsController extends GetxController {
     // 监听已是最新版本的回调
     updateService.onAlreadyLatestVersion = () {
       _logger.i('已是最新版本');
-      updateProgress.value = 1.0;
-      updateStatus.value = 'alreadyLatestVersion'.tr;
-      showToast('alreadyLatestVersion'.tr,
+      state = state.copyWith(
+        updateProgress: 1.0,
+        updateStatus: l10n.alreadyLatestVersion,
+      );
+      showToast(l10n.alreadyLatestVersion,
           toastStyleType: TodoCatToastStyleType.success);
 
       // 3秒后重置状态
       Future.delayed(const Duration(seconds: 3), () {
-        if (updateProgress.value == 1.0) {
-          updateProgress.value = 0.0;
-          updateStatus.value = '';
+        if (state.updateProgress == 1.0) {
+          state = state.copyWith(updateProgress: 0.0, updateStatus: '');
         }
       });
     };
@@ -437,7 +502,7 @@ class SettingsController extends GetxController {
           children: [
             // 标题
             Text(
-              'selectUpdateMethod'.tr,
+              l10n.selectUpdateMethod,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -446,7 +511,7 @@ class SettingsController extends GetxController {
             ),
             const SizedBox(height: 8),
             Text(
-              'selectUpdateMethodDesc'.tr,
+              l10n.selectUpdateMethodDesc,
               style: TextStyle(
                 fontSize: 14,
                 color: context.theme.textTheme.bodyMedium?.color,
@@ -456,16 +521,18 @@ class SettingsController extends GetxController {
             // 直接下载更新选项
             _buildUpdateMethodOption(
               context: context,
-              title: 'updateViaDownload'.tr,
-              description: 'updateViaDownloadDesc'.tr,
+              title: l10n.updateViaDownload,
+              description: l10n.updateViaDownloadDesc,
               icon: Icons.download,
               iconColor: Colors.blueAccent,
               onTap: () {
                 SmartDialog.dismiss(tag: 'update_method_dialog');
                 // 更新状态为"更新新版本中"，显示下载进度
-                isDownloading.value = true;
-                updateProgress.value = 0.1;
-                updateStatus.value = 'downloadingUpdate'.tr;
+                state = state.copyWith(
+                  isDownloading: true,
+                  updateProgress: 0.1,
+                  updateStatus: l10n.downloadingUpdate,
+                );
                 _logger.i('用户选择直接下载更新: $version');
                 _triggerDesktopUpdaterDownload();
               },
@@ -475,27 +542,29 @@ class SettingsController extends GetxController {
             if (Platform.isWindows)
               _buildUpdateMethodOption(
                 context: context,
-                title: 'updateViaStore'.tr,
-                description: 'updateViaStoreDesc'.tr,
+                title: l10n.updateViaStore,
+                description: l10n.updateViaStoreDesc,
                 icon: Icons.store,
                 iconColor: Colors.greenAccent,
                 onTap: () async {
                   SmartDialog.dismiss(tag: 'update_method_dialog');
                   _logger.i('用户选择通过微软商店更新: $version');
-                  final success =
-                      await appCtrl.autoUpdateService.openMicrosoftStore();
+                  final success = await ref
+                      .read(appControllerProvider.notifier)
+                      .autoUpdateService
+                      .openMicrosoftStore();
                   if (success) {
                     showToast(
-                      'openMicrosoftStore'.tr,
+                      l10n.openMicrosoftStore,
                       toastStyleType: TodoCatToastStyleType.success,
                       position: TodoCatToastPosition.bottomLeft,
                     );
                     // 重置状态
-                    updateProgress.value = 0.0;
-                    updateStatus.value = '';
+                    state =
+                        state.copyWith(updateProgress: 0.0, updateStatus: '');
                   } else {
                     showToast(
-                      'failedToOpenStore'.tr,
+                      l10n.failedToOpenStore,
                       toastStyleType: TodoCatToastStyleType.error,
                       position: TodoCatToastPosition.bottomLeft,
                     );
@@ -508,12 +577,12 @@ class SettingsController extends GetxController {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 LabelBtn(
-                  label: Text('cancel'.tr),
+                  label: Text(l10n.cancel),
                   ghostStyle: true,
                   onPressed: () {
                     SmartDialog.dismiss(tag: 'update_method_dialog');
-                    updateProgress.value = 0.0;
-                    updateStatus.value = '';
+                    state =
+                        state.copyWith(updateProgress: 0.0, updateStatus: '');
                   },
                 ),
               ],
@@ -619,22 +688,27 @@ class SettingsController extends GetxController {
   Future<void> _triggerDesktopUpdaterDownload() async {
     try {
       // 设置下载进度监听
-      final updateService = appCtrl.autoUpdateService;
+      final updateService =
+          ref.read(appControllerProvider.notifier).autoUpdateService;
       updateService.onProgress = (progress, status) {
-        updateProgress.value = progress;
-        updateStatus.value =
-            status.isNotEmpty ? status : 'downloadingUpdate'.tr;
+        state = state.copyWith(
+          updateProgress: progress,
+          updateStatus: status.isNotEmpty ? status : l10n.downloadingUpdate,
+        );
         _logger.d('更新进度: $progress, 状态: $status');
       };
 
       // 下载并安装更新
-      await appCtrl.autoUpdateService.downloadAndInstallUpdate();
+      await ref
+          .read(appControllerProvider.notifier)
+          .autoUpdateService
+          .downloadAndInstallUpdate();
     } catch (e) {
       _logger.e('下载或安装更新失败: $e');
-      updateProgress.value = -1.0;
-      updateStatus.value = 'updateError'.tr;
+      state =
+          state.copyWith(updateProgress: -1.0, updateStatus: l10n.updateError);
       showToast(
-        'updateError'.tr,
+        l10n.updateError,
         toastStyleType: TodoCatToastStyleType.error,
       );
     }
@@ -644,7 +718,7 @@ class SettingsController extends GetxController {
   Future<void> selectBackgroundImage() async {
     try {
       // 移动端只允许选择图片，桌面端可以选择图片或视频
-      final allowedExtensions = GetPlatform.isMobile
+      final allowedExtensions = AppPlatform.isMobile
           ? ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
           : [
               'jpg',
@@ -671,7 +745,7 @@ class SettingsController extends GetxController {
         final file = result.files.first;
         if (file.path != null) {
           // 移动端检查：如果选择了视频文件，拒绝并提示
-          if (GetPlatform.isMobile) {
+          if (AppPlatform.isMobile) {
             final isVideo = file.path!.toLowerCase().endsWith('.mp4') ||
                 file.path!.toLowerCase().endsWith('.mov') ||
                 file.path!.toLowerCase().endsWith('.avi') ||
@@ -687,10 +761,10 @@ class SettingsController extends GetxController {
 
           // 直接使用选择的图片或视频（桌面端暂不支持裁剪）
           // 更新应用配置
-          appCtrl.appConfig.value = appCtrl.appConfig.value.copyWith(
-            backgroundImagePath: file.path,
-          );
-          appCtrl.appConfig.refresh();
+          final appConfig = ref.read(appControllerProvider);
+          await ref.read(appControllerProvider.notifier).updateConfig(
+                appConfig.copyWith(backgroundImagePath: file.path),
+              );
 
           // 检查是否为视频文件
           final isVideo = file.path!.toLowerCase().endsWith('.mp4') ||
@@ -700,17 +774,17 @@ class SettingsController extends GetxController {
               file.path!.toLowerCase().endsWith('.webm');
 
           if (isVideo) {
-            showToast('backgroundVideoSetSuccess'.tr);
+            showToast(l10n.backgroundVideoSetSuccess);
             _logger.i('背景视频已设置: ${file.path}');
           } else {
-            showToast('backgroundImageSetSuccess'.tr);
+            showToast(l10n.backgroundImageSetSuccess);
             _logger.i('背景图片已设置: ${file.path}');
           }
         }
       }
     } catch (e) {
       _logger.e('选择背景文件失败: $e');
-      showToast('selectBackgroundImageFailed'.tr);
+      showToast(l10n.selectBackgroundImageFailed);
     }
   }
 
@@ -718,7 +792,7 @@ class SettingsController extends GetxController {
   Future<void> selectDefaultBackground(String templateId) async {
     try {
       // 移动端检查：如果选择的是视频模板，拒绝并提示
-      if (GetPlatform.isMobile) {
+      if (AppPlatform.isMobile) {
         final template = DefaultBackgrounds.getById(templateId);
         if (template != null && template.isVideo) {
           showToast('移动端不支持视频背景', toastStyleType: TodoCatToastStyleType.error);
@@ -731,16 +805,16 @@ class SettingsController extends GetxController {
       // 格式: default_template:{templateId}
       final templatePath = 'default_template:$templateId';
 
-      appCtrl.appConfig.value = appCtrl.appConfig.value.copyWith(
-        backgroundImagePath: templatePath,
-      );
-      appCtrl.appConfig.refresh();
+      final appConfig = ref.read(appControllerProvider);
+      await ref.read(appControllerProvider.notifier).updateConfig(
+            appConfig.copyWith(backgroundImagePath: templatePath),
+          );
 
-      showToast('backgroundTemplateApplied'.tr);
+      showToast(l10n.backgroundTemplateApplied);
       _logger.i('应用默认背景模板: $templateId');
     } catch (e) {
       _logger.e('应用默认背景模板失败: $e');
-      showToast('applyDefaultTemplateFailed'.tr);
+      showToast(l10n.applyDefaultTemplateFailed);
     }
   }
 
@@ -748,17 +822,19 @@ class SettingsController extends GetxController {
   Future<void> clearBackgroundImage() async {
     try {
       // 直接设置backgroundImagePath为null，因为copyWith方法无法正确处理null值
-      final currentConfig = appCtrl.appConfig.value;
+      final currentConfig = ref.read(appControllerProvider);
       currentConfig.backgroundImagePath = null; // 清除背景图片路径
 
       // 触发更新，这会自动保存到数据库
-      appCtrl.appConfig.refresh();
+      await ref
+          .read(appControllerProvider.notifier)
+          .updateConfig(currentConfig);
 
-      showToast('backgroundImageCleared'.tr);
+      showToast(l10n.backgroundImageCleared);
       _logger.i('背景图片已清除');
     } catch (e) {
       _logger.e('清除背景图片设置失败: $e');
-      showToast('backgroundImageClearFailed'.tr);
+      showToast(l10n.backgroundImageClearFailed);
     }
   }
 
@@ -791,8 +867,9 @@ class SettingsController extends GetxController {
       }
 
       // 3. 重置应用配置为默认值
-      appCtrl.appConfig.value = defaultAppConfig.copyWith();
-      appCtrl.appConfig.refresh();
+      await ref.read(appControllerProvider.notifier).updateConfig(
+            defaultAppConfig.copyWith(),
+          );
 
       // 4. 清除同步配置和状态
       await SyncManager().clearConfig();
@@ -800,36 +877,29 @@ class SettingsController extends GetxController {
 
       // 5. 重新初始化工作空间（会创建默认工作空间）
       try {
-        if (Get.isRegistered<WorkspaceController>()) {
-          final workspaceCtrl = Get.find<WorkspaceController>();
-          // 重新加载工作空间（会触发创建默认工作空间）
-          await workspaceCtrl.loadWorkspaces();
-          // 如果没有工作空间，创建默认工作空间
-          if (workspaceCtrl.workspaces.isEmpty) {
-            await workspaceCtrl.createDefaultWorkspace();
-          }
-          // 确保当前工作空间是默认工作空间
-          workspaceCtrl.currentWorkspaceId.value = 'default';
+        final workspaceCtrl = ref.read(workspaceControllerProvider.notifier);
+        // 重新加载工作空间（会触发创建默认工作空间）
+        await workspaceCtrl.loadWorkspaces();
+        // 如果没有工作空间，创建默认工作空间
+        if (ref.read(workspaceControllerProvider).workspaces.isEmpty) {
+          await workspaceCtrl.createDefaultWorkspace();
         }
+        // 确保当前工作空间是默认工作空间
+        await workspaceCtrl.switchWorkspace('default');
       } catch (e) {
         _logger.e('重新初始化工作空间失败: $e');
       }
 
       // 5. 刷新回收站数据（清空回收站显示）
       try {
-        if (Get.isRegistered<TrashController>()) {
-          final trashCtrl = Get.find<TrashController>();
-          await trashCtrl.refresh();
-        }
+        await ref.read(trashControllerProvider.notifier).refresh();
       } catch (e) {
         _logger.e('刷新回收站数据失败: $e');
       }
 
       // 6. 清空主页任务列表（确保不显示旧数据）
       try {
-        // 先清空内存中的任务列表
-        homeCtrl.tasks.clear();
-        homeCtrl.reactiveTasks.refresh();
+        final homeCtrl = ref.read(homeControllerProvider.notifier);
 
         // 验证数据库是否真的被清空（检查任务数量）
         final taskRepo = await TaskRepository.getInstance();
@@ -843,14 +913,16 @@ class SettingsController extends GetxController {
         }
 
         // 然后刷新数据（不显示空任务提示，因为这是清除操作）
+        // refreshData(clearBeforeRefresh: true) 会先清空内存任务再从数据库重读，
+        // 替代原 GetX 的 tasks.clear() + reactiveTasks.refresh()。
         await homeCtrl.refreshData(
             showEmptyPrompt: false, clearBeforeRefresh: true);
 
         // 再次验证任务列表是否为空
         if (homeCtrl.tasks.isNotEmpty) {
           _logger.w('刷新后仍有 ${homeCtrl.tasks.length} 个任务，强制清空...');
-          homeCtrl.tasks.clear();
-          homeCtrl.reactiveTasks.refresh();
+          await homeCtrl.refreshData(
+              showEmptyPrompt: false, clearBeforeRefresh: true);
         }
       } catch (e) {
         _logger.e('刷新主页数据失败: $e');

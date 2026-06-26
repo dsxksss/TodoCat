@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_cat/data/services/database.dart';
 import 'package:flutter/services.dart';
 import 'package:todo_cat/pages/app.dart';
@@ -8,6 +9,7 @@ import 'package:todo_cat/window/init_window.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:dart_openai/dart_openai.dart';
+import 'package:todo_cat/config/ai_config.dart';
 
 void main() async {
   // 使用 runZonedGuarded 捕获所有异步错误
@@ -16,9 +18,15 @@ void main() async {
       // 确保flutterBinding初始化成功
       WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-      // 初始化 OpenAI
-      OpenAI.apiKey = "sk-zk24ca892d6bba0d536c60457590a62889366ac4bfd88471";
-      OpenAI.baseUrl = "https://api.zhizengzeng.com";
+      // 初始化 AI/LLM（密钥经 --dart-define-from-file=secrets.json 注入，不写入源码）
+      OpenAI.baseUrl = AiConfig.baseUrl;
+      if (AiConfig.isConfigured) {
+        OpenAI.apiKey = AiConfig.apiKey;
+      } else {
+        debugPrint('⚠️ 未配置 AI key（DEEPSEEK_API_KEY），AI 功能将不可用。'
+            '请复制 secrets.example.json 为 secrets.json 并填入 key，'
+            '运行/构建时加 --dart-define-from-file=secrets.json');
+      }
       // OpenAI.showLogs = true;
 
       // 全局错误处理：捕获并忽略特定的 setState 错误
@@ -71,7 +79,9 @@ void main() async {
       }
 
       runApp(
-        const App(),
+        const ProviderScope(
+          child: App(),
+        ),
       );
     },
     (error, stack) {

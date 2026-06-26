@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:get/get.dart';
-import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/controllers/app_ctr.dart';
 import 'package:todo_cat/controllers/settings_ctr.dart';
+import 'package:todo_cat/widgets/label_btn.dart';
+import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/config/default_backgrounds.dart';
 import 'package:todo_cat/widgets/video_thumbnail.dart';
 import 'package:todo_cat/services/video_download_service.dart';
 import 'dart:io';
 
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/platform.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
 /// 背景设置对话框
-class BackgroundSettingDialog extends StatelessWidget {
+class BackgroundSettingDialog extends ConsumerWidget {
   const BackgroundSettingDialog({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: context.theme.dialogTheme.backgroundColor,
@@ -46,7 +52,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'backgroundSetting'.tr,
+                      l10n.backgroundSetting,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -77,7 +83,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                 children: [
                   // 默认背景图片模板
                   Text(
-                    'defaultBackgroundImages'.tr,
+                    l10n.defaultBackgroundImages,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -91,7 +97,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                   // 默认背景视频模板（移动端不显示）
                   if (!context.isPhone) ...[
                     Text(
-                      'defaultBackgroundVideos'.tr,
+                      l10n.defaultBackgroundVideos,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -108,17 +114,15 @@ class BackgroundSettingDialog extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // 当前状态
-                  Obx(() {
-                    final settingsCtrl = Get.find<SettingsController>();
-                    final appCtrl = settingsCtrl.appCtrl;
-                    final config = appCtrl.appConfig.value;
+                  Consumer(builder: (context, ref, _) {
+                    final config = ref.watch(appControllerProvider);
                     final isDefaultTemplate =
                         config.backgroundImagePath != null &&
                             config.backgroundImagePath!
                                 .startsWith('default_template:');
                     final isCustomImage = config.backgroundImagePath != null &&
                         !isDefaultTemplate &&
-                        GetPlatform.isDesktop &&
+                        AppPlatform.isDesktop &&
                         File(config.backgroundImagePath!).existsSync();
                     final isCustomVideo = isCustomImage &&
                         (config.backgroundImagePath!
@@ -220,11 +224,11 @@ class BackgroundSettingDialog extends StatelessWidget {
                                 child: Text(
                                   hasBackground
                                       ? (isDefaultTemplate
-                                          ? 'defaultTemplateApplied'.tr
+                                          ? l10n.defaultTemplateApplied
                                           : (isVideo
-                                              ? 'backgroundVideoSet'.tr
-                                              : 'backgroundImageSet'.tr))
-                                      : 'backgroundImageNotSet'.tr,
+                                              ? l10n.backgroundVideoSet
+                                              : l10n.backgroundImageSet))
+                                      : l10n.backgroundImageNotSet,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: context
@@ -242,16 +246,15 @@ class BackgroundSettingDialog extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // 背景设置调节
-                  Obx(() {
-                    final settingsCtrl = Get.find<SettingsController>();
-                    final config = settingsCtrl.appCtrl.appConfig.value;
+                  Consumer(builder: (context, ref, _) {
+                    final config = ref.watch(appControllerProvider);
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 透明度设置
                         Text(
-                          'opacity'.tr,
+                          l10n.opacity,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -262,16 +265,17 @@ class BackgroundSettingDialog extends StatelessWidget {
                         OpacitySlider(
                           value: config.backgroundImageOpacity,
                           onChanged: (value) {
-                            settingsCtrl.appCtrl.appConfig.value =
-                                config.copyWith(backgroundImageOpacity: value);
-                            settingsCtrl.appCtrl.appConfig.refresh();
+                            ref.read(appControllerProvider.notifier).updateConfig(
+                                  config.copyWith(
+                                      backgroundImageOpacity: value),
+                                );
                           },
                         ),
                         const SizedBox(height: 12),
 
                         // 模糊度设置
                         Text(
-                          'blur'.tr,
+                          l10n.blur,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -282,9 +286,9 @@ class BackgroundSettingDialog extends StatelessWidget {
                         BlurSlider(
                           value: config.backgroundImageBlur,
                           onChanged: (value) {
-                            settingsCtrl.appCtrl.appConfig.value =
-                                config.copyWith(backgroundImageBlur: value);
-                            settingsCtrl.appCtrl.appConfig.refresh();
+                            ref.read(appControllerProvider.notifier).updateConfig(
+                                  config.copyWith(backgroundImageBlur: value),
+                                );
                           },
                         ),
                         const SizedBox(height: 12),
@@ -305,7 +309,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'affectsNavBar'.tr,
+                                      l10n.affectsNavBar,
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
@@ -320,9 +324,12 @@ class BackgroundSettingDialog extends StatelessWidget {
                             Switch(
                               value: config.backgroundAffectsNavBar,
                               onChanged: (value) {
-                                settingsCtrl.appCtrl.appConfig.value = config
-                                    .copyWith(backgroundAffectsNavBar: value);
-                                settingsCtrl.appCtrl.appConfig.refresh();
+                                ref
+                                    .read(appControllerProvider.notifier)
+                                    .updateConfig(
+                                      config.copyWith(
+                                          backgroundAffectsNavBar: value),
+                                    );
                               },
                             ),
                           ],
@@ -333,9 +340,10 @@ class BackgroundSettingDialog extends StatelessWidget {
                   }),
 
                   // 操作按钮
-                  Obx(() {
-                    final settingsCtrl = Get.find<SettingsController>();
-                    final config = settingsCtrl.appCtrl.appConfig.value;
+                  Consumer(builder: (context, ref, _) {
+                    final config = ref.watch(appControllerProvider);
+                    final settingsCtrl =
+                        ref.read(settingsControllerProvider.notifier);
                     final isDefaultTemplate =
                         config.backgroundImagePath != null &&
                             config.backgroundImagePath!
@@ -343,7 +351,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                     final isCustomImage = config.backgroundImagePath != null &&
                         !isDefaultTemplate &&
                         config.backgroundImagePath!.isNotEmpty &&
-                        GetPlatform.isDesktop &&
+                        AppPlatform.isDesktop &&
                         File(config.backgroundImagePath!).existsSync();
                     final hasBackground = isDefaultTemplate || isCustomImage;
 
@@ -362,7 +370,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 Flexible(
                                     child: Text(
-                                  'selectBackground'.tr,
+                                  l10n.selectBackground,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(color: Colors.white),
                                 )),
@@ -393,7 +401,7 @@ class BackgroundSettingDialog extends StatelessWidget {
                                   const Icon(Icons.delete_outline, size: 18),
                                   const SizedBox(width: 8),
                                   Flexible(
-                                      child: Text('clearBackground'.tr,
+                                      child: Text(l10n.clearBackground,
                                           textAlign: TextAlign.center)),
                                 ],
                               ),
@@ -584,96 +592,94 @@ class BackgroundSettingDialog extends StatelessWidget {
 }
 
 /// 默认背景图片模板网格
-class DefaultBackgroundImageGrid extends StatelessWidget {
+class DefaultBackgroundImageGrid extends ConsumerWidget {
   const DefaultBackgroundImageGrid({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final settingsCtrl = Get.find<SettingsController>();
-      final config = settingsCtrl.appCtrl.appConfig.value;
-      final currentTemplateId =
-          config.backgroundImagePath?.startsWith('default_template:') ?? false
-              ? config.backgroundImagePath!.split(':').last
-              : null;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(appControllerProvider);
+    final settingsCtrl = ref.read(settingsControllerProvider.notifier);
+    final currentTemplateId =
+        config.backgroundImagePath?.startsWith('default_template:') ?? false
+            ? config.backgroundImagePath!.split(':').last
+            : null;
 
-      // 过滤出图片模板
-      final imageTemplates = DefaultBackgrounds.templates
-          .where((template) => !template.isVideo)
-          .toList();
+    // 过滤出图片模板
+    final imageTemplates = DefaultBackgrounds.templates
+        .where((template) => !template.isVideo)
+        .toList();
 
-      if (imageTemplates.isEmpty) {
-        return const SizedBox.shrink();
-      }
+    if (imageTemplates.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.2,
-        ),
-        itemCount: imageTemplates.length,
-        itemBuilder: (context, index) {
-          final template = imageTemplates[index];
-          final isSelected = currentTemplateId == template.id;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: imageTemplates.length,
+      itemBuilder: (context, index) {
+        final template = imageTemplates[index];
+        final isSelected = currentTemplateId == template.id;
 
-          return GestureDetector(
-            onTap: () async {
-              // 应用模板
-              await settingsCtrl.selectDefaultBackground(template.id);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isSelected
-                      ? context.theme.primaryColor
-                      : Colors.transparent,
-                  width: isSelected ? 2 : 0,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(7),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // 图片背景
-                    _buildImagePlaceholder(template.id),
-                    // 选中指示器
-                    if (isSelected)
-                      Container(
-                        alignment: Alignment.topRight,
-                        padding: const EdgeInsets.all(6),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: context.theme.primaryColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            size: 14,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+        return GestureDetector(
+          onTap: () async {
+            // 应用模板
+            await settingsCtrl.selectDefaultBackground(template.id);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected
+                    ? context.theme.primaryColor
+                    : Colors.transparent,
+                width: isSelected ? 2 : 0,
               ),
             ),
-          );
-        },
-      );
-    });
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(7),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 图片背景
+                  _buildImagePlaceholder(template.id),
+                  // 选中指示器
+                  if (isSelected)
+                    Container(
+                      alignment: Alignment.topRight,
+                      padding: const EdgeInsets.all(6),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: context.theme.primaryColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildImagePlaceholder(String templateId) {
@@ -707,16 +713,16 @@ class DefaultBackgroundImageGrid extends StatelessWidget {
 }
 
 /// 默认背景视频模板网格
-class DefaultBackgroundVideoGrid extends StatefulWidget {
+class DefaultBackgroundVideoGrid extends ConsumerStatefulWidget {
   const DefaultBackgroundVideoGrid({super.key});
 
   @override
-  State<DefaultBackgroundVideoGrid> createState() =>
+  ConsumerState<DefaultBackgroundVideoGrid> createState() =>
       _DefaultBackgroundVideoGridState();
 }
 
 class _DefaultBackgroundVideoGridState
-    extends State<DefaultBackgroundVideoGrid> {
+    extends ConsumerState<DefaultBackgroundVideoGrid> {
   final VideoDownloadService _downloadService = VideoDownloadService();
   final Map<String, double> _downloadProgress = {};
   final Map<String, bool> _isDownloading = {};
@@ -780,10 +786,10 @@ class _DefaultBackgroundVideoGridState
           });
           // 如果是取消操作，不显示错误提示
           if (error != '下载已取消') {
-            Get.snackbar(
-              'downloadFailed'.tr,
-              error,
-              snackPosition: SnackPosition.BOTTOM,
+            showToast(
+              '${l10n.downloadFailed}: $error',
+              toastStyleType: TodoCatToastStyleType.error,
+              position: TodoCatToastPosition.bottomLeft,
             );
           }
         }
@@ -989,7 +995,7 @@ class _BlurSliderState extends State<BlurSlider> {
 }
 
 /// 视频网格项组件（独立组件，避免整个 GridView 重建）
-class _VideoGridItem extends StatelessWidget {
+class _VideoGridItem extends ConsumerWidget {
   final DefaultBackground template;
   final VideoDownloadService downloadService;
   final bool isCached;
@@ -1008,91 +1014,89 @@ class _VideoGridItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // 只监听当前选中的模板ID，而不是整个 appConfig
-    return Obx(() {
-      final settingsCtrl = Get.find<SettingsController>();
-      final config = settingsCtrl.appCtrl.appConfig.value;
-      final currentTemplateId =
-          config.backgroundImagePath?.startsWith('default_template:') ?? false
-              ? config.backgroundImagePath!.split(':').last
-              : null;
-      final isSelected = currentTemplateId == template.id;
-      final needsDownload = template.downloadUrl != null && !isCached;
+    final config = ref.watch(appControllerProvider);
+    final settingsCtrl = ref.read(settingsControllerProvider.notifier);
+    final currentTemplateId =
+        config.backgroundImagePath?.startsWith('default_template:') ?? false
+            ? config.backgroundImagePath!.split(':').last
+            : null;
+    final isSelected = currentTemplateId == template.id;
+    final needsDownload = template.downloadUrl != null && !isCached;
 
-      return GestureDetector(
-        onTap: needsDownload && !isDownloading
-            ? null
-            : () async {
-                // 如果有downloadUrl，需要先检查是否已缓存
-                if (template.downloadUrl != null) {
-                  final cached = await downloadService
-                      .isVideoCached(template.downloadUrl!);
-                  if (!cached) {
-                    // 未缓存，不能应用
-                    return;
-                  }
+    return GestureDetector(
+      onTap: needsDownload && !isDownloading
+          ? null
+          : () async {
+              // 如果有downloadUrl，需要先检查是否已缓存
+              if (template.downloadUrl != null) {
+                final cached =
+                    await downloadService.isVideoCached(template.downloadUrl!);
+                if (!cached) {
+                  // 未缓存，不能应用
+                  return;
                 }
-                // 应用模板
-                await settingsCtrl.selectDefaultBackground(template.id);
-              },
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color:
-                  isSelected ? context.theme.primaryColor : Colors.transparent,
-              width: isSelected ? 2 : 0,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(7),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // 视频背景或缩略图
-                _buildVideoPlaceholder(),
-                // 下载按钮或进度条
-                if (needsDownload)
-                  Container(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    child: Center(
-                      child: isDownloading
-                          ? _buildDownloadProgressWithCancel(
-                              context, downloadProgress)
-                          : _buildDownloadButton(context),
-                    ),
-                  ),
-                // 选中指示器
-                if (isSelected && !needsDownload)
-                  Container(
-                    alignment: Alignment.topRight,
-                    padding: const EdgeInsets.all(6),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: context.theme.primaryColor,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.check,
-                        size: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+              }
+              // 应用模板
+              await settingsCtrl.selectDefaultBackground(template.id);
+            },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color:
+                isSelected ? context.theme.primaryColor : Colors.transparent,
+            width: isSelected ? 2 : 0,
           ),
         ),
-      );
-    });
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(7),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 视频背景或缩略图
+              _buildVideoPlaceholder(),
+              // 下载按钮或进度条
+              if (needsDownload)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: Center(
+                    child: isDownloading
+                        ? _buildDownloadProgressWithCancel(
+                            context, downloadProgress)
+                        : _buildDownloadButton(context),
+                  ),
+                ),
+              // 选中指示器
+              if (isSelected && !needsDownload)
+                Container(
+                  alignment: Alignment.topRight,
+                  padding: const EdgeInsets.all(6),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: context.theme.primaryColor,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildVideoPlaceholder() {
@@ -1176,7 +1180,7 @@ class _VideoGridItem extends StatelessWidget {
   }
 
   Widget _buildDownloadProgress(BuildContext context, double progress) {
-    final theme = Get.theme;
+    final theme = context.theme;
     final isDark = theme.brightness == Brightness.dark;
     const progressColor = Colors.blueAccent;
     final backgroundColor =
@@ -1259,7 +1263,7 @@ class _VideoGridItem extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'stop'.tr,
+                  l10n.stop,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
@@ -1293,7 +1297,7 @@ class _VideoGridItem extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              'download'.tr,
+              l10n.download,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,

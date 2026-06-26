@@ -4,7 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:todo_cat/data/schemas/app_config.dart';
@@ -14,6 +13,7 @@ import 'package:todo_cat/data/services/repositorys/task.dart';
 import 'package:todo_cat/widgets/import_conflict_dialog.dart';
 import 'package:logger/logger.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 class DataExportImportService {
   static final _logger = Logger();
   static DataExportImportService? _instance;
@@ -93,13 +93,13 @@ class DataExportImportService {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
-        dialogTitle: 'selectDataFileToImport'.tr,
+        dialogTitle: l10n.selectDataFileToImport,
       );
 
       if (result == null || result.files.isEmpty) {
         _logger.w('User cancelled file selection');
         return ImportResult(
-            success: false, message: 'userCancelledOperation'.tr);
+            success: false, message: l10n.userCancelledOperation);
       }
 
       final file = File(result.files.first.path!);
@@ -108,7 +108,7 @@ class DataExportImportService {
       // 检查文件是否为空
       if (jsonString.trim().isEmpty) {
         _logger.w('JSON文件为空');
-        return ImportResult(success: false, message: 'invalidFileFormat'.tr);
+        return ImportResult(success: false, message: l10n.invalidFileFormat);
       }
 
       // 解析JSON数据，添加异常处理
@@ -117,12 +117,12 @@ class DataExportImportService {
         data = json.decode(jsonString) as Map<String, dynamic>;
       } catch (e) {
         _logger.e('JSON解析失败: $e');
-        return ImportResult(success: false, message: 'invalidFileFormat'.tr);
+        return ImportResult(success: false, message: l10n.invalidFileFormat);
       }
 
       // 验证数据格式
       if (!_validateImportData(data)) {
-        return ImportResult(success: false, message: 'invalidFileFormat'.tr);
+        return ImportResult(success: false, message: l10n.invalidFileFormat);
       }
 
       // 开始导入
@@ -134,7 +134,7 @@ class DataExportImportService {
       _logger.e('Data import failed: $e');
       return ImportResult(
           success: false,
-          message: '${'importFailed'.tr}: ${e.toString()}');
+          message: '${l10n.importFailed}: ${e.toString()}');
     }
   }
 
@@ -155,7 +155,7 @@ class DataExportImportService {
       try {
         _logger.d('尝试使用saveFile方法...');
         result = await FilePicker.platform.saveFile(
-          dialogTitle: 'selectSaveLocation'.tr,
+          dialogTitle: l10n.selectSaveLocation,
           fileName: defaultFileName,
           allowedExtensions: ['json'],
         );
@@ -263,7 +263,7 @@ class DataExportImportService {
     if (allConflicts.isNotEmpty) {
       conflictAction = await _showConflictDialog(allConflicts);
       if (conflictAction == ConflictAction.cancel) {
-        return ImportResult(success: false, message: 'userCancelledImport'.tr);
+        return ImportResult(success: false, message: l10n.userCancelledImport);
       }
     }
 
@@ -358,20 +358,20 @@ class DataExportImportService {
     if (tasksImported > 0 || tasksReplaced > 0 || configImported) {
       final parts = <String>[];
       if (tasksImported > 0) {
-        parts.add('${'importedNewTasks'.tr} $tasksImported');
+        parts.add('${l10n.importedNewTasks} $tasksImported');
       }
       if (tasksReplaced > 0) {
-        parts.add('${'replacedTasks'.tr} $tasksReplaced');
+        parts.add('${l10n.replacedTasks} $tasksReplaced');
       }
       if (tasksSkipped > 0) {
-        parts.add('${'skippedTasks'.tr} $tasksSkipped');
+        parts.add('${l10n.skippedTasks} $tasksSkipped');
       }
       if (configImported) {
-        parts.add('updatedAppConfig'.tr);
+        parts.add(l10n.updatedAppConfig);
       }
       message = parts.join('，');
     } else {
-      message = 'noNewDataToImport'.tr;
+      message = l10n.noNewDataToImport;
     }
 
     return ImportResult(

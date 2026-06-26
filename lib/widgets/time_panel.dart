@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'dart:async';
 
-class TimePanel extends StatefulWidget {
+class TimePanel extends ConsumerStatefulWidget {
   const TimePanel({
     super.key,
     required this.onTimeSelected,
@@ -14,10 +15,10 @@ class TimePanel extends StatefulWidget {
   final TimeOfDay? initialTime;
 
   @override
-  State<TimePanel> createState() => TimePanelState();
+  ConsumerState<TimePanel> createState() => TimePanelState();
 }
 
-class TimePanelState extends State<TimePanel> {
+class TimePanelState extends ConsumerState<TimePanel> {
   late bool isAM;
   late int selectedHour;
   late int selectedMinute;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/widgets/show_toast.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/widgets/dialog_header.dart';
@@ -8,16 +8,19 @@ import 'package:todo_cat/services/dialog_service.dart';
 import 'package:todo_cat/keys/dialog_keys.dart';
 import 'package:todo_cat/pages/home/components/text_form_field_item.dart';
 import 'package:todo_cat/controllers/workspace_ctr.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 /// 创建工作空间对话框
-class CreateWorkspaceDialog extends StatefulWidget {
+class CreateWorkspaceDialog extends ConsumerStatefulWidget {
   const CreateWorkspaceDialog({super.key});
 
   @override
-  State<CreateWorkspaceDialog> createState() => _CreateWorkspaceDialogState();
+  ConsumerState<CreateWorkspaceDialog> createState() =>
+      _CreateWorkspaceDialogState();
 }
 
-class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
+class _CreateWorkspaceDialogState extends ConsumerState<CreateWorkspaceDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   bool _isCreating = false;
@@ -38,36 +41,34 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
     });
 
     try {
-      if (Get.isRegistered<WorkspaceController>()) {
-        final workspaceCtrl = Get.find<WorkspaceController>();
-        
-        // 创建工作空间，但不自动切换（autoSwitch: false）
-        final workspaceId = await workspaceCtrl.createWorkspace(
-          _nameController.text.trim(),
-          autoSwitch: false,
-        );
-        
-        if (mounted) {
-          if (workspaceId != null) {
-            // 先关闭对话框，避免在切换工作空间时对话框还在显示
-            SmartDialog.dismiss(tag: createWorkspaceDialogTag);
-            // 关闭工作空间选择器的下拉菜单
-            SmartDialog.dismiss(tag: 'workspace_selector');
-            
-            showSuccessNotification('workspaceCreated'.tr);
-            // 对话框已关闭，现在切换工作空间
-            await workspaceCtrl.switchWorkspace(workspaceId);
-          } else {
-            showErrorNotification('workspaceCreateFailed'.tr);
-            setState(() {
-              _isCreating = false;
-            });
-          }
+      final workspaceCtrl = ref.read(workspaceControllerProvider.notifier);
+
+      // 创建工作空间，但不自动切换（autoSwitch: false）
+      final workspaceId = await workspaceCtrl.createWorkspace(
+        _nameController.text.trim(),
+        autoSwitch: false,
+      );
+
+      if (mounted) {
+        if (workspaceId != null) {
+          // 先关闭对话框，避免在切换工作空间时对话框还在显示
+          SmartDialog.dismiss(tag: createWorkspaceDialogTag);
+          // 关闭工作空间选择器的下拉菜单
+          SmartDialog.dismiss(tag: 'workspace_selector');
+
+          showSuccessNotification(l10n.workspaceCreated);
+          // 对话框已关闭，现在切换工作空间
+          await workspaceCtrl.switchWorkspace(workspaceId);
+        } else {
+          showErrorNotification(l10n.workspaceCreateFailed);
+          setState(() {
+            _isCreating = false;
+          });
         }
       }
     } catch (e) {
       if (mounted) {
-        showErrorNotification('workspaceCreateFailed'.tr);
+        showErrorNotification(l10n.workspaceCreateFailed);
         setState(() {
           _isCreating = false;
         });
@@ -96,10 +97,10 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
           children: [
             // 标题栏
             DialogHeader(
-              title: 'createWorkspace'.tr,
+              title: l10n.createWorkspace,
               onCancel: () => SmartDialog.dismiss(tag: createWorkspaceDialogTag),
               onConfirm: _isCreating ? null : _createWorkspace,
-              confirmText: _isCreating ? 'creating'.tr : 'create'.tr,
+              confirmText: _isCreating ? l10n.creating : l10n.create,
             ),
             // 内容区域
             Expanded(
@@ -114,10 +115,10 @@ class _CreateWorkspaceDialogState extends State<CreateWorkspaceDialog> {
                       maxLength: 50,
                       maxLines: 1,
                       radius: 6,
-                      fieldTitle: 'workspaceName'.tr,
+                      fieldTitle: l10n.workspaceName,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'workspaceNameRequired'.tr;
+                          return l10n.workspaceNameRequired;
                         }
                         return null;
                       },

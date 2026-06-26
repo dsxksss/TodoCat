@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
+
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
 class DataImportConfirmDialog extends StatelessWidget {
   final VoidCallback onConfirm;
@@ -52,7 +54,7 @@ class DataImportConfirmDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'confirmImport'.tr,
+                  l10n.confirmImport,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -63,7 +65,7 @@ class DataImportConfirmDialog extends StatelessWidget {
                     LabelBtn(
                       ghostStyle: true,
                       label: Text(
-                        "cancel".tr,
+                        l10n.cancel,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -78,7 +80,7 @@ class DataImportConfirmDialog extends StatelessWidget {
                     const SizedBox(width: 8),
                     LabelBtn(
                       label: Text(
-                        "confirm".tr,
+                        l10n.confirm,
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -103,7 +105,7 @@ class DataImportConfirmDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'importDataWill'.tr,
+                  l10n.importDataWill,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -111,11 +113,11 @@ class DataImportConfirmDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildActionItem('addNewTasksAndTodos'.tr, context),
+                _buildActionItem(l10n.addNewTasksAndTodos, context),
                 const SizedBox(height: 8),
-                _buildActionItem('replaceAppSettings'.tr, context),
+                _buildActionItem(l10n.replaceAppSettings, context),
                 const SizedBox(height: 8),
-                _buildActionItem('keepExistingData'.tr, context),
+                _buildActionItem(l10n.keepExistingData, context),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -138,7 +140,7 @@ class DataImportConfirmDialog extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'importWarning'.tr,
+                          l10n.importWarning,
                           style: TextStyle(
                             fontSize: 12,
                             color: context.theme.textTheme.bodySmall?.color?.withValues(alpha:0.8),

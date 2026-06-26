@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
-class ReminderPickerPanel extends StatelessWidget {
-  ReminderPickerPanel({
+import 'package:todo_cat/core/utils/l10n.dart';
+
+class ReminderPickerPanel extends ConsumerStatefulWidget {
+  const ReminderPickerPanel({
     super.key,
     required this.onReminderSelected,
     this.initialReminder = 0,
@@ -12,7 +15,14 @@ class ReminderPickerPanel extends StatelessWidget {
 
   final Function(int) onReminderSelected;
   final int initialReminder;
-  final selectedReminder = 0.obs;
+
+  @override
+  ConsumerState<ReminderPickerPanel> createState() =>
+      _ReminderPickerPanelState();
+}
+
+class _ReminderPickerPanelState extends ConsumerState<ReminderPickerPanel> {
+  late int _selectedReminder;
 
   final List<Map<String, dynamic>> reminderOptions = [
     {"value": 0, "label": "noReminder", "description": "不设置提醒"},
@@ -25,9 +35,13 @@ class ReminderPickerPanel extends StatelessWidget {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _selectedReminder = widget.initialReminder;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    selectedReminder.value = initialReminder;
-    
     return Container(
       width: 300,
       constraints: const BoxConstraints(maxHeight: 400),
@@ -53,7 +67,7 @@ class ReminderPickerPanel extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "reminderTime".tr,
+                  l10n.reminderTime,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -64,7 +78,7 @@ class ReminderPickerPanel extends StatelessWidget {
                     LabelBtn(
                       ghostStyle: true,
                       label: Text(
-                        "cancel".tr,
+                        l10n.cancel,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -79,7 +93,7 @@ class ReminderPickerPanel extends StatelessWidget {
                     const SizedBox(width: 8),
                     LabelBtn(
                       label: Text(
-                        "confirm".tr,
+                        l10n.confirm,
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white,
@@ -91,7 +105,7 @@ class ReminderPickerPanel extends StatelessWidget {
                         vertical: 2,
                       ),
                       onPressed: () {
-                        onReminderSelected(selectedReminder.value);
+                        widget.onReminderSelected(_selectedReminder);
                         SmartDialog.dismiss();
                       },
                     ),
@@ -129,68 +143,68 @@ class ReminderPickerPanel extends StatelessWidget {
     String label,
     String description,
   ) {
-    return Obx(() => GestureDetector(
-          onTap: () => selectedReminder.value = value,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              color: selectedReminder.value == value
-                  ? const Color(0xFF3B82F6).withValues(alpha:0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: selectedReminder.value == value
-                    ? const Color(0xFF3B82F6)
-                    : context.theme.dividerColor,
-                width: selectedReminder.value == value ? 1.5 : 0.5,
+    final isSelected = _selectedReminder == value;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedReminder = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF3B82F6)
+                : context.theme.dividerColor,
+            width: isSelected ? 1.5 : 0.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              value == 0 ? Icons.notifications_off : Icons.notifications_active,
+              color: isSelected
+                  ? const Color(0xFF3B82F6)
+                  : context.theme.iconTheme.color,
+              size: 18,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    dynTr(label),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: isSelected
+                          ? const Color(0xFF3B82F6)
+                          : context.theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  if (description.isNotEmpty)
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.theme.textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                ],
               ),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  value == 0 ? Icons.notifications_off : Icons.notifications_active,
-                  color: selectedReminder.value == value
-                      ? const Color(0xFF3B82F6)
-                      : context.theme.iconTheme.color,
-                  size: 18,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label.tr,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: selectedReminder.value == value
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: selectedReminder.value == value
-                              ? const Color(0xFF3B82F6)
-                              : context.theme.textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      if (description.isNotEmpty)
-                        Text(
-                          description,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: context.theme.textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (selectedReminder.value == value)
-                  const Icon(
-                    Icons.check_circle,
-                    color: Color(0xFF3B82F6),
-                    size: 18,
-                  ),
-              ],
-            ),
-          ),
-        ));
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF3B82F6),
+                size: 18,
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

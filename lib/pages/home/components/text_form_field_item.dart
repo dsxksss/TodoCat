@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
 class TextFormFieldItem extends StatelessWidget {
   const TextFormFieldItem({
     super.key,
@@ -102,7 +103,7 @@ class TextFormFieldItem extends StatelessWidget {
         filled: true,
         fillColor: _fillColor ?? context.theme.inputDecorationTheme.fillColor,
         contentPadding: _contentPadding,
-        hintText: _fieldTitle.tr,
+        hintText: _fieldTitle,
         hoverColor: Colors.transparent,
         hintStyle: const TextStyle(color: Colors.grey),
         border: inputBorder,
@@ -120,7 +121,7 @@ class TextFormFieldItem extends StatelessWidget {
       validator: _validator ??
           (value) {
             if (value == null || value.trim().isEmpty) {
-              return "${"pleaseCompleteItProperly".tr}${_fieldTitle.tr}";
+              return "${l10n.pleaseCompleteItProperly}${_fieldTitle}";
             }
             return null;
           },

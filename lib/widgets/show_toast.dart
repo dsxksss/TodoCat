@@ -3,15 +3,26 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get.dart';
 import 'package:todo_cat/core/notification_stack_manager.dart';
 import 'package:todo_cat/core/notification_center_manager.dart';
 import 'package:todo_cat/data/schemas/notification_history.dart';
+import 'package:todo_cat/routers/app_router.dart';
 import 'package:todo_cat/widgets/label_btn.dart';
 import 'package:todo_cat/widgets/countdown_circle_progress.dart';
 
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
+/// 获取全局 ProviderContainer（用于在非 widget 的全局函数中读取 provider）。
+ProviderContainer get _container =>
+    ProviderScope.containerOf(rootNavigatorKey.currentContext!);
+
+/// 通知栈管理器（notifier）便捷访问。
+NotificationStackManager get _stackManager =>
+    _container.read(notificationStackManagerProvider.notifier);
 /// Toast 样式类型枚举
 enum TodoCatToastStyleType {
   info,
@@ -94,7 +105,7 @@ Widget _buildBottomLeftNotification(
   String notificationId,
 ) {
   final iconData = _getIconData(toastStyleType);
-  final stackManager = NotificationStackManager.instance;
+  final stackManager = _stackManager;
   final notification = stackManager.getNotification(notificationId);
 
   if (notification == null) {
@@ -371,7 +382,7 @@ void showToast(
                             children: [
                               LabelBtn(
                                 label: Text(
-                                  "yes".tr,
+                                  l10n.yes,
                                   style: const TextStyle(
                                     color: Colors.white,
                                   ),
@@ -387,7 +398,7 @@ void showToast(
                               ),
                               const SizedBox(width: 20),
                               LabelBtn(
-                                label: Text("no".tr),
+                                label: Text(l10n.no),
                                 ghostStyle: true,
                                 onPressed: () {
                                   if (onNoCallback != null) {
@@ -416,7 +427,7 @@ void _showStackedNotification(
   Duration displayTime,
   String notificationId,
 ) {
-  final stackManager = NotificationStackManager.instance;
+  final stackManager = _stackManager;
   final notification = stackManager.getNotification(notificationId);
 
   if (notification == null) return;
@@ -438,16 +449,25 @@ void _showStackedNotification(
       controller: controller,
       effects: _getBottomLeftAnimationEffect(controller),
     ),
-    builder: (context) => Obx(() => Container(
-          margin:
-              EdgeInsets.only(bottom: notification.currentBottomOffset.value),
+    builder: (context) => Consumer(
+      builder: (context, ref, _) {
+        // 监听栈状态以在动画帧/位置更新时重建
+        ref.watch(notificationStackManagerProvider);
+        final item = ref
+            .read(notificationStackManagerProvider.notifier)
+            .getNotification(notificationId);
+        if (item == null) return const SizedBox.shrink();
+        return Container(
+          margin: EdgeInsets.only(bottom: item.currentBottomOffset),
           child: _buildBottomLeftNotification(
             context,
             message,
             toastStyleType,
             notificationId,
           ),
-        )),
+        );
+      },
+    ),
   );
 }
 
@@ -461,14 +481,15 @@ void showNotification(
   String? title,
   bool saveToNotificationCenter = true,
 }) {
-  final stackManager = NotificationStackManager.instance;
+  final stackManager = _stackManager;
 
   // 只有需要保存到通知中心的通知才添加到通知中心
   // 成功类型的通知（如编辑成功）通常不需要保存到通知中心，只显示临时通知
   if (saveToNotificationCenter) {
     try {
       // 尝试获取通知中心管理器
-      final notificationCenter = Get.find<NotificationCenterManager>();
+      final notificationCenter =
+          _container.read(notificationCenterManagerProvider.notifier);
 
       // 添加到通知中心（会自动去重）
       notificationCenter
@@ -541,13 +562,13 @@ NotificationLevel _mapToNotificationLevel(TodoCatToastStyleType type) {
 String _getNotificationTitle(TodoCatToastStyleType type) {
   switch (type) {
     case TodoCatToastStyleType.success:
-      return 'success'.tr;
+      return l10n.success;
     case TodoCatToastStyleType.error:
-      return 'error'.tr;
+      return l10n.error;
     case TodoCatToastStyleType.warning:
-      return 'warning'.tr;
+      return l10n.warning;
     case TodoCatToastStyleType.info:
-      return 'info'.tr;
+      return l10n.info;
   }
 }
 
@@ -585,7 +606,7 @@ void showUndoToast(
   VoidCallback onUndo, {
   int countdownSeconds = 5,
 }) {
-  final stackManager = NotificationStackManager.instance;
+  final stackManager = _stackManager;
   final duration = Duration(seconds: countdownSeconds);
   final notificationId = stackManager.addNotification(
     message: message,
@@ -617,12 +638,16 @@ void showUndoToast(
       controller: controller,
       effects: _getBottomLeftAnimationEffect(controller),
     ),
-    builder: (context) => Obx(() {
-      final notification = stackManager.getNotification(notificationId);
+    builder: (context) => Consumer(builder: (context, ref, _) {
+      // 监听栈状态以在动画帧/位置更新时重建
+      ref.watch(notificationStackManagerProvider);
+      final notification = ref
+          .read(notificationStackManagerProvider.notifier)
+          .getNotification(notificationId);
       if (notification == null) return const SizedBox.shrink();
 
       return Container(
-        margin: EdgeInsets.only(bottom: notification.currentBottomOffset.value),
+        margin: EdgeInsets.only(bottom: notification.currentBottomOffset),
         child: Container(
           constraints: const BoxConstraints(
             maxWidth: 340,
@@ -676,7 +701,7 @@ void showUndoToast(
                 // 撤销按钮（使用LabelBtn，倒计时圆圈在文字前面）
                 LabelBtn(
                   label: Text(
-                    'undo'.tr,
+                    l10n.undo,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,

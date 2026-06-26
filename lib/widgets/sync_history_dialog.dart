@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:todo_cat/services/sync_manager.dart';
@@ -9,17 +9,20 @@ import 'package:todo_cat/controllers/workspace_ctr.dart';
 import 'package:todo_cat/controllers/home_ctr.dart';
 import 'package:todo_cat/controllers/trash_ctr.dart';
 
-class SyncHistoryDialog extends StatefulWidget {
+import 'package:todo_cat/core/utils/l10n.dart';
+import 'package:todo_cat/core/utils/responsive.dart';
+
+class SyncHistoryDialog extends ConsumerStatefulWidget {
   final String workspaceUuid;
 
   const SyncHistoryDialog({Key? key, required this.workspaceUuid})
       : super(key: key);
 
   @override
-  State<SyncHistoryDialog> createState() => _SyncHistoryDialogState();
+  ConsumerState<SyncHistoryDialog> createState() => _SyncHistoryDialogState();
 }
 
-class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
+class _SyncHistoryDialogState extends ConsumerState<SyncHistoryDialog> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _history = [];
 
@@ -49,7 +52,7 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
 
   Future<void> _restoreVersion(Map<String, dynamic> version) async {
     showToast(
-      'confirmRestoreHistory'.tr,
+      l10n.confirmRestoreHistory,
       confirmMode: true,
       onYesCallback: () async {
         SmartDialog.dismiss(tag: 'sync_history_dialog'); // Close history dialog
@@ -65,30 +68,23 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
           );
 
           // Refer to _restoreRemoteWorkspace logic in SyncConfigDialog
-          if (Get.isRegistered<WorkspaceController>()) {
-            await Get.find<WorkspaceController>().loadWorkspaces();
-          }
-          if (Get.isRegistered<WorkspaceController>() &&
-              Get.isRegistered<HomeController>()) {
-            final wsCtrl = Get.find<WorkspaceController>();
-            final homeCtrl = Get.find<HomeController>();
+          await ref.read(workspaceControllerProvider.notifier).loadWorkspaces();
 
-            // If we are on the restored workspace, refresh it
-            if (wsCtrl.currentWorkspaceId.value == widget.workspaceUuid) {
-              await homeCtrl.refreshData(
-                  showEmptyPrompt: false, clearBeforeRefresh: true);
-            }
-
-            // 刷新回收站数据
-            if (Get.isRegistered<TrashController>()) {
-              await Get.find<TrashController>().refresh();
-            }
+          // If we are on the restored workspace, refresh it
+          if (ref.read(workspaceControllerProvider).currentWorkspaceId ==
+              widget.workspaceUuid) {
+            await ref
+                .read(homeControllerProvider.notifier)
+                .refreshData(showEmptyPrompt: false, clearBeforeRefresh: true);
           }
 
-          showToast('restoreSuccess'.tr,
+          // 刷新回收站数据
+          await ref.read(trashControllerProvider.notifier).refresh();
+
+          showToast(l10n.restoreSuccess,
               toastStyleType: TodoCatToastStyleType.success);
         } catch (e) {
-          showToast('${'syncFailed'.tr}: $e',
+          showToast('${l10n.syncFailed}: $e',
               toastStyleType: TodoCatToastStyleType.error);
         } finally {
           SmartDialog.dismiss();
@@ -100,12 +96,12 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
   @override
   Widget build(BuildContext context) {
     // Adaptive size
-    final width = context.isPhone ? Get.width : 400.0;
+    final width = context.isPhone ? context.width : 400.0;
 
     return Container(
       width: width,
       constraints: BoxConstraints(
-        maxHeight: context.isPhone ? Get.height * 0.8 : 500,
+        maxHeight: context.isPhone ? context.height * 0.8 : 500,
       ),
       padding: context.isPhone ? const EdgeInsets.only(top: 12) : null,
       decoration: BoxDecoration(
@@ -116,7 +112,7 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           DialogHeader(
-            title: 'historyVersions'.tr,
+            title: l10n.historyVersions,
             onCancel: () => SmartDialog.dismiss(tag: 'sync_history_dialog'),
             showConfirm: false,
           ),
@@ -128,7 +124,7 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Text(
-                            'noHistoryVersions'.tr,
+                            l10n.noHistoryVersions,
                             style: TextStyle(color: context.theme.hintColor),
                           ),
                         ),
@@ -161,7 +157,7 @@ class _SyncHistoryDialogState extends State<SyncHistoryDialog> {
                                     horizontal: 12, vertical: 0),
                                 minimumSize: const Size(60, 32),
                               ),
-                              child: Text('restore'.tr,
+                              child: Text(l10n.restore,
                                   style: const TextStyle(fontSize: 12)),
                             ),
                           );
